@@ -1,0 +1,61 @@
+# Ambiente de DESENVOLVIMENTO do TransJRBI.
+#   docker compose up        -> sobe app (porta 3000), PostgreSQL e Mailpit (porta 8025)
+# Também é usado pelo Dev Container (.devcontainer/devcontainer.json).
+name: transjrbi
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    # bin/setup instala gems e pacotes JS (bun install), prepara o banco e inicia o bin/dev
+    command: bin/setup
+    volumes:
+      - .:/workspaces/transjrbi:cached
+      - bundle:/usr/local/bundle
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      RAILS_ENV: development
+      DB_HOST: db
+      SMTP_ADDRESS: mailpit
+      SMTP_PORT: "1025"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    stdin_open: true
+    tty: true
+
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      # A partir do PostgreSQL 18 a imagem oficial guarda os dados em /var/lib/postgresql/<versão>/
+      - postgres-data:/var/lib/postgresql
+    # Descomente para acessar o banco a partir do seu computador (ex.: DBeaver, TablePlus)
+    # ports:
+    #   - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"   # interface web: http://localhost:8025
+    # SMTP (1025) fica acessível apenas dentro da rede do Docker
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+
+volumes:
+  bundle:
+  postgres-data:

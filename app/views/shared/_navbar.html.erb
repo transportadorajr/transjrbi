@@ -1,0 +1,31 @@
+<nav class="navbar navbar-expand-md bg-dark border-bottom border-body" data-bs-theme="dark">
+  <div class="container">
+    <%= link_to "TransJRBI", root_path, class: "navbar-brand fw-semibold" %>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPrincipal"
+            aria-controls="navbarPrincipal" aria-expanded="false" aria-label="Alternar navegação">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarPrincipal">
+      <ul class="navbar-nav ms-auto">
+        <% if user_signed_in? %>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-person-circle me-1"></i><%= current_user.email %>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><%= link_to "Minha conta", edit_user_registration_path, class: "dropdown-item" %></li>
+              <li><%= link_to "Jobs (GoodJob)", "/good_job", class: "dropdown-item", data: { turbo: false } %></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><%= button_to "Sair", destroy_user_session_path, method: :delete, class: "dropdown-item" %></li>
+            </ul>
+          </li>
+        <% else %>
+          <li class="nav-item"><%= link_to "Entrar", new_user_session_path, class: "nav-link" %></li>
+          <li class="nav-item"><%= link_to "Cadastrar", new_user_registration_path, class: "nav-link" %></li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav>

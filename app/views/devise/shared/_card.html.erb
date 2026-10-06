@@ -1,0 +1,11 @@
+<%# Moldura padrão das telas de autenticação. Uso: render layout: "devise/shared/card", locals: { title: "..." } do ... end %>
+<div class="row justify-content-center">
+  <div class="col-sm-10 col-md-7 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-4"><%= title %></h1>
+        <%= yield %>
+      </div>
+    </div>
+  </div>
+</div>

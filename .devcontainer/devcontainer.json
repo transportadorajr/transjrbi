@@ -1,0 +1,38 @@
+// Dev Container do TransJRBI.
+// No VS Code: "Dev Containers: Reopen in Container". Depois, no terminal: bin/dev
+// Formato: https://containers.dev/implementors/json_reference/
+{
+  "name": "transjrbi",
+  "dockerComposeFile": "../compose.yaml",
+  "service": "app",
+  "runServices": ["app", "db", "mailpit"],
+  "workspaceFolder": "/workspaces/transjrbi",
+  // Mantém o container vivo sem iniciar o bin/dev automaticamente
+  "overrideCommand": true,
+  "remoteUser": "dev",
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "forwardPorts": [3000, 8025],
+  "portsAttributes": {
+    "3000": { "label": "Rails" },
+    "8025": { "label": "Mailpit" }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Shopify.ruby-lsp",
+        "marcoroth.herb-lsp",
+        "oven.bun-vscode",
+        "ms-azuretools.vscode-docker",
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  },
+
+  // Instala gems, pacotes JS (bun install) e prepara o banco
+  "postCreateCommand": "bin/setup --skip-server"
+}

@@ -1,0 +1,42 @@
+<% content_for :title, "TransJRBI" %>
+
+<div class="p-5 mb-4 bg-body rounded-3 border">
+  <h1 class="display-6 fw-semibold">TransJRBI</h1>
+  <p class="lead text-body-secondary mb-0">
+    Rails <%= Rails.version %> · Ruby <%= RUBY_VERSION %> · Stimulus · Bootstrap
+  </p>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title"><i class="bi bi-lightning-charge me-1"></i>Stimulus</h2>
+        <p class="card-text text-body-secondary">Teste rápido de um controller Stimulus.</p>
+        <div data-controller="hello">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Seu nome" data-hello-target="name">
+            <button class="btn btn-primary" data-action="hello#greet">Cumprimentar</button>
+          </div>
+          <p class="mt-3 mb-0" data-hello-target="output"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card h-100">
+      <div class="card-body">
+        <h2 class="h5 card-title"><i class="bi bi-person-check me-1"></i>Conta</h2>
+        <% if user_signed_in? %>
+          <p class="card-text">Você está conectado como <strong><%= current_user.email %></strong>.</p>
+          <%= link_to "Abrir dashboard de jobs", "/good_job", class: "btn btn-outline-secondary", data: { turbo: false } %>
+        <% else %>
+          <p class="card-text text-body-secondary">Crie uma conta para testar a confirmação por e-mail (Mailpit).</p>
+          <%= link_to "Cadastrar", new_user_registration_path, class: "btn btn-primary" %>
+          <%= link_to "Entrar", new_user_session_path, class: "btn btn-outline-secondary" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

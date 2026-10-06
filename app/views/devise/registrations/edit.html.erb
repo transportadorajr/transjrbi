@@ -1,0 +1,53 @@
+<%= render layout: "devise/shared/card", locals: { title: t('.title', resource: resource.model_name.human) } do %>
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+    <%= render "devise/shared/error_messages", resource: resource %>
+
+    <div class="mb-3">
+      <%= f.label :email, class: "form-label" %>
+      <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control" %>
+      <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+        <div class="form-text text-warning-emphasis">
+          <%= t('.currently_waiting_confirmation_for_email', email: resource.unconfirmed_email) %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :password, class: "form-label" %>
+      <%= f.password_field :password, autocomplete: "new-password", class: "form-control" %>
+      <div class="form-text">
+        <%= t('.leave_blank_if_you_don_t_want_to_change_it') %>
+        <% if @minimum_password_length %>
+          · <%= t('devise.shared.minimum_password_length', count: @minimum_password_length) %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :password_confirmation, class: "form-label" %>
+      <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control" %>
+    </div>
+
+    <div class="mb-3">
+      <%= f.label :current_password, class: "form-label" %>
+      <%= f.password_field :current_password, autocomplete: "current-password", class: "form-control" %>
+      <div class="form-text"><%= t('.we_need_your_current_password_to_confirm_your_changes') %></div>
+    </div>
+
+    <div class="d-grid">
+      <%= f.submit t('.update'), class: "btn btn-primary" %>
+    </div>
+  <% end %>
+
+  <hr class="my-4">
+
+  <h2 class="h6"><%= t('.cancel_my_account') %></h2>
+  <p class="small text-body-secondary mb-2"><%= t('.unhappy') %></p>
+  <%= button_to t('.cancel_my_account'), registration_path(resource_name),
+        method: :delete, class: "btn btn-outline-danger btn-sm",
+        data: { turbo_confirm: t('.are_you_sure') } %>
+
+  <div class="mt-3 small">
+    <%= link_to t('devise.shared.links.back'), :back %>
+  </div>
+<% end %>
