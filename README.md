@@ -97,3 +97,4 @@ bin/rails test
 - Definir perfis/tipos de usuário e o uso do módulo `lockable`.
 - Restringir o dashboard do GoodJob por perfil (hoje basta estar logado).
 - Configurar o envio de e-mails de produção.
+# transjrbi
