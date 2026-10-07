@@ -98,3 +98,4 @@ bin/rails test
 - Restringir o dashboard do GoodJob por perfil (hoje basta estar logado).
 - Configurar o envio de e-mails de produção.
 # transjrbi
+# transjrbi
