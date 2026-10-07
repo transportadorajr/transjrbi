@@ -1,26 +1,63 @@
-<%= render layout: "devise/shared/card", locals: { title: t('.sign_in') } do %>
-  <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-    <div class="mb-3">
-      <%= f.label :email, class: "form-label" %>
-      <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control" %>
+<% content_for :title, t('.title') %>
+
+<div class="auth">
+  <section class="auth-hero">
+    <div class="auth-hero-content">
+      <span class="auth-brand">
+        <span class="auth-brand-mark"><%= icon(:'truck-front-fill') %></span>
+        <%= t('.brand') %>
+      </span>
+
+      <h1 class="auth-hero-title"><%= t('.hero_title') %></h1>
+      <p class="auth-hero-text"><%= t('.hero_text') %></p>
     </div>
+  </section>
 
-    <div class="mb-3">
-      <%= f.label :password, class: "form-label" %>
-      <%= f.password_field :password, autocomplete: "current-password", class: "form-control" %>
+  <section class="auth-sheet">
+    <div class="auth-sheet-inner">
+      <h2 class="auth-title"><%= t('.heading') %></h2>
+      <p class="auth-subtitle"><%= t('.subheading') %></p>
+
+      <%= render "shared/flash" %>
+
+      <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "auth-form" }) do |f| %>
+        <div class="form-floating mb-3">
+          <%= f.email_field :email, autofocus: true, autocomplete: "email", inputmode: "email",
+                                    placeholder: User.human_attribute_name(:email), class: "form-control auth-input" %>
+          <%= f.label :email %>
+        </div>
+
+        <div class="form-floating auth-password mb-3" data-controller="password-visibility">
+          <%= f.password_field :password, autocomplete: "current-password", placeholder: User.human_attribute_name(:password),
+                                          class: "form-control auth-input", data: { password_visibility_target: "input" } %>
+          <%= f.label :password %>
+          <%= button_tag type: "button", class: "auth-password-toggle", aria: { label: t('.show_password'), pressed: false },
+                         data: { action: "password-visibility#toggle", password_visibility_target: "button" } do %>
+            <%= icon(:eye, data: { password_visibility_target: "icon" }) %>
+          <% end %>
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+          <% if devise_mapping.rememberable? %>
+            <div class="form-check form-switch auth-switch mb-0">
+              <%= f.check_box :remember_me, class: "form-check-input", role: "switch" %>
+              <%= f.label :remember_me, class: "form-check-label text-nowrap" %>
+            </div>
+          <% end %>
+
+          <%= link_to t('.forgot_password'), new_password_path(resource_name), class: "auth-link text-nowrap ms-auto" %>
+        </div>
+
+        <%= button_tag type: "submit", class: "btn auth-btn w-100", data: { turbo_submits_with: t('.submitting') } do %>
+          <%= t('.submit') %>
+          <%= icon(:'arrow-right', class: "ms-2") %>
+        <% end %>
+      <% end %>
+
+      <p class="auth-footer">
+        <%= t('.no_account') %>
+        <%= link_to t('.sign_up'), new_registration_path(resource_name), class: "auth-link" %>
+      </p>
     </div>
-
-    <% if devise_mapping.rememberable? %>
-      <div class="form-check mb-3">
-        <%= f.check_box :remember_me, class: "form-check-input" %>
-        <%= f.label :remember_me, class: "form-check-label" %>
-      </div>
-    <% end %>
-
-    <div class="d-grid">
-      <%= f.submit t('.sign_in'), class: "btn btn-primary" %>
-    </div>
-  <% end %>
-
-  <%= render "devise/shared/links" %>
-<% end %>
+  </section>
+</div>

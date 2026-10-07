@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bundle check *)",
+      "Bash(gem list *)",
+      "Bash(rails db:prepare)",
+      "Bash(lsof -nP -iTCP:3000 -sTCP:LISTEN)",
+      "Bash(ps -o pid,comm= -p 82136)",
+      "Bash(docker stop *)",
+      "Bash(bun run *)",
+      "Bash(time node_modules/.bin/sass --version)",
+      "Bash(time bun run build:css:compile)",
+      "Bash(awk '{print $3, $4, substr\\($0, index\\($0,$11\\), 120\\)}')",
+      "Bash(grep -v '^$')",
+      "Bash(bundle show *)",
+      "Read(//Users/moisesribeiro/.rbenv/versions/4.0.7/lib/ruby/gems/4.0.0/gems/devise-i18n-1.16.1/rails/locales/**)",
+      "Bash(grep -n -A6 -E '^    sessions:|^      new:$' pt-BR.yml)",
+      "Bash(grep -v '^\\\\s*$')",
+      "Bash(pkill -f \"sass ./app/assets/stylesheets\")",
+      "Bash(lsof -iTCP -sTCP:LISTEN -P)",
+      "Bash(curl -s -o /tmp/claude-501/login.html -w \"%{http_code}\\\\n\" --max-time 20 http://localhost:3000/users/sign_in)",
+      "Bash(curl -s -o /tmp/claude-501/login.html -w \"%{http_code}\\\\n\" --max-time 30 http://localhost:3000/users/sign_in)",
+      "Read(//Applications/Google Chrome.app/Contents/MacOS/**)",
+      "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=390,844 --virtual-time-budget=4000 --screenshot=/private/tmp/claude-501/-Users-moisesribeiro-Documents-transjrbi/8693957e-6e4f-40fd-b4e6-2e8a1400a191/scratchpad/mobile.png http://localhost:3000/users/sign_in)",
+      "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --hide-scrollbars --window-size=1440,900 --virtual-time-budget=4000 --screenshot=/private/tmp/claude-501/-Users-moisesribeiro-Documents-transjrbi/8693957e-6e4f-40fd-b4e6-2e8a1400a191/scratchpad/desktop.png http://localhost:3000/users/sign_in)"
+    ]
+  }
+}

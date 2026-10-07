@@ -1,0 +1,16 @@
+pt-BR:
+  devise:
+    sessions:
+      new:
+        title: Entrar · TransJRBI
+        brand: TransJRBI
+        hero_title: Sua operação com mais inteligência.
+        hero_text: Fretes, viagens e resultados da sua transportadora em um só lugar.
+        heading: Acesse sua conta
+        subheading: Informe seu e-mail e senha para continuar.
+        show_password: Mostrar senha
+        forgot_password: Esqueci minha senha
+        submit: Entrar
+        submitting: Entrando...
+        no_account: Ainda não tem conta?
+        sign_up: Criar conta
