@@ -39,14 +39,6 @@
     </div>
   <% end %>
 
-  <hr class="my-4">
-
-  <h2 class="h6"><%= t('.cancel_my_account') %></h2>
-  <p class="small text-body-secondary mb-2"><%= t('.unhappy') %></p>
-  <%= button_to t('.cancel_my_account'), registration_path(resource_name),
-        method: :delete, class: "btn btn-outline-danger btn-sm",
-        data: { turbo_confirm: t('.are_you_sure') } %>
-
   <div class="mt-3 small">
     <%= link_to t('devise.shared.links.back'), :back %>
   </div>

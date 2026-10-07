@@ -28,14 +28,8 @@
     <div class="card h-100">
       <div class="card-body">
         <h2 class="h5 card-title"><i class="bi bi-person-check me-1"></i>Conta</h2>
-        <% if user_signed_in? %>
-          <p class="card-text">Você está conectado como <strong><%= current_user.email %></strong>.</p>
-          <%= link_to "Abrir dashboard de jobs", "/good_job", class: "btn btn-outline-secondary", data: { turbo: false } %>
-        <% else %>
-          <p class="card-text text-body-secondary">Crie uma conta para testar a confirmação por e-mail (Mailpit).</p>
-          <%= link_to "Cadastrar", new_user_registration_path, class: "btn btn-primary" %>
-          <%= link_to "Entrar", new_user_session_path, class: "btn btn-outline-secondary" %>
-        <% end %>
+        <p class="card-text">Você está conectado como <strong><%= current_user.email %></strong>.</p>
+        <%= link_to "Abrir dashboard de jobs", "/good_job", class: "btn btn-outline-secondary", data: { turbo: false } %>
       </div>
     </div>
   </div>

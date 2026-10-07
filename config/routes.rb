@@ -1,5 +1,9 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, skip: :registrations
+
+  devise_scope :user do
+    resource :registration, only: %i[edit update], path: "users", controller: "devise/registrations", as: :user_registration
+  end
 
   # Dashboard do GoodJob (somente para usuários autenticados).
   # TODO: restringir por perfil/tipo de usuário quando os perfis forem definidos.

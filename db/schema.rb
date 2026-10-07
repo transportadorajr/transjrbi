@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_06_180100) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_07_132857) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -119,6 +119,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_180100) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "tenants", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "legal_id", null: false
+    t.string "trade_name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["legal_id"], name: "index_tenants_on_legal_id", unique: true
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -136,8 +145,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_06_180100) do
     t.string "unconfirmed_email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "tenant_id", null: false
     t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["tenant_id"], name: "index_users_on_tenant_id"
   end
+
+  add_foreign_key "users", "tenants"
 end

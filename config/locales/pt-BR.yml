@@ -1,4 +1,17 @@
 pt-BR:
+  activerecord:
+    models:
+      tenant:
+        one: Empresa
+        other: Empresas
+    attributes:
+      tenant:
+        name: Razão social
+        legal_id: CNPJ
+        trade_name: Nome fantasia
+        users: Usuários
+      user:
+        tenant: Empresa
   devise:
     sessions:
       new:
@@ -12,5 +25,3 @@ pt-BR:
         forgot_password: Esqueci minha senha
         submit: Entrar
         submitting: Entrando...
-        no_account: Ainda não tem conta?
-        sign_up: Criar conta

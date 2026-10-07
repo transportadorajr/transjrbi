@@ -438,6 +438,8 @@ end
 
 ## Controllers
 
+- Every controller of the app **must** inherit from `BaseController` (`app/controllers/base_controller.rb`), never from `ApplicationController` directly. `BaseController` inherits from `ApplicationController` and runs the `require_signed_in_user` `before_action`: a signed-in user goes on to the requested screen, and a visitor without a session is redirected to the login screen (`new_user_session_path`). The only controllers that keep inheriting from `ApplicationController` are the ones that must be reachable without a session — the Devise controllers (login), which already redirect a signed-in user to the home page, and `Admin::SessionsController`. Do not skip the authentication with `skip_before_action` to make a screen public without an explicit request.
+
 Every `index` action that lists a collection **must** declare scopes with `has_scope`, apply them with `apply_scopes`, and paginate with `.page(params[:page])`. This is the standard pattern for all listing screens. Deviation from this only when explicitly requested.
 
 ```ruby

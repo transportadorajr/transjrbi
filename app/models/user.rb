@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  belongs_to :tenant
+
   # Módulos do Devise em uso.
   # Disponíveis para o futuro: :lockable, :timeoutable, :omniauthable
   devise :database_authenticatable, :registerable,
