@@ -1,0 +1,3 @@
+[test]
+root = "spec/javascript"
+preload = ["./spec/javascript/setup.js"]

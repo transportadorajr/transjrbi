@@ -22,5 +22,9 @@
   },
   "browserslist": [
     "defaults"
-  ]
+  ],
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20.14.5",
+    "prettier": "^3.9.9"
+  }
 }

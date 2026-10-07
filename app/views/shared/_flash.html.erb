@@ -1,6 +1,6 @@
 <% flash.each do |type, message| %>
   <% next if message.blank? %>
-  <% css = { "notice" => "success", "alert" => "danger" }.fetch(type.to_s, "info") %>
+  <% css = { 'notice' => 'success', 'alert' => 'danger' }.fetch(type.to_s, 'info') %>
   <div class="alert alert-<%= css %> alert-dismissible fade show" role="alert">
     <%= message %>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>

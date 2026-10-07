@@ -79,65 +79,65 @@ class CreateGoodJobs < ActiveRecord::Migration[8.1]
       t.index :key, unique: true
     end
 
-    add_index :good_jobs, :scheduled_at, where: "(finished_at IS NULL)", name: :index_good_jobs_on_scheduled_at
-    add_index :good_jobs, [:active_job_id, :created_at], name: :index_good_jobs_on_active_job_id_and_created_at
-    add_index :good_jobs, :concurrency_key, where: "(finished_at IS NULL)", name: :index_good_jobs_on_concurrency_key_when_unfinished
-    add_index :good_jobs, [:concurrency_key, :created_at], name: :index_good_jobs_on_concurrency_key_and_created_at
-    add_index :good_jobs, [:cron_key, :created_at], where: "(cron_key IS NOT NULL)", name: :index_good_jobs_on_cron_key_and_created_at_cond
-    add_index :good_jobs, [:cron_key, :cron_at], order: { cron_at: "DESC NULLS LAST" },
-      where: "(cron_key IS NOT NULL)", unique: true, name: :index_good_jobs_on_cron_key_and_cron_at_cond
-    add_index :good_jobs, [:finished_at], where: "finished_at IS NOT NULL", name: :index_good_jobs_jobs_on_finished_at_only
-    add_index :good_jobs, [:priority, :created_at], order: { priority: "ASC NULLS LAST", created_at: :asc },
-      where: "finished_at IS NULL", name: :index_good_job_jobs_for_candidate_lookup
-    add_index :good_jobs, [:batch_id], where: "batch_id IS NOT NULL"
-    add_index :good_jobs, [:batch_callback_id], where: "batch_callback_id IS NOT NULL"
+    add_index :good_jobs, :scheduled_at, where: '(finished_at IS NULL)', name: :index_good_jobs_on_scheduled_at
+    add_index :good_jobs, %i[active_job_id created_at], name: :index_good_jobs_on_active_job_id_and_created_at
+    add_index :good_jobs, :concurrency_key, where: '(finished_at IS NULL)', name: :index_good_jobs_on_concurrency_key_when_unfinished
+    add_index :good_jobs, %i[concurrency_key created_at], name: :index_good_jobs_on_concurrency_key_and_created_at
+    add_index :good_jobs, %i[cron_key created_at], where: '(cron_key IS NOT NULL)', name: :index_good_jobs_on_cron_key_and_created_at_cond
+    add_index :good_jobs, %i[cron_key cron_at], order: { cron_at: 'DESC NULLS LAST' },
+                                                where: '(cron_key IS NOT NULL)', unique: true, name: :index_good_jobs_on_cron_key_and_cron_at_cond
+    add_index :good_jobs, [:finished_at], where: 'finished_at IS NOT NULL', name: :index_good_jobs_jobs_on_finished_at_only
+    add_index :good_jobs, %i[priority created_at], order: { priority: 'ASC NULLS LAST', created_at: :asc },
+                                                   where: 'finished_at IS NULL', name: :index_good_job_jobs_for_candidate_lookup
+    add_index :good_jobs, [:batch_id], where: 'batch_id IS NOT NULL'
+    add_index :good_jobs, [:batch_callback_id], where: 'batch_callback_id IS NOT NULL'
     add_index :good_jobs, :batch_id,
-      where: "batch_id IS NOT NULL AND finished_at IS NULL", name: :index_good_jobs_on_batch_id_unfinished
+              where: 'batch_id IS NOT NULL AND finished_at IS NULL', name: :index_good_jobs_on_batch_id_unfinished
     add_index :good_jobs, :batch_callback_id,
-      where: "batch_callback_id IS NOT NULL AND finished_at IS NULL", name: :index_good_jobs_on_batch_callback_id_unfinished
+              where: 'batch_callback_id IS NOT NULL AND finished_at IS NULL', name: :index_good_jobs_on_batch_callback_id_unfinished
     add_index :good_jobs, :job_class, name: :index_good_jobs_on_job_class
-    add_index :good_jobs, :labels, using: :gin, where: "(labels IS NOT NULL)", name: :index_good_jobs_on_labels
+    add_index :good_jobs, :labels, using: :gin, where: '(labels IS NOT NULL)', name: :index_good_jobs_on_labels
 
-    add_index :good_job_executions, [:active_job_id, :created_at], name: :index_good_job_executions_on_active_job_id_and_created_at
+    add_index :good_job_executions, %i[active_job_id created_at], name: :index_good_job_executions_on_active_job_id_and_created_at
     add_index :good_job_executions, :scheduled_at, name: :index_good_job_executions_on_scheduled_at
-    add_index :good_jobs, [:priority, :scheduled_at, :id],
-                                                      where: "finished_at IS NULL", name: "index_good_jobs_on_priority_scheduled_at_unfinished"
-    add_index :good_jobs, [:queue_name, :scheduled_at, :id],
-                                                      where: "finished_at IS NULL", name: "index_good_jobs_on_queue_name_priority_scheduled_at_unfinished"
+    add_index :good_jobs, %i[priority scheduled_at id],
+              where: 'finished_at IS NULL', name: 'index_good_jobs_on_priority_scheduled_at_unfinished'
+    add_index :good_jobs, %i[queue_name scheduled_at id],
+              where: 'finished_at IS NULL', name: 'index_good_jobs_on_queue_name_priority_scheduled_at_unfinished'
 
     add_index :good_jobs, :locked_by_id,
-      where: "locked_by_id IS NOT NULL", name: "index_good_jobs_on_locked_by_id"
-    add_index :good_job_executions, [:process_id, :created_at], name: :index_good_job_executions_on_process_id_and_created_at
+              where: 'locked_by_id IS NOT NULL', name: 'index_good_jobs_on_locked_by_id'
+    add_index :good_job_executions, %i[process_id created_at], name: :index_good_job_executions_on_process_id_and_created_at
     add_index :good_job_batches, :finished_at,
-      where: "finished_at IS NOT NULL", name: :index_good_job_batches_on_finished_at
-    add_index :good_job_batches, [:created_at, :id],
-      order: { created_at: :desc, id: :desc }, name: :index_good_job_batches_on_created_at_and_id
-    add_index :good_jobs, [:priority, :scheduled_at, :id],
-      name: :index_good_jobs_for_candidate_dequeue_unlocked,
-      order: { priority: "ASC NULLS LAST", scheduled_at: :asc, id: :asc },
-      where: "finished_at IS NULL AND locked_by_id IS NULL"
+              where: 'finished_at IS NOT NULL', name: :index_good_job_batches_on_finished_at
+    add_index :good_job_batches, %i[created_at id],
+              order: { created_at: :desc, id: :desc }, name: :index_good_job_batches_on_created_at_and_id
+    add_index :good_jobs, %i[priority scheduled_at id],
+              name: :index_good_jobs_for_candidate_dequeue_unlocked,
+              order: { priority: 'ASC NULLS LAST', scheduled_at: :asc, id: :asc },
+              where: 'finished_at IS NULL AND locked_by_id IS NULL'
 
-    add_index :good_jobs, [:queue_name, :priority, :created_at],
-      name: :index_good_jobs_dequeue_by_queue,
-      order: { priority: "ASC NULLS LAST", created_at: :asc },
-      where: "finished_at IS NULL AND locked_by_id IS NULL"
-    add_index :good_jobs, [:queue_name, :priority, :scheduled_at],
-      name: :index_good_jobs_dequeue_by_queue_scheduled_at,
-      order: { priority: "ASC NULLS LAST", scheduled_at: :asc },
-      where: "finished_at IS NULL AND locked_by_id IS NULL"
+    add_index :good_jobs, %i[queue_name priority created_at],
+              name: :index_good_jobs_dequeue_by_queue,
+              order: { priority: 'ASC NULLS LAST', created_at: :asc },
+              where: 'finished_at IS NULL AND locked_by_id IS NULL'
+    add_index :good_jobs, %i[queue_name priority scheduled_at],
+              name: :index_good_jobs_dequeue_by_queue_scheduled_at,
+              order: { priority: 'ASC NULLS LAST', scheduled_at: :asc },
+              where: 'finished_at IS NULL AND locked_by_id IS NULL'
 
     add_index :good_jobs, :queue_name, name: :index_good_jobs_on_queue_name
     add_index :good_jobs, :created_at, name: :index_good_jobs_on_created_at
     add_index :good_jobs, :finished_at,
-      name: :index_good_jobs_on_discarded,
-      order: { finished_at: :desc },
-      where: "finished_at IS NOT NULL AND error IS NOT NULL"
-    add_index :good_jobs, [:job_class, :finished_at],
-      name: :index_good_jobs_on_discarded_job_class,
-      where: "finished_at IS NOT NULL AND error IS NOT NULL"
-    add_index :good_jobs, [:scheduled_at, :queue_name], name: :index_good_jobs_on_scheduled_at_and_queue_name
+              name: :index_good_jobs_on_discarded,
+              order: { finished_at: :desc },
+              where: 'finished_at IS NOT NULL AND error IS NOT NULL'
+    add_index :good_jobs, %i[job_class finished_at],
+              name: :index_good_jobs_on_discarded_job_class,
+              where: 'finished_at IS NOT NULL AND error IS NOT NULL'
+    add_index :good_jobs, %i[scheduled_at queue_name], name: :index_good_jobs_on_scheduled_at_and_queue_name
     add_index :good_jobs, :id,
-      name: :index_good_jobs_on_unfinished_or_errored,
-      where: "finished_at IS NULL OR error IS NOT NULL"
+              name: :index_good_jobs_on_unfinished_or_errored,
+              where: 'finished_at IS NULL OR error IS NOT NULL'
   end
 end

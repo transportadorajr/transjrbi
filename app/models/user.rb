@@ -11,7 +11,7 @@ class User < ApplicationRecord
 
   # Envia os e-mails do Devise em segundo plano (fila do GoodJob)
   # em vez de enviá-los durante a requisição.
-  def send_devise_notification(notification, *args)
-    devise_mailer.send(notification, self, *args).deliver_later
+  def send_devise_notification(notification, *)
+    devise_mailer.send(notification, self, *).deliver_later
   end
 end

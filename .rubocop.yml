@@ -1,8 +1,354 @@
-# Omakase Ruby styling for Rails
-inherit_gem: { rubocop-rails-omakase: rubocop.yml }
+plugins:
+  - rubocop-capybara
+  - rubocop-factory_bot
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-rspec_rails
+require:
+  - ./rubocop/cop/rails/prefer_enum_options_for_select.rb
+  - ./rubocop/cop/rails/job_queue_as.rb
+  - ./rubocop/cop/rails/job_queue_with_priority.rb
 
-# Overwrite or add rules to create your own house style
-#
-# # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
-# Layout/SpaceInsideArrayLiteralBrackets:
-#   Enabled: false
+inherit_mode:
+  merge:
+    - Include
+
+inherit_gem:
+  rswag-specs: .rubocop_rspec_alias_config.yml
+
+AllCops:
+  TargetRubyVersion: 3.4
+  ParserEngine: parser_whitequark
+  DisplayCopNames: true
+  DisplayStyleGuide: true
+  NewCops: enable
+  Include:
+    - .tomo/**/*.rb
+    - /**/*.prawn
+  Exclude:
+    # ignore bin/* except for bin/setup
+    - !ruby/regexp /<%= Regexp.quote(File.expand_path("bin", __dir__)) %>\/(?!setup).*/
+    - .git/**/*
+    - db/*schema.rb
+    - lib/generators/**/*
+    - lib/templates/**/*
+    - db/migrate/20231220224223_create_good_jobs.rb
+    - log/**/*
+    - node_modules/**/*
+    - public/**/*
+    - storage/**/*
+    - tmp/**/*
+    - vendor/**/*
+    - bin/*
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Rails/SafeNavigation:
+  Enabled: false
+
+Style/SafeNavigationChainLength:
+  Enabled: false
+
+Capybara/RSpec/CurrentPathExpectation:
+  Enabled: false
+
+Capybara/RSpec/NegationMatcher:
+  Enabled: false
+
+FactoryBot/AssociationStyle:
+  Enabled: false
+
+FactoryBot/FactoryAssociationWithStrategy:
+  Enabled: false
+
+FactoryBot/IdSequence:
+  Exclude:
+    - spec/factories/api/**/*.rb
+
+Layout/ClosingHeredocIndentation:
+  Enabled: false
+
+Layout/CommentIndentation:
+  Enabled: false
+
+Layout/DotPosition:
+  Enabled: false
+
+Layout/FirstArrayElementIndentation:
+  Enabled: false
+
+Layout/FirstHashElementIndentation:
+  Exclude:
+    - spec/**/*
+
+Layout/HashAlignment:
+  EnforcedColonStyle:
+    - key
+    - table
+  Exclude:
+    - lib/tasks/annotate_rb.rake
+
+Layout/HeredocIndentation:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 180
+  AllowedPatterns:
+    - '^#  '
+  Exclude:
+    - spec/**/*
+    - features/**/*
+    - config/**/*
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/BlockLength:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Naming/AccessorMethodName:
+  Enabled: false
+
+Naming/AsciiIdentifiers:
+  Enabled: false
+
+Naming/MethodParameterName:
+  Enabled: false
+
+Naming/PredicatePrefix:
+  AllowedMethods:
+    - has_legal_id
+    - has_tenant
+
+Performance/CollectionLiteralInLoop:
+  Enabled: false
+
+Rails:
+  Enabled: true
+
+Rails/ActionOrder:
+  Enabled: false
+
+Rails/ApplicationRecord:
+  Exclude:
+    - db/migrate/*.rb
+
+Rails/ContentTag:
+  Enabled: false
+
+Rails/Date:
+  Enabled: false
+
+Rails/DotSeparatedKeys:
+  Enabled: false
+
+Rails/DynamicFindBy:
+  Enabled: false
+
+Rails/FilePath:
+  Enabled: false
+
+Rails/FindEach:
+  Exclude:
+    - app/views/**/*
+
+Rails/HasAndBelongsToMany:
+  Enabled: false
+
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+
+Rails/I18nLocaleTexts:
+  Enabled: false
+
+Rails/InverseOf:
+  Enabled: false
+
+Rails/LexicallyScopedActionFilter:
+  Enabled: false
+
+Rails/NotNullColumn:
+  Enabled: false
+
+Rails/RakeEnvironment:
+  Exclude:
+    - lib/tasks/annotate_rb.rake
+    - lib/tasks/javascript.rake
+
+Rails/OutputSafety:
+  Exclude:
+    - app/helpers/typst_helper.rb
+
+Rails/RedundantPresenceValidationOnBelongsTo:
+  Exclude:
+    - app/forms/**/*.rb
+
+Rails/SkipsModelValidations:
+  Enabled: false
+
+Rails/ThreeStateBooleanColumn:
+  Enabled: false
+
+Rails/UnknownEnv:
+  Environments:
+    - production
+    - staging
+    - development
+    - test
+
+Rails/WhereNotWithMultipleConditions:
+  Enabled: false
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/BeEq:
+  Enabled: false
+
+RSpec/ChangeByZero:
+  Enabled: false
+
+RSpec/Dialect:
+  Enabled: false
+
+RSpec/ContextWording:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/ExampleWording:
+  Enabled: false
+
+RSpec/ExpectInHook:
+  Enabled: false
+
+RSpec/LeadingSubject:
+  Enabled: false
+
+RSpec/LetSetup:
+  Enabled: false
+
+RSpec/ImplicitSubject:
+  Enabled: false
+
+RSpec/IndexedLet:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Enabled: false
+
+RSpec/NoExpectationExample:
+  Enabled: false
+
+RSpec/PendingWithoutReason:
+  Enabled: false
+
+RSpec/SortMetadata:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpecRails/TravelAround:
+  Enabled: false
+
+Style/AsciiComments:
+  Enabled: false
+
+Style/BlockComments:
+  Exclude:
+    - spec/rails_helper.rb
+    - spec/spec_helper.rb
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/ClassMethodsDefinitions:
+  Enabled: true
+  EnforcedStyle: self_class
+
+Style/CommandLiteral:
+  EnforcedStyle: mixed
+
+Style/ConditionalAssignment:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/DoubleNegation:
+  Enabled: false
+
+Style/EmptyMethod:
+  Enabled: false
+
+Style/FetchEnvVar:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/Lambda:
+  EnforcedStyle: literal
+
+Style/NestedTernaryOperator:
+  Enabled: false
+
+Style/OpenStructUse:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  Exclude:
+    - app/jobs/**/*
+
+Style/SymbolProc:
+  Exclude:
+    - config/initializers/rack_attack.rb
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma

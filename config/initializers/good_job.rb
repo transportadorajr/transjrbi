@@ -6,8 +6,8 @@ Rails.application.configure do
   config.good_job.execution_mode = Rails.env.test? ? :inline : :external
 
   # Filas processadas pelo worker ("*" = todas).
-  config.good_job.queues = ENV.fetch("GOOD_JOB_QUEUES", "*")
-  config.good_job.max_threads = ENV.fetch("GOOD_JOB_MAX_THREADS", 5).to_i
+  config.good_job.queues = ENV.fetch('GOOD_JOB_QUEUES', '*')
+  config.good_job.max_threads = ENV.fetch('GOOD_JOB_MAX_THREADS', 5).to_i
   config.good_job.poll_interval = 5 # segundos
   config.good_job.shutdown_timeout = 25 # segundos
 

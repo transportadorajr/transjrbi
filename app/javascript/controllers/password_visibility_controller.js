@@ -1,15 +1,15 @@
-import { Controller } from "@hotwired/stimulus"
+import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-  static targets = ["input", "button", "icon"]
+  static targets = ['input', 'button', 'icon'];
 
   toggle() {
-    const visible = this.inputTarget.type === "password"
+    const visible = this.inputTarget.type === 'password';
 
-    this.inputTarget.type = visible ? "text" : "password"
-    this.buttonTarget.setAttribute("aria-pressed", visible)
-    this.iconTarget.classList.toggle("bi-eye", !visible)
-    this.iconTarget.classList.toggle("bi-eye-slash", visible)
-    this.inputTarget.focus()
+    this.inputTarget.type = visible ? 'text' : 'password';
+    this.buttonTarget.setAttribute('aria-pressed', visible);
+    this.iconTarget.classList.toggle('bi-eye', !visible);
+    this.iconTarget.classList.toggle('bi-eye-slash', visible);
+    this.inputTarget.focus();
   }
 }

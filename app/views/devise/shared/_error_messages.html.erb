@@ -1,7 +1,7 @@
 <% if resource.errors.any? %>
   <div id="error_explanation" class="alert alert-danger" data-turbo-cache="false">
     <p class="fw-semibold mb-2">
-      <%= I18n.t("errors.messages.not_saved",
+      <%= I18n.t('errors.messages.not_saved',
                  count: resource.errors.count,
                  resource: resource.model_name.human.downcase) %>
     </p>

@@ -1,6 +1,6 @@
-require_relative "boot"
+require_relative 'boot'
 
-require "rails/all"
+require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -24,9 +24,9 @@ module Transjrbi
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Idioma e fuso horário padrão
-    config.i18n.available_locales = [ :"pt-BR", :en ]
-    config.i18n.default_locale = :"pt-BR"
-    config.time_zone = "America/Sao_Paulo"
+    config.i18n.available_locales = %i[pt-BR en]
+    config.i18n.default_locale = :'pt-BR'
+    config.time_zone = 'America/Sao_Paulo'
 
     # Jobs em segundo plano com GoodJob (PostgreSQL)
     config.active_job.queue_adapter = :good_job
