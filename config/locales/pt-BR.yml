@@ -4,6 +4,9 @@ pt-BR:
       tenant:
         one: Empresa
         other: Empresas
+      user:
+        one: Usuário
+        other: Usuários
     attributes:
       tenant:
         name: Razão social
@@ -12,6 +15,99 @@ pt-BR:
         users: Usuários
       user:
         tenant: Empresa
+        name: Nome
+        email: E-mail
+        phone: Telefone
+        user_type: Perfil
+        status: Status
+        activated_at: Ativado em
+  activemodel:
+    attributes:
+      user_form:
+        name: Nome
+        email: E-mail
+        phone: Telefone
+        user_type: Perfil
+  enums:
+    user:
+      user_type:
+        owner: Proprietário
+        admin: Administrador
+        operator: Operador
+  errors:
+    messages:
+      access_denied: Você não possui acesso a esta funcionalidade.
+  helpers:
+    links:
+      cancel: Cancelar
+    select:
+      prompt: Selecione
+    submit:
+      user:
+        create: Cadastrar Usuário
+        update: Salvar Alterações
+    tooltips:
+      user:
+        show: Visualizar
+        edit: Alterar
+  simple_form:
+    required:
+      text: obrigatório
+      mark: '*'
+    error_notification:
+      default_message: 'Revise os campos abaixo:'
+  views:
+    pagination:
+      first: Primeira
+      last: Última
+      previous: Anterior
+      next: Próxima
+      truncate: '&hellip;'
+      aria_label: Navegação de páginas
+  shared:
+    actions: Ações
+    all: Todos
+    apply_filters: Aplicar Filtros
+    clear_filters: Limpar Filtros
+    close: Fechar
+    filters: Filtros
+    no_content:
+      title: Nenhum registro encontrado
+      message: Tente ajustar os filtros ou crie um novo registro.
+    total_records:
+      one: 1 registro
+      other: '%{count} registros'
+  users:
+    index:
+      title: Usuários
+      new_user: Novo Usuário
+      total_users: Total
+      active_users: Ativos
+      deactivated_users: Inativos
+      active: Ativo
+      deactivated: Inativo
+    filters:
+      name: Nome do usuário
+      status: Status
+    show:
+      back: Voltar para usuários
+      user_data: Dados do Usuário
+      edit: Alterar
+      blank: '-'
+    new:
+      title: Novo Usuário
+      back: Voltar para usuários
+    create:
+      success: Usuário cadastrado com sucesso. Enviamos um e-mail para que ele defina a senha de acesso.
+    edit:
+      title: Alterar Usuário
+      back: Voltar para usuários
+    update:
+      success: Usuário atualizado com sucesso.
+    form:
+      user_data: Dados do Usuário
+      user_data_text: Informe os dados principais e o perfil de acesso do usuário.
+      phone_placeholder: (00) 00000-0000
   home:
     index:
       title: TransJRBI
@@ -52,3 +148,6 @@ pt-BR:
       logout: Sair
   menus:
     home: Início
+    users: Usuários
+    show: Visualizar
+    edit: Alterar

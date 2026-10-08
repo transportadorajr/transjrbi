@@ -1,0 +1,15 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('users.index.title'), users_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.title') %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title'), back_path: users_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'form', user_form: @user_form %>
+</div>

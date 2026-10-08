@@ -1,0 +1,43 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('users.form.user_data') %></p>
+    <p class="form-card-subtitle"><%= t('users.form.user_data_text') %></p>
+  </div>
+  <%= simple_form_for(user_form, url: user_form_url(user_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'name' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :email,
+                      as: :email,
+                      required: true,
+                      disabled: user_form.persisted?,
+                      input_html: { class: 'form-control', autocomplete: 'email', inputmode: 'email' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :phone,
+                      as: :tel,
+                      required: false,
+                      placeholder: t('users.form.phone_placeholder'),
+                      input_html: { class: 'form-control', autocomplete: 'tel', inputmode: 'tel' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :user_type,
+                      as: :select,
+                      required: true,
+                      collection: user_type_options(user_form),
+                      prompt: user_type_prompt(user_form),
+                      disabled: user_form.user_type_locked?,
+                      input_html: { class: 'form-select' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, user_form_submit_label(user_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), users_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

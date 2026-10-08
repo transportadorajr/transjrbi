@@ -1,0 +1,9 @@
+<% if page.current? %>
+  <li class="page-item active">
+    <%= link_to page, '#', class: 'page-link bg-primary border-primary', data: { remote: remote }, rel: page.rel, aria: { current: 'page' } %>
+  </li>
+<% else %>
+  <li class="page-item">
+    <%= link_to page, url, remote: remote, rel: page.rel, class: 'page-link text-primary' %>
+  </li>
+<% end %>

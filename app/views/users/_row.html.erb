@@ -1,0 +1,21 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <div class="d-flex align-items-center gap-3">
+      <div class="bg-light text-dark fw-semibold rounded-circle d-none d-sm-flex align-items-center justify-content-center avatar-circle">
+        <%= user_initial(item) %>
+      </div>
+      <div class="table-identity">
+        <%= link_to item.name, user_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+        <span class="text-muted text-small d-block text-break"><%= item.email %></span>
+      </div>
+    </div>
+  </td>
+  <td class="d-none d-lg-table-cell"><%= user_phone(item) %></td>
+  <td class="d-none d-md-table-cell">
+    <span class="badge rounded-pill <%= user_type_badge_class(item) %>"><%= item.user_type_name %></span>
+  </td>
+  <td><%= user_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(users_menu(item)) %>
+  </td>
+</tr>

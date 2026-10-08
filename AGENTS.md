@@ -135,6 +135,14 @@ bundle exec rails g migration ...
 
 ## View and Helper Patterns
 
+- **Every screen must be built mobile-first.** Most of our customers reach the system from a phone, so the small screen is the baseline and larger screens are progressive enhancements:
+  - Write the base markup and styles for the phone, then widen the layout with breakpoint classes (`col-12 col-lg-6`, `d-none d-lg-table-cell`, `flex-column flex-md-row`). Never design for the desktop first and patch the phone afterwards.
+  - In stylesheets, the rule without a media query is the mobile style; larger screens are added with `@media (min-width: ...)`. Do not use `max-width` media queries to undo a desktop style.
+  - Listing tables keep only the essential columns on a phone (identity, status, actions) and reveal secondary columns from `md`/`lg` up with `d-none d-md-table-cell`/`d-none d-lg-table-cell`. Row actions go through `responsive_actions_menu`, which collapses into a dropdown on small screens.
+  - Header actions, form footers and filter buttons must wrap or stack instead of overflowing; the page must never scroll horizontally on a 360px-wide screen.
+  - Inputs use the proper `as:`/`inputmode`/`autocomplete` (`as: :email`, `as: :tel`, …) so the phone opens the right keyboard.
+  - Feature specs for a new screen should exercise it on a phone viewport as well (`use_mobile_screen` in a `js: true` example) whenever the layout changes between breakpoints.
+
 - Whenever the property name being passed to a render (or any method) is the same as the local variable name, use the hash value omission syntax. This format is not valid if the passed variable is an instance variable.
   ```erb
   <%# Correct %>

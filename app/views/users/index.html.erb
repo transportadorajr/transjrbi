@@ -1,0 +1,32 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= user_create_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="row g-3 mb-4">
+    <%= counter_card(:dark, t('.total_users'), @total_count) %>
+    <%= counter_card(:success, t('.active_users'), @active_count) %>
+    <%= counter_card(:danger, t('.deactivated_users'), @deactivated_count) %>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @users.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @users.any? %>
+        <%= render 'table', collection: @users %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>
