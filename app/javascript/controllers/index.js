@@ -9,3 +9,6 @@ application.register('hello', HelloController);
 
 import PasswordVisibilityController from './password_visibility_controller';
 application.register('password-visibility', PasswordVisibilityController);
+
+import SidebarController from './sidebar_controller';
+application.register('sidebar', SidebarController);

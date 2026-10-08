@@ -12,6 +12,19 @@ pt-BR:
         users: Usuários
       user:
         tenant: Empresa
+  home:
+    index:
+      title: TransJRBI
+      stack: Rails %{rails} · Ruby %{ruby} · Stimulus · Bootstrap
+      stimulus:
+        title: Stimulus
+        description: Teste rápido de um controller Stimulus.
+        placeholder: Seu nome
+        greet: Cumprimentar
+      account:
+        title: Conta
+        signed_in_as_html: Você está conectado como <strong>%{email}</strong>.
+        jobs_dashboard: Abrir dashboard de jobs
   devise:
     sessions:
       new:
@@ -25,3 +38,17 @@ pt-BR:
         forgot_password: Esqueci minha senha
         submit: Entrar
         submitting: Entrando...
+  layouts:
+    aside:
+      brand: TransJRBI
+      brand_short: TJ
+      close: Fechar
+    main:
+      toggle_navigation: Abrir navegação
+      toggle_sidebar: Recolher menu lateral
+      options: Opções
+      my_account: Minha conta
+      jobs: Jobs (GoodJob)
+      logout: Sair
+  menus:
+    home: Início

@@ -1,0 +1,29 @@
+<% menu_id = menu.name.parameterize %>
+
+<li class="<%= 'active' if submenu_active?(menu) %>">
+  <%= link_to "##{menu_id}",
+              class: "nav-link sidebar-submenu-toggle #{'active' if submenu_active?(menu)}",
+              data: { bs_toggle: 'collapse' },
+              aria: { expanded: submenu_active?(menu), controls: menu_id },
+              role: :button do %>
+    <%= icon menu.icon, class: 'sidebar-icon' %>
+    <p>
+      <%= menu.name %>
+      <%= icon 'chevron-down', class: "sidebar-chevron #{'rotated' if submenu_active?(menu)}" %>
+    </p>
+  <% end %>
+
+  <div class="collapse <%= 'show' if submenu_active?(menu) %>" id="<%= menu_id %>">
+    <ul class="nav sidebar-subnav">
+      <% menu.menus.each do |submenu| %>
+        <% next unless submenu.show? %>
+        <li class="<%= 'active' if menu_active?(submenu) %>">
+          <%= link_to submenu.url, class: "nav-link sidebar-sublink #{'active' if menu_active?(submenu)}" do %>
+            <%= icon :dot, class: 'sidebar-dot-icon' %>
+            <p><%= submenu.name %></p>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</li>

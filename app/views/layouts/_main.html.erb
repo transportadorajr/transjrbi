@@ -1,0 +1,66 @@
+<header class="main-navbar">
+  <div class="main-navbar-inner">
+    <div class="main-navbar-left">
+      <%= button_tag type: 'button',
+                     class: 'navbar-hamburger d-md-none',
+                     data: { bs_toggle: 'offcanvas', bs_target: '#sidebarOffcanvas' },
+                     aria: { controls: 'sidebarOffcanvas', label: t('layouts.main.toggle_navigation') } do %>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      <% end %>
+
+      <%= button_tag type: 'button',
+                     class: 'navbar-hamburger d-none d-md-flex',
+                     data: { action: 'sidebar#toggle', sidebar_target: 'toggleBtn' },
+                     aria: { label: t('layouts.main.toggle_sidebar') } do %>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+      <% end %>
+    </div>
+
+    <div class="main-navbar-right">
+      <div class="navbar-tenant-static">
+        <span class="navbar-action-icon"><%= icon :buildings %></span>
+        <span id="current-tenant-name" class="navbar-action-label d-none d-md-inline"><%= current_user.tenant.trade_name %></span>
+      </div>
+
+      <div class="navbar-divider d-none d-md-block"></div>
+
+      <div class="dropdown">
+        <%= link_to '#',
+                    class: 'navbar-action-btn dropdown-toggle',
+                    data: { bs_toggle: :dropdown },
+                    aria: { expanded: false } do %>
+          <span class="navbar-action-icon">
+            <%= icon :'person-fill' %>
+          </span>
+          <span class="navbar-action-label d-none d-md-inline"><%= t('layouts.main.options') %></span>
+        <% end %>
+
+        <ul class="dropdown-menu dropdown-menu-end navbar-dropdown-menu">
+          <li class="navbar-dropdown-header"><%= current_user.email %></li>
+          <li>
+            <%= link_to edit_user_registration_path, class: 'dropdown-item navbar-dropdown-item' do %>
+              <span class="dropdown-item-icon"><%= icon :'person-gear' %></span>
+              <%= t('layouts.main.my_account') %>
+            <% end %>
+          </li>
+          <li>
+            <%= link_to '/good_job', class: 'dropdown-item navbar-dropdown-item', data: { turbo: false } do %>
+              <span class="dropdown-item-icon"><%= icon :'hourglass-split' %></span>
+              <%= t('layouts.main.jobs') %>
+            <% end %>
+          </li>
+          <li>
+            <%= link_to destroy_user_session_path, class: 'dropdown-item navbar-dropdown-item', data: { turbo_method: :delete } do %>
+              <span class="dropdown-item-icon"><%= icon :'box-arrow-right' %></span>
+              <%= t('layouts.main.logout') %>
+            <% end %>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>

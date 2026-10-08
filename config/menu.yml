@@ -1,0 +1,7 @@
+shared:
+  companies:
+    - name: home
+      icon: house
+      url: /
+      controllers:
+        - home

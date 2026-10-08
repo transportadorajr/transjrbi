@@ -1,0 +1,14 @@
+<%# locals: (menus:, xxs_row_size: 2) %>
+
+<% menus.select(&:show?).each do |menu| %>
+  <% if menu.menus.any? %>
+    <%= render 'shared/submenu', menu: %>
+  <% else %>
+    <li class="<%= 'active' if menu_active?(menu) %>">
+      <%= link_to menu.url, class: "nav-link #{'active' if menu_active?(menu)}" do %>
+        <%= icon menu.icon, class: 'sidebar-icon' %>
+        <p><%= menu.name %></p>
+      <% end %>
+    </li>
+  <% end %>
+<% end %>

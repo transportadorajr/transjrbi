@@ -1,0 +1,40 @@
+<div class="sidebar sidebar-offcanvas d-md-none offcanvas-md offcanvas-start"
+     id="sidebarOffcanvas"
+     tabindex="-1"
+     aria-labelledby="sidebarOffcanvasLabel">
+
+  <div class="offcanvas-header sidebar-logo">
+    <%= link_to root_path, id: 'sidebarOffcanvasLabel', class: 'sidebar-logo-link' do %>
+      <%= content_tag :span, t('layouts.aside.brand'), class: 'sidebar-logo-full' %>
+    <% end %>
+    <%= button_tag type: 'button',
+                   class: 'btn-close d-md-none ms-auto',
+                   data: { bs_dismiss: 'offcanvas', bs_target: '#sidebarOffcanvas' },
+                   aria: { label: t('layouts.aside.close') } do %><% end %>
+  </div>
+
+  <div class="offcanvas-body p-0">
+    <div class="sidebar-wrapper">
+      <ul class="nav">
+        <%= render 'shared/menu', menus: Menu.find_and_wrap(:companies) %>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar sidebar-desktop d-none d-md-flex flex-column"
+     id="sidebar"
+     data-sidebar-target="desktop">
+  <div class="sidebar-logo">
+    <%= link_to root_path, class: 'sidebar-logo-link' do %>
+      <%= content_tag :span, t('layouts.aside.brand'), class: 'sidebar-logo-full' %>
+      <%= content_tag :span, t('layouts.aside.brand_short'), class: 'sidebar-logo-iso' %>
+    <% end %>
+  </div>
+
+  <div class="sidebar-wrapper">
+    <ul class="nav">
+      <%= render 'shared/menu', menus: Menu.find_and_wrap(:companies) %>
+    </ul>
+  </div>
+</div>
