@@ -57,7 +57,7 @@ RSpec.describe UserForm do
       described_class.new(editor:, name: ' Ana  Paula ', email: 'Ana@TransJRBI.com.br', phone: '(31) 99876-5432', user_type: 'admin')
     end
 
-    it 'creates an activated and confirmed user in the editor tenant' do
+    it 'creates an activated user waiting for confirmation in the editor tenant' do
       expect { form.save }.to change(User, :count).by(1)
 
       user = User.last
@@ -67,13 +67,16 @@ RSpec.describe UserForm do
       expect(user.phone).to eq('(31) 99876-5432')
       expect(user.user_type).to eq('admin')
       expect(user.activated_at).to be_present
-      expect(user.confirmed_at).to be_present
+      expect(user.confirmed_at).to be_nil
+      expect(user.confirmation_token).to be_present
     end
 
-    it 'sends the password definition e-mail', :inline_jobs do
+    it 'sends the account confirmation e-mail', :inline_jobs do
       expect { form.save }.to change { ActionMailer::Base.deliveries.count }.by(1)
 
-      expect(ActionMailer::Base.deliveries.last.to).to eq(['ana@transjrbi.com.br'])
+      mail = ActionMailer::Base.deliveries.last
+      expect(mail.to).to eq(['ana@transjrbi.com.br'])
+      expect(mail.subject).to eq('Confirme sua conta no TransJRBI')
     end
   end
 

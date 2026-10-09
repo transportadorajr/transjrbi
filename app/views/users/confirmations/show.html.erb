@@ -1,0 +1,26 @@
+<% content_for :title, t('.title') %>
+
+<h2 class="auth-title"><%= t('.title') %></h2>
+<p class="auth-subtitle"><%= t('.instruction') %></p>
+
+<%= form_for(@user_confirmation_form, url: user_confirmation_path, html: { method: :put, class: 'auth-form' }) do |f| %>
+  <%= render 'devise/shared/error_messages', resource: @user_confirmation_form %>
+  <%= f.hidden_field :confirmation_token %>
+
+  <div class="form-floating mb-3">
+    <%= f.password_field :password, autofocus: true, autocomplete: 'new-password',
+                                    placeholder: UserConfirmationForm.human_attribute_name(:password), class: 'form-control auth-input' %>
+    <%= f.label :password %>
+  </div>
+
+  <div class="form-floating mb-1">
+    <%= f.password_field :password_confirmation, autocomplete: 'new-password',
+                                                 placeholder: UserConfirmationForm.human_attribute_name(:password_confirmation),
+                                                 class: 'form-control auth-input' %>
+    <%= f.label :password_confirmation %>
+  </div>
+
+  <div class="form-text mb-4"><%= t('devise.shared.minimum_password_length', count: @minimum_password_length) %></div>
+
+  <%= f.submit t('.submit'), class: 'btn auth-btn w-100' %>
+<% end %>

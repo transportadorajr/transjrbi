@@ -11,6 +11,6 @@ class ApplicationController < ActionController::Base
   private
 
   def layout_by_resource
-    devise_controller? && controller_name == 'sessions' ? 'bare' : 'application'
+    devise_controller? ? 'bare' : 'application'
   end
 end

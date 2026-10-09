@@ -3,8 +3,7 @@ class User < ApplicationRecord
 
   # Módulos do Devise em uso.
   # Disponíveis para o futuro: :lockable, :timeoutable, :omniauthable
-  devise :database_authenticatable, :registerable,
-         :recoverable, :rememberable, :validatable,
+  devise :database_authenticatable, :recoverable, :rememberable, :validatable,
          :confirmable, :trackable
 
   time_based_flag :activated
@@ -25,7 +24,31 @@ class User < ApplicationRecord
     end
   end
 
+  def pending_account_confirmation?
+    !confirmed? && !confirmation_period_expired?
+  end
+
   private
+
+  def generate_confirmation_token
+    if confirmation_token && !confirmation_period_expired?
+      @raw_confirmation_token = confirmation_token
+    else
+      self.confirmation_token = @raw_confirmation_token = unique_confirmation_token
+      self.confirmation_sent_at = Time.now.utc
+    end
+  end
+
+  def unique_confirmation_token
+    loop do
+      token = SecureRandom.hex
+      break token unless self.class.exists?(confirmation_token: token)
+    end
+  end
+
+  def after_confirmation
+    update_column(:confirmation_token, nil)
+  end
 
   # Envia os e-mails do Devise em segundo plano (fila do GoodJob)
   # em vez de enviá-los durante a requisição.

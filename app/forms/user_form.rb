@@ -55,9 +55,7 @@ class UserForm < BaseForm
       password = SecureRandom.hex(32)
 
       @user = editor.tenant.users.new(name:, email:, phone:, user_type:, activated: true, password:, password_confirmation: password)
-      @user.skip_confirmation!
       @user.save!
-      @user.send_reset_password_instructions
     end
   end
 

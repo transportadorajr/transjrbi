@@ -24,6 +24,25 @@
   </head>
 
   <body class="auth-body">
-    <%= yield %>
+    <div class="auth">
+      <section class="auth-hero">
+        <div class="auth-hero-content">
+          <span class="auth-brand">
+            <span class="auth-brand-mark"><%= icon(:'truck-front-fill') %></span>
+            <%= t('.brand') %>
+          </span>
+
+          <h1 class="auth-hero-title"><%= t('.hero_title') %></h1>
+          <p class="auth-hero-text"><%= t('.hero_text') %></p>
+        </div>
+      </section>
+
+      <section class="auth-sheet">
+        <div class="auth-sheet-inner">
+          <%= render 'shared/flash' %>
+          <%= yield %>
+        </div>
+      </section>
+    </div>
   </body>
 </html>

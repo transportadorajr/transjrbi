@@ -84,6 +84,7 @@ E-mails enviados (em segundo plano, via GoodJob):
 - reconfirmação ao trocar o e-mail, com aviso no endereço antigo.
 
 Em desenvolvimento, todos os e-mails são capturados pelo Mailpit (http://localhost:8025).
+Rodando o `bin/dev` direto na sua máquina, suba antes o Mailpit com `docker compose up -d mailpit`: a aplicação entrega em `localhost:1025`.
 Nada é enviado para endereços reais. A configuração de produção ainda não foi feita.
 
 ## Testes

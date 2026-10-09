@@ -1,8 +1,8 @@
 Rails.application.routes.draw do
-  devise_for :users, skip: :registrations
+  devise_for :users, controllers: { confirmations: 'users/confirmations' }
 
   devise_scope :user do
-    resource :registration, only: %i[edit update], path: 'users', controller: 'devise/registrations', as: :user_registration
+    put 'users/confirmation', to: 'users/confirmations#update'
   end
 
   # Dashboard do GoodJob (somente para usuários autenticados).

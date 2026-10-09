@@ -90,7 +90,7 @@ describe 'Users' do
     end
 
     context 'when creating a user' do
-      scenario 'creates the user and sends the password definition e-mail', :inline_jobs do
+      scenario 'creates the user and sends the account confirmation e-mail', :inline_jobs do
         visit users_path
         click_on 'Novo Usuário'
 
@@ -106,7 +106,8 @@ describe 'Users' do
           .and change { ActionMailer::Base.deliveries.count }.by(1)
 
         expect(page).to have_current_path(users_path)
-        expect(page).to have_text('Usuário cadastrado com sucesso.')
+        expect(page).to have_text('Usuário cadastrado com sucesso. Enviamos um e-mail para que ele confirme a conta e ' \
+                                  'defina a senha de acesso.')
 
         user = User.last
         expect(user.tenant).to eq(tenant)
@@ -115,7 +116,11 @@ describe 'Users' do
         expect(user.phone).to eq('(31) 3333-4444')
         expect(user.user_type).to eq('operator')
         expect(user.activated_at).to be_present
-        expect(ActionMailer::Base.deliveries.last.to).to eq(['eduardo@transjrbi.com.br'])
+        expect(user.confirmed_at).to be_nil
+
+        mail = ActionMailer::Base.deliveries.last
+        expect(mail.to).to eq(['eduardo@transjrbi.com.br'])
+        expect(mail.subject).to eq('Confirme sua conta no TransJRBI')
       end
 
       scenario 'shows the errors of the required fields' do

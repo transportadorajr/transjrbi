@@ -68,6 +68,53 @@ RSpec.describe User do
     end
   end
 
+  describe '#pending_account_confirmation?' do
+    it 'is true for an account waiting for confirmation' do
+      expect(create(:user, confirmed_at: nil)).to be_pending_account_confirmation
+    end
+
+    it 'is false for a confirmed account' do
+      expect(create(:user)).not_to be_pending_account_confirmation
+    end
+
+    it 'is false when the confirmation link expired' do
+      user = create(:user, confirmed_at: nil)
+
+      travel_to(4.days.from_now) do
+        expect(user).not_to be_pending_account_confirmation
+      end
+    end
+  end
+
+  describe 'confirmation token' do
+    it 'generates a unique hexadecimal token for an account waiting for confirmation' do
+      user = create(:user, confirmed_at: nil)
+      other_user = create(:user, confirmed_at: nil)
+
+      expect(user.confirmation_token).to match(/\A\h{32}\z/)
+      expect(user.confirmation_token).not_to eq(other_user.confirmation_token)
+    end
+
+    it 'clears the token after the account is confirmed' do
+      user = create(:user, confirmed_at: nil)
+
+      user.confirm
+
+      expect(user.reload.confirmation_token).to be_nil
+      expect(user.confirmed_at).to be_present
+    end
+
+    it 'keeps the token when the confirmation link expired' do
+      user = create(:user, confirmed_at: nil)
+      token = user.confirmation_token
+
+      travel_to(4.days.from_now) { user.confirm }
+
+      expect(user.reload.confirmation_token).to eq(token)
+      expect(user.confirmed_at).to be_nil
+    end
+  end
+
   describe '.statuses' do
     it 'maps the translated labels to the filter keys' do
       expect(described_class.statuses).to eq('Ativo' => :active, 'Inativo' => :deactivated)
