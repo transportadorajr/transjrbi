@@ -1,7 +1,6 @@
 <% content_for :title, t('.title') %>
 
-<h2 class="auth-title"><%= t('.heading') %></h2>
-<p class="auth-subtitle"><%= t('.subheading') %></p>
+<%= auth_header_tag t('.heading'), subtitle: t('.subheading') %>
 
 <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: 'auth-form' }) do |f| %>
   <div class="form-floating mb-3">

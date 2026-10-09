@@ -18,8 +18,8 @@ module UsersHelper
     user.name.first.upcase
   end
 
-  def user_type_badge_class(user)
-    user.operator? ? 'text-bg-light border' : 'text-bg-primary'
+  def user_type_badge(user)
+    content_tag :span, user.user_type_name, class: ['badge rounded-pill', user_type_badge_class(user)]
   end
 
   def user_type_options(user_form)
@@ -62,6 +62,10 @@ module UsersHelper
   end
 
   private
+
+  def user_type_badge_class(user)
+    user.operator? ? 'text-bg-light border' : 'text-bg-primary'
+  end
 
   def user_show_menu(user)
     Menu.new(name: :show, record: user, url: user_path(user), icon: :eye)

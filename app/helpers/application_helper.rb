@@ -12,6 +12,10 @@ module ApplicationHelper
     end
   end
 
+  def auth_header_tag(title, subtitle: nil)
+    safe_join([content_tag(:h2, title, class: 'auth-title'), (content_tag(:p, subtitle, class: 'auth-subtitle') if subtitle.present?)])
+  end
+
   def create_button(title, path = new_record_path, **)
     link_to path, class: 'btn btn-primary btn-primary-action btn-round', ** do
       concat icon(:'plus-circle', class: 'me-2')

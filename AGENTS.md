@@ -178,6 +178,11 @@ bundle exec rails g migration ...
   <% end %>
   ```
 
+- The authentication screens rendered with the `bare` layout (login, password recovery, account confirmation — the Devise views and `users/confirmations`) have no `page-header`: their title is rendered through the `auth_header_tag` helper (`app/helpers/application_helper.rb`) instead, with `subtitle:` for the line under it. Never hand-roll `<h2 class="auth-title">` in these views:
+  ```erb
+  <%= auth_header_tag t('.heading'), subtitle: t('.subheading') %>
+  ```
+
 - The "add" button of a screen must always be rendered through the `create_button` helper (`app/helpers/application_helper.rb`) instead of a hand-written `link_to` with the `plus-circle` icon. It only takes the title; the path defaults to `new_<controller>_path`, and a second argument overrides it when the route does not follow that convention:
   ```erb
   <%# Correct %>

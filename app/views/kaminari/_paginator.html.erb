@@ -1,15 +1,11 @@
 <%= paginator.render do %>
   <nav aria-label="<%= t('views.pagination.aria_label') %>">
     <ul class="pagination mb-0">
-      <%= prev_page_tag unless current_page.first? %>
+      <%= pagination_prev_tag(paginator, current_page) %>
       <% each_page do |page| %>
-        <% if page.left_outer? || page.right_outer? || page.inside_window? %>
-          <%= page_tag page %>
-        <% elsif !page.was_truncated? -%>
-          <%= gap_tag %>
-        <% end %>
+        <%= pagination_window_tag(paginator, page) %>
       <% end %>
-      <%= next_page_tag unless current_page.last? %>
+      <%= pagination_next_tag(paginator, current_page) %>
     </ul>
   </nav>
 <% end %>

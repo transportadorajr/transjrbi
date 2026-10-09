@@ -1,7 +1,6 @@
 <% content_for :title, t('.title') %>
 
-<h2 class="auth-title"><%= t('.title') %></h2>
-<p class="auth-subtitle"><%= t('.instruction') %></p>
+<%= auth_header_tag t('.title'), subtitle: t('.instruction') %>
 
 <%= form_for(@user_confirmation_form, url: user_confirmation_path, html: { method: :put, class: 'auth-form' }) do |f| %>
   <%= render 'devise/shared/error_messages', resource: @user_confirmation_form %>

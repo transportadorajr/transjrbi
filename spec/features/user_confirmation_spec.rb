@@ -14,7 +14,16 @@ describe 'User account confirmation' do
       fill_in 'E-mail', with: 'eduardo@transjrbi.com.br'
       select 'Operador', from: 'Perfil'
 
-      expect { click_on 'Cadastrar Usuário' }.to change { ActionMailer::Base.deliveries.count }.by(1)
+      expect { click_on 'Cadastrar Usuário' }
+        .to change(User, :count).by(1)
+        .and change { ActionMailer::Base.deliveries.count }.by(1)
+
+      user = User.last
+      expect(user.tenant).to eq(tenant)
+      expect(user.name).to eq('Eduardo Motorista')
+      expect(user.email).to eq('eduardo@transjrbi.com.br')
+      expect(user.user_type).to eq('operator')
+      expect(user.confirmed_at).to be_nil
 
       logout(:user)
       mail = ActionMailer::Base.deliveries.last
@@ -30,7 +39,7 @@ describe 'User account confirmation' do
       expect(page).to have_current_path(root_path)
       expect(page).to have_text('Conta confirmada com sucesso. Bem-vindo ao TransJRBI!')
 
-      user = User.find_by(email: 'eduardo@transjrbi.com.br')
+      user.reload
       expect(user.confirmed_at).to be_present
       expect(user.confirmation_token).to be_nil
       expect(user.valid_password?('NovaSenha1!')).to be(true)

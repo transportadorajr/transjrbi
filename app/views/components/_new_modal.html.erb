@@ -1,0 +1,17 @@
+<%= tag.div class: 'modal fade', id:, tabindex: -1, aria: { labelledby: "#{id}_label", hidden: true },
+            data: { controller: 'modal', modal_auto_show_value: local_assigns.fetch(:auto_show, false) } do %>
+  <%= tag.div class: ['modal-dialog', local_assigns[:dialog_class]] do %>
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-bottom-0 pb-0">
+        <%= modal_title_tag(id, title, title_icon: local_assigns[:title_icon]) %>
+        <%= button_tag '', type: 'button', class: 'btn-close', data: { bs_dismiss: 'modal' }, aria: { label: t('shared.close') } %>
+      </div>
+
+      <div class="modal-body">
+        <%= yield %>
+      </div>
+
+      <%= modal_footer_tag(local_assigns.fetch(:show_footer, true)) %>
+    </div>
+  <% end %>
+<% end %>
