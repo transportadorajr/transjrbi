@@ -5,3 +5,8 @@ shared:
       url: /
       controllers:
         - home
+    - name: users
+      icon: people
+      url: /users
+      controllers:
+        - users

@@ -4,9 +4,13 @@ class ApplicationController < ActionController::Base
 
   layout :layout_by_resource
 
+  rescue_from CanCan::AccessDenied do |_exception|
+    redirect_back_or_to(root_path, alert: t('errors.messages.access_denied'))
+  end
+
   private
 
   def layout_by_resource
-    devise_controller? && controller_name == 'sessions' ? 'bare' : 'application'
+    devise_controller? ? 'bare' : 'application'
   end
 end

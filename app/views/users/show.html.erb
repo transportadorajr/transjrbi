@@ -1,0 +1,42 @@
+<% content_for :title, @user.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('users.index.title'), users_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @user.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @user.name, back_path: users_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= user_edit_button(@user) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.user_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0">
+        <dt class="col-12 col-md-3"><%= User.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @user.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= User.human_attribute_name(:email) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @user.email %></dd>
+
+        <dt class="col-12 col-md-3"><%= User.human_attribute_name(:phone) %></dt>
+        <dd class="col-12 col-md-9"><%= user_phone(@user) %></dd>
+
+        <dt class="col-12 col-md-3"><%= User.human_attribute_name(:user_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @user.user_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= User.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-9"><%= user_status_badge(@user) %></dd>
+
+        <dt class="col-12 col-md-3"><%= User.human_attribute_name(:activated_at) %></dt>
+        <dd class="col-12 col-md-9"><%= user_activated_at(@user) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

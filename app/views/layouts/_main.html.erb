@@ -42,12 +42,6 @@
         <ul class="dropdown-menu dropdown-menu-end navbar-dropdown-menu">
           <li class="navbar-dropdown-header"><%= current_user.email %></li>
           <li>
-            <%= link_to edit_user_registration_path, class: 'dropdown-item navbar-dropdown-item' do %>
-              <span class="dropdown-item-icon"><%= icon :'person-gear' %></span>
-              <%= t('layouts.main.my_account') %>
-            <% end %>
-          </li>
-          <li>
             <%= link_to '/good_job', class: 'dropdown-item navbar-dropdown-item', data: { turbo: false } do %>
               <span class="dropdown-item-icon"><%= icon :'hourglass-split' %></span>
               <%= t('layouts.main.jobs') %>

@@ -1,0 +1,11 @@
+<%= paginator.render do %>
+  <nav aria-label="<%= t('views.pagination.aria_label') %>">
+    <ul class="pagination mb-0">
+      <%= pagination_prev_tag(paginator, current_page) %>
+      <% each_page do |page| %>
+        <%= pagination_window_tag(paginator, page) %>
+      <% end %>
+      <%= pagination_next_tag(paginator, current_page) %>
+    </ul>
+  </nav>
+<% end %>

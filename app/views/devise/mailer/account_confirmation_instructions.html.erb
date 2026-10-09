@@ -1,0 +1,8 @@
+<p><%= t('.greeting', name: @resource.name) %></p>
+
+<p><%= t('.instruction') %></p>
+
+<p><%= link_to t('.action'), confirmation_url(@resource, confirmation_token: @token) %></p>
+
+<p><%= t('.expiration', count: Devise.confirm_within.in_days.to_i) %></p>
+<p><%= t('.ignore') %></p>

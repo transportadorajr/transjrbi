@@ -31,9 +31,8 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # E-mails locais: entregues ao Mailpit (interface em http://localhost:8025).
-  # Nada é enviado para fora do ambiente de desenvolvimento.
   config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.perform_deliveries = true
   config.action_mailer.delivery_method = :smtp
   config.action_mailer.smtp_settings = {
     address: ENV.fetch('SMTP_ADDRESS', 'localhost'),
