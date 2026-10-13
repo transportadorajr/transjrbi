@@ -153,10 +153,8 @@ module Atua
         return [[nil, nil]]
       end
 
-      raise ArgumentError, I18n.t('atua.errors.period_required', report: report.type) if start_date.nil? || end_date.nil?
-
-      start_date = start_date.to_date
-      end_date = end_date.to_date
+      start_date = (start_date || Time.zone.today.beginning_of_month).to_date
+      end_date = (end_date || Time.zone.today).to_date
       raise ArgumentError, I18n.t('atua.errors.invalid_period') if start_date > end_date
 
       monthly_slices(start_date, end_date)

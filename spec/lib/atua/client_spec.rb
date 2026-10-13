@@ -241,6 +241,20 @@ RSpec.describe Atua::Client do
         expect(params.keys.grep(/\Asubmete/)).to be_empty
       end
 
+      it 'defaults the period to the beginning of the current month through today when no dates are given' do
+        client.download(:transport_documents)
+        params = posted.first.to_h
+
+        expect(params).to include('f_dt_emissao_inicio' => '01/10/2026', 'f_dt_emissao_final' => '13/10/2026')
+      end
+
+      it 'defaults only the start date to the beginning of the current month when just the end date is given' do
+        client.download(:manifests, end_date: Date.new(2026, 10, 10))
+        params = posted.first.to_h
+
+        expect(params).to include('f_dt_lancamento_inicio' => '01/10/2026', 'f_dt_lancamento_termino' => '10/10/2026')
+      end
+
       it 'posts manifests with the posting dates and the button' do
         client.download(:manifests, start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 13))
         params = posted.first.to_h
@@ -293,10 +307,6 @@ RSpec.describe Atua::Client do
     end
 
     context 'with invalid periods' do
-      it 'requires both dates on reports with period' do
-        expect { client.download(:manifests, start_date: Date.new(2026, 10, 1)) }.to raise_error(ArgumentError)
-      end
-
       it 'refuses dates on reports without period' do
         expect { client.download(:vehicles, start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 2)) }.to raise_error(ArgumentError)
       end
