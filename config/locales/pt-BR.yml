@@ -256,3 +256,19 @@ pt-BR:
     resources: Recursos
     show: Visualizar
     edit: Alterar
+  atua:
+    errors:
+      missing_configuration: 'Configuração da Atua incompleta: falta %{keys}.'
+      invalid_base_url: A URL base da Atua não é uma URL http/https válida.
+      remote_host_blocked: Fora de produção a integração com a Atua só acessa o mock local (host recebido %{host}). Defina ATUA_BASE_URL apontando para o mock.
+      unknown_report: Relatório da Atua desconhecido %{type}.
+      unknown_computed_value: Valor calculado desconhecido na configuração do relatório %{value}.
+      login_status: O login na Atua respondeu HTTP %{status}.
+      invalid_credentials: A Atua recusou o login, a resposta ainda contém o formulário de login.
+      session_expired: A sessão da Atua expirou novamente logo após um novo login.
+      request_failed: 'A requisição para %{path} falhou após %{attempts} tentativa(s): %{reason}.'
+      too_many_redirects: A Atua redirecionou a requisição vezes demais.
+      unexpected_content: 'O relatório %{report} não veio em Excel (.xls): HTTP %{status}, Content-Type %{content_type}. Trecho da resposta: %{excerpt}'
+      period_required: O relatório %{report} exige data inicial e data final.
+      period_not_supported: O relatório %{report} não aceita período.
+      invalid_period: A data inicial é posterior à data final.

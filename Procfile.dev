@@ -1,4 +1,5 @@
-web: env RUBY_DEBUG_OPEN=true bin/rails server -b 0.0.0.0 -p ${PORT:-3000}
+web: env RUBY_DEBUG_OPEN=true ATUA_BASE_URL=${ATUA_BASE_URL:-http://localhost:4567/adm} bin/rails server -b 0.0.0.0 -p ${PORT:-3000}
 js: bun run build --watch
 css: bun run watch:css
-worker: bundle exec good_job start
+worker: env ATUA_BASE_URL=${ATUA_BASE_URL:-http://localhost:4567/adm} bundle exec good_job start
+atua: bundle exec ruby mock/atua_server.rb

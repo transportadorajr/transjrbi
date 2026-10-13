@@ -1,0 +1,42 @@
+---
+endpoint: rel_manifesto_detalhado.php
+submitted_field: f__submitted
+submit_button: submete101037
+period:
+  start_field: f_dt_lancamento_inicio
+  end_field: f_dt_lancamento_termino
+computed: {}
+params:
+  f_cd_pessoa_matriz: '2'
+  f_cd_pessoa_filial: ''
+  f_cd_agencia: ''
+  f_nm_agencia: ''
+  f_cd_usuario: ''
+  f_nm_usuario: ''
+  f_ds_placa: ''
+  f_ds_veiculo: ''
+  f_cd_motorista: ''
+  f_nm_motorista: ''
+  f_id_proprietario_veiculo: ''
+  f_id_enquadramento_proprietario_antt: ''
+  f_id_modelo: ''
+  f_nr_manifesto: ''
+  f_ds_serie: ''
+  f_dt_lancamento_inicio: ''
+  f_dt_lancamento_termino: ''
+  f_dt_emissao_inicio: ''
+  f_dt_emissao_termino: ''
+  f_dt_saida_inicio: ''
+  f_dt_saida_termino: ''
+  f_dt_encerramento_inicio: ''
+  f_dt_encerramento_termino: ''
+  f_vl_total_nfe_mdfe_inicio: ''
+  f_vl_total_nfe_mdfe_termino: ''
+  f_id_situacao: '4'
+  f_cd_status: ''
+  f_id_operacao: ''
+  f_id_assinatura: '0'
+  f_id_quebra_pagina: '0'
+  f_id_subtotal: '0'
+  f_id_ordenacao: '1'
+  f_id_formato: '2'
