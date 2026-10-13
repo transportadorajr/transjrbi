@@ -1,0 +1,21 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= Resource.human_attribute_name(:name) %></th>
+        <th class="d-none d-md-table-cell"><%= Resource.human_attribute_name(:slug) %></th>
+        <th><%= Resource.human_attribute_name(:writable) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

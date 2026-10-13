@@ -20,6 +20,13 @@ RSpec.describe Ability do
       expect(ability).not_to be_able_to(:read, stranger)
       expect(ability).not_to be_able_to(:update, stranger)
     end
+
+    it 'manages the resources' do
+      expect(ability).to be_able_to(:read, Resource)
+      expect(ability).to be_able_to(:create, Resource)
+      expect(ability).to be_able_to(:update, Resource)
+      expect(ability).to be_able_to(:destroy, Resource)
+    end
   end
 
   context 'when the user is an admin' do
@@ -32,6 +39,13 @@ RSpec.describe Ability do
 
     it 'cannot reach users of another tenant' do
       expect(ability).not_to be_able_to(:read, stranger)
+    end
+
+    it 'reads the resources without managing them' do
+      expect(ability).to be_able_to(:read, Resource)
+      expect(ability).not_to be_able_to(:create, Resource)
+      expect(ability).not_to be_able_to(:update, Resource)
+      expect(ability).not_to be_able_to(:destroy, Resource)
     end
   end
 
@@ -47,6 +61,13 @@ RSpec.describe Ability do
       expect(ability).not_to be_able_to(:create, User)
       expect(ability).not_to be_able_to(:read, teammate)
       expect(ability).not_to be_able_to(:update, teammate)
+    end
+
+    it 'cannot reach the resources' do
+      expect(ability).not_to be_able_to(:read, Resource)
+      expect(ability).not_to be_able_to(:create, Resource)
+      expect(ability).not_to be_able_to(:update, Resource)
+      expect(ability).not_to be_able_to(:destroy, Resource)
     end
   end
 

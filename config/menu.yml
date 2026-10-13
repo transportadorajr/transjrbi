@@ -10,3 +10,8 @@ shared:
       url: /users
       controllers:
         - users
+    - name: resources
+      icon: shield-lock
+      url: /resources
+      controllers:
+        - resources

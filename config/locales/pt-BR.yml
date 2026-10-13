@@ -7,6 +7,9 @@ pt-BR:
       user:
         one: Usuário
         other: Usuários
+      resource:
+        one: Recurso
+        other: Recursos
     attributes:
       tenant:
         name: Razão social
@@ -21,6 +24,10 @@ pt-BR:
         user_type: Perfil
         status: Status
         activated_at: Ativado em
+      resource:
+        name: Nome
+        slug: Identificador
+        writable: Permite edição
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -33,8 +40,17 @@ pt-BR:
         email: E-mail
         phone: Telefone
         user_type: Perfil
+      resource_form:
+        name: Nome
+        slug: Identificador
+        writable: Permite edição
     errors:
       models:
+        resource_form:
+          attributes:
+            slug:
+              taken: já está em uso por outro recurso
+              invalid: deve começar com uma letra minúscula e conter apenas letras minúsculas, números e _
         user_confirmation_form:
           attributes:
             base:
@@ -57,10 +73,16 @@ pt-BR:
       user:
         create: Cadastrar Usuário
         update: Salvar Alterações
+      resource:
+        create: Cadastrar Recurso
+        update: Salvar Alterações
     tooltips:
       user:
         show: Visualizar
         edit: Alterar
+      resource:
+        edit: Alterar
+        destroy: Excluir
   simple_form:
     required:
       text: obrigatório
@@ -139,6 +161,36 @@ pt-BR:
         title: Conta
         signed_in_as_html: Você está conectado como <strong>%{email}</strong>.
         jobs_dashboard: Abrir dashboard de jobs
+  resources:
+    index:
+      title: Recursos
+      subtitle: Módulos do sistema que poderão ter acesso controlado por perfil.
+      new_resource: Novo Recurso
+      writable: Leitura e edição
+      read_only: Somente leitura
+      confirm_destroy: Tem certeza que deseja excluir este recurso?
+    filters:
+      name: Nome do recurso
+      slug: Identificador
+    new:
+      title: Novo Recurso
+      back: Voltar para recursos
+    create:
+      success: Recurso cadastrado com sucesso.
+    edit:
+      title: Alterar Recurso
+      back: Voltar para recursos
+    update:
+      success: Recurso atualizado com sucesso.
+    destroy:
+      success: Recurso excluído com sucesso.
+    form:
+      resource_data: Dados do Recurso
+      resource_data_text: Informe o nome e o identificador do módulo do sistema.
+      slug_hint: "Use letras minúsculas, números e _ (ex.: users). Ele é usado para identificar o recurso no código."
+      writable_hint: Desmarque quando o recurso permitir apenas leitura.
+  resource_names:
+    users: Usuários
   devise:
     shared:
       minimum_password_length:
@@ -181,5 +233,6 @@ pt-BR:
   menus:
     home: Início
     users: Usuários
+    resources: Recursos
     show: Visualizar
     edit: Alterar

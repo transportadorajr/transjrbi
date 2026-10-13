@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   resources :users, only: %i[index show new create edit update]
+  resources :resources, only: %i[index new create edit update destroy]
 
   root 'home#index'
 end

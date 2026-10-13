@@ -9,7 +9,7 @@ SimpleForm.setup do |config|
     b.optional :min_max
     b.optional :readonly
     b.use :label_input
-    b.use :hint,  wrap_with: { tag: :span, class: :hint }
+    b.use :hint,  wrap_with: { tag: :small, class: 'hint form-text d-block' }
     b.use :error, wrap_with: { tag: :span, class: :error }
   end
 

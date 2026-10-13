@@ -1,13 +1,18 @@
 ---
 name: agents-md-review
-description: Review a GitHub PR (or the current diff) against the project conventions in AGENTS.md. Use when the user passes a PR number/URL and asks for a code review, "revisar PR", "review this PR", or asks whether changes follow AGENTS.md. Checks every changed file against the rules in AGENTS.md and reports violations with file:line and the rule that was broken.
+description: Review a GitHub PR (or the current diff) against the project conventions in AGENTS.md and fix what it finds. Use when the user passes a PR number/URL and asks for a code review, "revisar PR", "review this PR", "corrigir conforme AGENTS.md", or asks whether changes follow AGENTS.md. Checks every changed file against the rules in AGENTS.md, applies the corrections for every violation and observation to the working tree, verifies them with the affected specs and linters, and reports what was found and what was changed. Pass --review-only to only report.
 ---
 
-# AGENTS.md code review
+# AGENTS.md code review and fix
 
-Review changed code against **AGENTS.md at the repository root**. AGENTS.md is the single
-source of truth — never review from memory of these rules, and never invent conventions that
-are not written there.
+Review changed code against **AGENTS.md at the repository root**, then fix what the review
+found. AGENTS.md is the single source of truth — never review from memory of these rules, and
+never invent conventions that are not written there.
+
+The skill runs in two phases: **review** (steps 1–4) and **fix** (steps 5–6), followed by the
+report (step 7). The fix phase runs by default. Skip it only when the user passes
+`--review-only` or says they only want the review ("só revisar", "não altere nada"); in that
+case go straight from step 4 to step 7.
 
 ## 1. Load the rules
 
@@ -31,12 +36,17 @@ If `gh pr diff` is too large to read at once, fetch it per file:
 gh pr diff <PR> --patch -- <path>
 ```
 
-**No target given:** review the current branch against `main`:
+**No target given:** review the current branch against `main`, **plus** any uncommitted work
+(modified and untracked files), because the changes under review are often not committed yet:
 
 ```bash
 git diff main...HEAD
 git diff --stat main...HEAD
+git status --short          # modified (M) and untracked (??) files
+git diff                    # uncommitted changes to tracked files
 ```
+
+Read every untracked file in full — it has no diff, the whole file is new.
 
 Review **every** changed file — do not sample. If a file's diff is large, read it in chunks
 until you have seen all of it.
@@ -92,7 +102,64 @@ Every finding must survive this check, or it is dropped:
 Prefer fewer, certain findings over a long list of guesses. A false positive costs more than a
 miss.
 
-## 5. Report
+## 5. Fix the findings
+
+Unless the review is `--review-only`, apply a correction for **every** verified violation
+**and** every observation. An observation is fixed too: either change the code, or — when the
+investigation shows nothing needs changing (e.g. a global config change that no other screen
+is affected by) — record that conclusion in the report instead of an edit.
+
+**Before editing a PR target**, make sure the working tree is the PR's branch:
+
+```bash
+git status --short          # must be clean, otherwise stop and ask
+gh pr checkout <PR>
+```
+
+Never stash, reset or discard the user's uncommitted work to get there.
+
+**How to fix:**
+
+- Fix the code so it follows the exact AGENTS.md rule that was quoted in the finding. Read
+  the reference implementation the rule points to (e.g. the Users CRUD, `home_helper.rb`,
+  `estimate_items/_missing_customer_modal.html.erb`) and mirror it.
+- Every fix itself must follow AGENTS.md: no comments, no `# rubocop:disable`, no `default:`
+  in `t()`, new locale keys for every new string, migrations only through
+  `bundle exec rails g migration ...`, annotations regenerated with `bundle exec annotaterb models`
+  instead of edited by hand.
+- When a fix changes behaviour (a permission, a renamed method, a moved file), update every
+  caller and every spec that depends on it — grep for the old name before finishing.
+- A fix that changes visible behaviour ships with the spec that proves it (end-to-end when it is
+  visible on a screen, unit otherwise), as AGENTS.md requires for regressions.
+- Keep the change scoped to the findings. Do not refactor unrelated code.
+
+**Ask before fixing** — with `AskUserQuestion`, offering the concrete alternatives and a
+recommendation — when the correction is a product or architecture decision rather than a
+mechanical one. Examples: changing who may do what (abilities/permissions), moving a feature to
+another namespace (e.g. into `Admin::`), deleting a feature, renaming a database table or column,
+or any fix with more than one reasonable shape. Apply every unambiguous fix regardless of the
+answer still pending.
+
+**Never** commit, push, or comment on the PR as part of the fix phase. Leave the changes in the
+working tree for the user to review; commit or push only when the user explicitly asks.
+
+## 6. Verify the fixes
+
+Run the checks that cover the files you touched, and fix anything they report before writing
+the report:
+
+```bash
+bundle exec rspec <every spec file related to the touched code>
+bundle exec rubocop <touched .rb files>
+bundle exec erb_lint <touched .erb files>          # when views changed
+bun run prettier -c <touched js files> && bun test # when JavaScript changed
+```
+
+If a check still fails after a reasonable attempt, do not hide it: report the failing command
+and its output in the report.
+
+## 7. Report
+
 
 Answer in the language the user wrote in (Portuguese if they wrote in Portuguese). Structure:
 
@@ -112,24 +179,34 @@ Answer in the language the user wrote in (Portuguese if they wrote in Portuguese
 
 - ...
 
+### Correções aplicadas
+
+- <finding number> — <what was changed, with the file links>
+- <observation> — <what was changed, or why no change was needed>
+
+<verification: the commands run and their result, e.g. "45 examples, 0 failures; rubocop sem ofensas">
+
 ### Conforme AGENTS.md
 
 - <rules that were relevant and correctly followed, one line each>
 ```
 
+Omit "Correções aplicadas" only in `--review-only` mode. List any finding that was left
+unfixed (waiting for a decision, or a check that kept failing) explicitly, with the reason.
+
 Order findings by severity: rules stated with **must**/**never**/**NEVER** first, then the
 remaining conventions, then non-blocking notes. Always include the "Conforme" section — it
 shows which rules were actually checked.
 
-Do not run the test suite or linters as part of this review unless the user asks; this is a
-conventions review. If you do want to confirm a lint-related finding, the commands are in the
-AGENTS.md "Development Commands" section.
+In `--review-only` mode, do not run the test suite or linters unless the user asks; the review
+alone is a conventions review. In the default mode, step 6 runs only the checks that cover the
+touched files, not the full `script/build`.
 
-## 6. Optional actions
+## 8. Optional actions
 
 Only when the user explicitly asks:
 
 - **Post the review on the PR:** `gh pr comment <PR> --body-file <file>` — write the body to a
   file in the scratchpad first and show it to the user before posting.
-- **Fix the findings:** apply the corrections to the working tree, respecting AGENTS.md
-  (notably: never add comments, never add `# rubocop:disable`).
+- **Commit or push the fixes:** follow the repository's git conventions, and only after the
+  user asks for it.

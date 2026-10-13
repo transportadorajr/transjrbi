@@ -1,0 +1,32 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('resources.form.resource_data') %></p>
+    <p class="form-card-subtitle"><%= t('resources.form.resource_data_text') %></p>
+  </div>
+  <%= simple_form_for(resource_form, url: resource_form_url(resource_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :name, required: true, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :slug,
+                      required: true,
+                      hint: t('resources.form.slug_hint'),
+                      input_html: { class: 'form-control', autocapitalize: 'none', autocomplete: 'off', spellcheck: false } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :writable,
+                      as: :boolean,
+                      hint: t('resources.form.writable_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, resource_form_submit_label(resource_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), resources_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>
