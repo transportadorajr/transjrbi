@@ -13,7 +13,45 @@ pt-BR:
       access:
         one: Permissão
         other: Permissões
+      atua/import:
+        one: Importação da Atua
+        other: Importações da Atua
+      atua/transport_document:
+        one: Conhecimento de transporte
+        other: Conhecimentos de transporte
+      atua/transport_document_manifest:
+        one: Manifesto do conhecimento
+        other: Manifestos do conhecimento
+      atua/manifest:
+        one: Manifesto
+        other: Manifestos
+      atua/manifest_document:
+        one: Documento do manifesto
+        other: Documentos do manifesto
+      atua/expense:
+        one: Despesa
+        other: Despesas
+      atua/customer:
+        one: Cliente
+        other: Clientes
+      atua/vehicle:
+        one: Veículo
+        other: Veículos
     attributes:
+      atua/import:
+        tenant: Empresa
+        report_type: Relatório
+        status_type: Situação
+        start_date: Data inicial
+        end_date: Data final
+        started_at: Iniciada em
+        finished_at: Finalizada em
+        rows_read: Linhas lidas
+        inserted_count: Inseridos
+        updated_count: Atualizados
+        removed_count: Removidos
+        error_message: Erro
+        file: Arquivo
       tenant:
         name: Razão social
         legal_id: CNPJ
@@ -38,6 +76,10 @@ pt-BR:
         creates: Leitura e Edição
     errors:
       models:
+        atua/import:
+          attributes:
+            end_date:
+              before_start_date: não pode ser anterior à data inicial
         resource:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
@@ -69,6 +111,18 @@ pt-BR:
             base:
               invalid_confirmation_link: O link de confirmação é inválido ou expirou. Solicite um novo link.
   enums:
+    atua/import:
+      report_type:
+        transport_documents: Conhecimentos de transporte
+        manifests: Manifestos
+        expenses: Despesas
+        customers: Clientes
+        vehicles: Veículos
+      status_type:
+        pending: Pendente
+        running: Em andamento
+        succeeded: Concluída
+        failed: Falhou
     user:
       user_type:
         owner: Proprietário

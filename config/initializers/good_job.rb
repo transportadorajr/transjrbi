@@ -18,6 +18,11 @@ Rails.application.configure do
   # Tarefas agendadas (cron). Adicione entradas em `config.good_job.cron` quando precisar.
   config.good_job.enable_cron = true
   config.good_job.cron = {
+    atua_expired_files: {
+      cron: '30 3 * * *',
+      class: 'Atua::PurgeExpiredFilesJob',
+      description: 'Remove os arquivos baixados da Atua com mais de 60 dias',
+    },
     # exemplo: {
     #   cron: "0 3 * * *", # todo dia às 03:00
     #   class: "ExemploJob",

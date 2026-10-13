@@ -4,6 +4,10 @@ class ApplicationRecord < ActiveRecord::Base
   primary_abstract_class
 
   class << self
+    def enum_translations(enum)
+      I18n.t(enum, scope: [:enums, model_name.i18n_key])
+    end
+
     def time_based_flag(name, suffix: :at, canceled_by: [])
       field_name = :"#{name}_#{suffix}"
       canceled_by = Array(canceled_by)

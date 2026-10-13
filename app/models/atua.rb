@@ -21,6 +21,10 @@ module Atua
   class ConversionError < Error; end
 
   class << self
+    def table_name_prefix
+      'atua_'
+    end
+
     def enabled?(tenant)
       Flipper.enabled?(FEATURE, tenant)
     end
