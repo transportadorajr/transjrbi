@@ -3,6 +3,7 @@ class UsersController < BaseController
   has_scope :by_status, as: :status
 
   before_action :set_user, only: %i[show edit update]
+  before_action :set_resources, only: %i[new create edit update]
 
   def index
     authorize!(:read, User)
@@ -18,6 +19,8 @@ class UsersController < BaseController
 
   def show
     authorize!(:read, @user)
+
+    @accesses = @user.accesses.preload(:resource).sort_by { |access| access.resource.translated_name }
   end
 
   def new
@@ -69,11 +72,15 @@ class UsersController < BaseController
     @user = current_tenant.users.find(params.expect(:id))
   end
 
+  def set_resources
+    @resources = Resource.order(:name)
+  end
+
   def user_params
-    params.expect(user: %i[name email phone user_type])
+    params.expect(user: [:name, :email, :phone, :user_type, { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
   end
 
   def user_edit_params
-    params.expect(user: %i[name phone user_type])
+    params.expect(user: [:name, :phone, :user_type, { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
   end
 end

@@ -463,3 +463,102 @@
     height: 32px;
   }
 }
+
+.permissions-card {
+  margin-top: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 1rem;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+
+  @media (min-width: 768px) {
+    border-radius: 1.5rem;
+  }
+
+  .permissions-card-header {
+    padding: 1rem 1rem 0.75rem;
+
+    @media (min-width: 768px) {
+      padding: 1.5rem 1.5rem 1rem;
+    }
+  }
+
+  .permissions-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #3d3d3d;
+    margin: 0 0 0.25rem;
+  }
+
+  .permissions-card-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin: 0;
+  }
+
+  .permissions-card-empty {
+    padding: 0 1rem 1rem;
+  }
+}
+
+.permissions-table {
+  thead th {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    border-bottom-width: 1px;
+    background-color: #f8fafc;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    @media (min-width: 768px) {
+      font-size: 0.78rem;
+    }
+  }
+
+  tbody td {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover td {
+    background-color: rgba(248, 250, 252, 0.8);
+  }
+
+  th:first-child,
+  td:first-child {
+    padding-left: 1rem;
+
+    @media (min-width: 768px) {
+      padding-left: 1.5rem;
+    }
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: 1rem;
+
+    @media (min-width: 768px) {
+      padding-right: 1.5rem;
+    }
+  }
+
+  .form-check {
+    margin-bottom: 0;
+  }
+
+  .form-check-input {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+  }
+}
+

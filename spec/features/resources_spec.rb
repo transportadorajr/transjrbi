@@ -225,6 +225,18 @@ describe 'Resources' do
       end
     end
 
+    context 'when a user has permissions on the resource' do
+      let!(:resource) { create(:resource, name: 'Fretes', slug: 'freights') }
+      let!(:access) { create(:access, user: create(:user, tenant:), resource:) }
+
+      scenario 'keeps the resource and explains why' do
+        expect { page.driver.submit :delete, resource_path(resource), {} }.not_to change(Resource, :count)
+
+        expect(page).to have_current_path(resources_path)
+        expect(page).to have_text('Não é possível excluir um recurso com permissões vinculadas a usuários.')
+      end
+    end
+
     context 'when the resource does not exist' do
       scenario 'renders the not found page' do
         visit edit_resource_path(id: 0)

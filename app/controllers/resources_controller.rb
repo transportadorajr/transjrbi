@@ -52,9 +52,11 @@ class ResourcesController < BaseController
   def destroy
     authorize!(:destroy, @resource)
 
-    @resource.destroy!
-
-    redirect_to resources_path, notice: t('.success')
+    if @resource.destroy
+      redirect_to resources_path, notice: t('.success')
+    else
+      redirect_to resources_path, alert: @resource.errors.full_messages.to_sentence
+    end
   end
 
   private

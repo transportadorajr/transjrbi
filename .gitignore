@@ -41,3 +41,5 @@
 
 # Keep the example env file
 !/.env.example
+
+/cookies.txt

@@ -10,13 +10,27 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_13_132053) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_13_170015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "user_type", ["owner", "admin", "operator"]
+
+  create_table "accesses", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "resource_id", null: false
+    t.bigint "tenant_id", null: false
+    t.boolean "reads", default: false, null: false
+    t.boolean "creates", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["resource_id"], name: "index_accesses_on_resource_id"
+    t.index ["tenant_id"], name: "index_accesses_on_tenant_id"
+    t.index ["user_id", "resource_id"], name: "index_accesses_on_user_id_and_resource_id", unique: true
+    t.index ["user_id"], name: "index_accesses_on_user_id"
+  end
 
   create_table "flipper_features", force: :cascade do |t|
     t.string "key", null: false
@@ -186,5 +200,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_132053) do
     t.index ["tenant_id"], name: "index_users_on_tenant_id_where_owner_user_type", unique: true, where: "(user_type = 'owner'::user_type)"
   end
 
+  add_foreign_key "accesses", "resources"
+  add_foreign_key "accesses", "tenants"
+  add_foreign_key "accesses", "users"
   add_foreign_key "users", "tenants"
 end

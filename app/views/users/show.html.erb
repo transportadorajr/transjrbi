@@ -13,7 +13,7 @@
     <% end %>
   </div>
 
-  <div class="card detail-card">
+  <div class="card detail-card mb-4">
     <div class="detail-card-header">
       <p class="detail-card-title"><%= t('.user_data') %></p>
     </div>
@@ -39,4 +39,6 @@
       </dl>
     </div>
   </div>
+
+  <%= user_permissions_card(@user, @accesses) %>
 </div>

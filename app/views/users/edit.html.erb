@@ -11,5 +11,5 @@
     <%= page_header_tag t('.title'), back_path: users_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
   </div>
 
-  <%= render 'form', user_form: @user_form %>
+  <%= render 'form', user_form: @user_form, resources: @resources %>
 </div>

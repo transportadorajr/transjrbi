@@ -1,0 +1,5 @@
+<tr id="<%= dom_id(access) %>">
+  <td class="text-break"><%= access.resource.translated_name %></td>
+  <td class="text-center"><%= access_flag_icon(access.reads?) %></td>
+  <td class="text-center"><%= access_flag_icon(access.creates?) %></td>
+</tr>

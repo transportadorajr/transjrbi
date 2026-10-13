@@ -10,6 +10,9 @@ pt-BR:
       resource:
         one: Recurso
         other: Recursos
+      access:
+        one: Permissão
+        other: Permissões
     attributes:
       tenant:
         name: Razão social
@@ -28,6 +31,15 @@ pt-BR:
         name: Nome
         slug: Identificador
         writable: Permite edição
+      access:
+        resource: Recurso / Módulo
+        reads: Apenas Leitura
+        creates: Leitura e Edição
+    errors:
+      models:
+        resource:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -141,6 +153,13 @@ pt-BR:
       user_data: Dados do Usuário
       user_data_text: Informe os dados principais e o perfil de acesso do usuário.
       phone_placeholder: (00) 00000-0000
+    permissions:
+      title: Permissões de Acesso
+      text: Ative somente os níveis necessários para cada módulo disponível na plataforma.
+      writable: Permite leitura e edição
+      read_only: Apenas leitura disponível
+      granted: Sim
+      denied: Não
     confirmations:
       show:
         title: Confirme sua conta

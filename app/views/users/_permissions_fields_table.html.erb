@@ -1,0 +1,16 @@
+<div class="table-responsive">
+  <table class="table permissions-table align-middle mb-0" id="user_permissions">
+    <thead>
+      <tr>
+        <th><%= Access.human_attribute_name(:resource) %></th>
+        <th class="text-center"><%= Access.human_attribute_name(:reads) %></th>
+        <th class="text-center"><%= Access.human_attribute_name(:creates) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% resources.each_with_index do |resource, index| %>
+        <%= render 'users/permissions_field_row', f:, access: user_form.access_for(resource), resource:, index: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>

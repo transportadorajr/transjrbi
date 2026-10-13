@@ -1,0 +1,8 @@
+<div class="permissions-card">
+  <div class="permissions-card-header">
+    <h3 class="permissions-card-title"><%= t('users.permissions.title') %></h3>
+    <p class="permissions-card-text"><%= t('users.permissions.text') %></p>
+  </div>
+
+  <%= user_permissions_fields_table(f, user_form, resources) %>
+</div>

@@ -1,0 +1,32 @@
+<%= f.simple_fields_for :access_attributes, access, index: do |af| %>
+  <tr id="<%= dom_id(resource, :access) %>">
+    <td>
+      <%= af.input_field :resource_id, as: :hidden, value: resource.id %>
+      <strong class="d-block text-break"><%= resource.translated_name %></strong>
+      <small class="text-muted"><%= resource_access_hint(resource) %></small>
+    </td>
+    <td class="text-center">
+      <%= af.input :reads,
+                   as: :boolean,
+                   label: false,
+                   wrapper_html: { class: 'd-flex justify-content-center mb-0' },
+                   input_html: {
+                     class: 'form-check-input',
+                     id: "access_reads_#{resource.id}",
+                     aria: { label: "#{Access.human_attribute_name(:reads)} - #{resource.translated_name}" },
+                   } %>
+    </td>
+    <td class="text-center">
+      <%= af.input :creates,
+                   as: :boolean,
+                   label: false,
+                   disabled: !resource.writable?,
+                   wrapper_html: { class: 'd-flex justify-content-center mb-0' },
+                   input_html: {
+                     class: 'form-check-input',
+                     id: "access_creates_#{resource.id}",
+                     aria: { label: "#{Access.human_attribute_name(:creates)} - #{resource.translated_name}" },
+                   } %>
+    </td>
+  </tr>
+<% end %>

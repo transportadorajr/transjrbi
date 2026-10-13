@@ -187,6 +187,156 @@ describe 'Users' do
     end
   end
 
+  context 'when managing the permissions of a user' do
+    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, name: 'Arthur Dono', user_type: :owner) }
+    let!(:operator) { create(:user, tenant:, name: 'Carla Operadora', email: 'carla@transjrbi.com.br') }
+    let!(:freights) { create(:resource, name: 'Fretes', slug: 'freights', writable: true) }
+    let!(:reports) { create(:resource, name: 'Relatórios', slug: 'reports', writable: false) }
+    let!(:trips) { create(:resource, name: 'Viagens', slug: 'trips', writable: true) }
+
+    before { login_as(admin, scope: :user) }
+
+    scenario 'creates a user with its permissions', :inline_jobs do
+      visit new_user_path
+
+      expect(html_table_to_rows(table: find_by_id('user_permissions'))).to eq(
+        [
+          ['Recurso / Módulo', 'Apenas Leitura', 'Leitura e Edição'],
+          ['Fretes Permite leitura e edição', '', ''],
+          ['Relatórios Apenas leitura disponível', '', ''],
+          ['Viagens Permite leitura e edição', '', ''],
+        ],
+      )
+      expect(Resource.count).to eq(3)
+      expect(page).to have_field("access_creates_#{reports.id}", disabled: true)
+
+      fill_in 'Nome', with: 'Eduardo Motorista'
+      fill_in 'E-mail', with: 'eduardo@transjrbi.com.br'
+      select 'Operador', from: 'Perfil'
+      check "access_creates_#{freights.id}"
+      check "access_reads_#{reports.id}"
+
+      expect { click_on 'Cadastrar Usuário' }
+        .to change(User, :count).by(1)
+        .and change(Access, :count).by(2)
+        .and change { ActionMailer::Base.deliveries.count }.by(1)
+
+      expect(page).to have_text('Usuário cadastrado com sucesso.')
+
+      user = User.last
+      expect(user.accesses.count).to eq(2)
+      freights_access = user.accesses.find_by(resource: freights)
+      expect(freights_access.tenant).to eq(tenant)
+      expect(freights_access.reads).to be(true)
+      expect(freights_access.creates).to be(true)
+      reports_access = user.accesses.find_by(resource: reports)
+      expect(reports_access.reads).to be(true)
+      expect(reports_access.creates).to be(false)
+    end
+
+    context 'when the user already has permissions' do
+      let!(:freights_access) { create(:access, user: operator, resource: freights, reads: true, creates: true) }
+      let!(:reports_access) { create(:access, user: operator, resource: reports, reads: true, creates: false) }
+
+      scenario 'shows the permissions of the user' do
+        visit user_path(operator)
+
+        expect(html_table_to_rows(table: find_by_id('user_permissions'))).to eq(
+          [
+            ['Recurso / Módulo', 'Apenas Leitura', 'Leitura e Edição'],
+            %w[Fretes Sim Sim],
+            %w[Relatórios Sim Não],
+          ],
+        )
+        expect(operator.accesses.count).to eq(2)
+      end
+
+      scenario 'changes the permissions of the user' do
+        visit edit_user_path(operator)
+
+        expect(page).to have_checked_field("access_reads_#{freights.id}")
+        expect(page).to have_checked_field("access_creates_#{freights.id}")
+        expect(page).to have_checked_field("access_reads_#{reports.id}")
+        expect(page).to have_unchecked_field("access_reads_#{trips.id}")
+
+        uncheck "access_creates_#{freights.id}"
+        uncheck "access_reads_#{reports.id}"
+        check "access_reads_#{trips.id}"
+
+        expect { click_on 'Salvar Alterações' }.not_to change(Access, :count)
+
+        expect(page).to have_text('Usuário atualizado com sucesso.')
+        expect(freights_access.reload.creates).to be(false)
+        expect(freights_access.reads).to be(true)
+        expect(Access.exists?(reports_access.id)).to be(false)
+        expect(operator.accesses.find_by(resource: trips).reads).to be(true)
+      end
+    end
+
+    scenario 'does not show the permissions of the owner' do
+      visit user_path(owner)
+
+      expect(page).to have_text('Arthur Dono')
+      expect(page).to have_no_css('#user_permissions')
+      expect(page).to have_no_text('Permissões de Acesso')
+
+      visit edit_user_path(owner)
+
+      expect(page).to have_select('Perfil', selected: 'Proprietário', disabled: true)
+      expect(page).to have_no_css('#user_permissions')
+    end
+  end
+
+  context 'when an operator with permissions edits its own account' do
+    let!(:operator) { create(:user, tenant:, name: 'Fábio Operador') }
+    let!(:freights) { create(:resource, name: 'Fretes', slug: 'freights') }
+    let!(:freights_access) { create(:access, user: operator, resource: freights, reads: true, creates: false) }
+
+    before { login_as(operator, scope: :user) }
+
+    scenario 'does not see the permissions fields' do
+      visit edit_user_path(operator)
+
+      expect(page).to have_field('Nome', with: 'Fábio Operador')
+      expect(page).to have_no_css('#user_permissions')
+    end
+
+    scenario 'cannot grant itself permissions through a forged request' do
+      page.driver.submit :patch, user_path(operator), {
+        user: { name: 'Fábio', access_attributes: { '0' => { resource_id: freights.id, reads: '1', creates: '1' } } },
+      }
+
+      expect(operator.accesses.count).to eq(1)
+      expect(freights_access.reload.creates).to be(false)
+    end
+  end
+
+  context 'when there are no resources to grant' do
+    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+    let!(:operator) { create(:user, tenant:, name: 'Carla Operadora', email: 'carla@transjrbi.com.br') }
+
+    before { login_as(admin, scope: :user) }
+
+    scenario 'shows the empty state in the permissions fields' do
+      visit new_user_path
+
+      expect(Resource.count).to eq(0)
+      expect(page).to have_text('Permissões de Acesso')
+      expect(page).to have_text('Nenhum registro encontrado')
+      expect(page).to have_no_css('#user_permissions')
+    end
+
+    scenario 'shows the empty state in the permissions of a user without accesses' do
+      visit user_path(operator)
+
+      expect(operator.accesses.count).to eq(0)
+      expect(page).to have_text('Permissões de Acesso')
+      expect(page).to have_text('Nenhum registro encontrado')
+      expect(page).to have_no_css('#user_permissions')
+    end
+  end
+
   context 'when an operator is signed in' do
     let!(:operator) { create(:user, tenant:, name: 'Fábio Operador', email: 'fabio@transjrbi.com.br') }
     let!(:teammate) { create(:user, tenant:, name: 'Gabriela Admin', email: 'gabriela@transjrbi.com.br', user_type: :admin) }
@@ -261,6 +411,21 @@ describe 'Users' do
 
       expect(page).to have_current_path(edit_user_path(admin))
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    context 'when there are resources to grant' do
+      let!(:freights) { create(:resource, name: 'Fretes', slug: 'freights') }
+
+      scenario 'fits the permissions table on the screen' do
+        visit new_user_path
+        use_mobile_screen
+
+        expect(page).to have_css('#user_permissions th', text: 'LEITURA E EDIÇÃO')
+        check "access_creates_#{freights.id}"
+
+        expect(page).to have_checked_field("access_creates_#{freights.id}")
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
     end
   end
 end

@@ -31,4 +31,18 @@ RSpec.describe Resource do
       expect(described_class.by_slug('use')).to eq([users_resource])
     end
   end
+
+  describe '#destroy' do
+    let!(:resource) { create(:resource, slug: 'freights') }
+
+    context 'when a user has an access to it' do
+      before { create(:access, resource:) }
+
+      it 'keeps the resource and explains why' do
+        expect(resource.destroy).to be(false)
+        expect(resource.errors.full_messages).to eq(['Não é possível excluir um recurso com permissões vinculadas a usuários.'])
+        expect(described_class.exists?(resource.id)).to be(true)
+      end
+    end
+  end
 end

@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   belongs_to :tenant
 
+  has_many :accesses, dependent: :destroy
+
   # Módulos do Devise em uso.
   # Disponíveis para o futuro: :lockable, :timeoutable, :omniauthable
   devise :database_authenticatable, :recoverable, :rememberable, :validatable,

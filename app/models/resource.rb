@@ -1,6 +1,8 @@
 class Resource < ApplicationRecord
   SLUG_FORMAT = /\A[a-z][a-z0-9_]*\z/
 
+  has_many :accesses, dependent: :restrict_with_error
+
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
   scope :by_slug, ->(slug) { where(arel_table[:slug].matches("%#{sanitize_sql_like(slug)}%")) }
 

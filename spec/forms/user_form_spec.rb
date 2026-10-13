@@ -121,6 +121,86 @@ RSpec.describe UserForm do
     end
   end
 
+  describe 'accesses' do
+    let!(:freights) { create(:resource, name: 'Fretes', slug: 'freights', writable: true) }
+    let!(:reports) { create(:resource, name: 'Relatórios', slug: 'reports', writable: false) }
+
+    context 'when creating a user' do
+      let(:form) do
+        described_class.new(
+          editor:, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: 'operator',
+          access_attributes: {
+            '0' => { 'resource_id' => freights.id.to_s, 'reads' => '0', 'creates' => '1' },
+            '1' => { 'resource_id' => reports.id.to_s, 'reads' => '1', 'creates' => '1' },
+          }
+        )
+      end
+
+      it 'saves the accesses in the tenant of the user' do
+        expect { form.save }.to change(Access, :count).by(2)
+
+        user = User.last
+        freights_access = user.accesses.find_by(resource: freights)
+        reports_access = user.accesses.find_by(resource: reports)
+        expect(freights_access.tenant).to eq(tenant)
+        expect(freights_access.reads).to be(true)
+        expect(freights_access.creates).to be(true)
+        expect(reports_access.reads).to be(true)
+        expect(reports_access.creates).to be(false)
+      end
+    end
+
+    context 'when editing a user with accesses' do
+      let!(:user) { create(:user, tenant:) }
+      let!(:freights_access) { create(:access, user:, resource: freights, reads: true, creates: true) }
+
+      it 'updates the existing access and removes the unchecked ones' do
+        form = described_class.for_user(user, editor:)
+        form.assign_attributes(
+          access_attributes: {
+            '0' => { 'resource_id' => freights.id.to_s, 'reads' => '0', 'creates' => '0' },
+            '1' => { 'resource_id' => reports.id.to_s, 'reads' => '1', 'creates' => '0' },
+          },
+        )
+
+        expect { form.save }.not_to change(Access, :count)
+
+        expect(Access.exists?(freights_access.id)).to be(false)
+        expect(user.accesses.sole.resource).to eq(reports)
+      end
+
+      it 'does not duplicate accesses when saved twice' do
+        attributes = { access_attributes: { '0' => { 'resource_id' => freights.id.to_s, 'reads' => '1', 'creates' => '0' } } }
+
+        2.times do
+          form = described_class.for_user(user, editor:)
+          form.assign_attributes(attributes)
+          form.save
+        end
+
+        expect(user.accesses.count).to eq(1)
+        expect(freights_access.reload.creates).to be(false)
+      end
+
+      it 'keeps the accesses when an operator edits its own account' do
+        form = described_class.for_user(user, editor: user)
+        form.assign_attributes(
+          access_attributes: { '0' => { 'resource_id' => reports.id.to_s, 'reads' => '1', 'creates' => '0' } },
+        )
+
+        expect { form.save }.not_to change(Access, :count)
+        expect(user.accesses.sole).to eq(freights_access)
+      end
+
+      it 'builds the access of each resource from the saved values' do
+        form = described_class.for_user(user, editor:)
+
+        expect(form.access_for(freights)).to eq(freights_access)
+        expect(form.access_for(reports)).to be_new_record
+      end
+    end
+  end
+
   describe '.model_name' do
     it 'uses the user param key' do
       expect(described_class.model_name.param_key).to eq('user')

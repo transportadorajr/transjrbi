@@ -61,7 +61,48 @@ module UsersHelper
     create_button(t('users.index.new_user')) if can?(:create, User)
   end
 
+  def user_permissions_fields(form, user_form, resources)
+    return if user_form.accesses_locked?
+
+    render 'users/permissions_fields', f: form, user_form:, resources:
+  end
+
+  def user_permissions_card(user, accesses)
+    return if user.owner?
+
+    render 'users/permissions_card', accesses:
+  end
+
+  def user_permissions_table(accesses)
+    return render('shared/no_content') if accesses.none?
+
+    render 'users/permissions_table', accesses:
+  end
+
+  def user_permissions_fields_table(form, user_form, resources)
+    return content_tag(:div, render('shared/no_content'), class: 'permissions-card-empty') if resources.none?
+
+    render 'users/permissions_fields_table', f: form, user_form:, resources:
+  end
+
+  def resource_access_hint(resource)
+    resource.writable? ? t('users.permissions.writable') : t('users.permissions.read_only')
+  end
+
+  def access_flag_icon(granted)
+    return access_flag_tag(:'check-circle', 'text-success', t('users.permissions.granted')) if granted
+
+    access_flag_tag(:'x-circle', 'text-danger', t('users.permissions.denied'))
+  end
+
   private
+
+  def access_flag_tag(icon_name, color_class, label)
+    content_tag :span, class: color_class do
+      concat icon(icon_name)
+      concat content_tag(:span, label, class: 'visually-hidden')
+    end
+  end
 
   def user_type_badge_class(user)
     user.operator? ? 'text-bg-light border' : 'text-bg-primary'
