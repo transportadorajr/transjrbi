@@ -16,6 +16,9 @@ module Atua
   class AuthenticationError < Error; end
   class SessionError < Error; end
   class DownloadError < Error; end
+  class SpreadsheetError < Error; end
+  class LayoutError < Error; end
+  class ConversionError < Error; end
 
   class << self
     def enabled?(tenant)

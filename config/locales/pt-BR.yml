@@ -271,3 +271,12 @@ pt-BR:
       unexpected_content: 'O relatório %{report} não veio em Excel (.xls): HTTP %{status}, Content-Type %{content_type}. Trecho da resposta: %{excerpt}'
       period_not_supported: O relatório %{report} não aceita período.
       invalid_period: A data inicial é posterior à data final.
+      unreadable_spreadsheet: 'Não foi possível abrir a planilha %{file}: %{reason}.'
+      totals_mismatch: 'A soma das linhas da planilha %{file} não bate com a linha de totais: %{columns}.'
+      totals_column: '%{column} (total %{expected}, soma %{actual})'
+      missing_columns: 'O relatório %{report} veio sem as colunas obrigatórias %{missing}. Colunas recebidas: %{received}.'
+      unknown_columns: 'O relatório %{report} trouxe colunas novas, guardadas só em raw_data: %{columns}.'
+      column_conversion: 'Coluna %{column} do relatório %{report}: %{message}'
+      invalid_value: 'o valor %{value} não pode ser convertido para %{type}.'
+      unknown_document_kind: 'tipo de documento %{value} desconhecido.'
+      unknown_conversion: Conversão desconhecida %{type}.
