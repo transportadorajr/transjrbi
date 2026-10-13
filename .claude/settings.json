@@ -22,7 +22,9 @@
       "Bash(curl -s -o /tmp/claude-501/login.html -w \"%{http_code}\\\\n\" --max-time 30 http://localhost:3000/users/sign_in)",
       "Read(//Applications/Google Chrome.app/Contents/MacOS/**)",
       "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=390,844 --virtual-time-budget=4000 --screenshot=/private/tmp/claude-501/-Users-moisesribeiro-Documents-transjrbi/8693957e-6e4f-40fd-b4e6-2e8a1400a191/scratchpad/mobile.png http://localhost:3000/users/sign_in)",
-      "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --hide-scrollbars --window-size=1440,900 --virtual-time-budget=4000 --screenshot=/private/tmp/claude-501/-Users-moisesribeiro-Documents-transjrbi/8693957e-6e4f-40fd-b4e6-2e8a1400a191/scratchpad/desktop.png http://localhost:3000/users/sign_in)"
+      "Bash('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless=new --disable-gpu --hide-scrollbars --window-size=1440,900 --virtual-time-budget=4000 --screenshot=/private/tmp/claude-501/-Users-moisesribeiro-Documents-transjrbi/8693957e-6e4f-40fd-b4e6-2e8a1400a191/scratchpad/desktop.png http://localhost:3000/users/sign_in)",
+      "Edit",
+      "Bash"
     ]
   }
 }
