@@ -82,6 +82,9 @@ end
 gem 'money-rails', '~> 3.0'
 gem 'aasm'
 
+gem 'roo'
+gem 'roo-xls'
+
 gem 'ostruct', '~> 0.6.3'
 gem 'chartkick', '~> 5.2'
 gem 'groupdate', '~> 6.8'
