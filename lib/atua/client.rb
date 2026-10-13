@@ -1,4 +1,5 @@
 require 'net/http'
+require 'nokogiri'
 
 module Atua
   class Client
@@ -8,7 +9,9 @@ module Atua
     INDEX_PATH = 'index.php'.freeze
     USERNAME_FIELD = 'f_ds_apelido'.freeze
     PASSWORD_FIELD = 'f_ds_senha'.freeze
+    DEVICE_HASH_FIELD = 'f_id_hash_aplicativo'.freeze
     BUTTON_PATTERN = /name=["'](submete\d+)["']/
+    DEVICE_COOKIE_PATTERN = /\Ac_ds_dispositivo_/
     XLS_SIGNATURE = "\xD0\xCF\x11\xE0".b.freeze
     XLS_EXTENSION = '.xls'.freeze
     MAX_PERIOD_DAYS = 31
@@ -44,17 +47,23 @@ module Atua
       @cookies = {}
       @logged_in = false
       @requests = 0
+
+      seed_device_cookie
     end
 
     def logged_in?
       @logged_in
     end
 
+    def device_cookie
+      cookies.find { |name, _| name.match?(DEVICE_COOKIE_PATTERN) }&.then { |name, value| "#{name}=#{value}" }
+    end
+
     def login
       return if logged_in?
 
-      request(:get, LOGIN_PAGE_PATH, failure: SessionError)
-      response = request(:post, LOGIN_PATH, form: login_params, headers: post_headers(LOGIN_PAGE_PATH), retryable: false, failure: SessionError)
+      form_page = request(:get, LOGIN_PAGE_PATH, failure: SessionError)
+      response = request(:post, LOGIN_PATH, form: login_params(form_page), headers: post_headers(LOGIN_PAGE_PATH), retryable: false, failure: SessionError)
 
       raise AuthenticationError.new(I18n.t('atua.errors.login_status', status: response.code), **diagnostics(response)) unless response.code == '200'
       raise AuthenticationError.new(I18n.t('atua.errors.invalid_credentials'), **diagnostics(response)) if login_form?(response)
@@ -217,6 +226,14 @@ module Atua
       http_request
     end
 
+    def seed_device_cookie
+      pair = configuration.device_cookie
+      return if pair.blank?
+
+      name, value = pair.split('=', 2).map(&:strip)
+      cookies[name] = value if name.match?(DEVICE_COOKIE_PATTERN) && value.present?
+    end
+
     def store_cookies(response)
       Array(response.get_fields('set-cookie')).each do |set_cookie|
         name, value = set_cookie.split(';', 2).first.split('=', 2).map(&:strip)
@@ -236,8 +253,30 @@ module Atua
       sleep(seconds)
     end
 
-    def login_params
-      { 'f_origem' => INDEX_PATH, USERNAME_FIELD => configuration.username, PASSWORD_FIELD => configuration.password }
+    def login_params(form_page)
+      params = form_fields(form_page.body, scope: PASSWORD_FIELD)
+        .merge(USERNAME_FIELD => configuration.username, PASSWORD_FIELD => configuration.password)
+      params[DEVICE_HASH_FIELD] = configuration.device_hash if configuration.device_hash.present? && params.key?(DEVICE_HASH_FIELD)
+      params
+    end
+
+    def form_fields(html, scope:)
+      doc = document(html)
+      anchor = doc.at_css("[name='#{scope}']")
+      form = anchor&.ancestors('form')&.first || doc
+
+      form.css('input[name], select[name], textarea[name]').each_with_object({}) do |node, params|
+        next if %w[button image reset].include?(node['type'])
+
+        params[node['name']] = node['value'].to_s
+      end
+    end
+
+    def document(html)
+      text = html.to_s.b.force_encoding(Encoding::UTF_8)
+      text = text.encode(Encoding::UTF_8, Encoding::ISO_8859_1) unless text.valid_encoding?
+
+      Nokogiri::HTML(text)
     end
 
     def post_headers(referer_path)
@@ -249,7 +288,7 @@ module Atua
     end
 
     def login_form?(response)
-      response.body.to_s.b.include?(PASSWORD_FIELD)
+      document(response.body).at_css("input[name='#{PASSWORD_FIELD}']").present?
     end
 
     def suggested_filename(report, response, start_date, end_date)

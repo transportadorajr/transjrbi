@@ -6,7 +6,20 @@ RSpec.describe Atua::Client do
   let(:configuration) { Atua::Configuration.new(base_url:, username: 'transjr', password:) }
   let(:client) { described_class.new(configuration) }
   let(:xls) { file_fixture('atua/customers.xls').binread }
-  let(:login_form) { '<html><form><input name="f_ds_apelido"><input type="password" name="f_ds_senha"></form></html>' }
+  let(:login_form) do
+    <<~HTML
+      <html><body><form action="login.php" method="post">
+        <input type="hidden" name="f_form_login_submitted" value="1">
+        <input type="hidden" name="f_origem" value="login.php">
+        <input type="hidden" name="f_id_hash_aplicativo" value="">
+        <input type="text" name="f_ds_apelido" value="">
+        <input type="password" name="f_ds_senha" value="">
+        <input type="hidden" name="f_popup" value="true">
+        <input type="hidden" name="f_iframe" value="">
+        <input type="submit" name="submete051031" value="Acessar">
+      </form></body></html>
+    HTML
+  end
   let(:xls_response) { { status: 200, body: xls, headers: { 'Content-Type' => 'application/vnd.ms-excel', 'Content-Disposition' => 'attachment; filename="9430_rel.xls"' } } }
   let(:posted) { [] }
 
@@ -37,14 +50,23 @@ RSpec.describe Atua::Client do
     context 'when the credentials are accepted' do
       before { stub_login }
 
-      it 'posts the login form with browser headers and keeps the session' do
+      it 'posts every field of the login form with the filled credentials and browser headers' do
         client.login
 
         expect(client).to be_logged_in
         expect(
           a_request(:post, "#{base_url}/login.php")
             .with(
-              body: { 'f_origem' => 'index.php', 'f_ds_apelido' => 'transjr', 'f_ds_senha' => password },
+              body: {
+                'f_form_login_submitted' => '1',
+                'f_origem' => 'login.php',
+                'f_id_hash_aplicativo' => '',
+                'f_ds_apelido' => 'transjr',
+                'f_ds_senha' => password,
+                'f_popup' => 'true',
+                'f_iframe' => '',
+                'submete051031' => 'Acessar',
+              },
               headers: {
                 'Origin' => 'https://atua.example.test',
                 'Referer' => "#{base_url}/login.php?f_popup=true",
@@ -53,6 +75,31 @@ RSpec.describe Atua::Client do
               },
             ),
         ).to have_been_made.once
+      end
+
+      it 'fills the application hash from the configuration when present' do
+        configuration = Atua::Configuration.new(base_url:, username: 'transjr', password:, device_hash: 'deadbeefhash')
+        client = described_class.new(configuration)
+        allow(client).to receive(:pause)
+
+        client.login
+
+        expect(a_request(:post, "#{base_url}/login.php").with(body: hash_including('f_id_hash_aplicativo' => 'deadbeefhash'))).to have_been_made.once
+      end
+
+      it 'sends an empty application hash when none is configured' do
+        client.login
+
+        expect(a_request(:post, "#{base_url}/login.php").with(body: hash_including('f_id_hash_aplicativo' => ''))).to have_been_made.once
+      end
+
+      it 'reads the dynamic submit button name from the login form' do
+        stub_request(:get, "#{base_url}/login.php?f_popup=true")
+          .to_return(status: 200, body: login_form.sub('submete051031', 'submete999999'), headers: { 'Set-Cookie' => 'PHPSESSID=abc123; path=/' })
+
+        client.login
+
+        expect(a_request(:post, "#{base_url}/login.php").with(body: hash_including('submete999999' => 'Acessar'))).to have_been_made.once
       end
 
       it 'does not log in again when the session is already open' do
@@ -64,7 +111,7 @@ RSpec.describe Atua::Client do
     end
 
     context 'when the credentials are refused' do
-      before { stub_login(body: "#{login_form}<p>Senha #{password} inválida</p>") }
+      before { stub_login(body: %(<html><body><p>Senha #{password} inválida</p><input name="f_ds_senha"></body></html>)) }
 
       it 'raises an authentication error once, without retrying nor exposing the password' do
         expect { client.login }.to raise_error(Atua::AuthenticationError) { |error|
@@ -390,6 +437,44 @@ RSpec.describe Atua::Client do
         download = client.download(:transport_documents, start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 1)).first
 
         expect(download.filename).to eq('transport_documents_20261001.xls')
+      end
+    end
+  end
+
+  describe 'device cookie' do
+    let(:device_cookie) { 'c_ds_dispositivo_transjr_9430=token123' }
+    let(:configuration) { Atua::Configuration.new(base_url:, username: 'transjr', password:, device_cookie:) }
+
+    before { stub_login }
+
+    it 'sends the seeded device cookie from the first request' do
+      client.login
+
+      expect(a_request(:get, "#{base_url}/login.php?f_popup=true").with(headers: { 'Cookie' => device_cookie })).to have_been_made.once
+    end
+
+    it 'keeps the device cookie available alongside the session cookie' do
+      client.login
+
+      expect(client.device_cookie).to eq(device_cookie)
+    end
+
+    it 'updates the device cookie when the server sends a new one' do
+      stub_request(:get, "#{base_url}/login.php?f_popup=true")
+        .to_return(status: 200, body: login_form, headers: { 'Set-Cookie' => ['PHPSESSID=abc123; path=/', 'c_ds_dispositivo_transjr_9430=renewed; path=/'] })
+
+      client.login
+
+      expect(client.device_cookie).to eq('c_ds_dispositivo_transjr_9430=renewed')
+    end
+
+    context 'without a seeded device cookie' do
+      let(:configuration) { Atua::Configuration.new(base_url:, username: 'transjr', password:) }
+
+      it 'has no device cookie' do
+        client.login
+
+        expect(client.device_cookie).to be_nil
       end
     end
   end

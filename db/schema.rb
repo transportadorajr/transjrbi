@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_13_182217) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_13_202032) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -169,6 +169,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_182217) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "atua_url"
+    t.text "atua_device_token"
+    t.text "atua_device_hash"
     t.index ["legal_id"], name: "index_tenants_on_legal_id", unique: true
   end
 

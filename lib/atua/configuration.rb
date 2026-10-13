@@ -2,9 +2,11 @@ module Atua
   class Configuration
     KEYS = %i[base_url username password].freeze
     BASE_URL_ENV = 'ATUA_BASE_URL'.freeze
+    DEVICE_COOKIE_ENV = 'ATUA_DEVICE_COOKIE'.freeze
+    DEVICE_HASH_ENV = 'ATUA_DEVICE_HASH'.freeze
     LOCAL_HOSTS = %w[localhost 127.0.0.1 ::1].freeze
 
-    attr_reader :base_url, :username, :password
+    attr_reader :base_url, :username, :password, :device_cookie, :device_hash
 
     class << self
       def for(tenant = nil, allow_remote_host: false)
@@ -14,6 +16,8 @@ module Atua
           base_url: base_url_for(tenant, credentials),
           username: credentials[:username],
           password: credentials[:password],
+          device_cookie: device_cookie_for(tenant),
+          device_hash: device_hash_for(tenant),
         )
         configuration.ensure_allowed_host! unless allow_remote_host
 
@@ -27,12 +31,26 @@ module Atua
 
         tenant&.atua_url.presence || credentials[:base_url]
       end
+
+      def device_cookie_for(tenant)
+        return ENV[DEVICE_COOKIE_ENV] if ENV[DEVICE_COOKIE_ENV].present?
+
+        tenant&.atua_device_token.presence
+      end
+
+      def device_hash_for(tenant)
+        return ENV[DEVICE_HASH_ENV] if ENV[DEVICE_HASH_ENV].present?
+
+        tenant&.atua_device_hash.presence
+      end
     end
 
-    def initialize(base_url:, username:, password:)
+    def initialize(base_url:, username:, password:, device_cookie: nil, device_hash: nil)
       @base_url = base_url.to_s.strip.delete_suffix('/')
       @username = username.to_s
       @password = password.to_s
+      @device_cookie = device_cookie.presence
+      @device_hash = device_hash.presence
 
       ensure_complete!
     end

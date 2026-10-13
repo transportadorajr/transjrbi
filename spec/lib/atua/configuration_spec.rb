@@ -109,6 +109,40 @@ RSpec.describe Atua::Configuration do
     end
   end
 
+  describe 'device cookie' do
+    let(:device_cookie) { 'c_ds_dispositivo_transjr_9430=token123' }
+
+    it 'has no device cookie by default' do
+      expect(described_class.for.device_cookie).to be_nil
+    end
+
+    it 'reads the device cookie from the tenant' do
+      tenant = build(:tenant, atua_device_token: device_cookie)
+
+      expect(described_class.for(tenant).device_cookie).to eq(device_cookie)
+    end
+
+    it 'prefers the ATUA_DEVICE_COOKIE override' do
+      tenant = build(:tenant, atua_device_token: 'c_ds_dispositivo_transjr_9430=stored')
+
+      ClimateControl.modify(ATUA_DEVICE_COOKIE: device_cookie) do
+        expect(described_class.for(tenant).device_cookie).to eq(device_cookie)
+      end
+    end
+
+    it 'reads the device hash from the tenant' do
+      expect(described_class.for(build(:tenant, atua_device_hash: 'abc123hash')).device_hash).to eq('abc123hash')
+    end
+
+    it 'prefers the ATUA_DEVICE_HASH override' do
+      tenant = build(:tenant, atua_device_hash: 'stored-hash')
+
+      ClimateControl.modify(ATUA_DEVICE_HASH: 'env-hash') do
+        expect(described_class.for(tenant).device_hash).to eq('env-hash')
+      end
+    end
+  end
+
   describe '#inspect' do
     it 'does not show the password' do
       expect(described_class.for.inspect).not_to include('secret-password')
