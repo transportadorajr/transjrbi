@@ -18,6 +18,7 @@ pt-BR:
         name: Razão social
         legal_id: CNPJ
         trade_name: Nome fantasia
+        atua_url: URL da Atua
         users: Usuários
       user:
         tenant: Empresa
