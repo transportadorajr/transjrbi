@@ -21,7 +21,6 @@ Rails.application.configure do
     atua_expired_files: {
       cron: '30 3 * * *',
       class: 'Atua::PurgeExpiredFilesJob',
-      description: 'Remove os arquivos baixados da Atua com mais de 60 dias',
     },
     # exemplo: {
     #   cron: "0 3 * * *", # todo dia às 03:00

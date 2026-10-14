@@ -206,4 +206,10 @@ RSpec.describe UserForm do
       expect(described_class.model_name.param_key).to eq('user')
     end
   end
+
+  describe '.enum_options_for_select' do
+    it 'translates the user types with the user enum translations' do
+      expect(described_class.enum_options_for_select(:user_type)).to eq([%w[Administrador admin], %w[Operador operator]])
+    end
+  end
 end

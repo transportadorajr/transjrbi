@@ -9,7 +9,11 @@ module EnumHelpers
   end
 
   def enum_translations(enum)
-    I18n.t(enum, scope: [:enums, model_name.param_key])
+    I18n.t(enum, scope: [:enums, enum_i18n_key])
+  end
+
+  def enum_i18n_key
+    model_name.i18n_key
   end
 
   def _enum(name, ...)
