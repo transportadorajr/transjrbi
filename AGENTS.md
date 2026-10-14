@@ -89,6 +89,8 @@ bundle exec rails g migration ...
 
 - Specs mirror the directory: `spec/command/tenants/provisioning_command_spec.rb`.
 
+- Exception — Atua integration: every class that captures data from the Atua ERP lives in `lib/atua/` under the `Atua` namespace, never in `app/command/`. This covers the HTTP client, configuration, report definitions and downloads, and also the commands that read, convert, map, save and import the reports (`Atua::ReadSpreadsheetCommand`, `Atua::Map*Command`, `Atua::Save*Command`, `Atua::ImportReportCommand`, `Atua::ImportAllCommand`, `Atua::ReprocessImportCommand`, …). They keep the `Command` suffix and the `call` class method, and their specs live in `spec/lib/atua/`. Only Atua housekeeping that does not capture data (e.g. `Atua::PurgeExpiredFilesCommand`) stays in `app/command/atua/`.
+
 ### Frontend Stack
 
 - Hotwire (Turbo + Stimulus) for interactivity

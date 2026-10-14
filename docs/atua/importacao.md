@@ -1,6 +1,6 @@
 # Importação dos relatórios da Atua
 
-Commands em `app/command/atua/`. Nenhum deles é disparado por rake task: os Jobs chamam os commands.
+Todas as classes que capturam dados da Atua ficam em `lib/atua/` (specs em `spec/lib/atua/`). Nenhuma delas é disparada por rake task: os Jobs chamam os commands.
 
 | Command | O que faz |
 | --- | --- |
