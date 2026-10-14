@@ -61,6 +61,26 @@ RSpec.describe EmptyLegs::CalculateCommand do
     expect(client).to have_received(:route).once
   end
 
+  it 'links the empty leg to every freight of the next trip' do
+    transport_document(next_trip, '74004', issued_at: Time.zone.local(2026, 10, 3, 9), origin_city: 'CONTAGEM', origin_state: 'MG')
+
+    leg = described_class.call(next_trip, client:)
+
+    expect(leg.transport_documents.pluck(:number)).to contain_exactly('74003', '74004')
+    expect(EmptyLegTransportDocument.count).to eq(2)
+  end
+
+  it 'follows the freights of the next trip when calculated again' do
+    leg = described_class.call(next_trip, client:)
+    Atua::ManifestDocument.find_by!(transport_document_number: '74003').update!(removed_from_atua_at: Time.current)
+    transport_document(next_trip, '74005', issued_at: Time.zone.local(2026, 10, 3, 10), origin_city: 'CONTAGEM', origin_state: 'MG')
+    places['CONTAGEM, MG'] = place(-19.9386, -44.0529, 'Geography', 'Contagem')
+
+    described_class.call(next_trip, client:)
+
+    expect(leg.reload.transport_documents.pluck(:number)).to eq(['74005'])
+  end
+
   it 'has no empty leg for the first trip of the plate' do
     expect { expect(described_class.call(previous_trip, client:)).to be_nil }.not_to change(EmptyLeg, :count)
   end
@@ -112,10 +132,10 @@ RSpec.describe EmptyLegs::CalculateCommand do
   context 'when the next trip is canceled after its leg was calculated' do
     before { described_class.call(next_trip, client:) }
 
-    it 'removes the leg' do
+    it 'removes the leg and its freight links' do
       next_trip.update!(status: 'Cancelado')
 
-      expect { described_class.call(next_trip, client:) }.to change(EmptyLeg, :count).by(-1)
+      expect { described_class.call(next_trip, client:) }.to change(EmptyLeg, :count).by(-1).and change(EmptyLegTransportDocument, :count).by(-1)
     end
   end
 end

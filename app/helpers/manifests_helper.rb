@@ -31,25 +31,6 @@ module ManifestsHelper
     render 'manifests/empty_leg', empty_leg:
   end
 
-  def empty_leg_previous_manifest(empty_leg)
-    manifest = empty_leg.previous_manifest
-    return empty_leg.previous_manifest_code.to_s unless manifest&.active?
-
-    link_to manifest.number, manifest_path(manifest), class: 'fw-semibold text-decoration-none'
-  end
-
-  def empty_leg_location(location)
-    return t('tax.blank') unless location
-
-    [location.street, tax_city(location.city, location.state)].compact_blank.join(' - ')
-  end
-
-  def empty_leg_distance(empty_leg)
-    return empty_leg.status_type_name unless empty_leg.calculated?
-
-    t('manifests.empty_leg.distance', distance: number_with_precision(empty_leg.distance_km, precision: 2))
-  end
-
   private
 
   def manifest_show_menu(manifest)

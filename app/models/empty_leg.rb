@@ -5,6 +5,8 @@ class EmptyLeg < ApplicationRecord
   belongs_to :origin, class_name: 'Location', optional: true
   belongs_to :destination, class_name: 'Location', optional: true
   belongs_to :road_route, optional: true
+  has_many :empty_leg_transport_documents, dependent: :delete_all
+  has_many :transport_documents, through: :empty_leg_transport_documents
   with_options class_name: 'Atua::Manifest', primary_key: %i[tenant_id code], optional: true do
     belongs_to :previous_manifest, foreign_key: %i[tenant_id previous_manifest_code], inverse_of: false
     belongs_to :next_manifest, foreign_key: %i[tenant_id next_manifest_code], inverse_of: :empty_leg

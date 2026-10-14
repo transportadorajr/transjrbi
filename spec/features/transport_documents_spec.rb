@@ -212,6 +212,42 @@ describe 'Transport documents' do
 
         expect(page).to have_current_path(manifest_path(manifest))
       end
+
+      scenario 'tells that there is no empty leg to reach the transport document' do
+        visit transport_document_path(transport_document)
+
+        expect(EmptyLeg.count).to eq(0)
+        expect(page).to have_text('Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.')
+      end
+
+      context 'when the empty leg to reach the transport document was calculated' do
+        let!(:previous_manifest) { create(:atua_manifest, tenant:, code: 41_100, number: '40700', plate: 'EXU0F72') }
+        let!(:origin) do
+          create(:location, lookup_key: 'RUA DAS FLORES 10|BETIM|MG', street: 'RUA DAS FLORES 10', city: 'BETIM', state: 'MG',
+                            precision_type: 'address')
+        end
+        let!(:destination) { create(:location, lookup_key: '|IPATINGA|MG', city: 'IPATINGA', state: 'MG', precision_type: 'city') }
+        let!(:empty_leg) do
+          create(:empty_leg, tenant:, plate: 'EXU0F72', previous_manifest_code: 41_100, next_manifest_code: manifest.code, origin:, destination:,
+                             distance_km: BigDecimal('217.44'), precision_type: 'city', calculated_at: Time.zone.local(2026, 10, 1, 18, 5))
+        end
+
+        before { create(:empty_leg_transport_document, empty_leg:, tenant:, transport_document_code: 80_842) }
+
+        scenario 'shows the empty kilometers driven to reach the pickup' do
+          visit transport_document_path(transport_document)
+
+          expect(EmptyLegTransportDocument.count).to eq(1)
+          expect(dl_to_hash("#empty_leg_#{empty_leg.id}")).to eq(
+            'Última entrega da viagem anterior' => 'RUA DAS FLORES 10 - BETIM/MG',
+            'Primeira coleta desta viagem' => 'IPATINGA/MG',
+            'KM vazio' => '217,44 km',
+            'Precisão' => 'Centro da cidade',
+            'Calculado em' => '01/10/2026 18:05',
+          )
+          expect(page).to have_no_css("#empty_leg_#{empty_leg.id}", text: '40700')
+        end
+      end
     end
   end
 
@@ -289,6 +325,23 @@ describe 'Transport documents' do
       expect(page).to have_link('74130')
       expect(page).to have_no_css('th', text: 'Placa')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    context 'when the empty leg to reach the transport document was calculated' do
+      let!(:location) do
+        create(:location, lookup_key: 'AVENIDA DAS INDUSTRIAS 1500|SANTANA DE PARNAIBA|SP', street: 'AVENIDA DAS INDUSTRIAS 1500',
+                          city: 'SANTANA DE PARNAIBA', state: 'SP')
+      end
+      let!(:empty_leg) { create(:empty_leg, tenant:, origin: location, destination: location) }
+
+      before { create(:empty_leg_transport_document, empty_leg:, tenant:, transport_document_code: transport_document.code) }
+
+      scenario 'stacks the empty leg details without horizontal scroll' do
+        visit transport_document_path(transport_document)
+
+        expect(page).to have_css("#empty_leg_#{empty_leg.id}", text: '48,20 km')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
     end
   end
 

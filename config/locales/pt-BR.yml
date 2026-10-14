@@ -535,6 +535,8 @@ pt-BR:
       transport: Transporte
       values: Valores
       manifests: Manifestos
+      empty_legs: KM vazio para chegar à coleta
+      no_empty_leg: Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.
   manifests:
     index:
       title: Manifestos
@@ -555,8 +557,8 @@ pt-BR:
       documents: CT-es do manifesto
       empty_leg: KM vazio
       no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
-    empty_leg:
-      distance: '%{distance} km'
+  empty_legs:
+    distance: '%{distance} km'
   customers:
     index:
       title: Clientes

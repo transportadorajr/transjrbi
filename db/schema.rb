@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_183706) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_185915) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -471,6 +471,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_183706) do
     t.index ["tenant_id", "status"], name: "index_atua_vehicles_on_tenant_id_and_status"
   end
 
+  create_table "empty_leg_transport_documents", force: :cascade do |t|
+    t.bigint "empty_leg_id", null: false
+    t.bigint "tenant_id", null: false
+    t.bigint "transport_document_code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["empty_leg_id", "transport_document_code"], name: "idx_on_empty_leg_id_transport_document_code_3c223e12fa", unique: true
+    t.index ["tenant_id", "transport_document_code"], name: "idx_on_tenant_id_transport_document_code_eeccd5d4d4"
+  end
+
   create_table "empty_legs", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.string "plate", null: false
@@ -724,6 +734,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_183706) do
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_vehicles", "tenants"
+  add_foreign_key "empty_leg_transport_documents", "empty_legs", on_delete: :cascade
+  add_foreign_key "empty_leg_transport_documents", "tenants"
   add_foreign_key "empty_legs", "locations", column: "destination_id"
   add_foreign_key "empty_legs", "locations", column: "origin_id"
   add_foreign_key "empty_legs", "road_routes"

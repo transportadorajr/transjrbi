@@ -16,7 +16,10 @@ module EmptyLegs
       return remove_leg unless previous_trip
 
       leg = EmptyLeg.find_or_initialize_by(tenant_id: manifest.tenant_id, next_manifest_code: manifest.code)
-      leg.update!(plate: manifest.plate, previous_manifest_code: previous_trip.code, calculated_at: Time.current, **measure(previous_trip))
+      EmptyLeg.transaction do
+        leg.update!(plate: manifest.plate, previous_manifest_code: previous_trip.code, calculated_at: Time.current, **measure(previous_trip))
+        link_transport_documents(leg)
+      end
       leg
     end
 
@@ -31,7 +34,7 @@ module EmptyLegs
 
     def measure(previous_trip)
       origin = locate(previous_trip.ordered_documents.last, :destination)
-      destination = locate(manifest.ordered_documents.first, :origin)
+      destination = locate(documents.first, :origin)
       return unmeasured(:unlocated, origin, destination) unless origin && destination
 
       route = road_route(origin, destination)
@@ -41,6 +44,18 @@ module EmptyLegs
       }
     rescue Tomtom::NoRouteError
       unmeasured(:unrouted, origin, destination)
+    end
+
+    def link_transport_documents(leg)
+      codes = documents.filter_map { |document| document.transport_document&.code }.uniq
+      leg.empty_leg_transport_documents.where.not(transport_document_code: codes).delete_all
+
+      rows = codes.map { |transport_document_code| { empty_leg_id: leg.id, tenant_id: leg.tenant_id, transport_document_code: } }
+      EmptyLegTransportDocument.insert_all(rows, unique_by: %i[empty_leg_id transport_document_code]) if rows.any?
+    end
+
+    def documents
+      @documents ||= manifest.ordered_documents
     end
 
     def unmeasured(status_type, origin, destination)

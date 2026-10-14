@@ -88,6 +88,15 @@ RSpec.describe Tomtom::Client do
     expect(client.inspect).not_to include('test-key')
   end
 
+  describe 'Tomtom.configured?' do
+    it 'tells whether the api key is in the credentials' do
+      allow(Rails.application.credentials).to receive(:dig).with(:tomtom, :api_key).and_return('test-key', nil)
+
+      expect(Tomtom.configured?).to be(true)
+      expect(Tomtom.configured?).to be(false)
+    end
+  end
+
   describe 'Tomtom.api_key' do
     it 'raises a configuration error without the key in the credentials' do
       allow(Rails.application.credentials).to receive(:dig).with(:tomtom, :api_key).and_return(nil)

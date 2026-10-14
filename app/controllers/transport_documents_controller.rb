@@ -24,5 +24,6 @@ class TransportDocumentsController < BaseController
 
     @transport_document = current_tenant.atua_transport_documents.active.find(params.expect(:id))
     @manifests = @transport_document.manifests.active.order(:issued_on, :number)
+    @empty_legs = @transport_document.empty_legs.preload(:origin, :destination).order(:next_manifest_code)
   end
 end
