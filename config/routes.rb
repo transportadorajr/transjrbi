@@ -1,4 +1,19 @@
 Rails.application.routes.draw do
+  constraints subdomain: Transjrbi::ADMIN_SUBDOMAIN do
+    namespace :admin, path: '/' do
+      get 'login', to: 'sessions#new', as: :login
+      resource :session, only: %i[create destroy]
+
+      resources :imports, only: %i[index new create] do
+        get :download, on: :member
+        post :reprocess, on: :member
+      end
+      resources :initial_loads, only: %i[new create]
+
+      root 'imports#index'
+    end
+  end
+
   devise_for :users, controllers: { confirmations: 'users/confirmations' }
 
   devise_scope :user do

@@ -1,0 +1,21 @@
+<div class="row g-3 mb-4" id="tenant-statuses">
+  <% tenant_statuses.each do |tenant_status| %>
+    <div class="col-12 col-lg-6">
+      <div class="card h-100" id="<%= dom_id(tenant_status.tenant, :atua_status) %>">
+        <div class="card-body">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <h2 class="h6 fw-semibold mb-0 text-break"><%= tenant_status.tenant.trade_name %></h2>
+            <%= admin_tenant_flag_badge(tenant_status) %>
+          </div>
+          <p class="text-muted small mb-2"><%= t('admin.imports.overview.last_success') %></p>
+          <dl class="row g-1 mb-0">
+            <% tenant_status.reports.each do |report_status| %>
+              <dt class="col-7 fw-normal <%= admin_report_freshness_class(report_status) %>"><%= admin_report_name(report_status.report_type) %></dt>
+              <dd class="col-5 mb-0 text-end <%= admin_report_freshness_class(report_status) %>"><%= admin_report_freshness(report_status) %></dd>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

@@ -1,6 +1,11 @@
 RSpec.configure do |config|
   config.before(:each, :flipper) do |ex|
-    flags = Array(ex.metadata[:flipper])
-    flags.each { Flipper.enable(it) }
+    flags = ex.metadata[:flipper]
+
+    next Array(flags).each { Flipper.enable(it) } unless flags.is_a?(Hash)
+
+    flags.each do |feature, actors|
+      Array(actors).each { |actor| Flipper.enable_actor(feature, send(actor)) }
+    end
   end
 end

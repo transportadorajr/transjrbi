@@ -1,6 +1,8 @@
 module Atua
   class Report
-    TYPES = %i[transport_documents manifests expenses customers vehicles].freeze
+    MOVEMENT_TYPES = %i[transport_documents manifests expenses].freeze
+    REGISTRY_TYPES = %i[customers vehicles].freeze
+    TYPES = (MOVEMENT_TYPES + REGISTRY_TYPES).freeze
     DIRECTORY = Rails.root.join('config/atua/reports')
     DATE_FORMAT = '%d/%m/%Y'.freeze
     SUBMIT_VALUE = 'Gerar'.freeze

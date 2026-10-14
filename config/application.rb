@@ -7,6 +7,8 @@ require 'rails/all'
 Bundler.require(*Rails.groups)
 
 module Transjrbi
+  ADMIN_SUBDOMAIN = 'admin'.freeze
+
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
@@ -30,5 +32,9 @@ module Transjrbi
 
     # Jobs em segundo plano com GoodJob (PostgreSQL)
     config.active_job.queue_adapter = :good_job
+
+    config.x.domain = ENV.fetch('APP_DOMAIN', 'localhost')
+    config.x.admin_host = "#{ADMIN_SUBDOMAIN}.#{config.x.domain}"
+    config.action_dispatch.tld_length = config.x.domain.count('.')
   end
 end

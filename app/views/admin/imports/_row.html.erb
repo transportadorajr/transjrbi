@@ -1,0 +1,17 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <div class="table-identity">
+      <span class="fw-semibold d-block text-break"><%= item.report_type_name %></span>
+      <span class="text-muted text-small d-block text-break"><%= item.tenant.trade_name %></span>
+      <%= admin_import_action_required_badge(item) %>
+    </div>
+  </td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= admin_import_period(item) %></td>
+  <td><%= admin_import_status_badge(item) %></td>
+  <td class="d-none d-lg-table-cell small"><%= admin_import_counts(item) %></td>
+  <td class="d-none d-lg-table-cell"><%= admin_import_duration(item) %></td>
+  <td class="d-none d-md-table-cell text-break"><%= admin_import_message(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= admin_import_actions(item) %>
+  </td>
+</tr>

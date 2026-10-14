@@ -1,0 +1,15 @@
+<div class="alert alert-danger border-danger mb-4" role="alert" id="action-required">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <%= icon(:'exclamation-octagon-fill', class: 'fs-5') %>
+    <strong><%= t('admin.imports.action_required.title') %></strong>
+  </div>
+  <p class="small mb-2"><%= t('admin.imports.action_required.text') %></p>
+  <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+    <% imports.each do |import| %>
+      <li id="<%= dom_id(import, :action_required) %>" class="text-break">
+        <strong><%= import.tenant.trade_name %> · <%= import.report_type_name %> · <%= import.error_type_name %></strong>
+        <span class="d-block small"><%= import.error_message %></span>
+      </li>
+    <% end %>
+  </ul>
+</div>

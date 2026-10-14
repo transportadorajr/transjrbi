@@ -10,12 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_122706) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_131061) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "atua_import_error_type", ["configuration", "authentication", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
   create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
   create_enum "user_type", ["owner", "admin", "operator"]
@@ -60,6 +61,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_122706) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "admin_sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "token", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "last_active_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["token"], name: "index_admin_sessions_on_token", unique: true
+    t.index ["user_id"], name: "index_admin_sessions_on_user_id"
+  end
+
+  create_table "admin_users", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "email", null: false
+    t.string "password_digest", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_admin_users_on_email", unique: true
   end
 
   create_table "atua_customers", force: :cascade do |t|
@@ -189,8 +211,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_122706) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "warning_message"
+    t.enum "error_type", enum_type: "atua_import_error_type"
     t.index ["status_type"], name: "index_atua_imports_on_status_type"
     t.index ["tenant_id", "report_type", "created_at"], name: "index_atua_imports_on_tenant_id_and_report_type_and_created_at"
+    t.index ["tenant_id", "report_type", "finished_at"], name: "idx_on_tenant_id_report_type_finished_at_81434a2c5a"
   end
 
   create_table "atua_manifest_documents", force: :cascade do |t|
@@ -479,6 +503,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_122706) do
     t.index ["finished_at"], name: "index_good_job_batches_on_finished_at", where: "(finished_at IS NOT NULL)"
   end
 
+  create_table "good_job_concurrency_claims", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.uuid "job_id", null: false
+    t.uuid "locked_by_id"
+    t.integer "state", limit: 2, null: false
+    t.text "key", null: false
+    t.index ["job_id"], name: "index_good_job_concurrency_claims_on_job_id"
+    t.index ["key", "job_id"], name: "index_good_job_concurrency_claims_on_key_and_job_id", unique: true
+    t.index ["key", "state", "created_at"], name: "index_good_job_concurrency_claims_for_promotion"
+    t.index ["locked_by_id"], name: "index_good_job_concurrency_claims_on_locked_by_id", where: "(locked_by_id IS NOT NULL)"
+  end
+
   create_table "good_job_executions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -621,6 +658,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_122706) do
   add_foreign_key "accesses", "users"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "admin_sessions", "admin_users", column: "user_id"
   add_foreign_key "atua_customers", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_customers", "tenants"
   add_foreign_key "atua_expenses", "atua_imports", on_delete: :nullify

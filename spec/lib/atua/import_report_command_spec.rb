@@ -308,6 +308,13 @@ RSpec.describe Atua::ImportReportCommand do
         expect(import.file).not_to be_attached
         expect(tenant.atua_manifests.count).to eq(0)
       end
+
+      it 'records the failure and raises the error when asked to' do
+        expect { described_class.call(tenant, :manifests, **period, client:, raise_errors: true) }
+          .to raise_error(Atua::DownloadError, 'O relatório manifests não veio em Excel (.xls).')
+
+        expect(tenant.atua_imports.sole).to have_attributes(status_type: 'failed', error_type: 'download')
+      end
     end
 
     context 'when the configuration is incomplete' do
@@ -316,7 +323,7 @@ RSpec.describe Atua::ImportReportCommand do
       it 'records the failure in the import' do
         import = described_class.call(tenant, :customers).sole
 
-        expect(import).to have_attributes(status_type: 'failed', error_message: 'Configuração da Atua incompleta.')
+        expect(import).to have_attributes(status_type: 'failed', error_message: 'Configuração da Atua incompleta.', error_type: 'configuration')
       end
     end
 
@@ -324,7 +331,7 @@ RSpec.describe Atua::ImportReportCommand do
       it 'records the failure and saves nothing' do
         import = import_fixture(:manifests, file: atua_fixture_path(:vehicles))
 
-        expect(import.status_type).to eq('failed')
+        expect(import).to have_attributes(status_type: 'failed', error_type: 'layout')
         expect(import.error_message).to start_with('O relatório rel_manifesto_detalhado veio sem as colunas obrigatórias')
         expect(import.file).to be_attached
         expect(tenant.atua_manifests.count).to eq(0)

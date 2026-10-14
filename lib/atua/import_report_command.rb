@@ -3,18 +3,19 @@ module Atua
     CONTENT_TYPE = 'application/vnd.ms-excel'.freeze
 
     class << self
-      def call(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil)
-        new(tenant, report_type, start_date:, end_date:, file:, client:).call
+      def call(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil, raise_errors: false)
+        new(tenant, report_type, start_date:, end_date:, file:, client:, raise_errors:).call
       end
     end
 
-    def initialize(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil)
+    def initialize(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil, raise_errors: false)
       @tenant = tenant
       @report = Report.find(report_type)
       @start_date = start_date&.to_date
       @end_date = end_date&.to_date
       @file = file
       @client = client
+      @raise_errors = raise_errors
     end
 
     def call
@@ -23,7 +24,7 @@ module Atua
 
     private
 
-    attr_reader :tenant, :report, :start_date, :end_date, :file
+    attr_reader :tenant, :report, :start_date, :end_date, :file, :raise_errors
 
     def periods
       file ? [[start_date, end_date]] : report.periods(start_date, end_date)
@@ -39,8 +40,9 @@ module Atua
     rescue StandardError => e
       raise unless import&.persisted?
 
-      Rails.logger.error("[Atua] Import #{import.id} (#{report.type}) failed: #{e.class.name} #{e.message}")
-      import.fail!(e.message)
+      FailImportCommand.call(import, e)
+      raise if raise_errors
+
       import
     end
 

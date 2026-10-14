@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= Atua::Import.human_attribute_name(:report_type) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Import.human_attribute_name(:period) %></th>
+        <th><%= Atua::Import.human_attribute_name(:status_type) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::Import.human_attribute_name(:counts) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::Import.human_attribute_name(:duration) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Import.human_attribute_name(:error_message) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

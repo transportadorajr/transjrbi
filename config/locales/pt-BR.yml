@@ -53,6 +53,10 @@ pt-BR:
         error_message: Erro
         warning_message: Alerta
         file: Arquivo
+        error_type: Tipo do erro
+        period: Período
+        counts: Contagens
+        duration: Duração
       tenant:
         name: Razão social
         legal_id: CNPJ
@@ -81,6 +85,9 @@ pt-BR:
           attributes:
             end_date:
               before_start_date: não pode ser anterior à data inicial
+            base:
+              running: A importação ainda está em andamento.
+              missing_file: A importação não tem arquivo para reprocessar.
         resource:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
@@ -88,6 +95,19 @@ pt-BR:
     models:
       user_confirmation_form: Confirmação de conta
     attributes:
+      admin/login_form:
+        email: E-mail
+        password: Senha
+      admin/import_form:
+        tenant: Empresa
+        tenant_id: Empresa
+        report_type: Relatório
+        start_date: Data inicial
+        end_date: Data final
+      admin/initial_load_form:
+        tenant: Empresa
+        tenant_id: Empresa
+        start_date: Data de início
       user_confirmation_form:
         password: Senha
         password_confirmation: Confirme a senha
@@ -102,6 +122,21 @@ pt-BR:
         writable: Permite edição
     errors:
       models:
+        admin/login_form:
+          attributes:
+            base:
+              invalid_login: E-mail ou senha inválidos.
+        admin/import_form:
+          attributes:
+            base:
+              already_enqueued: Já existe uma importação igual na fila.
+            end_date:
+              before_start_date: não pode ser anterior à data inicial
+              future: não pode ser posterior a hoje
+        admin/initial_load_form:
+          attributes:
+            start_date:
+              future: não pode ser posterior a hoje
         resource_form:
           attributes:
             slug:
@@ -124,6 +159,15 @@ pt-BR:
         running: Em andamento
         succeeded: Concluída
         failed: Falhou
+      error_type:
+        configuration: Configuração
+        authentication: Login na Atua
+        session: Sessão da Atua
+        download: Download do relatório
+        spreadsheet: Planilha
+        layout: Layout do relatório
+        conversion: Conversão de valores
+        unexpected: Erro inesperado
     user:
       user_type:
         owner: Proprietário
@@ -151,6 +195,9 @@ pt-BR:
       resource:
         edit: Alterar
         destroy: Excluir
+      atua/import:
+        download: Baixar arquivo
+        reprocess: Reprocessar
   simple_form:
     required:
       text: obrigatório
@@ -299,6 +346,9 @@ pt-BR:
       brand: TransJRBI
       brand_short: TJ
       close: Fechar
+    admin_aside:
+      brand: TransJRBI Admin
+      brand_short: TA
     main:
       toggle_navigation: Abrir navegação
       toggle_sidebar: Recolher menu lateral
@@ -311,7 +361,81 @@ pt-BR:
     resources: Recursos
     show: Visualizar
     edit: Alterar
+    admin_imports: Importações da Atua
+  admin:
+    sessions:
+      unauthenticated: Faça login para acessar o painel administrativo.
+      expired: Sua sessão expirou por inatividade. Faça login novamente.
+      new:
+        title: Entrar · TransJRBI Admin
+        heading: Painel administrativo
+        subheading: Acesso restrito à equipe interna.
+        show_password: Mostrar senha
+        submit: Entrar
+        submitting: Entrando...
+      create:
+        success: Login realizado com sucesso.
+      destroy:
+        success: Você saiu do painel administrativo.
+    imports:
+      index:
+        title: Importações da Atua
+        subtitle: Acompanhe as importações automáticas e dispare novas importações em segundo plano.
+        new_import: Importar relatório
+        initial_load: Carga inicial
+        history: Histórico de importações
+        total: Total
+        succeeded: Concluídas
+        failed: Com falha
+        running: Em andamento
+        whole_registry: Cadastro completo
+        period: '%{start_date} a %{end_date}'
+        counts: '%{read} lidas · %{inserted} inseridas · %{updated} atualizadas · %{removed} removidas'
+        action_required: 'Exige ação: %{error}'
+        blank: '-'
+        confirm_reprocess: Reprocessar o arquivo desta importação? O reprocessamento roda em segundo plano.
+      filters:
+        start_date: Período a partir de
+        end_date: Período até
+      overview:
+        enabled: Importação ligada
+        disabled: Importação desligada
+        last_success: Última importação concluída
+        never: Nunca
+      action_required:
+        title: Importações que exigem ação
+        text: A última importação destes relatórios falhou com um erro que não se resolve sozinho. Corrija a causa e dispare a importação de novo.
+      new:
+        title: Importar relatório
+        back: Voltar para importações
+        form_title: Dados da importação
+        form_text: A importação é enfileirada e roda em segundo plano, uma sessão da Atua por vez.
+        period_hint: O período só é usado nos relatórios de movimento (conhecimentos, manifestos e despesas). Os cadastros são importados por completo.
+        submit: Enfileirar importação
+      create:
+        success: Importação enfileirada. Ela roda em segundo plano e aparece no histórico ao começar.
+      reprocess:
+        success: Reprocessamento enfileirado.
+    initial_loads:
+      new:
+        title: Carga inicial
+        back: Voltar para importações
+        form_title: Carga inicial da Atua
+        form_text: Enfileira os cadastros e depois os movimentos mês a mês desde a data de início até hoje, com %{interval} minutos entre os meses. Meses já importados com sucesso são ignorados.
+        submit: Iniciar carga inicial
+        confirm: Iniciar a carga inicial desta empresa? Os jobs vão acessar a Atua ao longo das próximas horas.
+      create:
+        success: Carga inicial de %{tenant} enfileirada.
   atua:
+    import_mailer:
+      repeated_failures:
+        subject: 'Atua: importação de %{report} da %{tenant} falhou seguidamente'
+        intro:
+          one: A importação de %{report} da %{tenant} falhou %{count} vez seguida.
+          other: A importação de %{report} da %{tenant} falhou %{count} vezes seguidas.
+        last_error: 'Último erro:'
+        automatic_retries: Erros de login e de configuração não são tentados de novo automaticamente. Confira a causa antes de disparar a importação outra vez.
+        action: Abrir as importações
     errors:
       missing_configuration: 'Configuração da Atua incompleta: falta %{keys}.'
       invalid_base_url: A URL base da Atua não é uma URL http/https válida.

@@ -1,0 +1,26 @@
+<% content_for :title, t('.title') %>
+
+<%= auth_header_tag t('.heading'), subtitle: t('.subheading') %>
+
+<%= form_with model: @login_form, url: admin_session_path, html: { class: 'auth-form' } do |f| %>
+  <div class="form-floating mb-3">
+    <%= f.email_field :email, autofocus: true, autocomplete: 'email', inputmode: 'email',
+                              placeholder: Admin::LoginForm.human_attribute_name(:email), class: 'form-control auth-input' %>
+    <%= f.label :email %>
+  </div>
+
+  <div class="form-floating auth-password mb-4" data-controller="password-visibility">
+    <%= f.password_field :password, autocomplete: 'current-password', placeholder: Admin::LoginForm.human_attribute_name(:password),
+                                    class: 'form-control auth-input', data: { password_visibility_target: 'input' } %>
+    <%= f.label :password %>
+    <%= button_tag type: 'button', class: 'auth-password-toggle', aria: { label: t('.show_password'), pressed: false },
+                   data: { action: 'password-visibility#toggle', password_visibility_target: 'button' } do %>
+      <%= icon(:eye, data: { password_visibility_target: 'icon' }) %>
+    <% end %>
+  </div>
+
+  <%= button_tag type: 'submit', class: 'btn auth-btn w-100', data: { turbo_submits_with: t('.submitting') } do %>
+    <%= t('.submit') %>
+    <%= icon(:'arrow-right', class: 'ms-2') %>
+  <% end %>
+<% end %>
