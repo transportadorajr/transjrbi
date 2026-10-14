@@ -1,0 +1,15 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <div class="table-identity">
+      <%= link_to tax_value(item.history_name), expense_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+      <span class="text-muted text-small d-block text-break"><%= t('expenses.code', code: item.code) %></span>
+    </div>
+  </td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(item.posted_on) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.payee_name) %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= tax_value(item.plate) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_money(item.total) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(expenses_menu(item)) %>
+  </td>
+</tr>
