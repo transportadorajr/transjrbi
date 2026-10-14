@@ -1,0 +1,22 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= Atua::Vehicle.human_attribute_name(:driver_name) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:driver_document) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::Vehicle.human_attribute_name(:driver_license) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:plates) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

@@ -1,0 +1,30 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
+                     dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
+  <%= form_with url: vehicles_path, method: :get do |f| %>
+    <div class="row g-3">
+      <div class="col-12">
+        <%= f.label :plate, t('vehicles.filters.plate'), class: 'form-label fw-medium' %>
+        <%= f.text_field :plate, value: params[:plate], class: 'form-control bg-light text-uppercase', autocomplete: :off,
+                                 placeholder: t('vehicles.filters.plate') %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :category, t('vehicles.filters.category'), class: 'form-label fw-medium' %>
+        <%= f.select :category, @categories, { include_blank: t('shared.all'), selected: params[:category] },
+                     { class: 'form-select bg-light' } %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :ownership, t('vehicles.filters.ownership'), class: 'form-label fw-medium' %>
+        <%= f.select :ownership, @ownerships, { include_blank: t('shared.all'), selected: params[:ownership] },
+                     { class: 'form-select bg-light' } %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button t('shared.apply_filters'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= link_to t('shared.clear_filters'), vehicles_path, class: 'btn btn-light w-100 btn-round' %>
+    </div>
+  <% end %>
+<% end %>

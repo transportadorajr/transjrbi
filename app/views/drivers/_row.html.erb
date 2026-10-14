@@ -1,0 +1,14 @@
+<tr id="<%= driver_dom_id(item) %>">
+  <td>
+    <div class="table-identity">
+      <%= link_to tax_value(item.driver_name), driver_path(item.driver_code), class: 'fw-semibold text-decoration-none text-body text-break' %>
+      <span class="text-muted text-small d-block"><%= t('drivers.code', code: item.driver_code) %></span>
+    </div>
+  </td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.driver_document) %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= tax_value(item.driver_license) %></td>
+  <td class="d-none d-md-table-cell text-break"><%= tax_value(item.plates) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(drivers_menu(item)) %>
+  </td>
+</tr>

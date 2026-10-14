@@ -1,0 +1,107 @@
+<% content_for :title, t('.title', plate: tax_value(@vehicle.plate)) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('vehicles.index.title'), vehicles_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= tax_value(@vehicle.plate) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title', plate: tax_value(@vehicle.plate)),
+                        subtitle: vehicle_description(@vehicle),
+                        back_path: vehicles_path,
+                        back_title: t('.back'),
+                        wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.vehicle_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="vehicle_data">
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:code) %></dt>
+            <dd class="col-12 col-md-7"><%= @vehicle.code %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:plate) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.plate) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:category) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.category) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:vehicle_kind) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.vehicle_kind) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:brand) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.brand) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:model) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@vehicle.model) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:years) %></dt>
+            <dd class="col-12 col-md-7"><%= vehicle_years(@vehicle) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:color) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.color) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:body) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.body) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:wheelset) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.wheelset) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:chassis) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@vehicle.chassis) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:renavam) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.renavam) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:antt) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.antt) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:city) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_city(@vehicle.city, @vehicle.state) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:status) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.status) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:risk_status) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.risk_status) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:data_expires_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@vehicle.data_expires_on) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.ownership_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="ownership_data">
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:ownership) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.ownership) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:owner) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= transport_document_party(@vehicle.owner_name, @vehicle.owner_document) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:driver_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= vehicle_driver(@vehicle) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:driver_document) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.driver_document) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Vehicle.human_attribute_name(:driver_license) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@vehicle.driver_license) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

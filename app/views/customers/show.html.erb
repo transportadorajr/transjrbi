@@ -1,0 +1,88 @@
+<% content_for :title, tax_value(@customer.name) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('customers.index.title'), customers_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= tax_value(@customer.name) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag tax_value(@customer.name), back_path: customers_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.customer_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="customer_data">
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:code) %></dt>
+            <dd class="col-12 col-md-7"><%= @customer.code %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@customer.name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:trade_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@customer.trade_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:person_kind) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.person_kind) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:document) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.document) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:state_registration) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.state_registration) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:activity) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.activity) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:status) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.status) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:registered_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@customer.registered_on) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:last_billed_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@customer.last_billed_on) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.contact_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="contact_data">
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:address) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= customer_address(@customer) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:zip_code) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.zip_code) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:city) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_city(@customer.city, @customer.state) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:phone) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.phone) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:emails) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= customer_emails(@customer) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:payment_method) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.payment_method) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:payment_term) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@customer.payment_term) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

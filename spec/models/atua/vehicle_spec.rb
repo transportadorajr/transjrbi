@@ -64,5 +64,47 @@ RSpec.describe Atua::Vehicle do
         expect(described_class.removed_from_atua).to eq([removed])
       end
     end
+
+    context 'with vehicles of different categories and ownerships' do
+      let!(:own_truck) { create(:atua_vehicle, tenant:, category: 'Caminhão / Cavalo', ownership: 'Próprio') }
+      let!(:third_party_trailer) { create(:atua_vehicle, tenant:, category: 'Carreta', ownership: 'Terceiro') }
+
+      it 'filters by category and ownership' do
+        expect(described_class.by_category('Carreta')).to eq([third_party_trailer])
+        expect(described_class.by_ownership('Próprio')).to eq([own_truck])
+        expect(described_class.count).to eq(2)
+      end
+    end
+
+    context 'with drivers linked to the vehicles' do
+      let!(:truck) do
+        create(:atua_vehicle, tenant:, plate: 'EXU0F72', driver_code: 760, driver_name: 'JOSE DA SILVA', driver_document: '808.542.250-64',
+                              driver_document_digits: '80854225064', driver_license: '604269044')
+      end
+      let!(:spare_truck) { create(:atua_vehicle, tenant:, plate: 'AGL9451', driver_code: 760, driver_name: 'JOSE DA SILVA') }
+      let!(:other_truck) { create(:atua_vehicle, tenant:, plate: 'RHJ4E07', driver_code: 701, driver_name: 'MARIA SOUZA') }
+
+      before do
+        create(:atua_vehicle, tenant:, plate: 'BEV4G50', driver_code: nil)
+        create(:atua_vehicle, tenant:, plate: 'QQI0395', driver_code: 701, removed_from_atua_at: Time.current)
+        create(:atua_vehicle, tenant: other_tenant, plate: 'ZIZ7D35', driver_code: 760, driver_name: 'JOSE DA SILVA')
+      end
+
+      it 'groups the active vehicles of the tenant by driver' do
+        drivers = tenant.atua_vehicles.drivers.order(:driver_code)
+
+        expect(drivers.count).to eq(2)
+        expect(drivers.map { |driver| [driver.driver_code, driver.driver_name, driver.vehicles_count, driver.plates] }).to eq(
+          [[701, 'MARIA SOUZA', 1, 'RHJ4E07'], [760, 'JOSE DA SILVA', 2, 'AGL9451, EXU0F72']],
+        )
+        expect(drivers.last.driver_document).to eq('808.542.250-64')
+        expect(drivers.last.driver_license).to eq('604269044')
+      end
+
+      it 'filters the drivers by name and document' do
+        expect(tenant.atua_vehicles.drivers.by_driver_name('maria').map(&:driver_code)).to eq([701])
+        expect(tenant.atua_vehicles.drivers.by_driver_document('808.542.250-64').map(&:driver_code)).to eq([760])
+      end
+    end
   end
 end

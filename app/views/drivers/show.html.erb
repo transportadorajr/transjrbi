@@ -1,0 +1,55 @@
+<% content_for :title, tax_value(@driver.driver_name) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('drivers.index.title'), drivers_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= tax_value(@driver.driver_name) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag tax_value(@driver.driver_name), back_path: drivers_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.driver_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="driver_data">
+        <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:driver_code) %></dt>
+        <dd class="col-12 col-md-9"><%= @driver.driver_code %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:driver_name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@driver.driver_name) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:driver_document) %></dt>
+        <dd class="col-12 col-md-9"><%= tax_value(@driver.driver_document) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:driver_license) %></dt>
+        <dd class="col-12 col-md-9"><%= tax_value(@driver.driver_license) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:vehicles_count) %></dt>
+        <dd class="col-12 col-md-9"><%= @driver.vehicles_count %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.vehicles') %></p>
+    </div>
+    <div class="detail-card-body">
+      <%= driver_vehicles_table(@vehicles) %>
+    </div>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.transport_documents') %></p>
+    </div>
+    <div class="detail-card-body">
+      <%= driver_transport_documents_table(@transport_documents) %>
+    </div>
+  </div>
+</div>

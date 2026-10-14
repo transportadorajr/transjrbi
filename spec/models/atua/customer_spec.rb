@@ -66,6 +66,14 @@ RSpec.describe Atua::Customer do
         expect(described_class.by_document('10.622.725/0001-75')).to eq([warehouse])
       end
 
+      it 'filters by city ignoring case' do
+        steel.update!(city: 'JOAO MONLEVADE')
+        warehouse.update!(city: 'IPATINGA')
+        removed.update!(city: 'BETIM')
+
+        expect(described_class.by_city('monlevade')).to eq([steel])
+      end
+
       it 'keeps out customers removed from Atua' do
         expect(described_class.active).to contain_exactly(steel, warehouse)
         expect(described_class.removed_from_atua).to eq([removed])

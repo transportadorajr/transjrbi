@@ -1,0 +1,6 @@
+<tr id="<%= dom_id(vehicle) %>">
+  <td><%= driver_vehicle_plate(vehicle) %></td>
+  <td class="d-none d-md-table-cell"><%= tax_value(vehicle.category) %></td>
+  <td class="d-none d-md-table-cell text-break"><%= vehicle_description(vehicle) %></td>
+  <td><%= tax_value(vehicle.ownership) %></td>
+</tr>

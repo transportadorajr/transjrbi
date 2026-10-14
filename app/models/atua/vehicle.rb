@@ -2,6 +2,15 @@ module Atua
   class Vehicle < ApplicationRecord
     include Importable
 
+    DRIVER_COLUMNS = [
+      'MAX(atua_vehicles.driver_name) AS driver_name',
+      'MAX(atua_vehicles.driver_document) AS driver_document',
+      'MAX(atua_vehicles.driver_document_digits) AS driver_document_digits',
+      'MAX(atua_vehicles.driver_license) AS driver_license',
+      'COUNT(*) AS vehicles_count',
+      "STRING_AGG(atua_vehicles.plate, ', ' ORDER BY atua_vehicles.plate) AS plates",
+    ].freeze
+
     with_options primary_key: %i[tenant_id plate] do
       has_many :trailer_transport_documents, class_name: 'Atua::TransportDocument', foreign_key: %i[tenant_id trailer_plate],
                                              inverse_of: :trailer
@@ -14,6 +23,15 @@ module Atua
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
 
     scope :by_plate, ->(plate) { where(plate: normalize_plate(plate)) }
+    scope :by_category, ->(category) { where(category:) }
+    scope :by_ownership, ->(ownership) { where(ownership:) }
+    scope :by_driver_name, ->(name) { where(arel_table[:driver_name].matches("%#{sanitize_sql_like(name.to_s.strip)}%")) }
+    scope :by_driver_document, ->(document) { where(driver_document_digits: document.to_s.gsub(/\D/, '')) }
+    scope :drivers, -> {
+      grouped = active.where.not(driver_code: nil).group(:tenant_id, :driver_code).select(:tenant_id, :driver_code, *DRIVER_COLUMNS)
+
+      unscope(:where).from(grouped, :atua_vehicles)
+    }
   end
 end
 
