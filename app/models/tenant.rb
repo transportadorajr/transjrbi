@@ -1,6 +1,14 @@
 class Tenant < ApplicationRecord
   has_many :users, dependent: :restrict_with_error
   has_many :accesses, dependent: :restrict_with_error
+  has_many :atua_imports, class_name: 'Atua::Import', dependent: :destroy
+  has_many :atua_transport_documents, class_name: 'Atua::TransportDocument', dependent: :delete_all
+  has_many :atua_transport_document_manifests, class_name: 'Atua::TransportDocumentManifest', dependent: :delete_all
+  has_many :atua_manifests, class_name: 'Atua::Manifest', dependent: :delete_all
+  has_many :atua_manifest_documents, class_name: 'Atua::ManifestDocument', dependent: :delete_all
+  has_many :atua_expenses, class_name: 'Atua::Expense', dependent: :delete_all
+  has_many :atua_customers, class_name: 'Atua::Customer', dependent: :delete_all
+  has_many :atua_vehicles, class_name: 'Atua::Vehicle', dependent: :delete_all
 
   validates :name, :legal_id, :trade_name, presence: true
   validates :legal_id, uniqueness: true

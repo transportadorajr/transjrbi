@@ -10,12 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_13_202032) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_13_212124) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
+  create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
   create_table "accesses", force: :cascade do |t|
@@ -30,6 +32,416 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_202032) do
     t.index ["tenant_id"], name: "index_accesses_on_tenant_id"
     t.index ["user_id", "resource_id"], name: "index_accesses_on_user_id_and_resource_id", unique: true
     t.index ["user_id"], name: "index_accesses_on_user_id"
+  end
+
+  create_table "active_storage_attachments", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.bigint "blob_id", null: false
+    t.datetime "created_at", null: false
+    t.index ["blob_id"], name: "index_active_storage_attachments_on_blob_id"
+    t.index ["record_type", "record_id", "name", "blob_id"], name: "index_active_storage_attachments_uniqueness", unique: true
+  end
+
+  create_table "active_storage_blobs", force: :cascade do |t|
+    t.string "key", null: false
+    t.string "filename", null: false
+    t.string "content_type"
+    t.text "metadata"
+    t.string "service_name", null: false
+    t.bigint "byte_size", null: false
+    t.string "checksum"
+    t.datetime "created_at", null: false
+    t.index ["key"], name: "index_active_storage_blobs_on_key", unique: true
+  end
+
+  create_table "active_storage_variant_records", force: :cascade do |t|
+    t.bigint "blob_id", null: false
+    t.string "variation_digest", null: false
+    t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "atua_customers", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.bigint "code", null: false
+    t.string "name"
+    t.string "trade_name"
+    t.string "document"
+    t.string "document_digits"
+    t.string "person_kind"
+    t.string "state_registration"
+    t.string "street"
+    t.string "complement"
+    t.string "district"
+    t.string "zip_code"
+    t.bigint "city_code"
+    t.string "city"
+    t.bigint "state_code"
+    t.string "state"
+    t.string "phone"
+    t.string "emails", default: [], null: false, array: true
+    t.string "activity"
+    t.string "payment_method"
+    t.string "payment_term"
+    t.date "registered_on"
+    t.date "last_billed_on"
+    t.date "updated_month_on"
+    t.string "status"
+    t.datetime "whatsapp_at"
+    t.datetime "exporter_at"
+    t.datetime "simples_optant_at"
+    t.jsonb "raw_data", default: {}, null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_customers_on_atua_import_id"
+    t.index ["tenant_id", "code"], name: "index_atua_customers_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id", "document_digits"], name: "index_atua_customers_on_tenant_id_and_document_digits"
+    t.index ["tenant_id", "status"], name: "index_atua_customers_on_tenant_id_and_status"
+  end
+
+  create_table "atua_expenses", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.bigint "code", null: false
+    t.datetime "posted_at"
+    t.date "posted_on"
+    t.date "document_on"
+    t.date "accounting_on"
+    t.date "settled_on"
+    t.bigint "movement_code"
+    t.date "movement_on"
+    t.bigint "payee_code"
+    t.string "payee_name"
+    t.string "payee_document"
+    t.string "payee_document_digits"
+    t.bigint "history_code"
+    t.string "history_name"
+    t.string "cash_account_name"
+    t.bigint "branch_code"
+    t.string "branch_name"
+    t.string "headquarters_name"
+    t.string "trip_expense_kind"
+    t.string "spending_kind"
+    t.string "document_model"
+    t.string "document_number"
+    t.string "document_series"
+    t.string "document_key"
+    t.string "description"
+    t.string "accounting_account"
+    t.string "accounting_classification"
+    t.bigint "amount_cents"
+    t.bigint "discount_cents"
+    t.bigint "total_cents"
+    t.bigint "net_amount_cents"
+    t.bigint "pis_credit_cents"
+    t.bigint "cofins_credit_cents"
+    t.bigint "withholdings_cents"
+    t.bigint "paid_cents"
+    t.bigint "icms_cents"
+    t.bigint "icms_credit_cents"
+    t.decimal "icms_credit_percentage", precision: 7, scale: 4
+    t.string "plate"
+    t.string "vehicle_model"
+    t.string "trip_number"
+    t.date "trip_departure_on"
+    t.date "trip_arrival_on"
+    t.bigint "trip_driver_code"
+    t.string "trip_driver_name"
+    t.bigint "transport_document_code"
+    t.string "transport_document_number"
+    t.integer "transport_document_series"
+    t.integer "apportionment_count"
+    t.integer "installment_count"
+    t.datetime "attachment_at"
+    t.jsonb "raw_data", default: [], null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_expenses_on_atua_import_id"
+    t.index ["tenant_id", "code"], name: "index_atua_expenses_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id", "headquarters_name"], name: "index_atua_expenses_on_tenant_id_and_headquarters_name"
+    t.index ["tenant_id", "history_code"], name: "index_atua_expenses_on_tenant_id_and_history_code"
+    t.index ["tenant_id", "payee_code"], name: "index_atua_expenses_on_tenant_id_and_payee_code"
+    t.index ["tenant_id", "plate"], name: "index_atua_expenses_on_tenant_id_and_plate"
+    t.index ["tenant_id", "posted_on"], name: "index_atua_expenses_on_tenant_id_and_posted_on"
+    t.index ["tenant_id", "transport_document_code"], name: "index_atua_expenses_on_tenant_id_and_transport_document_code"
+    t.index ["tenant_id", "trip_number"], name: "index_atua_expenses_on_tenant_id_and_trip_number"
+  end
+
+  create_table "atua_imports", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.enum "report_type", null: false, enum_type: "atua_import_report_type"
+    t.enum "status_type", default: "pending", null: false, enum_type: "atua_import_status_type"
+    t.date "start_date"
+    t.date "end_date"
+    t.datetime "started_at"
+    t.datetime "finished_at"
+    t.integer "rows_read", default: 0, null: false
+    t.integer "inserted_count", default: 0, null: false
+    t.integer "updated_count", default: 0, null: false
+    t.integer "removed_count", default: 0, null: false
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status_type"], name: "index_atua_imports_on_status_type"
+    t.index ["tenant_id", "report_type", "created_at"], name: "index_atua_imports_on_tenant_id_and_report_type_and_created_at"
+  end
+
+  create_table "atua_manifest_documents", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.bigint "manifest_code", null: false
+    t.string "branch_name"
+    t.string "transport_document_number", null: false
+    t.integer "transport_document_series"
+    t.string "goods_invoice_numbers", default: [], null: false, array: true
+    t.bigint "goods_value_cents"
+    t.decimal "weight_kg", precision: 14, scale: 2
+    t.decimal "weight_tons", precision: 14, scale: 3
+    t.bigint "freight_cents"
+    t.string "freight_payment"
+    t.string "sender_name"
+    t.string "recipient_name"
+    t.string "origin_agency_name"
+    t.string "origin_state"
+    t.string "origin_city"
+    t.string "destination_state"
+    t.string "destination_city"
+    t.decimal "calculated_distance_km", precision: 14, scale: 2
+    t.decimal "document_distance_km", precision: 14, scale: 2
+    t.jsonb "raw_data", default: {}, null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_manifest_documents_on_atua_import_id"
+    t.index ["tenant_id", "manifest_code", "transport_document_number", "transport_document_series"], name: "index_atua_manifest_documents_on_source_key", unique: true
+    t.index ["tenant_id", "transport_document_number", "transport_document_series", "branch_name"], name: "index_atua_manifest_documents_on_transport_document"
+  end
+
+  create_table "atua_manifests", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.bigint "code", null: false
+    t.integer "model"
+    t.string "number", null: false
+    t.integer "series"
+    t.string "branch_name"
+    t.string "company_state"
+    t.string "company_city"
+    t.date "issued_on"
+    t.date "departure_on"
+    t.datetime "trip_started_at"
+    t.datetime "closed_at"
+    t.text "notes"
+    t.string "plate"
+    t.string "access_key"
+    t.bigint "goods_value_cents"
+    t.string "status"
+    t.jsonb "raw_data", default: {}, null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_manifests_on_atua_import_id"
+    t.index ["tenant_id", "code"], name: "index_atua_manifests_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id", "departure_on"], name: "index_atua_manifests_on_tenant_id_and_departure_on"
+    t.index ["tenant_id", "issued_on"], name: "index_atua_manifests_on_tenant_id_and_issued_on"
+    t.index ["tenant_id", "number", "branch_name"], name: "index_atua_manifests_on_tenant_id_and_number_and_branch_name"
+    t.index ["tenant_id", "plate"], name: "index_atua_manifests_on_tenant_id_and_plate"
+    t.index ["tenant_id", "status"], name: "index_atua_manifests_on_tenant_id_and_status"
+  end
+
+  create_table "atua_transport_document_manifests", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.bigint "transport_document_code", null: false
+    t.string "manifest_number", null: false
+    t.string "branch_name"
+    t.jsonb "raw_data", default: {}, null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_transport_document_manifests_on_atua_import_id"
+    t.index ["tenant_id", "manifest_number", "branch_name"], name: "index_atua_transport_document_manifests_on_manifest"
+    t.index ["tenant_id", "transport_document_code", "manifest_number"], name: "index_atua_transport_document_manifests_on_source_key", unique: true
+  end
+
+  create_table "atua_transport_documents", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.bigint "code", null: false
+    t.string "number", null: false
+    t.integer "series"
+    t.string "document_kind"
+    t.string "issue_kind"
+    t.string "service_kind"
+    t.integer "cfop"
+    t.string "cte_status"
+    t.string "access_key"
+    t.datetime "issued_at"
+    t.date "posted_on"
+    t.date "arrival_on"
+    t.date "due_on"
+    t.datetime "canceled_at"
+    t.string "cancellation_reason"
+    t.bigint "branch_code"
+    t.string "branch_name"
+    t.bigint "headquarters_code"
+    t.string "headquarters_name"
+    t.bigint "agency_code"
+    t.string "agency_name"
+    t.string "origin_city"
+    t.string "origin_state"
+    t.bigint "origin_city_code"
+    t.string "destination_city"
+    t.string "destination_state"
+    t.bigint "destination_city_code"
+    t.bigint "sender_code"
+    t.string "sender_name"
+    t.string "sender_document"
+    t.string "sender_document_digits"
+    t.bigint "recipient_code"
+    t.string "recipient_name"
+    t.string "recipient_document"
+    t.string "recipient_document_digits"
+    t.bigint "payer_code"
+    t.string "payer_name"
+    t.string "payer_document"
+    t.string "payer_document_digits"
+    t.bigint "taker_code"
+    t.string "taker_name"
+    t.bigint "consignee_code"
+    t.string "consignee_name"
+    t.string "consignee_document"
+    t.string "consignee_document_digits"
+    t.bigint "driver_code"
+    t.string "driver_name"
+    t.string "driver_document"
+    t.string "driver_document_digits"
+    t.bigint "vehicle_code"
+    t.string "plate"
+    t.string "trailer_plate"
+    t.integer "axles"
+    t.string "vehicle_ownership"
+    t.decimal "weight_tons", precision: 14, scale: 3
+    t.decimal "weight_kg", precision: 14, scale: 2
+    t.decimal "product_quantity", precision: 14, scale: 3
+    t.string "product_name"
+    t.string "ncm"
+    t.bigint "goods_value_cents"
+    t.string "goods_invoice_numbers", default: [], null: false, array: true
+    t.string "goods_invoice_keys", default: [], null: false, array: true
+    t.string "complemented_number"
+    t.string "manifest_numbers", default: [], null: false, array: true
+    t.string "ciot"
+    t.string "operational_unit"
+    t.string "cargo_destination"
+    t.string "route"
+    t.string "shipment_number"
+    t.string "billing_number"
+    t.datetime "charged_at"
+    t.datetime "nfse_pending_at"
+    t.bigint "freight_cents"
+    t.bigint "weight_freight_cents"
+    t.bigint "value_freight_cents"
+    t.bigint "ad_valorem_cents"
+    t.bigint "other_charges_cents"
+    t.bigint "toll_cents"
+    t.bigint "icms_base_cents"
+    t.bigint "icms_cents"
+    t.bigint "icms_st_cents"
+    t.bigint "federal_tax_cents"
+    t.bigint "ibs_cents"
+    t.bigint "cbs_cents"
+    t.bigint "result_cents"
+    t.bigint "driver_freight_cents"
+    t.bigint "advance_cents"
+    t.bigint "commission_cents"
+    t.bigint "insurance_cents"
+    t.bigint "cost_cents"
+    t.decimal "result_margin_percentage", precision: 7, scale: 4
+    t.decimal "distance_km", precision: 14, scale: 2
+    t.jsonb "raw_data", default: {}, null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
+    t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
+    t.index ["tenant_id", "code"], name: "index_atua_transport_documents_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id", "consignee_code"], name: "index_atua_transport_documents_on_tenant_id_and_consignee_code"
+    t.index ["tenant_id", "cte_status"], name: "index_atua_transport_documents_on_tenant_id_and_cte_status"
+    t.index ["tenant_id", "issued_at"], name: "index_atua_transport_documents_on_tenant_id_and_issued_at"
+    t.index ["tenant_id", "number", "series", "branch_name"], name: "idx_on_tenant_id_number_series_branch_name_82ba4806a5"
+    t.index ["tenant_id", "payer_code"], name: "index_atua_transport_documents_on_tenant_id_and_payer_code"
+    t.index ["tenant_id", "plate"], name: "index_atua_transport_documents_on_tenant_id_and_plate"
+    t.index ["tenant_id", "posted_on"], name: "index_atua_transport_documents_on_tenant_id_and_posted_on"
+    t.index ["tenant_id", "recipient_code"], name: "index_atua_transport_documents_on_tenant_id_and_recipient_code"
+    t.index ["tenant_id", "sender_code"], name: "index_atua_transport_documents_on_tenant_id_and_sender_code"
+    t.index ["tenant_id", "taker_code"], name: "index_atua_transport_documents_on_tenant_id_and_taker_code"
+    t.index ["tenant_id", "trailer_plate"], name: "index_atua_transport_documents_on_tenant_id_and_trailer_plate"
+    t.index ["tenant_id", "vehicle_code"], name: "index_atua_transport_documents_on_tenant_id_and_vehicle_code"
+  end
+
+  create_table "atua_vehicles", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.bigint "code", null: false
+    t.string "plate"
+    t.string "category"
+    t.string "vehicle_kind"
+    t.bigint "vehicle_kind_code"
+    t.string "wheelset"
+    t.string "body"
+    t.bigint "brand_code"
+    t.string "brand"
+    t.string "model"
+    t.integer "manufacture_year"
+    t.integer "model_year"
+    t.string "renavam"
+    t.string "chassis"
+    t.string "color"
+    t.string "ownership"
+    t.bigint "owner_code"
+    t.string "owner_name"
+    t.string "owner_document"
+    t.string "owner_document_digits"
+    t.string "antt"
+    t.bigint "driver_code"
+    t.string "driver_name"
+    t.string "driver_document"
+    t.string "driver_document_digits"
+    t.string "driver_license"
+    t.string "risk_status"
+    t.date "data_expires_on"
+    t.datetime "source_updated_at"
+    t.string "status"
+    t.bigint "city_code"
+    t.string "city"
+    t.bigint "state_code"
+    t.string "state"
+    t.date "registered_month_on"
+    t.date "updated_month_on"
+    t.datetime "owner_whatsapp_at"
+    t.datetime "driver_whatsapp_at"
+    t.datetime "high_performance_at"
+    t.jsonb "raw_data", default: {}, null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_vehicles_on_atua_import_id"
+    t.index ["tenant_id", "code"], name: "index_atua_vehicles_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id", "owner_code"], name: "index_atua_vehicles_on_tenant_id_and_owner_code"
+    t.index ["tenant_id", "plate"], name: "index_atua_vehicles_on_tenant_id_and_plate"
+    t.index ["tenant_id", "status"], name: "index_atua_vehicles_on_tenant_id_and_status"
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -206,5 +618,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_202032) do
   add_foreign_key "accesses", "resources"
   add_foreign_key "accesses", "tenants"
   add_foreign_key "accesses", "users"
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "atua_customers", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_customers", "tenants"
+  add_foreign_key "atua_expenses", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_expenses", "tenants"
+  add_foreign_key "atua_imports", "tenants"
+  add_foreign_key "atua_manifest_documents", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_manifest_documents", "tenants"
+  add_foreign_key "atua_manifests", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_manifests", "tenants"
+  add_foreign_key "atua_transport_document_manifests", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_transport_document_manifests", "tenants"
+  add_foreign_key "atua_transport_documents", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_transport_documents", "tenants"
+  add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_vehicles", "tenants"
   add_foreign_key "users", "tenants"
 end

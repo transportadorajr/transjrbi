@@ -17,6 +17,10 @@ class BaseForm
       end
     end
 
+    def enum_i18n_key
+      model_name.param_key
+    end
+
     def enum(field, values)
       raise ArgumentError, "Please define #{field.inspect} attribute first" unless attribute_names.include?(field.to_s)
 

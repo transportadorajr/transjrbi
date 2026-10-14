@@ -1,0 +1,165 @@
+require 'rails_helper'
+
+RSpec.describe Atua::TransportDocument do
+  let!(:tenant) { create(:tenant) }
+  let!(:other_tenant) { create(:tenant) }
+
+  describe 'associations' do
+    context 'with customers, vehicles, manifests and expenses of the same tenant' do
+      let!(:sender) { create(:atua_customer, tenant:, code: 7752) }
+      let!(:recipient) { create(:atua_customer, tenant:, code: 7761) }
+      let!(:consignee) { create(:atua_customer, tenant:, code: 6870) }
+      let!(:vehicle) { create(:atua_vehicle, tenant:, code: 812, plate: 'EXU0F72') }
+      let!(:trailer) { create(:atua_vehicle, tenant:, code: 813, plate: 'BEV4G50') }
+      let!(:manifest) { create(:atua_manifest, tenant:, number: '40798', branch_name: 'JR TRANSPORTES') }
+      let!(:transport_document) do
+        create(:atua_transport_document, tenant:, code: 80_842, number: '74130', series: 1, branch_name: 'JR TRANSPORTES',
+                                         sender_code: 7752, recipient_code: 7761, payer_code: 7752, taker_code: 7752,
+                                         consignee_code: 6870, vehicle_code: 812, plate: 'EXU0F72', trailer_plate: 'BEV4G50')
+      end
+      let!(:link) do
+        create(:atua_transport_document_manifest, tenant:, transport_document_code: 80_842, manifest_number: '40798',
+                                                  branch_name: 'JR TRANSPORTES')
+      end
+      let!(:manifest_document) do
+        create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
+                                        transport_document_series: 1, branch_name: 'JR TRANSPORTES')
+      end
+      let!(:expense) { create(:atua_expense, tenant:, transport_document_code: 80_842) }
+
+      before do
+        create(:atua_customer, tenant: other_tenant, code: 7752)
+        create(:atua_vehicle, tenant: other_tenant, code: 812, plate: 'EXU0F72')
+        create(:atua_manifest, tenant: other_tenant, number: '40798', branch_name: 'JR TRANSPORTES')
+        create(:atua_expense, tenant: other_tenant, transport_document_code: 80_842)
+      end
+
+      it 'links every customer role by its code inside the tenant' do
+        expect(transport_document.sender).to eq(sender)
+        expect(transport_document.recipient).to eq(recipient)
+        expect(transport_document.payer).to eq(sender)
+        expect(transport_document.taker).to eq(sender)
+        expect(transport_document.consignee).to eq(consignee)
+        expect(Atua::Customer.count).to eq(4)
+      end
+
+      it 'links the vehicle by code and the trailer by plate inside the tenant' do
+        expect(transport_document.vehicle).to eq(vehicle)
+        expect(transport_document.trailer).to eq(trailer)
+      end
+
+      it 'reaches the manifests through the manifest links' do
+        expect(transport_document.transport_document_manifests).to eq([link])
+        expect(transport_document.manifests).to eq([manifest])
+        expect(Atua::Manifest.count).to eq(2)
+      end
+
+      it 'reaches the manifest documents by number, series and branch' do
+        expect(transport_document.manifest_documents).to eq([manifest_document])
+      end
+
+      it 'reaches the expenses by code inside the tenant' do
+        expect(transport_document.expenses).to eq([expense])
+        expect(Atua::Expense.count).to eq(2)
+      end
+
+      it 'preloads the associations' do
+        loaded = described_class.where(tenant:).preload(:sender, :vehicle, :trailer, :manifests, :expenses).first
+
+        expect(loaded.association(:sender)).to be_loaded
+        expect(loaded.sender).to eq(sender)
+        expect(loaded.manifests).to eq([manifest])
+        expect(loaded.expenses).to eq([expense])
+      end
+    end
+
+    context 'without the related records' do
+      let!(:transport_document) { create(:atua_transport_document, tenant:, sender_code: 1, vehicle_code: 2) }
+
+      it 'keeps the document valid with empty associations' do
+        expect(transport_document).to be_valid
+        expect(transport_document.sender).to be_nil
+        expect(transport_document.vehicle).to be_nil
+        expect(transport_document.manifests).to be_empty
+      end
+    end
+  end
+
+  describe 'validations' do
+    context 'with a document already imported' do
+      let!(:transport_document) { create(:atua_transport_document, tenant:, code: 80_842) }
+
+      it 'rejects the same code in the same tenant' do
+        duplicated = build(:atua_transport_document, tenant:, code: 80_842)
+
+        expect(duplicated).not_to be_valid
+        expect(duplicated.errors[:code]).to eq(['já está em uso'])
+      end
+
+      it 'accepts the same code in another tenant' do
+        expect(build(:atua_transport_document, tenant: other_tenant, code: transport_document.code)).to be_valid
+      end
+    end
+  end
+
+  describe 'money' do
+    it 'exposes the cents columns as reais' do
+      transport_document = build(:atua_transport_document, freight_cents: 55_504, icms_cents: nil)
+
+      expect(transport_document.freight).to eq(Money.from_cents(55_504, 'BRL'))
+      expect(transport_document.icms).to be_nil
+    end
+  end
+
+  describe 'scopes' do
+    context 'with documents of different periods, plates, customers and situations' do
+      let!(:first) do
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 1, 0, 5), plate: 'EXU0F72',
+                                         trailer_plate: 'BEV4G50', sender_code: 7752, payer_code: 7752)
+      end
+      let!(:last) do
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 13, 23, 55), plate: 'RHJ4E07',
+                                         recipient_code: 7752, payer_code: 9000)
+      end
+      let!(:outside) do
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 14, 0, 1), plate: 'BEV4G50',
+                                         consignee_code: 7752, payer_code: 9000)
+      end
+      let!(:canceled) do
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 9, 30, 23, 59),
+                                         canceled_at: Time.zone.local(2026, 10, 2, 10), payer_code: 9000)
+      end
+      let!(:removed) do
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 2), removed_from_atua_at: Time.current,
+                                         payer_code: 9000)
+      end
+
+      it 'filters by the whole days of the emission period' do
+        expect(described_class.by_period('2026-10-01', '2026-10-13')).to contain_exactly(first, last, removed)
+        expect(described_class.by_period(Date.new(2026, 10, 14), nil)).to eq([outside])
+        expect(described_class.count).to eq(5)
+      end
+
+      it 'filters by the truck or the trailer plate' do
+        expect(described_class.by_plate('bev-4g50')).to contain_exactly(first, outside)
+      end
+
+      it 'filters by the customer in any role' do
+        expect(described_class.by_customer(7752)).to contain_exactly(first, last, outside)
+        expect(described_class.by_payer(7752)).to eq([first])
+      end
+
+      it 'keeps out canceled documents' do
+        expect(described_class.not_canceled).to contain_exactly(first, last, outside, removed)
+        expect(described_class.canceled).to eq([canceled])
+        expect(canceled).to be_canceled
+      end
+
+      it 'keeps out documents removed from Atua' do
+        expect(described_class.active).to contain_exactly(first, last, outside, canceled)
+        expect(described_class.removed_from_atua).to eq([removed])
+        expect(removed).not_to be_active
+      end
+    end
+  end
+end
