@@ -1,0 +1,64 @@
+module Atua
+  class ImportReportCommand
+    CONTENT_TYPE = 'application/vnd.ms-excel'.freeze
+
+    class << self
+      def call(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil)
+        new(tenant, report_type, start_date:, end_date:, file:, client:).call
+      end
+    end
+
+    def initialize(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil)
+      @tenant = tenant
+      @report = Report.find(report_type)
+      @start_date = start_date&.to_date
+      @end_date = end_date&.to_date
+      @file = file
+      @client = client
+    end
+
+    def call
+      periods.map { |period_start, period_end| import_period(period_start, period_end) }
+    end
+
+    private
+
+    attr_reader :tenant, :report, :start_date, :end_date, :file
+
+    def periods
+      file ? [[start_date, end_date]] : report.periods(start_date, end_date)
+    end
+
+    def import_period(period_start, period_end)
+      import = tenant.atua_imports.create!(
+        report_type: report.type, start_date: period_start, end_date: period_end, status_type: :running, started_at: Time.current,
+      )
+      import.file.attach(file ? uploaded_file : downloaded_file(period_start, period_end))
+
+      ProcessImportCommand.call(import)
+    rescue StandardError => e
+      raise unless import&.persisted?
+
+      Rails.logger.error("[Atua] Import #{import.id} (#{report.type}) failed: #{e.class.name} #{e.message}")
+      import.fail!(e.message)
+      import
+    end
+
+    def uploaded_file
+      path = file.is_a?(File) ? file.path : file
+      return file unless path.is_a?(Pathname) || (path.is_a?(String) && File.file?(path))
+
+      { io: StringIO.new(File.binread(path)), filename: File.basename(path), content_type: CONTENT_TYPE }
+    end
+
+    def downloaded_file(period_start, period_end)
+      download = client.download(report.type, start_date: period_start, end_date: period_end).sole
+
+      { io: StringIO.new(download.content), filename: download.filename, content_type: CONTENT_TYPE }
+    end
+
+    def client
+      @client ||= Client.new(Configuration.for(tenant))
+    end
+  end
+end

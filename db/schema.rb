@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_13_212124) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_122706) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -188,6 +188,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_212124) do
     t.text "error_message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "warning_message"
     t.index ["status_type"], name: "index_atua_imports_on_status_type"
     t.index ["tenant_id", "report_type", "created_at"], name: "index_atua_imports_on_tenant_id_and_report_type_and_created_at"
   end
@@ -366,7 +367,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_13_212124) do
     t.bigint "commission_cents"
     t.bigint "insurance_cents"
     t.bigint "cost_cents"
-    t.decimal "result_margin_percentage", precision: 7, scale: 4
+    t.decimal "result_margin_percentage", precision: 12, scale: 4
     t.decimal "distance_km", precision: 14, scale: 2
     t.jsonb "raw_data", default: {}, null: false
     t.datetime "imported_at", null: false

@@ -14,7 +14,6 @@ module Atua
     DEVICE_COOKIE_PATTERN = /\Ac_ds_dispositivo_/
     XLS_SIGNATURE = "\xD0\xCF\x11\xE0".b.freeze
     XLS_EXTENSION = '.xls'.freeze
-    MAX_PERIOD_DAYS = 31
     MAX_ATTEMPTS = 3
     RETRY_BASE_DELAY = 5
     REQUEST_INTERVAL = 2
@@ -74,7 +73,7 @@ module Atua
     def download(report_type, start_date: nil, end_date: nil)
       report = Report.find(report_type)
 
-      periods_for(report, start_date, end_date).map do |period_start, period_end|
+      report.periods(start_date, end_date).map do |period_start, period_end|
         download_period(report, period_start, period_end).tap { |download| yield download if block_given? }
       end
     end
@@ -144,35 +143,6 @@ module Atua
         content_type: response['content-type'],
         filename: suggested_filename(report, response, start_date, end_date),
       )
-    end
-
-    def periods_for(report, start_date, end_date)
-      unless report.period?
-        raise ArgumentError, I18n.t('atua.errors.period_not_supported', report: report.type) if start_date || end_date
-
-        return [[nil, nil]]
-      end
-
-      start_date = (start_date || Time.zone.today.beginning_of_month).to_date
-      end_date = (end_date || Time.zone.today).to_date
-      raise ArgumentError, I18n.t('atua.errors.invalid_period') if start_date > end_date
-
-      monthly_slices(start_date, end_date)
-    end
-
-    def monthly_slices(start_date, end_date)
-      return [[start_date, end_date]] if (end_date - start_date).to_i < MAX_PERIOD_DAYS
-
-      slices = []
-      cursor = start_date
-
-      while cursor <= end_date
-        slice_end = [cursor.end_of_month, end_date].min
-        slices << [cursor, slice_end]
-        cursor = slice_end + 1
-      end
-
-      slices
     end
 
     def request(method, path, form: nil, headers: {}, retryable: true, failure: DownloadError)
