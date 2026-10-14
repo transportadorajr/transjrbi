@@ -16,6 +16,21 @@ shared:
           url: /manifests
           controllers:
             - manifests
+    - name: registrations
+      icon: card-list
+      menus:
+        - name: customers
+          url: /customers
+          controllers:
+            - customers
+        - name: drivers
+          url: /drivers
+          controllers:
+            - drivers
+        - name: vehicles
+          url: /vehicles
+          controllers:
+            - vehicles
     - name: users
       icon: people
       url: /users

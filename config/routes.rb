@@ -39,6 +39,9 @@ Rails.application.routes.draw do
   resources :resources, only: %i[index new create edit update destroy]
   resources :transport_documents, only: %i[index show]
   resources :manifests, only: %i[index show]
+  resources :customers, only: %i[index show]
+  resources :drivers, only: %i[index show]
+  resources :vehicles, only: %i[index show]
 
   root 'home#index'
 end

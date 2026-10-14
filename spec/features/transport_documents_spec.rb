@@ -251,20 +251,25 @@ describe 'Transport documents' do
         expect(page).to have_current_path(transport_document_path(transport_document))
       end
 
-      scenario 'does not link the manifests without access to them' do
-        create(:atua_manifest, tenant:, number: '40798', branch_name: transport_document.branch_name)
-        create(:atua_transport_document_manifest, tenant:, transport_document_code: transport_document.code, manifest_number: '40798',
-                                                  branch_name: transport_document.branch_name)
+      context 'when the transport document has a manifest' do
+        let!(:manifest) { create(:atua_manifest, tenant:, number: '40798', branch_name: transport_document.branch_name) }
 
-        visit transport_document_path(transport_document)
+        before do
+          create(:atua_transport_document_manifest, tenant:, transport_document_code: transport_document.code, manifest_number: manifest.number,
+                                                    branch_name: transport_document.branch_name)
+        end
 
-        expect(html_table_to_rows(table: find_by_id('transport_document_manifests'))).to eq(
-          [
-            ['Número', 'Emitido em', 'Placa', 'Situação'],
-            ['40798', '01/10/2026', 'RHJ4E07', 'Válido'],
-          ],
-        )
-        expect(page).to have_no_link('40798')
+        scenario 'does not link the manifests without access to them' do
+          visit transport_document_path(transport_document)
+
+          expect(html_table_to_rows(table: find_by_id('transport_document_manifests'))).to eq(
+            [
+              ['Número', 'Emitido em', 'Placa', 'Situação'],
+              ['40798', '01/10/2026', 'RHJ4E07', 'Válido'],
+            ],
+          )
+          expect(page).to have_no_link('40798')
+        end
       end
     end
   end

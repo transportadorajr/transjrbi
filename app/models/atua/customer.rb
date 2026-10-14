@@ -19,6 +19,7 @@ module Atua
       where(arel_table[:name].matches(pattern)).or(where(arel_table[:trade_name].matches(pattern)))
     }
     scope :by_document, ->(document) { where(document_digits: document.to_s.gsub(/\D/, '')) }
+    scope :by_city, ->(city) { where(arel_table[:city].matches("%#{sanitize_sql_like(city.to_s.strip)}%")) }
   end
 end
 

@@ -227,15 +227,19 @@ describe 'Manifests' do
         expect(page).to have_current_path(manifest_path(manifest))
       end
 
-      scenario 'does not link the transport documents without access to them' do
-        create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: manifest.branch_name)
-        create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
-                                        transport_document_series: 1, branch_name: manifest.branch_name)
+      context 'when the manifest has a transport document' do
+        let!(:transport_document) { create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: manifest.branch_name) }
+        let!(:document) do
+          create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: transport_document.number,
+                                          transport_document_series: 1, branch_name: manifest.branch_name)
+        end
 
-        visit manifest_path(manifest)
+        scenario 'does not link the transport documents without access to them' do
+          visit manifest_path(manifest)
 
-        expect(page).to have_css('#manifest_documents', text: '74130')
-        expect(page).to have_no_link('74130')
+          expect(page).to have_css('#manifest_documents', text: document.transport_document_number)
+          expect(page).to have_no_link('74130')
+        end
       end
     end
   end

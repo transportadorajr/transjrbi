@@ -1,0 +1,7 @@
+<tr id="<%= dom_id(transport_document) %>">
+  <td><%= driver_transport_document_number(transport_document) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_time(transport_document.issued_at) %></td>
+  <td class="d-none d-lg-table-cell"><%= transport_document_route(transport_document) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(transport_document.plate) %></td>
+  <td class="text-nowrap"><%= tax_money(transport_document.freight) %></td>
+</tr>

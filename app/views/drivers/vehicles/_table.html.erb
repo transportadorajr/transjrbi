@@ -1,0 +1,15 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" id="driver_vehicles">
+    <thead class="table-light">
+      <tr>
+        <th><%= Atua::Vehicle.human_attribute_name(:plate) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:category) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:description) %></th>
+        <th><%= Atua::Vehicle.human_attribute_name(:ownership) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'drivers/vehicles/row', collection: vehicles, as: :vehicle %>
+    </tbody>
+  </table>
+</div>

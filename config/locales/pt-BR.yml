@@ -98,6 +98,51 @@ pt-BR:
         route: Origem / Destino
         weight_kg: Peso (kg)
         freight: Frete
+      atua/customer:
+        code: Código
+        name: Nome
+        trade_name: Nome fantasia
+        person_kind: Tipo de pessoa
+        document: CPF/CNPJ
+        state_registration: Inscrição estadual
+        activity: Atividade
+        status: Situação na Atua
+        registered_on: Cadastrado em
+        last_billed_on: Última emissão como pagador
+        address: Endereço
+        zip_code: CEP
+        city: Cidade
+        phone: Telefone
+        emails: E-mails
+        payment_method: Forma de pagamento
+        payment_term: Prazo de pagamento
+      atua/vehicle:
+        code: Código
+        plate: Placa
+        category: Categoria
+        vehicle_kind: Tipo do veículo
+        brand: Marca
+        model: Modelo
+        description: Marca / Modelo
+        years: Ano fabricação/modelo
+        color: Cor
+        body: Carroceria
+        wheelset: Rodado
+        chassis: Chassi
+        renavam: RENAVAM
+        antt: ANTT
+        city: Cidade
+        status: Situação na Atua
+        risk_status: Gerenciamento de risco
+        data_expires_on: Validade do cadastro
+        ownership: Propriedade
+        owner: Proprietário
+        driver_code: Código do motorista
+        driver_name: Motorista
+        driver_document: CPF do motorista
+        driver_license: CNH
+        vehicles_count: Veículos
+        plates: Placas
       atua/import:
         tenant: Empresa
         report_type: Relatório
@@ -259,6 +304,10 @@ pt-BR:
         show: Visualizar
       atua/manifest:
         show: Visualizar
+      atua/customer:
+        show: Visualizar
+      atua/vehicle:
+        show: Visualizar
       atua/import:
         download: Baixar arquivo
         reprocess: Reprocessar
@@ -378,6 +427,9 @@ pt-BR:
     users: Usuários
     transport_documents: CT-es
     manifests: Manifestos
+    customers: Clientes
+    drivers: Motoristas
+    vehicles: Veículos
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -427,6 +479,44 @@ pt-BR:
       back: Voltar para manifestos
       manifest_data: Dados do manifesto
       documents: CT-es do manifesto
+  customers:
+    index:
+      title: Clientes
+      subtitle: Clientes, fornecedores e demais pessoas cadastradas na Atua.
+    filters:
+      name: Nome ou nome fantasia
+      document: CPF/CNPJ
+      city: Cidade
+    show:
+      back: Voltar para clientes
+      customer_data: Dados do cliente
+      contact_data: Endereço e contato
+  drivers:
+    code: 'Código %{code}'
+    index:
+      title: Motoristas
+      subtitle: Motoristas vinculados aos veículos cadastrados na Atua.
+    filters:
+      name: Nome do motorista
+      document: CPF do motorista
+    show:
+      back: Voltar para motoristas
+      driver_data: Dados do motorista
+      vehicles: Veículos do motorista
+      transport_documents: Últimos CT-es do motorista
+  vehicles:
+    index:
+      title: Veículos
+      subtitle: Frota de veículos cadastrada na Atua.
+    filters:
+      plate: Placa
+      category: Categoria
+      ownership: Propriedade
+    show:
+      title: Veículo %{plate}
+      back: Voltar para veículos
+      vehicle_data: Dados do veículo
+      ownership_data: Propriedade e motorista
   devise:
     shared:
       minimum_password_length:
@@ -476,6 +566,10 @@ pt-BR:
     tax: Fiscal
     transport_documents: CT-es
     manifests: Manifestos
+    registrations: Cadastros
+    customers: Clientes
+    drivers: Motoristas
+    vehicles: Veículos
     users: Usuários
     resources: Recursos
     show: Visualizar

@@ -1,0 +1,16 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" id="driver_transport_documents">
+    <thead class="table-light">
+      <tr>
+        <th><%= Atua::TransportDocument.human_attribute_name(:number) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:route) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:plate) %></th>
+        <th><%= Atua::TransportDocument.human_attribute_name(:freight) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'drivers/transport_documents/row', collection: transport_documents, as: :transport_document %>
+    </tbody>
+  </table>
+</div>
