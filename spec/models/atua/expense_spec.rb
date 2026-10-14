@@ -103,6 +103,28 @@ RSpec.describe Atua::Expense do
       it 'keeps out expenses removed from Atua' do
         expect(described_class.active).to contain_exactly(fuel, unload, outside)
       end
+
+      it 'filters by the start and the end of the posting period separately' do
+        expect(described_class.by_period_start('2026-10-05')).to contain_exactly(unload, removed)
+        expect(described_class.by_period_end('2026-10-01')).to contain_exactly(fuel, outside)
+      end
+    end
+
+    context 'with expenses of different payees' do
+      let!(:gas_station) { create(:atua_expense, tenant:, payee_name: 'POSTO TREVO LTDA') }
+      let!(:loader) { create(:atua_expense, tenant:, payee_name: 'CHAPA 100% LTDA') }
+
+      before { create(:atua_expense, tenant:, payee_name: nil) }
+
+      it 'filters by the payee name ignoring case' do
+        expect(described_class.by_payee_name(' trevo ')).to eq([gas_station])
+        expect(described_class.count).to eq(3)
+      end
+
+      it 'treats the LIKE wildcards of the payee name literally' do
+        expect(described_class.by_payee_name('100%')).to eq([loader])
+        expect(described_class.by_payee_name('%')).to eq([loader])
+      end
     end
   end
 end

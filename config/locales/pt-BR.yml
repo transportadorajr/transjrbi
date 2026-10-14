@@ -143,6 +143,48 @@ pt-BR:
         driver_license: CNH
         vehicles_count: Veículos
         plates: Placas
+      atua/expense:
+        code: Código
+        history_name: Histórico
+        description: Complemento
+        posted_on: Lançado em
+        posted_at: Lançado em
+        accounting_on: Data contábil
+        settled_on: Quitado em
+        spending_kind: Tipo de gasto
+        cash_account_name: Caixa financeiro
+        branch_name: Filial
+        headquarters_name: Matriz
+        accounting_account: Conta contábil
+        accounting_classification: Classificação contábil
+        payee: Favorecido
+        payee_name: Favorecido
+        document_model: Modelo do documento
+        document: Documento/Série
+        document_key: Chave do documento
+        document_on: Data do documento
+        installment_count: Parcelas
+        apportionment_count: Rateios
+        attachment_at: Anexo
+        plate: Placa
+        vehicle_model: Modelo do veículo
+        trip_number: Viagem
+        trip_driver_name: Motorista da viagem
+        trip_departure_on: Saída da viagem
+        trip_arrival_on: Chegada da viagem
+        trip_expense_kind: Despesa da viagem
+        transport_document: CT-e
+        amount: Valor do lançamento
+        discount: Desconto
+        total: Valor total
+        net_amount: Valor líquido
+        withholdings: Retenções
+        paid: Valor pago
+        icms: ICMS
+        icms_credit: Crédito de ICMS
+        icms_credit_percentage: Alíquota do crédito de ICMS
+        pis_credit: Crédito de PIS
+        cofins_credit: Crédito de COFINS
       atua/import:
         tenant: Empresa
         report_type: Relatório
@@ -308,6 +350,8 @@ pt-BR:
         show: Visualizar
       atua/vehicle:
         show: Visualizar
+      atua/expense:
+        show: Visualizar
       atua/import:
         download: Baixar arquivo
         reprocess: Reprocessar
@@ -430,6 +474,7 @@ pt-BR:
     customers: Clientes
     drivers: Motoristas
     vehicles: Veículos
+    expenses: Despesas
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -517,6 +562,27 @@ pt-BR:
       back: Voltar para veículos
       vehicle_data: Dados do veículo
       ownership_data: Propriedade e motorista
+  expenses:
+    code: 'Lançamento %{code}'
+    attachment:
+      present: Sim
+      absent: Não
+    index:
+      title: Despesas
+      subtitle: Despesas lançadas na Atua.
+    filters:
+      history: Histórico
+      payee: Favorecido
+      plate: Placa
+      start_date: Lançadas a partir de
+      end_date: Lançadas até
+    show:
+      title: Despesa %{code}
+      back: Voltar para despesas
+      expense_data: Dados da despesa
+      document_data: Favorecido e documento
+      trip_data: Viagem e veículo
+      values: Valores
   devise:
     shared:
       minimum_password_length:
@@ -570,6 +636,7 @@ pt-BR:
     customers: Clientes
     drivers: Motoristas
     vehicles: Veículos
+    expenses: Despesas
     users: Usuários
     resources: Recursos
     show: Visualizar

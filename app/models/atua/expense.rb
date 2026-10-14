@@ -16,7 +16,10 @@ module Atua
 
     scope :by_period, ->(start_date, end_date) { where(posted_on: date_range(start_date, end_date)) }
     scope :by_plate, ->(plate) { where(plate: normalize_plate(plate)) }
+    scope :by_period_start, ->(date) { by_period(date, nil) }
+    scope :by_period_end, ->(date) { by_period(nil, date) }
     scope :by_payee, ->(code) { where(payee_code: code) }
+    scope :by_payee_name, ->(name) { where(arel_table[:payee_name].matches("%#{sanitize_sql_like(name.to_s.strip)}%")) }
     scope :by_history, ->(code) { where(history_code: code) }
     scope :by_trip, ->(number) { where(trip_number: number) }
     scope :by_branch, ->(code) { where(branch_code: code) }
