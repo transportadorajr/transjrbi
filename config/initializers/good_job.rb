@@ -11,7 +11,7 @@ Rails.application.configure do
   config.good_job.poll_interval = 5 # segundos
   config.good_job.shutdown_timeout = 25 # segundos
 
-  # Mantém o histórico de jobs concluídos (visível no dashboard /good_job).
+  # Mantém o histórico de jobs concluídos (visível no dashboard /good_job do admin).
   config.good_job.preserve_job_records = true
   config.good_job.cleanup_preserved_jobs_before_seconds_ago = 14.days.to_i
 

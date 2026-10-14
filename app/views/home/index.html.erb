@@ -28,8 +28,7 @@
     <div class="card h-100">
       <div class="card-body">
         <h2 class="h5 card-title"><%= icon(:'person-check', class: 'me-1') %><%= t('.account.title') %></h2>
-        <p class="card-text"><%= t('.account.signed_in_as_html', email: current_user.email) %></p>
-        <%= link_to t('.account.jobs_dashboard'), '/good_job', class: 'btn btn-outline-secondary', data: { turbo: false } %>
+        <p class="card-text mb-0"><%= t('.account.signed_in_as_html', email: current_user.email) %></p>
       </div>
     </div>
   </div>

@@ -10,6 +10,13 @@ Rails.application.routes.draw do
       end
       resources :initial_loads, only: %i[new create]
 
+      constraints ->(request) { Admin::Session.authenticate(request.session[Admin::Authentication::SESSION_TOKEN_KEY]) } do
+        mount Flipper::UI.app(Flipper), at: 'flipper', as: :flipper
+        mount GoodJob::Engine, at: 'good_job', as: :good_job
+      end
+      get 'flipper(/*path)', to: redirect('/login', status: 302)
+      get 'good_job(/*path)', to: redirect('/login', status: 302)
+
       root 'imports#index'
     end
   end
@@ -18,12 +25,6 @@ Rails.application.routes.draw do
 
   devise_scope :user do
     put 'users/confirmation', to: 'users/confirmations#update'
-  end
-
-  # Dashboard do GoodJob (somente para usuários autenticados).
-  # TODO: restringir por perfil/tipo de usuário quando os perfis forem definidos.
-  authenticate :user do
-    mount GoodJob::Engine => 'good_job'
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

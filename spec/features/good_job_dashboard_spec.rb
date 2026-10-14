@@ -1,24 +1,20 @@
 require 'rails_helper'
 
-describe 'GoodJob dashboard' do
-  context 'without a signed in user' do
-    scenario 'redirects to the login screen' do
-      visit '/good_job'
+describe 'GoodJob dashboard on the app host' do
+  let!(:user) { create(:user) }
 
-      expect(page).to have_current_path(new_user_session_path)
-    end
+  before { login_as(user, scope: :user) }
+
+  scenario 'is not reachable by an app user' do
+    visit '/good_job'
+
+    expect(page.status_code).to eq(404)
   end
 
-  context 'with a signed in user' do
-    let!(:user) { create(:user) }
+  scenario 'is not linked from the app navigation' do
+    visit root_path
 
-    before { login_as(user, scope: :user) }
-
-    scenario 'opens the dashboard' do
-      visit '/good_job'
-
-      expect(page.status_code).to eq(200)
-      expect(page).to have_current_path(%r{\A/good_job})
-    end
+    expect(page).to have_text(user.email)
+    expect(page).to have_no_link(href: '/good_job')
   end
 end

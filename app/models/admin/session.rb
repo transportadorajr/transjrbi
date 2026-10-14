@@ -10,6 +10,16 @@ module Admin
 
     before_validation :set_last_active_at, on: :create
 
+    class << self
+      def authenticate(token)
+        session = find_by(token:) if token.present?
+        return if session.blank? || session.expired?
+
+        session.renew
+        session
+      end
+    end
+
     def expired?
       last_active_at < INACTIVITY_TIMEOUT.ago
     end

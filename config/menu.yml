@@ -22,3 +22,9 @@ shared:
       controllers:
         - admin/imports
         - admin/initial_loads
+    - name: admin_good_job
+      icon: hourglass-split
+      url: /good_job
+    - name: admin_flipper
+      icon: toggles
+      url: /flipper

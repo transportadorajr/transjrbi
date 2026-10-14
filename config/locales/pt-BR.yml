@@ -282,7 +282,6 @@ pt-BR:
       account:
         title: Conta
         signed_in_as_html: Você está conectado como <strong>%{email}</strong>.
-        jobs_dashboard: Abrir dashboard de jobs
   resources:
     index:
       title: Recursos
@@ -353,7 +352,6 @@ pt-BR:
       toggle_navigation: Abrir navegação
       toggle_sidebar: Recolher menu lateral
       options: Opções
-      jobs: Jobs (GoodJob)
       logout: Sair
   menus:
     home: Início
@@ -362,6 +360,8 @@ pt-BR:
     show: Visualizar
     edit: Alterar
     admin_imports: Importações da Atua
+    admin_good_job: Jobs (GoodJob)
+    admin_flipper: Feature flags
   admin:
     sessions:
       unauthenticated: Faça login para acessar o painel administrativo.
