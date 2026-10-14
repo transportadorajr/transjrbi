@@ -17,5 +17,9 @@ class VehiclesController < BaseController
     authorize!(:read, :vehicles)
 
     @vehicle = current_tenant.atua_vehicles.active.find(params.expect(:id))
+    empty_legs = current_tenant.empty_legs.where(plate: @vehicle.plate)
+    @empty_legs = empty_legs.joins(:next_manifest).preload(:origin, :destination, :next_manifest)
+      .order(Atua::Manifest.trip_at.desc, id: :desc).page(params[:page])
+    @empty_legs_total = empty_legs.calculated.sum(:distance_km)
   end
 end

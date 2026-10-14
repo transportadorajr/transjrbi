@@ -1,0 +1,21 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" id="vehicle_empty_legs">
+    <thead class="table-light">
+      <tr>
+        <th><%= EmptyLeg.human_attribute_name(:trip_on) %></th>
+        <th class="d-none d-md-table-cell"><%= EmptyLeg.human_attribute_name(:departure_point) %></th>
+        <th class="d-none d-md-table-cell"><%= EmptyLeg.human_attribute_name(:arrival_point) %></th>
+        <th class="d-none d-lg-table-cell"><%= EmptyLeg.human_attribute_name(:precision_type) %></th>
+        <th class="text-end"><%= EmptyLeg.human_attribute_name(:distance_km) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'vehicles/empty_legs/row', collection: empty_legs, as: :empty_leg %>
+    </tbody>
+  </table>
+</div>
+<%= paginate empty_legs %>
+<div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3" id="vehicle_empty_legs_total">
+  <span class="fw-medium"><%= t('vehicles.empty_legs.total') %></span>
+  <strong class="text-nowrap"><%= empty_leg_total(total) %></strong>
+</div>

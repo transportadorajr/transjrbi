@@ -22,7 +22,7 @@ class ManifestsController < BaseController
   def show
     authorize!(:read, :manifests)
 
-    @manifest = current_tenant.atua_manifests.active.find(params.expect(:id))
+    @manifest = current_tenant.atua_manifests.active.preload(empty_leg: %i[origin destination previous_manifest]).find(params.expect(:id))
     @documents = @manifest.documents.active.preload(:transport_document).order(:transport_document_number)
   end
 end

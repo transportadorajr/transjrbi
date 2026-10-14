@@ -24,6 +24,9 @@ module Atua
                                   primary_key: %i[tenant_id number series branch_name], inverse_of: :transport_document
     has_many :expenses, class_name: 'Atua::Expense', foreign_key: %i[tenant_id transport_document_code],
                         primary_key: %i[tenant_id code], inverse_of: :transport_document
+    has_many :empty_leg_transport_documents, foreign_key: %i[tenant_id transport_document_code], primary_key: %i[tenant_id code],
+                                             inverse_of: :transport_document
+    has_many :empty_legs, through: :empty_leg_transport_documents
 
     monetize :goods_value_cents, :freight_cents, :weight_freight_cents, :value_freight_cents, :ad_valorem_cents,
              :other_charges_cents, :toll_cents, :icms_base_cents, :icms_cents, :icms_st_cents, :federal_tax_cents,

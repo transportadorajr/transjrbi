@@ -14,3 +14,5 @@ if ENV['ADMIN_USER_EMAIL'].present? && ENV['ADMIN_USER_PASSWORD'].present?
     admin_user.password = ENV.fetch('ADMIN_USER_PASSWORD')
   end
 end
+
+Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?

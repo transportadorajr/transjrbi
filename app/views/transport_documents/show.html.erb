@@ -178,6 +178,15 @@
     </div>
   </div>
 
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.empty_legs') %></p>
+    </div>
+    <div class="detail-card-body">
+      <%= transport_document_empty_legs(@empty_legs) %>
+    </div>
+  </div>
+
   <div class="card detail-card">
     <div class="detail-card-header">
       <p class="detail-card-title"><%= t('.manifests') %></p>

@@ -65,6 +65,15 @@
     </div>
   </div>
 
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.empty_leg') %></p>
+    </div>
+    <div class="detail-card-body">
+      <%= manifest_empty_leg_details(@manifest.empty_leg) %>
+    </div>
+  </div>
+
   <div class="card detail-card">
     <div class="detail-card-header">
       <p class="detail-card-title"><%= t('.documents') %></p>

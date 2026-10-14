@@ -1,0 +1,6 @@
+<dl class="row detail-list mb-0" id="manifest_empty_leg">
+  <dt class="col-12 col-md-3"><%= EmptyLeg.human_attribute_name(:previous_manifest) %></dt>
+  <dd class="col-12 col-md-9"><%= empty_leg_manifest_link(empty_leg.previous_manifest, empty_leg.previous_manifest_code) %></dd>
+
+  <%= render 'empty_legs/rows', empty_leg: %>
+</dl>

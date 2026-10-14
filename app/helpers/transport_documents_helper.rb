@@ -25,6 +25,12 @@ module TransportDocumentsHelper
     safe_join([content_tag(:span, name, class: 'd-block'), (content_tag(:span, document, class: 'text-muted text-small d-block') if document.present?)], ' ')
   end
 
+  def transport_document_empty_legs(empty_legs)
+    return content_tag(:p, t('transport_documents.show.no_empty_leg'), class: 'text-body-secondary mb-0') if empty_legs.none?
+
+    content_tag(:div, render(partial: 'transport_documents/empty_leg', collection: empty_legs), class: 'd-flex flex-column gap-4')
+  end
+
   def transport_document_manifests_table(manifests)
     return render('shared/no_content') if manifests.none?
 

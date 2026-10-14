@@ -25,6 +25,12 @@ module ManifestsHelper
                                    destination: tax_city(document.destination_city, document.destination_state))
   end
 
+  def manifest_empty_leg_details(empty_leg)
+    return content_tag(:p, t('manifests.show.no_empty_leg'), class: 'text-body-secondary mb-0') unless empty_leg
+
+    render 'manifests/empty_leg', empty_leg:
+  end
+
   private
 
   def manifest_show_menu(manifest)

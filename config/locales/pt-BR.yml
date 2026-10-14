@@ -37,7 +37,27 @@ pt-BR:
       atua/vehicle:
         one: Veículo
         other: Veículos
+      location:
+        one: Local
+        other: Locais
+      road_route:
+        one: Rota
+        other: Rotas
+      empty_leg:
+        one: KM vazio
+        other: KMs vazios
     attributes:
+      empty_leg:
+        previous_manifest: Viagem anterior
+        trip_on: Data da viagem
+        departure_point: Saída (última entrega)
+        arrival_point: Chegada (coleta)
+        origin: Última entrega da viagem anterior
+        destination: Primeira coleta desta viagem
+        distance_km: KM vazio
+        precision_type: Precisão
+        status_type: Situação
+        calculated_at: Calculado em
       atua/transport_document:
         number: Número
         series: Série
@@ -294,6 +314,18 @@ pt-BR:
             base:
               invalid_confirmation_link: O link de confirmação é inválido ou expirou. Solicite um novo link.
   enums:
+    location:
+      precision_type:
+        address: Endereço
+        city: Centro da cidade
+    empty_leg:
+      status_type:
+        calculated: Calculado
+        unlocated: Endereço não localizado
+        unrouted: Rota não encontrada
+      precision_type:
+        address: Endereço
+        city: Centro da cidade
     atua/import:
       report_type:
         transport_documents: Conhecimentos de transporte
@@ -506,6 +538,8 @@ pt-BR:
       transport: Transporte
       values: Valores
       manifests: Manifestos
+      empty_legs: KM vazio para chegar à coleta
+      no_empty_leg: Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.
   manifests:
     index:
       title: Manifestos
@@ -524,6 +558,10 @@ pt-BR:
       back: Voltar para manifestos
       manifest_data: Dados do manifesto
       documents: CT-es do manifesto
+      empty_leg: KM vazio
+      no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
+  empty_legs:
+    distance: '%{distance} km'
   customers:
     index:
       title: Clientes
@@ -562,6 +600,10 @@ pt-BR:
       back: Voltar para veículos
       vehicle_data: Dados do veículo
       ownership_data: Propriedade e motorista
+      empty_legs: Trechos rodados vazios
+      no_empty_legs: Nenhum trecho rodado vazio por esta placa.
+    empty_legs:
+      total: Total de KM vazio
   expenses:
     code: 'Lançamento %{code}'
     attachment:
@@ -745,3 +787,10 @@ pt-BR:
     warnings:
       missing_period: O arquivo foi importado sem período, por isso os registros que sumiram da Atua não foram verificados.
       removals_skipped: 'O arquivo trouxe %{received} registro(s), menos da metade dos %{existing} que o banco tem para o mesmo período: nenhum registro foi marcado como removido da Atua.'
+  tomtom:
+    errors:
+      missing_api_key: 'Configuração do TomTom incompleta: falta tomtom.api_key nos credentials.'
+      no_route: O TomTom não encontrou rota entre os dois pontos.
+      rate_limited: O TomTom recusou a requisição por excesso de consultas (HTTP 429).
+      unexpected_status: O TomTom respondeu HTTP %{status}.
+      request_failed: 'A requisição para o TomTom em %{path} falhou: %{reason}.'

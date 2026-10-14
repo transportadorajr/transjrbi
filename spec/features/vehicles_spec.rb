@@ -181,6 +181,53 @@ describe 'Vehicles' do
 
         expect(page).to have_current_path(driver_path(760))
       end
+
+      scenario 'tells that the plate has no empty legs' do
+        visit vehicle_path(vehicle)
+
+        expect(EmptyLeg.count).to eq(0)
+        expect(page).to have_text('Nenhum trecho rodado vazio por esta placa.')
+      end
+
+      context 'when the plate has empty legs' do
+        let!(:betim) do
+          create(:location, lookup_key: 'RUA DAS FLORES 10|BETIM|MG', street: 'RUA DAS FLORES 10', city: 'BETIM', state: 'MG',
+                            precision_type: 'address')
+        end
+        let!(:ipatinga) { create(:location, lookup_key: '|IPATINGA|MG', city: 'IPATINGA', state: 'MG') }
+        let!(:contagem) { create(:location, lookup_key: '|CONTAGEM|MG', city: 'CONTAGEM', state: 'MG') }
+
+        before do
+          create(:atua_manifest, tenant:, code: 41_200, plate: 'EXU0F72', trip_started_at: Time.zone.local(2026, 10, 3, 8))
+          create(:atua_manifest, tenant:, code: 41_300, plate: 'EXU0F72', trip_started_at: nil, departure_on: Date.new(2026, 10, 7))
+          create(:atua_manifest, tenant:, code: 41_400, plate: 'EXU0F72', trip_started_at: Time.zone.local(2026, 10, 9, 6))
+          create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_200, origin: betim, destination: ipatinga,
+                             distance_km: BigDecimal('217.44'), precision_type: 'city')
+          create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_400, origin: ipatinga, destination: contagem,
+                             distance_km: BigDecimal('48.2'), precision_type: 'city')
+          create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_300, origin: contagem, destination: nil,
+                             status_type: 'unlocated', distance_km: nil, precision_type: nil)
+          create(:atua_manifest, tenant:, code: 41_500, plate: 'QWE1A23', trip_started_at: Time.zone.local(2026, 10, 4))
+          create(:empty_leg, tenant:, plate: 'QWE1A23', next_manifest_code: 41_500)
+          create(:atua_manifest, tenant: other_tenant, code: 41_600, plate: 'EXU0F72', trip_started_at: Time.zone.local(2026, 10, 5))
+          create(:empty_leg, tenant: other_tenant, plate: 'EXU0F72', next_manifest_code: 41_600)
+        end
+
+        scenario 'lists every empty leg of the plate from the latest trip with the total' do
+          visit vehicle_path(vehicle)
+
+          expect(EmptyLeg.where(tenant:, plate: 'EXU0F72').count).to eq(3)
+          expect(html_table_to_rows(table: find_by_id('vehicle_empty_legs'))).to eq(
+            [
+              ['Data da viagem', 'Saída (última entrega)', 'Chegada (coleta)', 'Precisão', 'KM vazio'],
+              ['09/10/2026', 'IPATINGA/MG', 'CONTAGEM/MG', 'Centro da cidade', '48,20 km'],
+              ['07/10/2026', 'CONTAGEM/MG', '-', '-', 'Endereço não localizado'],
+              ['03/10/2026', 'RUA DAS FLORES 10 - BETIM/MG', 'IPATINGA/MG', 'Centro da cidade', '217,44 km'],
+            ],
+          )
+          expect(page).to have_css('#vehicle_empty_legs_total', text: 'Total de KM vazio 265,64 km')
+        end
+      end
     end
   end
 
@@ -244,6 +291,26 @@ describe 'Vehicles' do
       expect(page).to have_link('EXU0F72')
       expect(page).to have_no_css('th', text: 'Categoria')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    context 'when the plate has empty legs' do
+      let!(:location) do
+        create(:location, lookup_key: 'AVENIDA DAS INDUSTRIAS 1500|SANTANA DE PARNAIBA|SP', street: 'AVENIDA DAS INDUSTRIAS 1500',
+                          city: 'SANTANA DE PARNAIBA', state: 'SP')
+      end
+
+      before do
+        create(:atua_manifest, tenant:, code: 41_200, plate: 'EXU0F72', trip_started_at: Time.zone.local(2026, 10, 3, 8))
+        create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_200, origin: location, destination: location)
+      end
+
+      scenario 'keeps only the trip date and the distance without horizontal scroll' do
+        visit vehicle_path(vehicle)
+
+        expect(page).to have_css('#vehicle_empty_legs td', text: '48,20 km')
+        expect(page).to have_no_css('#vehicle_empty_legs th', text: 'Saída (última entrega)')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
     end
   end
 end
