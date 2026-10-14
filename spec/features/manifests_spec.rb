@@ -189,6 +189,47 @@ describe 'Manifests' do
         expect(page).to have_current_path(transport_document_path(transport_document))
       end
     end
+
+    context 'when the manifest has an empty leg from the previous trip of the truck' do
+      let!(:previous_manifest) { create(:atua_manifest, tenant:, code: 41_100, number: '40700', plate: 'RHJ4E07') }
+      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_200, number: '40772', plate: 'RHJ4E07') }
+      let!(:origin) do
+        create(:location, lookup_key: 'RUA DAS FLORES 10|BETIM|MG', street: 'RUA DAS FLORES 10', city: 'BETIM', state: 'MG', precision_type: 'address')
+      end
+      let!(:destination) { create(:location, lookup_key: '|CONTAGEM|MG', city: 'CONTAGEM', state: 'MG', precision_type: 'city') }
+      let!(:empty_leg) do
+        create(:empty_leg, tenant:, plate: 'RHJ4E07', previous_manifest_code: 41_100, next_manifest_code: 41_200, origin:, destination:,
+                           distance_km: BigDecimal('23.45'), precision_type: 'city', calculated_at: Time.zone.local(2026, 10, 3, 9, 15))
+      end
+
+      scenario 'shows the empty kilometers and opens the previous trip' do
+        visit manifest_path(manifest)
+
+        expect(EmptyLeg.count).to eq(1)
+        expect(dl_to_hash('#manifest_empty_leg')).to eq(
+          'Viagem anterior' => '40700',
+          'Última entrega da viagem anterior' => 'RUA DAS FLORES 10 - BETIM/MG',
+          'Primeira coleta desta viagem' => 'CONTAGEM/MG',
+          'KM vazio' => '23,45 km',
+          'Precisão' => 'Centro da cidade',
+          'Calculado em' => '03/10/2026 09:15',
+        )
+
+        click_on '40700'
+
+        expect(page).to have_current_path(manifest_path(previous_manifest))
+        expect(page).to have_text('Sem KM vazio, porque não há viagem anterior desta placa.')
+      end
+
+      scenario 'shows the status when the address could not be located' do
+        empty_leg.update!(status_type: 'unlocated', distance_km: nil, precision_type: nil, destination: nil)
+
+        visit manifest_path(manifest)
+
+        expect(dl_to_hash('#manifest_empty_leg')).to include('Primeira coleta desta viagem' => '-', 'KM vazio' => 'Endereço não localizado',
+                                                             'Precisão' => '-')
+      end
+    end
   end
 
   context 'when an operator is signed in' do

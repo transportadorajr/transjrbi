@@ -1,0 +1,19 @@
+<dl class="row detail-list mb-0" id="manifest_empty_leg">
+  <dt class="col-12 col-md-3"><%= EmptyLeg.human_attribute_name(:previous_manifest) %></dt>
+  <dd class="col-12 col-md-9"><%= empty_leg_previous_manifest(empty_leg) %></dd>
+
+  <dt class="col-12 col-md-3"><%= EmptyLeg.human_attribute_name(:origin) %></dt>
+  <dd class="col-12 col-md-9"><%= empty_leg_location(empty_leg.origin) %></dd>
+
+  <dt class="col-12 col-md-3"><%= EmptyLeg.human_attribute_name(:destination) %></dt>
+  <dd class="col-12 col-md-9"><%= empty_leg_location(empty_leg.destination) %></dd>
+
+  <dt class="col-12 col-md-3"><%= EmptyLeg.human_attribute_name(:distance_km) %></dt>
+  <dd class="col-12 col-md-9"><%= empty_leg_distance(empty_leg) %></dd>
+
+  <dt class="col-12 col-md-3"><%= EmptyLeg.human_attribute_name(:precision_type) %></dt>
+  <dd class="col-12 col-md-9"><%= tax_value(empty_leg.precision_type_name) %></dd>
+
+  <dt class="col-12 col-md-3"><%= EmptyLeg.human_attribute_name(:calculated_at) %></dt>
+  <dd class="col-12 col-md-9"><%= tax_time(empty_leg.calculated_at) %></dd>
+</dl>

@@ -13,6 +13,8 @@ module Atua
     has_many :transport_document_manifests, class_name: 'Atua::TransportDocumentManifest',
                                             foreign_key: %i[tenant_id manifest_number branch_name],
                                             primary_key: %i[tenant_id number branch_name], inverse_of: :manifest
+    has_one :empty_leg, class_name: 'EmptyLeg', foreign_key: %i[tenant_id next_manifest_code], primary_key: %i[tenant_id code],
+                        inverse_of: :next_manifest
 
     monetize :goods_value_cents, allow_nil: true
 
@@ -29,8 +31,13 @@ module Atua
     scope :not_canceled, -> { where.not(status: CANCELED_STATUS).or(where(status: nil)) }
     scope :canceled, -> { where(status: CANCELED_STATUS) }
     scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
+    scope :trips, -> { active.not_canceled.where.not(plate: [nil, '']) }
 
     class << self
+      def trip_at
+        Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:trip_started_at], arel_table[:departure_on], arel_table[:issued_on]])
+      end
+
       def statuses
         {
           I18n.t('tax.situations.valid') => :valid,
@@ -41,6 +48,24 @@ module Atua
 
     def canceled?
       status == CANCELED_STATUS
+    end
+
+    def trip?
+      active? && !canceled? && plate.present?
+    end
+
+    def previous_trip
+      trip_at = self.class.trip_at
+      started_at = self.class.where(id:).pick(trip_at)
+      before = trip_at.lt(started_at).or(trip_at.eq(started_at).and(self.class.arel_table[:code].lt(code)))
+
+      self.class.trips.where(tenant_id:, plate:).where(before).order(trip_at.desc, code: :desc).first
+    end
+
+    def ordered_documents
+      documents.active.preload(transport_document: %i[sender recipient]).to_a
+        .reject { |document| document.transport_document&.canceled_at }
+        .sort_by { |document| [document.transport_document&.issued_at.to_i, document.id] }
     end
   end
 end

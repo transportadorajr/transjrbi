@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_173820) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_183706) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -19,6 +19,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_173820) do
   create_enum "atua_import_error_type", ["configuration", "authentication", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
   create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
+  create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
+  create_enum "location_precision_type", ["address", "city"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
   create_table "accesses", force: :cascade do |t|
@@ -469,6 +471,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_173820) do
     t.index ["tenant_id", "status"], name: "index_atua_vehicles_on_tenant_id_and_status"
   end
 
+  create_table "empty_legs", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "plate", null: false
+    t.bigint "previous_manifest_code", null: false
+    t.bigint "next_manifest_code", null: false
+    t.bigint "origin_id"
+    t.bigint "destination_id"
+    t.bigint "road_route_id"
+    t.decimal "distance_km", precision: 14, scale: 2
+    t.enum "precision_type", enum_type: "location_precision_type"
+    t.enum "status_type", null: false, enum_type: "empty_leg_status_type"
+    t.datetime "calculated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["destination_id"], name: "index_empty_legs_on_destination_id"
+    t.index ["origin_id"], name: "index_empty_legs_on_origin_id"
+    t.index ["road_route_id"], name: "index_empty_legs_on_road_route_id"
+    t.index ["tenant_id", "next_manifest_code"], name: "index_empty_legs_on_tenant_id_and_next_manifest_code", unique: true
+    t.index ["tenant_id", "plate"], name: "index_empty_legs_on_tenant_id_and_plate"
+    t.index ["tenant_id", "previous_manifest_code"], name: "index_empty_legs_on_tenant_id_and_previous_manifest_code"
+  end
+
   create_table "flipper_features", force: :cascade do |t|
     t.string "key", null: false
     t.datetime "created_at", null: false
@@ -603,6 +627,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_173820) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "locations", force: :cascade do |t|
+    t.string "lookup_key", null: false
+    t.string "street"
+    t.string "city", null: false
+    t.string "state", null: false
+    t.decimal "latitude", precision: 10, scale: 7, null: false
+    t.decimal "longitude", precision: 10, scale: 7, null: false
+    t.enum "precision_type", null: false, enum_type: "location_precision_type"
+    t.string "formatted_address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["latitude", "longitude"], name: "index_locations_on_latitude_and_longitude"
+    t.index ["lookup_key"], name: "index_locations_on_lookup_key", unique: true
+  end
+
   create_table "resources", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -610,6 +649,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_173820) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_resources_on_slug", unique: true
+  end
+
+  create_table "road_routes", force: :cascade do |t|
+    t.bigint "origin_id", null: false
+    t.bigint "destination_id", null: false
+    t.decimal "distance_km", precision: 14, scale: 2, null: false
+    t.integer "travel_time_seconds"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["destination_id"], name: "index_road_routes_on_destination_id"
+    t.index ["origin_id", "destination_id"], name: "index_road_routes_on_origin_id_and_destination_id", unique: true
   end
 
   create_table "tenants", force: :cascade do |t|
@@ -674,5 +724,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_173820) do
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_vehicles", "tenants"
+  add_foreign_key "empty_legs", "locations", column: "destination_id"
+  add_foreign_key "empty_legs", "locations", column: "origin_id"
+  add_foreign_key "empty_legs", "road_routes"
+  add_foreign_key "empty_legs", "tenants"
+  add_foreign_key "road_routes", "locations", column: "destination_id"
+  add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "users", "tenants"
 end

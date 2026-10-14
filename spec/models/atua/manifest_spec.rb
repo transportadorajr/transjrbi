@@ -126,4 +126,54 @@ RSpec.describe Atua::Manifest do
       expect(described_class.statuses).to eq('Válido' => :valid, 'Cancelado' => :canceled)
     end
   end
+
+  describe '#previous_trip' do
+    let!(:first_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 1, 8)) }
+    let!(:second_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 3, 8)) }
+    let!(:third_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 5, 8)) }
+
+    before do
+      create(:atua_manifest, tenant:, plate: 'RHJ4E07', status: 'Cancelado', trip_started_at: Time.zone.local(2026, 10, 4, 8))
+      create(:atua_manifest, tenant:, plate: 'RHJ4E07', removed_from_atua_at: Time.current, trip_started_at: Time.zone.local(2026, 10, 4, 9))
+      create(:atua_manifest, tenant:, plate: 'QWE1A23', trip_started_at: Time.zone.local(2026, 10, 4, 10))
+      create(:atua_manifest, tenant: other_tenant, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 4, 11))
+    end
+
+    it 'returns the latest valid trip of the same plate that started before' do
+      expect(third_trip.previous_trip).to eq(second_trip)
+      expect(second_trip.previous_trip).to eq(first_trip)
+    end
+
+    it 'returns nothing for the first trip of the plate' do
+      expect(first_trip.previous_trip).to be_nil
+    end
+
+    it 'falls back to the departure date when the trip start is missing' do
+      trip = create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: nil, departure_on: Date.new(2026, 10, 2), issued_on: Date.new(2026, 10, 2))
+
+      expect(second_trip.previous_trip).to eq(trip)
+      expect(trip.previous_trip).to eq(first_trip)
+    end
+  end
+
+  describe '#ordered_documents' do
+    let!(:manifest) { create(:atua_manifest, tenant:, code: 41_500, branch_name: 'JR TRANSPORTES') }
+    let!(:late) { create(:atua_transport_document, tenant:, number: '74002', branch_name: 'JR TRANSPORTES', issued_at: Time.zone.local(2026, 10, 1, 18)) }
+    let!(:early) { create(:atua_transport_document, tenant:, number: '74001', branch_name: 'JR TRANSPORTES', issued_at: Time.zone.local(2026, 10, 1, 9)) }
+    let!(:canceled) do
+      create(:atua_transport_document, tenant:, number: '74003', branch_name: 'JR TRANSPORTES', issued_at: Time.zone.local(2026, 10, 1, 7),
+                                       canceled_at: Time.zone.local(2026, 10, 1, 8))
+    end
+
+    before do
+      [late, early, canceled].each do |document|
+        create(:atua_manifest_document, tenant:, manifest_code: 41_500, transport_document_number: document.number,
+                                        transport_document_series: 1, branch_name: 'JR TRANSPORTES')
+      end
+    end
+
+    it 'sorts the documents by the transport document issue and skips the canceled ones' do
+      expect(manifest.ordered_documents.map(&:transport_document_number)).to eq(%w[74001 74002])
+    end
+  end
 end
