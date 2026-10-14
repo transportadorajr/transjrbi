@@ -46,7 +46,16 @@ pt-BR:
       empty_leg:
         one: KM vazio
         other: KMs vazios
+      customer_group:
+        one: Grupo de clientes
+        other: Grupos de clientes
     attributes:
+      customer_group:
+        name: Nome
+        terms: Termos
+        status: Status
+        activated_at: Ativado em
+        customers: Clientes
       empty_leg:
         previous_manifest: Viagem anterior
         trip_on: Data da viagem
@@ -136,6 +145,7 @@ pt-BR:
         emails: E-mails
         payment_method: Forma de pagamento
         payment_term: Prazo de pagamento
+        customer_group: Grupo
       atua/vehicle:
         code: Código
         plate: Placa
@@ -258,6 +268,9 @@ pt-BR:
         resource:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
+        customer_group:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir um grupo com clientes vinculados. Desative o grupo para deixar de usá-lo.
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -287,6 +300,10 @@ pt-BR:
         name: Nome
         slug: Identificador
         writable: Permite edição
+      customer_group_form:
+        name: Nome
+        terms: Termos
+        active: Ativo
     errors:
       models:
         admin/login_form:
@@ -304,6 +321,12 @@ pt-BR:
           attributes:
             start_date:
               future: não pode ser posterior a hoje
+        customer_group_form:
+          attributes:
+            name:
+              taken: já está em uso por outro grupo
+            terms:
+              without_letters_or_numbers: devem ter ao menos uma letra ou um número em cada linha
         resource_form:
           attributes:
             slug:
@@ -367,6 +390,9 @@ pt-BR:
       resource:
         create: Cadastrar Recurso
         update: Salvar Alterações
+      customer_group:
+        create: Cadastrar Grupo
+        update: Salvar Alterações
     tooltips:
       user:
         show: Visualizar
@@ -380,6 +406,10 @@ pt-BR:
         show: Visualizar
       atua/customer:
         show: Visualizar
+      customer_group:
+        show: Visualizar
+        edit: Alterar
+        destroy: Excluir
       atua/vehicle:
         show: Visualizar
       atua/expense:
@@ -504,6 +534,7 @@ pt-BR:
     transport_documents: CT-es
     manifests: Manifestos
     customers: Clientes
+    customer_groups: Grupos de clientes
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas
@@ -570,10 +601,58 @@ pt-BR:
       name: Nome ou nome fantasia
       document: CPF/CNPJ
       city: Cidade
+      customer_group: Grupo
     show:
       back: Voltar para clientes
       customer_data: Dados do cliente
       contact_data: Endereço e contato
+  customer_groups:
+    unnamed: 'Cliente %{code}'
+    index:
+      title: Grupos de clientes
+      subtitle: Agrupe os clientes da Atua que pertencem à mesma empresa.
+      new_customer_group: Novo Grupo
+      total: Total de grupos
+      active_groups: Grupos ativos
+      deactivated_groups: Grupos inativos
+      active: Ativo
+      deactivated: Inativo
+      confirm_destroy: Tem certeza que deseja excluir este grupo?
+    filters:
+      name: Nome do grupo
+      status: Status
+    show:
+      back: Voltar para grupos de clientes
+      customer_group_data: Dados do grupo
+      customers: Clientes do grupo
+      no_terms: Sem termos
+      edit: Alterar
+      regroup: Reagrupar
+      confirm_regroup: Mover para este grupo os clientes que contêm os termos e ainda estão em um grupo sem termos?
+    new:
+      title: Novo Grupo
+      back: Voltar para grupos de clientes
+    create:
+      success: Grupo cadastrado com sucesso.
+    edit:
+      title: Alterar Grupo
+      back: Voltar para grupos de clientes
+    update:
+      success: Grupo atualizado com sucesso.
+    destroy:
+      success: Grupo excluído com sucesso.
+    regroup:
+      success:
+        zero: Nenhum cliente precisou ser movido para este grupo.
+        one: 1 cliente foi movido para este grupo.
+        other: '%{count} clientes foram movidos para este grupo.'
+    form:
+      customer_group_data: Dados do Grupo
+      customer_group_data_text: Informe o nome do grupo e os termos que identificam os seus clientes.
+      terms_hint: >-
+        Um termo por linha. Todo cliente cujo nome ou nome fantasia contenha um dos termos entra neste grupo
+        (acentos, espaços e pontuação são ignorados).
+      active_hint: Desmarque para deixar de usar o grupo sem perder os clientes vinculados.
   drivers:
     code: 'Código %{code}'
     index:
@@ -676,6 +755,7 @@ pt-BR:
     manifests: Manifestos
     registrations: Cadastros
     customers: Clientes
+    customer_groups: Grupos de clientes
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas

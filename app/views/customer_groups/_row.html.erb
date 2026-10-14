@@ -1,0 +1,11 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <%= link_to item.name, customer_group_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+  </td>
+  <td class="d-none d-md-table-cell"><%= customer_group_customers_count(item, customer_counts) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= customer_group_terms(item) %></td>
+  <td><%= customer_group_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(customer_groups_menu(item)) %>
+  </td>
+</tr>

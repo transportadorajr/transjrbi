@@ -23,6 +23,10 @@ shared:
           url: /customers
           controllers:
             - customers
+        - name: customer_groups
+          url: /customer_groups
+          controllers:
+            - customer_groups
         - name: drivers
           url: /drivers
           controllers:

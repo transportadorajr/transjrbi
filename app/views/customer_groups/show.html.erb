@@ -1,0 +1,49 @@
+<% content_for :title, @customer_group.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('customer_groups.index.title'), customer_groups_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @customer_group.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @customer_group.name, back_path: customer_groups_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= customer_group_regroup_button(@customer_group) %>
+      <%= customer_group_edit_button(@customer_group) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.customer_group_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="customer_group_data">
+        <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @customer_group.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:terms) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= customer_group_terms(@customer_group) %></dd>
+
+        <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-9"><%= customer_group_status_badge(@customer_group) %></dd>
+
+        <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:customers) %></dt>
+        <dd class="col-12 col-md-9"><%= @customers.total_count %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.customers') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @customers.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <%= customer_group_customers_table(@customers) %>
+    </div>
+  </div>
+</div>

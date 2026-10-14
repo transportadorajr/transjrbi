@@ -15,6 +15,10 @@ module CustomersHelper
     tax_list(customer.emails)
   end
 
+  def customer_group_name(customer)
+    tax_value(customer.customer_group&.name)
+  end
+
   private
 
   def customer_show_menu(customer)

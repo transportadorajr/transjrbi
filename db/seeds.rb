@@ -16,3 +16,5 @@ if ENV['ADMIN_USER_EMAIL'].present? && ENV['ADMIN_USER_PASSWORD'].present?
 end
 
 Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?
+
+Tenant.find_each { |tenant| CustomerGroups::BackfillCommand.call(tenant) }
