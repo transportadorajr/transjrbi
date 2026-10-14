@@ -264,7 +264,7 @@ module Atua
       filename = disposition[/filename\*=(?:UTF-8'')?([^;]+)/i, 1] || disposition[/filename="?([^";]+)"?/i, 1]
       return File.basename(CGI.unescape(filename.strip)) if filename.present?
 
-      [report.type, start_date&.strftime('%Y%m%d'), end_date&.strftime('%Y%m%d') || Time.zone.today.strftime('%Y%m%d')].compact.uniq.join('_') + XLS_EXTENSION
+      [report.type, start_date&.strftime('%Y%m%d'), end_date&.strftime('%Y%m%d') || Date.current.strftime('%Y%m%d')].compact.uniq.join('_') + XLS_EXTENSION
     end
 
     def raise_request_failure(failure, path, error, attempts)

@@ -34,7 +34,7 @@ module Admin
       return unless start_date && end_date
 
       errors.add(:end_date, :before_start_date) if end_date < start_date
-      errors.add(:end_date, :future) if end_date > Time.zone.today
+      errors.add(:end_date, :future) if end_date > Date.current
     end
   end
 end

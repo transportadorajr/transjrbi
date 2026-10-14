@@ -26,7 +26,7 @@ module Atua
     attr_reader :tenant, :start_date
 
     def pending_months
-      Report.find(Report::MOVEMENT_TYPES.first).periods(start_date, Time.zone.today).filter_map do |month_start, month_end|
+      Report.find(Report::MOVEMENT_TYPES.first).periods(start_date, Date.current).filter_map do |month_start, month_end|
         report_types = Report::MOVEMENT_TYPES.reject { |report_type| imported?(report_type, month_start, month_end) }
 
         [month_start, month_end, report_types] if report_types.any?

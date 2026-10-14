@@ -37,7 +37,7 @@ class User < ApplicationRecord
       @raw_confirmation_token = confirmation_token
     else
       self.confirmation_token = @raw_confirmation_token = unique_confirmation_token
-      self.confirmation_sent_at = Time.now.utc
+      self.confirmation_sent_at = Time.current.utc
     end
   end
 

@@ -19,7 +19,7 @@ module Admin
     private
 
     def start_date_not_in_future
-      errors.add(:start_date, :future) if start_date && start_date > Time.zone.today
+      errors.add(:start_date, :future) if start_date && start_date > Date.current
     end
   end
 end

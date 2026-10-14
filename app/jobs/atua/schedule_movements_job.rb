@@ -6,7 +6,7 @@ module Atua
     queue_as :atua
 
     def perform(days = DEFAULT_DAYS)
-      today = Time.zone.today
+      today = Date.current
 
       ScheduleImportsCommand.call(Report::MOVEMENT_TYPES, start_date: today - (days - 1), end_date: today)
     end

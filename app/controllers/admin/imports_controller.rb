@@ -22,7 +22,7 @@ module Admin
     end
 
     def new
-      today = Time.zone.today
+      today = Date.current
 
       @import_form = Admin::ImportForm.new(tenant_id: params[:tenant_id], start_date: today.beginning_of_month, end_date: today)
     end
