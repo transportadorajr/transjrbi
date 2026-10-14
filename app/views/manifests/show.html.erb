@@ -21,46 +21,46 @@
         <dd class="col-12 col-md-9"><%= @manifest.number %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:series) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.series) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_value(@manifest.series) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:model) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.model) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_value(@manifest.model) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:access_key) %></dt>
-        <dd class="col-12 col-md-9 text-break"><%= fiscal_value(@manifest.access_key) %></dd>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@manifest.access_key) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:situation) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_situation_badge(@manifest) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_situation_badge(@manifest) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:status) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.status) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_value(@manifest.status) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:branch_name) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.branch_name) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_value(@manifest.branch_name) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:company_city) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_city(@manifest.company_city, @manifest.company_state) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_city(@manifest.company_city, @manifest.company_state) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:issued_on) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_date(@manifest.issued_on) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_date(@manifest.issued_on) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:departure_on) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_date(@manifest.departure_on) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_date(@manifest.departure_on) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:trip_started_at) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_time(@manifest.trip_started_at) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_time(@manifest.trip_started_at) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:closed_at) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_time(@manifest.closed_at) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_time(@manifest.closed_at) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:plate) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.plate) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_value(@manifest.plate) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:goods_value) %></dt>
-        <dd class="col-12 col-md-9"><%= fiscal_money(@manifest.goods_value) %></dd>
+        <dd class="col-12 col-md-9"><%= tax_money(@manifest.goods_value) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:notes) %></dt>
-        <dd class="col-12 col-md-9 text-break"><%= fiscal_value(@manifest.notes) %></dd>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@manifest.notes) %></dd>
       </dl>
     </div>
   </div>

@@ -378,7 +378,7 @@ pt-BR:
     users: Usuários
     transport_documents: CT-es
     manifests: Manifestos
-  fiscal:
+  tax:
     blank: '-'
     city: '%{city}/%{state}'
     situations:
@@ -473,7 +473,7 @@ pt-BR:
       date_time: '%d/%m/%Y %H:%M'
   menus:
     home: Início
-    fiscal: Fiscal
+    tax: Fiscal
     transport_documents: CT-es
     manifests: Manifestos
     users: Usuários

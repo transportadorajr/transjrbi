@@ -9,18 +9,18 @@ module TransportDocumentsHelper
 
   def transport_document_route(transport_document)
     t('transport_documents.route',
-      origin: fiscal_city(transport_document.origin_city, transport_document.origin_state),
-      destination: fiscal_city(transport_document.destination_city, transport_document.destination_state))
+      origin: tax_city(transport_document.origin_city, transport_document.origin_state),
+      destination: tax_city(transport_document.destination_city, transport_document.destination_state))
   end
 
   def transport_document_kind(transport_document)
-    return t('fiscal.blank') if transport_document.document_kind.blank?
+    return t('tax.blank') if transport_document.document_kind.blank?
 
     t(transport_document.document_kind, scope: 'transport_documents.document_kinds')
   end
 
   def transport_document_party(name, document)
-    return t('fiscal.blank') if name.blank?
+    return t('tax.blank') if name.blank?
 
     safe_join([content_tag(:span, name, class: 'd-block'), (content_tag(:span, document, class: 'text-muted text-small d-block') if document.present?)], ' ')
   end

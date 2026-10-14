@@ -33,8 +33,8 @@ module Atua
     class << self
       def statuses
         {
-          I18n.t('fiscal.situations.valid') => :valid,
-          I18n.t('fiscal.situations.canceled') => :canceled,
+          I18n.t('tax.situations.valid') => :valid,
+          I18n.t('tax.situations.canceled') => :canceled,
         }
       end
     end

@@ -1,4 +1,4 @@
-class AddFiscalResources < ActiveRecord::Migration[8.1]
+class AddTaxResources < ActiveRecord::Migration[8.1]
   RESOURCES = { 'transport_documents' => 'CT-es', 'manifests' => 'Manifestos' }.freeze
 
   def up

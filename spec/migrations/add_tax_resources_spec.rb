@@ -1,10 +1,10 @@
 require 'rails_helper'
-require Rails.root.join('db/migrate/20261014144702_add_fiscal_resources')
+require Rails.root.join('db/migrate/20261014144702_add_tax_resources')
 
-RSpec.describe AddFiscalResources do
+RSpec.describe AddTaxResources do
   subject(:migration) { described_class.new.tap { |instance| instance.verbose = false } }
 
-  context 'without the fiscal resources' do
+  context 'without the tax resources' do
     it 'creates the read-only resources of CT-es and manifests' do
       expect { migration.up }.to change(Resource, :count).by(2)
 
@@ -40,7 +40,7 @@ RSpec.describe AddFiscalResources do
       create(:access, user: operator, tenant: operator.tenant, resource: Resource.find_by!(slug: 'manifests'), reads: true)
     end
 
-    it 'removes only the fiscal resources without permissions' do
+    it 'removes only the tax resources without permissions' do
       expect { migration.down }.to change(Resource, :count).by(-1)
 
       expect(Resource.pluck(:slug)).to contain_exactly('users', 'manifests')

@@ -48,7 +48,7 @@ describe 'Manifests' do
       let!(:removed) { create(:atua_manifest, tenant:, number: '40790', removed_from_atua_at: Time.current) }
       let!(:stranger) { create(:atua_manifest, tenant: other_tenant, number: '40791') }
 
-      scenario 'lists the active manifests of the tenant from the fiscal menu' do
+      scenario 'lists the active manifests of the tenant from the tax menu' do
         visit root_path
         within('.sidebar-desktop') do
           click_on 'Fiscal'
@@ -255,6 +255,25 @@ describe 'Manifests' do
       expect(page).to have_link('40772')
       expect(page).to have_no_css('th', text: 'Placa')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+  end
+
+  context 'on a tablet', :js do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+
+    before do
+      login_as(admin, scope: :user)
+      use_mobile_screen(width: 820, height: 1180)
+    end
+
+    scenario 'stacks the period filters one below the other' do
+      visit manifests_path
+      find(:link, href: '#filtersModal').click
+
+      within('#filtersModal') { expect(page).to have_field('Emitidos até') }
+      start_top = page.evaluate_script("document.getElementById('start_date').getBoundingClientRect().top")
+      end_top = page.evaluate_script("document.getElementById('end_date').getBoundingClientRect().top")
+      expect(end_top).to be > start_top
     end
   end
 end

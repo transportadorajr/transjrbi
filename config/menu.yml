@@ -5,7 +5,7 @@ shared:
       url: /
       controllers:
         - home
-    - name: fiscal
+    - name: tax
       icon: receipt
       menus:
         - name: transport_documents

@@ -21,8 +21,8 @@ module ManifestsHelper
   end
 
   def manifest_document_route(document)
-    t('transport_documents.route', origin: fiscal_city(document.origin_city, document.origin_state),
-                                   destination: fiscal_city(document.destination_city, document.destination_state))
+    t('transport_documents.route', origin: tax_city(document.origin_city, document.origin_state),
+                                   destination: tax_city(document.destination_city, document.destination_state))
   end
 
   private
