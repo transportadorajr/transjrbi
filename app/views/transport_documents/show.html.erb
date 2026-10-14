@@ -1,0 +1,189 @@
+<% content_for :title, t('.title', number: @transport_document.number) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('transport_documents.index.title'), transport_documents_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @transport_document.number %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title', number: @transport_document.number),
+                        back_path: transport_documents_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.document_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="document_data">
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:number) %></dt>
+            <dd class="col-12 col-md-7"><%= @transport_document.number %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:series) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.series) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:document_kind) %></dt>
+            <dd class="col-12 col-md-7"><%= transport_document_kind(@transport_document) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:access_key) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= fiscal_value(@transport_document.access_key) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_time(@transport_document.issued_at) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:situation) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_situation_badge(@transport_document) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:cte_status) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.cte_status) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:canceled_at) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_time(@transport_document.canceled_at) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:cancellation_reason) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= fiscal_value(@transport_document.cancellation_reason) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:issue_kind) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.issue_kind) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:service_kind) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.service_kind) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:cfop) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.cfop) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:branch_name) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.branch_name) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.parties') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="parties">
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:sender) %></dt>
+            <dd class="col-12 col-md-7 text-break">
+              <%= transport_document_party(@transport_document.sender_name, @transport_document.sender_document) %>
+            </dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:recipient) %></dt>
+            <dd class="col-12 col-md-7 text-break">
+              <%= transport_document_party(@transport_document.recipient_name, @transport_document.recipient_document) %>
+            </dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:payer) %></dt>
+            <dd class="col-12 col-md-7 text-break">
+              <%= transport_document_party(@transport_document.payer_name, @transport_document.payer_document) %>
+            </dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:taker) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= transport_document_party(@transport_document.taker_name, nil) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:consignee) %></dt>
+            <dd class="col-12 col-md-7 text-break">
+              <%= transport_document_party(@transport_document.consignee_name, @transport_document.consignee_document) %>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.transport') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="transport">
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:origin) %></dt>
+            <dd class="col-12 col-md-7">
+              <%= fiscal_city(@transport_document.origin_city, @transport_document.origin_state) %>
+            </dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:destination) %></dt>
+            <dd class="col-12 col-md-7">
+              <%= fiscal_city(@transport_document.destination_city, @transport_document.destination_state) %>
+            </dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:plate) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.plate) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:trailer_plate) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_value(@transport_document.trailer_plate) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:driver_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= fiscal_value(@transport_document.driver_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:distance_km) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_decimal(@transport_document.distance_km) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:weight_kg) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_decimal(@transport_document.weight_kg) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:product_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= fiscal_value(@transport_document.product_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:goods_invoice_numbers) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= fiscal_list(@transport_document.goods_invoice_numbers) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.values') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="values">
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:freight) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.freight) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:weight_freight) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.weight_freight) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:value_freight) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.value_freight) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:ad_valorem) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.ad_valorem) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:toll) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.toll) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:other_charges) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.other_charges) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:goods_value) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.goods_value) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:icms_base) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.icms_base) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:icms) %></dt>
+            <dd class="col-12 col-md-7"><%= fiscal_money(@transport_document.icms) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.manifests') %></p>
+    </div>
+    <div class="detail-card-body">
+      <%= transport_document_manifests_table(@manifests) %>
+    </div>
+  </div>
+</div>

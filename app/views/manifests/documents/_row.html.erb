@@ -1,0 +1,7 @@
+<tr id="<%= dom_id(document) %>">
+  <td><%= manifest_document_number(document) %></td>
+  <td class="d-none d-md-table-cell text-break"><%= fiscal_value(document.recipient_name) %></td>
+  <td class="d-none d-lg-table-cell"><%= manifest_document_route(document) %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= fiscal_decimal(document.weight_kg) %></td>
+  <td class="text-nowrap"><%= fiscal_money(document.freight) %></td>
+</tr>

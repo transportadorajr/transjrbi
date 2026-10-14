@@ -38,6 +38,66 @@ pt-BR:
         one: Veículo
         other: Veículos
     attributes:
+      atua/transport_document:
+        number: Número
+        series: Série
+        document_kind: Tipo do documento
+        access_key: Chave de acesso
+        issued_at: Emitido em
+        situation: Situação
+        cte_status: Situação na SEFAZ
+        canceled_at: Cancelado em
+        cancellation_reason: Motivo do cancelamento
+        issue_kind: Tipo de emissão
+        service_kind: Tipo do serviço
+        cfop: CFOP
+        branch_name: Filial
+        sender: Remetente
+        recipient: Destinatário
+        payer: Pagador
+        taker: Tomador
+        consignee: Consignatário
+        route: Origem / Destino
+        origin: Origem
+        destination: Destino
+        plate: Placa
+        trailer_plate: Placa da carreta
+        driver_name: Motorista
+        distance_km: Distância (km)
+        weight_kg: Peso (kg)
+        product_name: Produto
+        goods_invoice_numbers: Notas fiscais
+        freight: Frete
+        weight_freight: Frete peso
+        value_freight: Frete valor
+        ad_valorem: Ad valorem
+        toll: Pedágio
+        other_charges: Outras cobranças
+        goods_value: Valor da mercadoria
+        icms_base: Base do ICMS
+        icms: ICMS
+      atua/manifest:
+        number: Número
+        series: Série
+        model: Modelo
+        access_key: Chave de acesso
+        situation: Situação
+        status: Situação na Atua
+        branch_name: Filial
+        company_city: Cidade da filial
+        issued_on: Emitido em
+        departure_on: Saída
+        trip_started_at: Início da viagem
+        closed_at: Encerrado em
+        plate: Placa
+        goods_value: Valor da mercadoria
+        notes: Observações
+      atua/manifest_document:
+        transport_document_number: CT-e
+        recipient_name: Destinatário
+        route: Origem / Destino
+        weight_kg: Peso (kg)
+        freight: Frete
       atua/import:
         tenant: Empresa
         report_type: Relatório
@@ -195,6 +255,10 @@ pt-BR:
       resource:
         edit: Alterar
         destroy: Excluir
+      atua/transport_document:
+        show: Visualizar
+      atua/manifest:
+        show: Visualizar
       atua/import:
         download: Baixar arquivo
         reprocess: Reprocessar
@@ -312,6 +376,57 @@ pt-BR:
       writable_hint: Desmarque quando o recurso permitir apenas leitura.
   resource_names:
     users: Usuários
+    transport_documents: CT-es
+    manifests: Manifestos
+  fiscal:
+    blank: '-'
+    city: '%{city}/%{state}'
+    situations:
+      valid: Válido
+      canceled: Cancelado
+  transport_documents:
+    route: '%{origin} → %{destination}'
+    document_kinds:
+      cte: CT-e
+      ce: CE
+    index:
+      title: CT-es
+      subtitle: Conhecimentos de transporte emitidos na Atua.
+      total: Total
+      valid: Válidos
+      canceled: Cancelados
+    filters:
+      number: Número do CT-e
+      plate: Placa
+      status: Situação
+      start_date: Emitidos a partir de
+      end_date: Emitidos até
+    show:
+      title: CT-e %{number}
+      back: Voltar para CT-es
+      document_data: Dados do CT-e
+      parties: Envolvidos
+      transport: Transporte
+      values: Valores
+      manifests: Manifestos
+  manifests:
+    index:
+      title: Manifestos
+      subtitle: Manifestos eletrônicos (MDF-e) emitidos na Atua.
+      total: Total
+      valid: Válidos
+      canceled: Cancelados
+    filters:
+      number: Número do manifesto
+      plate: Placa
+      status: Situação
+      start_date: Emitidos a partir de
+      end_date: Emitidos até
+    show:
+      title: Manifesto %{number}
+      back: Voltar para manifestos
+      manifest_data: Dados do manifesto
+      documents: CT-es do manifesto
   devise:
     shared:
       minimum_password_length:
@@ -353,8 +468,14 @@ pt-BR:
       toggle_sidebar: Recolher menu lateral
       options: Opções
       logout: Sair
+  time:
+    formats:
+      date_time: '%d/%m/%Y %H:%M'
   menus:
     home: Início
+    fiscal: Fiscal
+    transport_documents: CT-es
+    manifests: Manifestos
     users: Usuários
     resources: Recursos
     show: Visualizar

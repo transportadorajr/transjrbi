@@ -155,11 +155,31 @@ RSpec.describe Atua::TransportDocument do
         expect(canceled).to be_canceled
       end
 
+      it 'filters by the start or the end of the emission period' do
+        expect(described_class.by_period_start('2026-10-13')).to contain_exactly(last, outside)
+        expect(described_class.by_period_end('2026-10-01')).to contain_exactly(first, canceled)
+      end
+
+      it 'filters by the number' do
+        expect(described_class.by_number(" #{last.number} ")).to eq([last])
+      end
+
+      it 'filters by the situation' do
+        expect(described_class.by_situation('canceled')).to eq([canceled])
+        expect(described_class.by_situation('valid')).to contain_exactly(first, last, outside, removed)
+      end
+
       it 'keeps out documents removed from Atua' do
         expect(described_class.active).to contain_exactly(first, last, outside, canceled)
         expect(described_class.removed_from_atua).to eq([removed])
         expect(removed).not_to be_active
       end
+    end
+  end
+
+  describe '.statuses' do
+    it 'maps the translated situations to the filter keys' do
+      expect(described_class.statuses).to eq('Válido' => :valid, 'Cancelado' => :canceled)
     end
   end
 end

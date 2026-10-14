@@ -1,0 +1,16 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <div class="table-identity">
+      <%= link_to item.number, manifest_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+      <span class="text-muted text-small d-block text-break"><%= fiscal_value(item.branch_name) %></span>
+    </div>
+  </td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= fiscal_date(item.issued_on) %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= fiscal_date(item.departure_on) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= fiscal_value(item.plate) %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= fiscal_money(item.goods_value) %></td>
+  <td><%= fiscal_situation_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(manifests_menu(item)) %>
+  </td>
+</tr>

@@ -5,6 +5,17 @@ shared:
       url: /
       controllers:
         - home
+    - name: fiscal
+      icon: receipt
+      menus:
+        - name: transport_documents
+          url: /transport_documents
+          controllers:
+            - transport_documents
+        - name: manifests
+          url: /manifests
+          controllers:
+            - manifests
     - name: users
       icon: people
       url: /users

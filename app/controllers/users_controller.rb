@@ -64,10 +64,6 @@ class UsersController < BaseController
 
   private
 
-  def current_tenant
-    current_user.tenant
-  end
-
   def set_user
     @user = current_tenant.users.find(params.expect(:id))
   end

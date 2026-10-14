@@ -100,9 +100,30 @@ RSpec.describe Atua::Manifest do
         expect(canceled).to be_canceled
       end
 
+      it 'filters by the start or the end of the emission period' do
+        expect(described_class.by_period_start('2026-10-05')).to contain_exactly(closed, removed)
+        expect(described_class.by_period_end('2026-10-01')).to contain_exactly(open, canceled)
+      end
+
+      it 'filters by the number' do
+        expect(described_class.by_number(" #{closed.number} ")).to eq([closed])
+      end
+
+      it 'filters by the situation' do
+        expect(described_class.canceled).to eq([canceled])
+        expect(described_class.by_situation('canceled')).to eq([canceled])
+        expect(described_class.by_situation('valid')).to contain_exactly(open, closed, removed)
+      end
+
       it 'keeps out manifests removed from Atua' do
         expect(described_class.active).to contain_exactly(open, closed, canceled)
       end
+    end
+  end
+
+  describe '.statuses' do
+    it 'maps the translated situations to the filter keys' do
+      expect(described_class.statuses).to eq('Válido' => :valid, 'Cancelado' => :canceled)
     end
   end
 end

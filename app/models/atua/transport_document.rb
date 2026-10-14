@@ -34,6 +34,9 @@ module Atua
     validates :number, presence: true
 
     scope :by_period, ->(start_date, end_date) { where(issued_at: time_range(start_date, end_date)) }
+    scope :by_period_start, ->(date) { by_period(date, nil) }
+    scope :by_period_end, ->(date) { by_period(nil, date) }
+    scope :by_number, ->(number) { where(number: number.to_s.strip) }
     scope :by_plate, ->(plate) {
       plate = normalize_plate(plate)
       where(plate:).or(where(trailer_plate: plate))
@@ -46,6 +49,16 @@ module Atua
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :not_canceled, -> { where(canceled_at: nil) }
     scope :canceled, -> { where.not(canceled_at: nil) }
+    scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
+
+    class << self
+      def statuses
+        {
+          I18n.t('fiscal.situations.valid') => :valid,
+          I18n.t('fiscal.situations.canceled') => :canceled,
+        }
+      end
+    end
 
     def canceled?
       canceled_at.present?

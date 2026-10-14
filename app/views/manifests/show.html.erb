@@ -1,0 +1,76 @@
+<% content_for :title, t('.title', number: @manifest.number) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('manifests.index.title'), manifests_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @manifest.number %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title', number: @manifest.number), back_path: manifests_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.manifest_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="manifest_data">
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:number) %></dt>
+        <dd class="col-12 col-md-9"><%= @manifest.number %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:series) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.series) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:model) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.model) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:access_key) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= fiscal_value(@manifest.access_key) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:situation) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_situation_badge(@manifest) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.status) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:branch_name) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.branch_name) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:company_city) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_city(@manifest.company_city, @manifest.company_state) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:issued_on) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_date(@manifest.issued_on) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:departure_on) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_date(@manifest.departure_on) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:trip_started_at) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_time(@manifest.trip_started_at) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:closed_at) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_time(@manifest.closed_at) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:plate) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_value(@manifest.plate) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:goods_value) %></dt>
+        <dd class="col-12 col-md-9"><%= fiscal_money(@manifest.goods_value) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:notes) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= fiscal_value(@manifest.notes) %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.documents') %></p>
+    </div>
+    <div class="detail-card-body">
+      <%= manifest_documents_table(@documents) %>
+    </div>
+  </div>
+</div>

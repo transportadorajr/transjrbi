@@ -1,0 +1,6 @@
+<tr id="<%= dom_id(manifest) %>">
+  <td><%= transport_document_manifest_number(manifest) %></td>
+  <td class="d-none d-md-table-cell"><%= fiscal_date(manifest.issued_on) %></td>
+  <td class="d-none d-md-table-cell"><%= fiscal_value(manifest.plate) %></td>
+  <td><%= fiscal_situation_badge(manifest) %></td>
+</tr>
