@@ -15,17 +15,7 @@ Rails.application.configure do
   config.good_job.preserve_job_records = true
   config.good_job.cleanup_preserved_jobs_before_seconds_ago = 14.days.to_i
 
-  # Tarefas agendadas (cron). Adicione entradas em `config.good_job.cron` quando precisar.
+  # Tarefas agendadas (cron) definidas em config/cron.yml.
   config.good_job.enable_cron = true
-  config.good_job.cron = {
-    atua_expired_files: {
-      cron: '30 3 * * *',
-      class: 'Atua::PurgeExpiredFilesJob',
-    },
-    # exemplo: {
-    #   cron: "0 3 * * *", # todo dia às 03:00
-    #   class: "ExemploJob",
-    #   description: "Descrição da tarefa"
-    # }
-  }
+  config.good_job.cron = Rails.application.config_for(:cron)
 end

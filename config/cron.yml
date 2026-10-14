@@ -1,0 +1,4 @@
+shared:
+  atua_expired_files:
+    cron: '30 3 * * *'
+    class: 'Atua::PurgeExpiredFilesJob'
