@@ -173,6 +173,14 @@ describe 'Admin Atua imports', :admin do
   context 'with a tenant to load', flipper: { atua_import: :tenant } do
     before { sign_in_admin(admin_user) }
 
+    scenario 'hides the action required alert when no import requires action' do
+      visit admin_imports_path
+
+      expect(Atua::Import.count).to eq(0)
+      expect(page).to have_no_css('#action-required')
+      expect(page).to have_text('Nenhum registro encontrado')
+    end
+
     scenario 'enqueues the initial load chosen on the screen' do
       visit admin_imports_path
       click_on 'Carga inicial'

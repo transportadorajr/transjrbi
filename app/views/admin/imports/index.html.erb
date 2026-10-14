@@ -12,9 +12,7 @@
 
   <%= render 'filters' %>
 
-  <% if @action_required_imports.any? %>
-    <%= render 'action_required', imports: @action_required_imports %>
-  <% end %>
+  <%= admin_imports_action_required(@action_required_imports) %>
 
   <%= render 'overview', tenant_statuses: @tenant_statuses %>
 

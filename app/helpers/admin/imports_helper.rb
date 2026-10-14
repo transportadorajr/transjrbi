@@ -18,6 +18,12 @@ module Admin
       responsive_actions_menu(menus)
     end
 
+    def admin_imports_action_required(imports)
+      return if imports.none?
+
+      render('admin/imports/action_required', imports:)
+    end
+
     def admin_import_status_badge(import)
       status_badge(import.status_type_name, kind: STATUS_KINDS.fetch(import.status_type))
     end
