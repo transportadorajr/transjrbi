@@ -1,0 +1,180 @@
+<% content_for :title, t('.title', code: @expense.code) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('expenses.index.title'), expenses_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @expense.code %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title', code: @expense.code),
+                        subtitle: tax_value(@expense.history_name),
+                        back_path: expenses_path,
+                        back_title: t('.back'),
+                        wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.expense_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="expense_data">
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:code) %></dt>
+            <dd class="col-12 col-md-7"><%= @expense.code %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:history_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.history_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:description) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.description) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:posted_at) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_time(@expense.posted_at) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:accounting_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@expense.accounting_on) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:settled_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@expense.settled_on) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:spending_kind) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@expense.spending_kind) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:cash_account_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.cash_account_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:branch_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.branch_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:headquarters_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.headquarters_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:accounting_account) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@expense.accounting_account) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:accounting_classification) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@expense.accounting_classification) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.document_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="document_data">
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:payee) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= expense_payee(@expense) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:document_model) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@expense.document_model) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:document) %></dt>
+            <dd class="col-12 col-md-7"><%= expense_document(@expense) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:document_key) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.document_key) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:document_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@expense.document_on) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:installment_count) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@expense.installment_count) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:apportionment_count) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@expense.apportionment_count) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:attachment_at) %></dt>
+            <dd class="col-12 col-md-7"><%= expense_attachment(@expense) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.trip_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="trip_data">
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:plate) %></dt>
+            <dd class="col-12 col-md-7"><%= expense_plate(@expense) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:vehicle_model) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.vehicle_model) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:trip_number) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@expense.trip_number) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:trip_driver_name) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= expense_driver(@expense) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:trip_departure_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@expense.trip_departure_on) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:trip_arrival_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@expense.trip_arrival_on) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:trip_expense_kind) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.trip_expense_kind) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:transport_document) %></dt>
+            <dd class="col-12 col-md-7"><%= expense_transport_document(@expense) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.values') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="values">
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:amount) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.amount) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:discount) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.discount) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:total) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.total) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:net_amount) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.net_amount) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:withholdings) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.withholdings) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:paid) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.paid) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:icms) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.icms) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:icms_credit) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.icms_credit) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:icms_credit_percentage) %></dt>
+            <dd class="col-12 col-md-7"><%= expense_icms_credit_percentage(@expense) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:pis_credit) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.pis_credit) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:cofins_credit) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@expense.cofins_credit) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

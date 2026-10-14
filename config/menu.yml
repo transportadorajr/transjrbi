@@ -31,6 +31,10 @@ shared:
           url: /vehicles
           controllers:
             - vehicles
+        - name: expenses
+          url: /expenses
+          controllers:
+            - expenses
     - name: users
       icon: people
       url: /users

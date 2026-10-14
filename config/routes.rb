@@ -42,6 +42,7 @@ Rails.application.routes.draw do
   resources :customers, only: %i[index show]
   resources :drivers, only: %i[index show]
   resources :vehicles, only: %i[index show]
+  resources :expenses, only: %i[index show]
 
   root 'home#index'
 end
