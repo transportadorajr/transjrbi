@@ -1,0 +1,15 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" id="transport_document_manifests">
+    <thead class="table-light">
+      <tr>
+        <th><%= Atua::Manifest.human_attribute_name(:number) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Manifest.human_attribute_name(:issued_on) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Manifest.human_attribute_name(:plate) %></th>
+        <th><%= Atua::Manifest.human_attribute_name(:situation) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'transport_documents/manifests/row', collection: manifests, as: :manifest %>
+    </tbody>
+  </table>
+</div>

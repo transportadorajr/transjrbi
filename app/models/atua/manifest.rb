@@ -20,10 +20,24 @@ module Atua
     validates :number, presence: true
 
     scope :by_period, ->(start_date, end_date) { where(issued_on: date_range(start_date, end_date)) }
+    scope :by_period_start, ->(date) { by_period(date, nil) }
+    scope :by_period_end, ->(date) { by_period(nil, date) }
+    scope :by_number, ->(number) { where(number: number.to_s.strip) }
     scope :by_departure_period, ->(start_date, end_date) { where(departure_on: date_range(start_date, end_date)) }
     scope :by_plate, ->(plate) { where(plate: normalize_plate(plate)) }
     scope :by_status, ->(status) { where(status:) }
     scope :not_canceled, -> { where.not(status: CANCELED_STATUS).or(where(status: nil)) }
+    scope :canceled, -> { where(status: CANCELED_STATUS) }
+    scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
+
+    class << self
+      def statuses
+        {
+          I18n.t('tax.situations.valid') => :valid,
+          I18n.t('tax.situations.canceled') => :canceled,
+        }
+      end
+    end
 
     def canceled?
       status == CANCELED_STATUS

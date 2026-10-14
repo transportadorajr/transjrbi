@@ -1,0 +1,16 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" id="manifest_documents">
+    <thead class="table-light">
+      <tr>
+        <th><%= Atua::ManifestDocument.human_attribute_name(:transport_document_number) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:recipient_name) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:route) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:weight_kg) %></th>
+        <th><%= Atua::ManifestDocument.human_attribute_name(:freight) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'manifests/documents/row', collection: documents, as: :document %>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,20 @@
+class AddTaxResources < ActiveRecord::Migration[8.1]
+  RESOURCES = { 'transport_documents' => 'CT-es', 'manifests' => 'Manifestos' }.freeze
+
+  def up
+    RESOURCES.each do |slug, name|
+      execute <<~SQL.squish
+        INSERT INTO resources (name, slug, writable, created_at, updated_at)
+        VALUES (#{connection.quote(name)}, #{connection.quote(slug)}, FALSE, NOW(), NOW())
+        ON CONFLICT (slug) DO NOTHING
+      SQL
+    end
+  end
+
+  def down
+    execute <<~SQL.squish
+      DELETE FROM resources r WHERE r.slug IN (#{RESOURCES.keys.map { |slug| connection.quote(slug) }.join(', ')})
+        AND NOT EXISTS (SELECT 1 FROM accesses a WHERE a.resource_id = r.id)
+    SQL
+  end
+end

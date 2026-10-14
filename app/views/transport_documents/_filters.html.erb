@@ -1,0 +1,42 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
+                     dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
+  <%= form_with url: transport_documents_path, method: :get do |f| %>
+    <div class="row g-3">
+      <div class="col-12">
+        <%= f.label :number, t('transport_documents.filters.number'), class: 'form-label fw-medium' %>
+        <%= f.text_field :number, value: params[:number], class: 'form-control bg-light', inputmode: :numeric,
+                                  placeholder: t('transport_documents.filters.number') %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :plate, t('transport_documents.filters.plate'), class: 'form-label fw-medium' %>
+        <%= f.text_field :plate, value: params[:plate], class: 'form-control bg-light text-uppercase', autocomplete: :off,
+                                 placeholder: t('transport_documents.filters.plate') %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :status, t('transport_documents.filters.status'), class: 'form-label fw-medium' %>
+        <%= f.select :status,
+                     Atua::TransportDocument.statuses,
+                     { include_blank: t('shared.all'), selected: params[:status] },
+                     { class: 'form-select bg-light' } %>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <%= f.label :start_date, t('transport_documents.filters.start_date'), class: 'form-label fw-medium' %>
+        <%= f.date_field :start_date, value: params[:start_date], class: 'form-control bg-light' %>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <%= f.label :end_date, t('transport_documents.filters.end_date'), class: 'form-label fw-medium' %>
+        <%= f.date_field :end_date, value: params[:end_date], class: 'form-control bg-light' %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button t('shared.apply_filters'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= link_to t('shared.clear_filters'), transport_documents_path, class: 'btn btn-light w-100 btn-round' %>
+    </div>
+  <% end %>
+<% end %>
