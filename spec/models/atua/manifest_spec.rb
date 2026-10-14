@@ -156,6 +156,15 @@ RSpec.describe Atua::Manifest do
     end
   end
 
+  describe '#trip_on' do
+    it 'uses the trip start, then the departure and then the issue date' do
+      expect(build(:atua_manifest, trip_started_at: Time.zone.local(2026, 10, 3, 23), departure_on: Date.new(2026, 10, 2)).trip_on)
+        .to eq(Date.new(2026, 10, 3))
+      expect(build(:atua_manifest, trip_started_at: nil, departure_on: Date.new(2026, 10, 2)).trip_on).to eq(Date.new(2026, 10, 2))
+      expect(build(:atua_manifest, trip_started_at: nil, departure_on: nil, issued_on: Date.new(2026, 10, 1)).trip_on).to eq(Date.new(2026, 10, 1))
+    end
+  end
+
   describe '#ordered_documents' do
     let!(:manifest) { create(:atua_manifest, tenant:, code: 41_500, branch_name: 'JR TRANSPORTES') }
     let!(:late) { create(:atua_transport_document, tenant:, number: '74002', branch_name: 'JR TRANSPORTES', issued_at: Time.zone.local(2026, 10, 1, 18)) }

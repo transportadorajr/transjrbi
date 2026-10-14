@@ -21,6 +21,12 @@ module VehiclesHelper
     link_to vehicle.driver_name.presence || vehicle.driver_code, driver_path(vehicle.driver_code), class: 'fw-semibold text-decoration-none'
   end
 
+  def vehicle_empty_legs_table(empty_legs, total)
+    return content_tag(:p, t('vehicles.show.no_empty_legs'), class: 'text-body-secondary mb-0') if empty_legs.none?
+
+    render 'vehicles/empty_legs/table', empty_legs:, total:
+  end
+
   private
 
   def vehicle_show_menu(vehicle)

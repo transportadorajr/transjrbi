@@ -1,0 +1,7 @@
+<tr id="<%= dom_id(empty_leg) %>">
+  <td class="text-nowrap"><%= tax_date(empty_leg.next_manifest&.trip_on) %></td>
+  <td class="d-none d-md-table-cell text-break"><%= empty_leg_location(empty_leg.origin) %></td>
+  <td class="d-none d-md-table-cell text-break"><%= empty_leg_location(empty_leg.destination) %></td>
+  <td class="d-none d-lg-table-cell"><%= tax_value(empty_leg.precision_type_name) %></td>
+  <td class="text-end text-nowrap"><%= empty_leg_distance(empty_leg) %></td>
+</tr>

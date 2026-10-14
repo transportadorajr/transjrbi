@@ -104,4 +104,13 @@
       </div>
     </div>
   </div>
+
+  <div class="card detail-card mt-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.empty_legs') %></p>
+    </div>
+    <div class="detail-card-body">
+      <%= vehicle_empty_legs_table(@empty_legs, @empty_legs_total) %>
+    </div>
+  </div>
 </div>

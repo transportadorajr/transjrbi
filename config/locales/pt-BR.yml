@@ -49,6 +49,9 @@ pt-BR:
     attributes:
       empty_leg:
         previous_manifest: Viagem anterior
+        trip_on: Data da viagem
+        departure_point: Saída (última entrega)
+        arrival_point: Chegada (coleta)
         origin: Última entrega da viagem anterior
         destination: Primeira coleta desta viagem
         distance_km: KM vazio
@@ -597,6 +600,10 @@ pt-BR:
       back: Voltar para veículos
       vehicle_data: Dados do veículo
       ownership_data: Propriedade e motorista
+      empty_legs: Trechos rodados vazios
+      no_empty_legs: Nenhum trecho rodado vazio por esta placa.
+    empty_legs:
+      total: Total de KM vazio
   expenses:
     code: 'Lançamento %{code}'
     attachment:

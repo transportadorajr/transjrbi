@@ -12,6 +12,10 @@ module EmptyLegsHelper
     [location.street, tax_city(location.city, location.state)].compact_blank.join(' - ')
   end
 
+  def empty_leg_total(total)
+    t('empty_legs.distance', distance: number_with_precision(total, precision: 2))
+  end
+
   def empty_leg_distance(empty_leg)
     return empty_leg.status_type_name unless empty_leg.calculated?
 

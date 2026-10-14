@@ -50,6 +50,10 @@ module Atua
       status == CANCELED_STATUS
     end
 
+    def trip_on
+      trip_started_at&.to_date || departure_on || issued_on
+    end
+
     def trip?
       active? && !canceled? && plate.present?
     end
