@@ -1,0 +1,10 @@
+<p><%= t('.intro', count: @failure_streak, report: @import.report_type_name, tenant: @import.tenant.trade_name) %></p>
+
+<p>
+  <strong><%= t('.last_error') %></strong>
+  <%= @import.error_type_name %>: <%= @import.error_message %>
+</p>
+
+<p><%= t('.automatic_retries') %></p>
+
+<p><%= link_to t('.action'), @imports_url %></p>

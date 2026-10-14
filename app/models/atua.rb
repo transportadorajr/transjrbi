@@ -10,6 +10,10 @@ module Atua
       @headers = headers
       @body_excerpt = body_excerpt
     end
+
+    def server_unavailable?
+      status.nil? || status >= 500
+    end
   end
 
   class ConfigurationError < Error; end
@@ -19,6 +23,7 @@ module Atua
   class SpreadsheetError < Error; end
   class LayoutError < Error; end
   class ConversionError < Error; end
+  class UnavailableError < Error; end
 
   class << self
     def table_name_prefix

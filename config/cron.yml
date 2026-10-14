@@ -1,4 +1,17 @@
 shared:
   atua_expired_files:
-    cron: '30 3 * * *'
+    cron: '30 3 * * * America/Sao_Paulo'
     class: 'Atua::PurgeExpiredFilesJob'
+  atua_movements:
+    cron: '0 6-22 * * * America/Sao_Paulo'
+    class: 'Atua::ScheduleMovementsJob'
+    args: [10]
+    description: 'Imports the last 10 days of transport documents, manifests and expenses of every enabled tenant'
+  atua_registries:
+    cron: '30 5 * * * America/Sao_Paulo'
+    class: 'Atua::ScheduleRegistriesJob'
+    description: 'Imports the customers and vehicles of every enabled tenant'
+  atua_month_closing:
+    cron: '0 4 3 * * America/Sao_Paulo'
+    class: 'Atua::ScheduleMonthClosingJob'
+    description: 'Imports again the whole previous month of movements of every enabled tenant'

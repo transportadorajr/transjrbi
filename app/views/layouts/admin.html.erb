@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="<%= I18n.locale %>">
+  <head>
+    <%= render 'layouts/head' %>
+  </head>
+
+  <body class="d-flex flex-column flex-md-row" data-controller="sidebar">
+    <%= render 'layouts/admin_aside' %>
+
+    <div class="flex-grow-1 d-flex flex-column min-vh-100 main-content-wrapper">
+      <%= render 'layouts/admin_main' %>
+
+      <main class="container-fluid p-4">
+        <%= render 'shared/flash' %>
+        <%= yield %>
+      </main>
+    </div>
+
+    <div id="remote-container"><%= content_for :remote_container %></div>
+  </body>
+</html>

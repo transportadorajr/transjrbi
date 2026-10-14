@@ -20,9 +20,7 @@ module Atua
       )
       import
     rescue StandardError => e
-      Rails.logger.error("[Atua] Import #{import.id} (#{import.report_type}) failed: #{e.class.name} #{e.message}")
-      import.fail!(e.message)
-      import
+      FailImportCommand.call(import, e)
     end
 
     private

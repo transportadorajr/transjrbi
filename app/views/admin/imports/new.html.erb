@@ -1,0 +1,56 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('admin.imports.index.title'), admin_imports_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.title') %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title'), back_path: admin_imports_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="card form-card">
+    <div class="form-card-header">
+      <p class="form-card-title"><%= t('.form_title') %></p>
+      <p class="form-card-subtitle"><%= t('.form_text') %></p>
+    </div>
+    <%= simple_form_for(@import_form, url: admin_imports_path) do |f| %>
+      <div class="form-card-body">
+        <div class="row g-3">
+          <div class="col-12 col-lg-6">
+            <%= f.input :tenant_id,
+                        as: :select,
+                        required: true,
+                        collection: @tenants,
+                        label_method: :trade_name,
+                        value_method: :id,
+                        prompt: t('helpers.select.prompt'),
+                        input_html: { class: 'form-select' } %>
+          </div>
+          <div class="col-12 col-lg-6">
+            <%= f.input :report_type,
+                        as: :select,
+                        required: true,
+                        collection: admin_report_type_options,
+                        prompt: t('helpers.select.prompt'),
+                        input_html: { class: 'form-select' } %>
+          </div>
+          <div class="col-12 col-lg-6">
+            <%= f.input :start_date, as: :date, html5: true, required: false, input_html: { class: 'form-control' } %>
+          </div>
+          <div class="col-12 col-lg-6">
+            <%= f.input :end_date, as: :date, html5: true, required: false, input_html: { class: 'form-control' } %>
+          </div>
+        </div>
+        <p class="text-muted small mt-3 mb-0"><%= t('.period_hint') %></p>
+      </div>
+
+      <div class="form-card-footer">
+        <%= f.button :submit, t('.submit'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+        <%= link_to t('helpers.links.cancel'), admin_imports_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+      </div>
+    <% end %>
+  </div>
+</div>

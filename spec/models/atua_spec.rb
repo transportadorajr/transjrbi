@@ -26,6 +26,16 @@ RSpec.describe Atua do
     end
   end
 
+  context 'with the import enabled through the actor metadata', flipper: { atua_import: :enabled_tenant } do
+    let!(:enabled_tenant) { create(:tenant) }
+
+    before { create(:tenant) }
+
+    it 'returns only the tenant named in the metadata' do
+      expect(described_class.enabled_tenants).to eq([enabled_tenant])
+    end
+  end
+
   context 'with the import disabled' do
     before { create(:tenant) }
 

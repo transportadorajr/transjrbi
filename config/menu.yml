@@ -15,3 +15,10 @@ shared:
       url: /resources
       controllers:
         - resources
+  admin:
+    - name: admin_imports
+      icon: cloud-arrow-down
+      url: /
+      controllers:
+        - admin/imports
+        - admin/initial_loads
