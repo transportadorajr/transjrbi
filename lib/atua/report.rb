@@ -4,6 +4,7 @@ module Atua
     DIRECTORY = Rails.root.join('config/atua/reports')
     DATE_FORMAT = '%d/%m/%Y'.freeze
     SUBMIT_VALUE = 'Gerar'.freeze
+    MAX_PERIOD_DAYS = 31
 
     attr_reader :type, :endpoint, :submitted_field, :submit_button, :start_field, :end_field
 
@@ -39,6 +40,20 @@ module Atua
       submit_button.present?
     end
 
+    def periods(start_date, end_date)
+      unless period?
+        raise ArgumentError, I18n.t('atua.errors.period_not_supported', report: type) if start_date || end_date
+
+        return [[nil, nil]]
+      end
+
+      start_date = (start_date || Time.zone.today.beginning_of_month).to_date
+      end_date = (end_date || Time.zone.today).to_date
+      raise ArgumentError, I18n.t('atua.errors.invalid_period') if start_date > end_date
+
+      monthly_slices(start_date, end_date)
+    end
+
     def form_params(start_date: nil, end_date: nil, button: submit_button)
       values = { submitted_field => '1' }
       values.merge!(params)
@@ -55,6 +70,21 @@ module Atua
     private
 
     attr_reader :params, :computed
+
+    def monthly_slices(start_date, end_date)
+      return [[start_date, end_date]] if (end_date - start_date).to_i < MAX_PERIOD_DAYS
+
+      slices = []
+      cursor = start_date
+
+      while cursor <= end_date
+        slice_end = [cursor.end_of_month, end_date].min
+        slices << [cursor, slice_end]
+        cursor = slice_end + 1
+      end
+
+      slices
+    end
 
     def computed_values
       computed.transform_values do |value|

@@ -51,6 +51,7 @@ pt-BR:
         updated_count: Atualizados
         removed_count: Removidos
         error_message: Erro
+        warning_message: Alerta
         file: Arquivo
       tenant:
         name: Razão social
@@ -334,3 +335,7 @@ pt-BR:
       invalid_value: 'o valor %{value} não pode ser convertido para %{type}.'
       unknown_document_kind: 'tipo de documento %{value} desconhecido.'
       unknown_conversion: Conversão desconhecida %{type}.
+      missing_file: A importação %{id} não tem arquivo anexado para ler.
+    warnings:
+      missing_period: O arquivo foi importado sem período, por isso os registros que sumiram da Atua não foram verificados.
+      removals_skipped: 'O arquivo trouxe %{received} registro(s), menos da metade dos %{existing} que o banco tem para o mesmo período: nenhum registro foi marcado como removido da Atua.'

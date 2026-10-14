@@ -17,6 +17,25 @@ module Atua
     scope :by_status_type, ->(status_type) { where(status_type:) }
     scope :with_expired_file, -> { joins(:file_attachment).where(created_at: ...FILE_RETENTION.ago) }
 
+    def start!
+      update!(
+        status_type: :running, started_at: Time.current, finished_at: nil, rows_read: 0, inserted_count: 0,
+        updated_count: 0, removed_count: 0, error_message: nil, warning_message: nil
+      )
+    end
+
+    def succeed!(**counts)
+      update!(status_type: :succeeded, finished_at: Time.current, error_message: nil, **counts)
+    end
+
+    def fail!(message)
+      update!(status_type: :failed, finished_at: Time.current, error_message: message)
+    end
+
+    def period?
+      start_date.present? && end_date.present?
+    end
+
     private
 
     def end_date_not_before_start_date
@@ -31,21 +50,22 @@ end
 #
 # Table name: atua_imports
 #
-#  id             :bigint           not null, primary key
-#  end_date       :date
-#  error_message  :text
-#  finished_at    :datetime
-#  inserted_count :integer          default(0), not null
-#  removed_count  :integer          default(0), not null
-#  report_type    :enum             not null
-#  rows_read      :integer          default(0), not null
-#  start_date     :date
-#  started_at     :datetime
-#  status_type    :enum             default("pending"), not null
-#  updated_count  :integer          default(0), not null
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  tenant_id      :bigint           not null
+#  id              :bigint           not null, primary key
+#  end_date        :date
+#  error_message   :text
+#  finished_at     :datetime
+#  inserted_count  :integer          default(0), not null
+#  removed_count   :integer          default(0), not null
+#  report_type     :enum             not null
+#  rows_read       :integer          default(0), not null
+#  start_date      :date
+#  started_at      :datetime
+#  status_type     :enum             default("pending"), not null
+#  updated_count   :integer          default(0), not null
+#  warning_message :text
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  tenant_id       :bigint           not null
 #
 # Indexes
 #

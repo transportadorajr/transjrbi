@@ -49,6 +49,42 @@ RSpec.describe Atua::Import do
     end
   end
 
+  describe 'lifecycle' do
+    let(:import) do
+      create(:atua_import, status_type: 'failed', started_at: 1.day.ago, finished_at: 1.day.ago, rows_read: 10, inserted_count: 4,
+                           updated_count: 3, removed_count: 2, error_message: 'Timeout', warning_message: 'Alerta')
+    end
+
+    it 'restarts the import clearing the previous run' do
+      import.start!
+
+      expect(import.reload).to have_attributes(
+        status_type: 'running', finished_at: nil, rows_read: 0, inserted_count: 0, updated_count: 0, removed_count: 0,
+        error_message: nil, warning_message: nil
+      )
+      expect(import.started_at).to be > 1.minute.ago
+    end
+
+    it 'finishes the import with its counts' do
+      import.succeed!(rows_read: 5, inserted_count: 5)
+
+      expect(import.reload).to have_attributes(status_type: 'succeeded', rows_read: 5, inserted_count: 5, error_message: nil)
+      expect(import.finished_at).to be > 1.minute.ago
+    end
+
+    it 'records the failure message' do
+      import.fail!('Planilha ilegível')
+
+      expect(import.reload).to have_attributes(status_type: 'failed', error_message: 'Planilha ilegível')
+      expect(import.finished_at).to be > 1.minute.ago
+    end
+
+    it 'has a period only when both dates are present' do
+      expect(build(:atua_import)).to be_period
+      expect(build(:atua_import, end_date: nil)).not_to be_period
+    end
+  end
+
   describe '.with_expired_file' do
     context 'with imports of different ages' do
       let!(:expired) { create(:atua_import, :with_file, created_at: 61.days.ago) }

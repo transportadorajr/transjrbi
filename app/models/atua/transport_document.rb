@@ -134,7 +134,7 @@ end
 #  recipient_name            :string
 #  removed_from_atua_at      :datetime
 #  result_cents              :bigint
-#  result_margin_percentage  :decimal(7, 4)
+#  result_margin_percentage  :decimal(12, 4)
 #  route                     :string
 #  sender_code               :bigint
 #  sender_document           :string
