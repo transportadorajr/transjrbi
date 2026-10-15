@@ -1,0 +1,23 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" id="vehicle_expenses">
+    <thead class="table-light">
+      <tr>
+        <th><%= Atua::Expense.human_attribute_name(:history_name) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Expense.human_attribute_name(:posted_on) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Expense.human_attribute_name(:origin) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::Expense.human_attribute_name(:payee_name) %></th>
+        <th class="text-end"><%= Atua::Expense.human_attribute_name(:total) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'vehicles/expenses/row', collection: expenses, as: :expense %>
+    </tbody>
+  </table>
+</div>
+<%= paginate expenses, param_name: :expenses_page %>
+<dl class="row detail-list border-top pt-3 mt-3 mb-0" id="vehicle_expenses_totals">
+  <% vehicle_expense_totals(totals).each do |label, value| %>
+    <dt class="col-7 col-md-9 fw-medium"><%= label %></dt>
+    <dd class="col-5 col-md-3 text-end text-nowrap fw-semibold"><%= tax_money(value) %></dd>
+  <% end %>
+</dl>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_201016) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_15_132331) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -188,7 +188,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_201016) do
     t.datetime "removed_from_atua_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "cost_object_type"
+    t.bigint "cost_object_id"
     t.index ["atua_import_id"], name: "index_atua_expenses_on_atua_import_id"
+    t.index ["cost_object_type", "cost_object_id"], name: "index_atua_expenses_on_cost_object"
     t.index ["tenant_id", "code"], name: "index_atua_expenses_on_tenant_id_and_code", unique: true
     t.index ["tenant_id", "headquarters_name"], name: "index_atua_expenses_on_tenant_id_and_headquarters_name"
     t.index ["tenant_id", "history_code"], name: "index_atua_expenses_on_tenant_id_and_history_code"

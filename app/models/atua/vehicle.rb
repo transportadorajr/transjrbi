@@ -15,10 +15,10 @@ module Atua
       has_many :trailer_transport_documents, class_name: 'Atua::TransportDocument', foreign_key: %i[tenant_id trailer_plate],
                                              inverse_of: :trailer
       has_many :manifests, class_name: 'Atua::Manifest', foreign_key: %i[tenant_id plate], inverse_of: :vehicle
-      has_many :expenses, class_name: 'Atua::Expense', foreign_key: %i[tenant_id plate], inverse_of: :vehicle
     end
     has_many :transport_documents, class_name: 'Atua::TransportDocument', foreign_key: %i[tenant_id vehicle_code],
                                    primary_key: %i[tenant_id code], inverse_of: :vehicle
+    has_many :direct_expenses, class_name: 'Atua::Expense', as: :cost_object, inverse_of: :cost_object
 
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
 
@@ -32,6 +32,10 @@ module Atua
 
       unscope(:where).from(grouped, :atua_vehicles)
     }
+
+    def expenses
+      Expense.by_vehicle(self)
+    end
   end
 end
 

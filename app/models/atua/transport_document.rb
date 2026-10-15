@@ -22,8 +22,7 @@ module Atua
     has_many :manifest_documents, class_name: 'Atua::ManifestDocument',
                                   foreign_key: %i[tenant_id transport_document_number transport_document_series branch_name],
                                   primary_key: %i[tenant_id number series branch_name], inverse_of: :transport_document
-    has_many :expenses, class_name: 'Atua::Expense', foreign_key: %i[tenant_id transport_document_code],
-                        primary_key: %i[tenant_id code], inverse_of: :transport_document
+    has_many :expenses, class_name: 'Atua::Expense', as: :cost_object, inverse_of: :cost_object
     has_many :empty_leg_transport_documents, foreign_key: %i[tenant_id transport_document_code], primary_key: %i[tenant_id code],
                                              inverse_of: :transport_document
     has_many :empty_legs, through: :empty_leg_transport_documents
@@ -43,6 +42,9 @@ module Atua
     scope :by_plate, ->(plate) {
       plate = normalize_plate(plate)
       where(plate:).or(where(trailer_plate: plate))
+    }
+    scope :by_vehicle, ->(vehicle) {
+      where(tenant_id: vehicle.tenant_id).and(where(vehicle_code: vehicle.code).or(where(trailer_plate: vehicle.plate)))
     }
     scope :by_customer, ->(code) {
       where(sender_code: code).or(where(recipient_code: code)).or(where(payer_code: code))

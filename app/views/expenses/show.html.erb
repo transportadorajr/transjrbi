@@ -128,6 +128,9 @@
 
             <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:transport_document) %></dt>
             <dd class="col-12 col-md-7"><%= expense_transport_document(@expense) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:allocation) %></dt>
+            <dd class="col-12 col-md-7"><%= @expense.allocation_name %></dd>
           </dl>
         </div>
       </div>

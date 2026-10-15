@@ -248,6 +248,55 @@ describe 'Transport documents' do
           expect(page).to have_no_css("#empty_leg_#{empty_leg.id}", text: '40700')
         end
       end
+
+      context 'with access to the expenses' do
+        let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
+
+        scenario 'tells that there are no expenses linked to the transport document' do
+          visit transport_document_path(transport_document)
+
+          expect(Atua::Expense.count).to eq(0)
+          expect(page).to have_text('Nenhuma despesa vinculada a este CT-e.')
+        end
+
+        context 'when the transport document has expenses' do
+          let!(:toll) do
+            create(:atua_expense, tenant:, code: 590_401, posted_at: Time.zone.local(2026, 10, 2, 7), posted_on: Date.new(2026, 10, 2),
+                                  history_name: 'PEDAGIO', payee_name: 'VIA 040', total_cents: 15_000, cost_object: transport_document)
+          end
+          let!(:unload) do
+            create(:atua_expense, tenant:, code: 590_402, posted_at: Time.zone.local(2026, 10, 3, 15), posted_on: Date.new(2026, 10, 3),
+                                  history_name: 'DESCARGA - CHAPA', payee_name: nil, total_cents: 35_000, cost_object: transport_document)
+          end
+
+          before do
+            truck = create(:atua_vehicle, tenant:, plate: 'EXU0F72')
+            create(:atua_expense, tenant:, history_name: 'PNEUS', plate: 'EXU0F72', cost_object: truck)
+            create(:atua_expense, tenant:, history_name: 'REMOVIDA', cost_object: transport_document, removed_from_atua_at: Time.current)
+          end
+
+          scenario 'lists the expenses of the freight with the total' do
+            visit transport_document_path(transport_document)
+
+            expect(Atua::Expense.count).to eq(4)
+            expect(html_table_to_rows(table: find_by_id('transport_document_expenses'))).to eq(
+              [
+                ['Histórico', 'Lançado em', 'Favorecido', 'Valor total'],
+                ['DESCARGA - CHAPA', '03/10/2026', '-', 'R$ 350,00'],
+                ['PEDAGIO', '02/10/2026', 'VIA 040', 'R$ 150,00'],
+              ],
+            )
+            expect(page).to have_css('#transport_document_expenses_total', text: 'Total de despesas R$ 500,00')
+          end
+
+          scenario 'opens an expense of the freight' do
+            visit transport_document_path(transport_document)
+            click_on 'PEDAGIO'
+
+            expect(page).to have_current_path(expense_path(toll))
+          end
+        end
+      end
     end
   end
 
@@ -307,6 +356,18 @@ describe 'Transport documents' do
           expect(page).to have_no_link('40798')
         end
       end
+
+      context 'when the transport document has expenses' do
+        let!(:toll) { create(:atua_expense, tenant:, history_name: 'PEDAGIO', cost_object: transport_document) }
+
+        scenario 'does not show the expenses without access to them' do
+          visit transport_document_path(transport_document)
+
+          expect(Atua::Expense.count).to eq(1)
+          expect(page).to have_no_text('Despesas do frete')
+          expect(page).to have_no_text('PEDAGIO')
+        end
+      end
     end
   end
 
@@ -317,6 +378,22 @@ describe 'Transport documents' do
     before do
       login_as(admin, scope: :user)
       use_mobile_screen
+    end
+
+    context 'when the transport document has expenses' do
+      let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
+
+      before do
+        create(:atua_expense, tenant:, history_name: 'PEDAGIO', payee_name: 'VIA 040', total_cents: 15_000, cost_object: transport_document)
+      end
+
+      scenario 'keeps only the history and the total of the expenses without horizontal scroll' do
+        visit transport_document_path(transport_document)
+
+        expect(page).to have_css('#transport_document_expenses td', text: 'R$ 150,00')
+        expect(page).to have_no_css('#transport_document_expenses th', text: 'Favorecido')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
     end
 
     scenario 'keeps only the essential columns without horizontal scroll' do

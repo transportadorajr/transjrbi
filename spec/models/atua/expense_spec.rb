@@ -9,7 +9,9 @@ RSpec.describe Atua::Expense do
       let!(:transport_document) { create(:atua_transport_document, tenant:, code: 80_750) }
       let!(:vehicle) { create(:atua_vehicle, tenant:, plate: 'UAV4A05') }
       let!(:payee) { create(:atua_customer, tenant:, code: 1951) }
-      let!(:expense) { create(:atua_expense, tenant:, transport_document_code: 80_750, plate: 'UAV4A05', payee_code: 1951) }
+      let!(:expense) do
+        create(:atua_expense, tenant:, transport_document_code: 80_750, plate: 'UAV4A05', payee_code: 1951, cost_object: transport_document)
+      end
 
       before do
         create(:atua_transport_document, tenant: other_tenant, code: 80_750)
@@ -17,8 +19,9 @@ RSpec.describe Atua::Expense do
         create(:atua_customer, tenant: other_tenant, code: 1951)
       end
 
-      it 'links the transport document by code inside the tenant' do
-        expect(expense.transport_document).to eq(transport_document)
+      it 'links the cost object the expense is allocated to' do
+        expect(expense.cost_object).to eq(transport_document)
+        expect(transport_document.expenses).to eq([expense])
       end
 
       it 'links the vehicle by plate inside the tenant' do
@@ -107,6 +110,60 @@ RSpec.describe Atua::Expense do
       it 'filters by the start and the end of the posting period separately' do
         expect(described_class.by_period_start('2026-10-05')).to contain_exactly(unload, removed)
         expect(described_class.by_period_end('2026-10-01')).to contain_exactly(fuel, outside)
+      end
+    end
+
+    context 'with expenses allocated to freights, vehicles and the overhead' do
+      let!(:truck) { create(:atua_vehicle, tenant:, code: 812, plate: 'EXU0F72') }
+      let!(:trailer) { create(:atua_vehicle, tenant:, code: 813, plate: 'BEV4G50') }
+      let!(:other_truck) { create(:atua_vehicle, tenant:, code: 900, plate: 'UAV4A05') }
+      let!(:transport_document) do
+        create(:atua_transport_document, tenant:, vehicle_code: 812, plate: 'EXU0F72', trailer_plate: 'BEV4G50')
+      end
+      let!(:toll) { create(:atua_expense, tenant:, plate: 'EXU0F72', total_cents: 15_000, cost_object: transport_document) }
+      let!(:tire) { create(:atua_expense, tenant:, plate: 'EXU0F72', total_cents: 200_000, cost_object: truck) }
+      let!(:other_tire) { create(:atua_expense, tenant:, plate: 'UAV4A05', total_cents: 180_000, cost_object: other_truck) }
+      let!(:rent) { create(:atua_expense, tenant:, plate: nil, total_cents: 500_000) }
+
+      it 'filters by allocation' do
+        expect(described_class.by_allocation('freight')).to eq([toll])
+        expect(described_class.by_allocation('vehicle')).to contain_exactly(tire, other_tire)
+        expect(described_class.by_allocation('overhead')).to eq([rent])
+        expect(described_class.count).to eq(4)
+      end
+
+      it 'ignores an unknown allocation' do
+        expect(described_class.by_allocation('unknown')).to contain_exactly(toll, tire, other_tire, rent)
+      end
+
+      it 'filters by vehicle through its own expenses and the expenses of its freights' do
+        expect(described_class.by_vehicle(truck)).to contain_exactly(toll, tire)
+        expect(described_class.by_vehicle(trailer)).to eq([toll])
+        expect(described_class.by_vehicle(other_truck)).to eq([other_tire])
+      end
+
+      it 'filters by plate through the freights pulled by the plate' do
+        expect(described_class.by_plate('bev-4g50')).to eq([toll])
+        expect(described_class.by_plate('EXU0F72')).to contain_exactly(toll, tire)
+      end
+
+      it 'sums the total of each allocation' do
+        expect(described_class.total_by_allocation).to eq(
+          'freight' => Money.from_cents(15_000),
+          'vehicle' => Money.from_cents(380_000),
+          'overhead' => Money.from_cents(500_000),
+        )
+      end
+
+      it 'names the allocation of each expense' do
+        expect([toll, tire, rent].map(&:allocation)).to eq(%w[freight vehicle overhead])
+        expect([toll, tire, rent].map(&:allocation_name)).to eq(['Frete', 'Veículo', 'Despesa geral'])
+      end
+    end
+
+    context 'with the allocations offered by the filter' do
+      it 'maps each translated allocation to its key' do
+        expect(described_class.allocations).to eq('Frete' => 'freight', 'Veículo' => 'vehicle', 'Despesa geral' => 'overhead')
       end
     end
 

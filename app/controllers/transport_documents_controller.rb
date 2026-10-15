@@ -25,5 +25,15 @@ class TransportDocumentsController < BaseController
     @transport_document = current_tenant.atua_transport_documents.active.find(params.expect(:id))
     @manifests = @transport_document.manifests.active.order(:issued_on, :number)
     @empty_legs = @transport_document.empty_legs.preload(:origin, :destination).order(:next_manifest_code)
+    load_expenses if can?(:read, :expenses)
+  end
+
+  private
+
+  def load_expenses
+    expenses = @transport_document.expenses.active
+
+    @expenses = expenses.order(Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc)
+    @expenses_total = Money.from_cents(expenses.sum(:total_cents))
   end
 end

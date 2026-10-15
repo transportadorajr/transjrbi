@@ -2,10 +2,15 @@ module Atua
   class Expense < ApplicationRecord
     include Importable
 
-    belongs_to :transport_document, class_name: 'Atua::TransportDocument', foreign_key: %i[tenant_id transport_document_code],
-                                    primary_key: %i[tenant_id code], optional: true, inverse_of: :expenses
+    ALLOCATION_TYPES = {
+      'freight' => 'Atua::TransportDocument',
+      'vehicle' => 'Atua::Vehicle',
+      'overhead' => nil,
+    }.freeze
+
+    belongs_to :cost_object, polymorphic: true, optional: true
     belongs_to :vehicle, class_name: 'Atua::Vehicle', foreign_key: %i[tenant_id plate], primary_key: %i[tenant_id plate],
-                         optional: true, inverse_of: :expenses
+                         optional: true, inverse_of: false
     belongs_to :payee, class_name: 'Atua::Customer', foreign_key: %i[tenant_id payee_code], primary_key: %i[tenant_id code],
                        optional: true, inverse_of: :expenses
 
@@ -15,7 +20,17 @@ module Atua
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
 
     scope :by_period, ->(start_date, end_date) { where(posted_on: date_range(start_date, end_date)) }
-    scope :by_plate, ->(plate) { where(plate: normalize_plate(plate)) }
+    scope :freight, -> { where(cost_object_type: ALLOCATION_TYPES['freight']) }
+    scope :by_allocation, ->(allocation) {
+      ALLOCATION_TYPES.key?(allocation.to_s) ? where(cost_object_type: ALLOCATION_TYPES[allocation.to_s]) : all
+    }
+    scope :by_plate, ->(plate) {
+      plate = normalize_plate(plate)
+      where(plate:).or(freight.where(cost_object_id: TransportDocument.by_plate(plate).select(:id)))
+    }
+    scope :by_vehicle, ->(vehicle) {
+      where(cost_object: vehicle).or(freight.where(cost_object_id: TransportDocument.by_vehicle(vehicle).select(:id)))
+    }
     scope :by_period_start, ->(date) { by_period(date, nil) }
     scope :by_period_end, ->(date) { by_period(nil, date) }
     scope :by_payee, ->(code) { where(payee_code: code) }
@@ -24,6 +39,24 @@ module Atua
     scope :by_trip, ->(number) { where(trip_number: number) }
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :by_headquarters, ->(name) { where(headquarters_name: name) }
+
+    class << self
+      def allocations
+        ALLOCATION_TYPES.keys.index_by { |allocation| I18n.t("enums.atua/expense.allocation.#{allocation}") }
+      end
+
+      def total_by_allocation
+        group(:cost_object_type).sum(:total_cents).to_h { |type, cents| [ALLOCATION_TYPES.key(type), Money.from_cents(cents)] }
+      end
+    end
+
+    def allocation
+      ALLOCATION_TYPES.key(cost_object_type)
+    end
+
+    def allocation_name
+      I18n.t("enums.atua/expense.allocation.#{allocation}")
+    end
   end
 end
 
@@ -43,6 +76,7 @@ end
 #  cash_account_name         :string
 #  code                      :bigint           not null
 #  cofins_credit_cents       :bigint
+#  cost_object_type          :string
 #  description               :string
 #  discount_cents            :bigint
 #  document_key              :string
@@ -89,11 +123,13 @@ end
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #  atua_import_id            :bigint
+#  cost_object_id            :bigint
 #  tenant_id                 :bigint           not null
 #
 # Indexes
 #
 #  index_atua_expenses_on_atua_import_id                         (atua_import_id)
+#  index_atua_expenses_on_cost_object                            (cost_object_type,cost_object_id)
 #  index_atua_expenses_on_tenant_id_and_code                     (tenant_id,code) UNIQUE
 #  index_atua_expenses_on_tenant_id_and_headquarters_name        (tenant_id,headquarters_name)
 #  index_atua_expenses_on_tenant_id_and_history_code             (tenant_id,history_code)

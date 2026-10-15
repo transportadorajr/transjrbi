@@ -37,10 +37,11 @@ describe 'Expenses' do
     end
 
     context 'when there are expenses' do
+      let!(:truck) { create(:atua_vehicle, tenant:, plate: 'EXU0F72') }
       let!(:fuel) do
         create(:atua_expense, tenant:, code: 590_101, posted_at: Time.zone.local(2026, 10, 1, 9, 18), posted_on: Date.new(2026, 10, 1),
                               history_code: 434, history_name: 'COMBUSTIVEL - DIESEL', payee_name: 'POSTO TREVO LTDA',
-                              plate: 'EXU0F72', total_cents: 725_000)
+                              plate: 'EXU0F72', total_cents: 725_000, cost_object: truck)
       end
       let!(:unload) do
         create(:atua_expense, tenant:, code: 590_102, posted_at: Time.zone.local(2026, 10, 13, 15, 0), posted_on: Date.new(2026, 10, 13),
@@ -64,9 +65,9 @@ describe 'Expenses' do
         expect(Atua::Expense.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Valor total', 'Ações'],
-            ['DESCARGA - CHAPA Lançamento 590102', '13/10/2026', '-', '-', 'R$ 350,00', ''],
-            ['COMBUSTIVEL - DIESEL Lançamento 590101', '01/10/2026', 'POSTO TREVO LTDA', 'EXU0F72', 'R$ 7.250,00', ''],
+            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Alocação', 'Valor total', 'Ações'],
+            ['DESCARGA - CHAPA Lançamento 590102', '13/10/2026', '-', '-', 'Despesa geral', 'R$ 350,00', ''],
+            ['COMBUSTIVEL - DIESEL Lançamento 590101', '01/10/2026', 'POSTO TREVO LTDA', 'EXU0F72', 'Veículo', 'R$ 7.250,00', ''],
           ],
         )
         expect(page).to have_text('2 registros')
@@ -88,8 +89,8 @@ describe 'Expenses' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Valor total', 'Ações'],
-            ['DESCARGA - CHAPA Lançamento 590102', '13/10/2026', '-', '-', 'R$ 350,00', ''],
+            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Alocação', 'Valor total', 'Ações'],
+            ['DESCARGA - CHAPA Lançamento 590102', '13/10/2026', '-', '-', 'Despesa geral', 'R$ 350,00', ''],
           ],
         )
       end
@@ -102,8 +103,21 @@ describe 'Expenses' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Valor total', 'Ações'],
-            ['COMBUSTIVEL - DIESEL Lançamento 590101', '01/10/2026', 'POSTO TREVO LTDA', 'EXU0F72', 'R$ 7.250,00', ''],
+            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Alocação', 'Valor total', 'Ações'],
+            ['COMBUSTIVEL - DIESEL Lançamento 590101', '01/10/2026', 'POSTO TREVO LTDA', 'EXU0F72', 'Veículo', 'R$ 7.250,00', ''],
+          ],
+        )
+      end
+
+      scenario 'filters the expenses by allocation' do
+        visit expenses_path
+        select 'Despesa geral', from: 'Alocação'
+        click_on 'Aplicar Filtros'
+
+        expect(html_table_to_rows).to eq(
+          [
+            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Alocação', 'Valor total', 'Ações'],
+            ['DESCARGA - CHAPA Lançamento 590102', '13/10/2026', '-', '-', 'Despesa geral', 'R$ 350,00', ''],
           ],
         )
       end
@@ -116,8 +130,8 @@ describe 'Expenses' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Valor total', 'Ações'],
-            ['DESCARGA - CHAPA Lançamento 590102', '13/10/2026', '-', '-', 'R$ 350,00', ''],
+            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Alocação', 'Valor total', 'Ações'],
+            ['DESCARGA - CHAPA Lançamento 590102', '13/10/2026', '-', '-', 'Despesa geral', 'R$ 350,00', ''],
           ],
         )
       end
@@ -147,6 +161,32 @@ describe 'Expenses' do
       end
     end
 
+    context 'when an expense belongs to a freight' do
+      let!(:transport_document) do
+        create(:atua_transport_document, tenant:, number: '74512', plate: 'EXU0F72', trailer_plate: 'BEV4G50')
+      end
+      let!(:toll) do
+        create(:atua_expense, tenant:, code: 590_201, posted_on: Date.new(2026, 10, 2), history_name: 'PEDAGIO', plate: 'EXU0F72',
+                              total_cents: 15_000, cost_object: transport_document)
+      end
+
+      before { create(:atua_expense, tenant:, code: 590_202, history_name: 'ALUGUEL', plate: nil) }
+
+      scenario 'finds the expense by the plate of the trailer that pulled the freight' do
+        visit expenses_path
+        fill_in 'Placa', with: 'BEV4G50'
+        click_on 'Aplicar Filtros'
+
+        expect(Atua::Expense.count).to eq(2)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Histórico', 'Lançado em', 'Favorecido', 'Placa', 'Alocação', 'Valor total', 'Ações'],
+            ['PEDAGIO Lançamento 590201', '02/10/2026', '-', 'EXU0F72', 'Frete', 'R$ 150,00', ''],
+          ],
+        )
+      end
+    end
+
     context 'when an expense has every detail' do
       let!(:registration_resources) do
         { customers: 'Clientes', vehicles: 'Veículos', drivers: 'Motoristas', transport_documents: 'CT-es' }.map do |slug, name|
@@ -169,6 +209,7 @@ describe 'Expenses' do
                               trip_number: '2500653', trip_driver_code: 760, trip_driver_name: 'JOSE DA SILVA',
                               trip_departure_on: Date.new(2026, 9, 29), trip_arrival_on: Date.new(2026, 10, 3),
                               trip_expense_kind: 'Combustível', transport_document_code: 80_512, transport_document_number: '74512',
+                              cost_object: transport_document,
                               amount_cents: 725_000, discount_cents: 5_000, total_cents: 720_000, net_amount_cents: 700_000,
                               withholdings_cents: 20_000, paid_cents: 700_000, icms_cents: 86_400, icms_credit_cents: 86_400,
                               icms_credit_percentage: BigDecimal('12'), pis_credit_cents: 11_880, cofins_credit_cents: 54_720)
@@ -213,6 +254,7 @@ describe 'Expenses' do
           'Chegada da viagem' => '03/10/2026',
           'Despesa da viagem' => 'Combustível',
           'CT-e' => '74512',
+          'Alocação' => 'Frete',
         )
         expect(dl_to_hash('#values')).to eq(
           'Valor do lançamento' => 'R$ 7.250,00',
