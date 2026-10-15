@@ -56,6 +56,17 @@ RSpec.describe Atua::MapExpensesCommand do
       expect(expense_with(:transport_document_code, 80_750)).to include(transport_document_number: 74_071, transport_document_series: 1)
     end
 
+    it 'reads the transport document number of an unloading expense from its document number' do
+      expect(expense(600_422)).to include(
+        history_code: 72, document_number: '74081', transport_document_code: nil,
+        transport_document_number: 74_081, transport_document_series: nil
+      )
+    end
+
+    it 'leaves the transport document of an unloading expense without a number in the document empty' do
+      expect(expense(600_359)).to include(history_code: 72, transport_document_number: nil)
+    end
+
     it 'splits the trip driver code and name' do
       expect(expenses.find { |attributes| attributes[:trip_driver_code] })
         .to include(trip_driver_code: 802, trip_driver_name: 'PESSOA 04931', trip_number: '2500653')

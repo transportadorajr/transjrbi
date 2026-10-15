@@ -211,5 +211,42 @@ RSpec.describe Atua::Expense do
         expect(described_class.by_payee_name('%')).to eq([loader])
       end
     end
+
+    context 'with unloading, damage and other expenses' do
+      let!(:unload) { create(:atua_expense, tenant:, history_code: 72) }
+      let!(:damage) { create(:atua_expense, tenant:, history_code: 474) }
+
+      before { create(:atua_expense, tenant:, history_code: 434) }
+
+      it 'filters the unloading and damage expenses' do
+        expect(described_class.unloading).to contain_exactly(unload, damage)
+        expect(described_class.count).to eq(3)
+      end
+    end
+  end
+
+  describe '.unloading_transport_document_number' do
+    it 'reads the transport document number written in the document of an unloading expense' do
+      expect(described_class.unloading_transport_document_number(72, '74158')).to eq(74_158)
+      expect(described_class.unloading_transport_document_number(72, ' 74158.0 ')).to eq(74_158)
+      expect(described_class.unloading_transport_document_number(474, '74158')).to eq(74_158)
+    end
+
+    it 'reads the number of the guide and the regular unloading expenses' do
+      expect(described_class.unloading_transport_document_number(72, '74158 GUIA')).to eq(74_158)
+      expect(described_class.unloading_transport_document_number(72, '74158-chapa guia')).to eq(74_158)
+      expect(described_class.unloading_transport_document_number(72, '74158 - Chapa')).to eq(74_158)
+    end
+
+    it 'ignores documents without a transport document number' do
+      expect(described_class.unloading_transport_document_number(72, 'VALE DESCARGA')).to be_nil
+      expect(described_class.unloading_transport_document_number(72, '40-3009')).to be_nil
+      expect(described_class.unloading_transport_document_number(72, '12')).to be_nil
+      expect(described_class.unloading_transport_document_number(72, nil)).to be_nil
+    end
+
+    it 'ignores expenses that are not unloading or damage' do
+      expect(described_class.unloading_transport_document_number(434, '74158')).to be_nil
+    end
   end
 end
