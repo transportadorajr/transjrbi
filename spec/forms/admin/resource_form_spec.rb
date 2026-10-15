@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe ResourceForm do
+RSpec.describe Admin::ResourceForm do
   describe '#save' do
     it 'creates a writable resource' do
       form = described_class.new(name: 'Fretes', slug: 'freights', writable: '1')

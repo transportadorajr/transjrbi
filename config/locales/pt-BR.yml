@@ -288,6 +288,10 @@ pt-BR:
         tenant: Empresa
         tenant_id: Empresa
         start_date: Data de início
+      admin/resource_form:
+        name: Nome
+        slug: Identificador
+        writable: Permite edição
       user_confirmation_form:
         password: Senha
         password_confirmation: Confirme a senha
@@ -327,7 +331,7 @@ pt-BR:
               taken: já está em uso por outro grupo
             terms:
               without_letters_or_numbers: devem ter ao menos uma letra ou um número em cada linha
-        resource_form:
+        admin/resource_form:
           attributes:
             slug:
               taken: já está em uso por outro recurso
@@ -387,7 +391,7 @@ pt-BR:
       user:
         create: Cadastrar Usuário
         update: Salvar Alterações
-      resource:
+      admin_resource:
         create: Cadastrar Recurso
         update: Salvar Alterações
       customer_group:
@@ -501,34 +505,6 @@ pt-BR:
       account:
         title: Conta
         signed_in_as_html: Você está conectado como <strong>%{email}</strong>.
-  resources:
-    index:
-      title: Recursos
-      subtitle: Módulos do sistema que poderão ter acesso controlado por perfil.
-      new_resource: Novo Recurso
-      writable: Leitura e edição
-      read_only: Somente leitura
-      confirm_destroy: Tem certeza que deseja excluir este recurso?
-    filters:
-      name: Nome do recurso
-      slug: Identificador
-    new:
-      title: Novo Recurso
-      back: Voltar para recursos
-    create:
-      success: Recurso cadastrado com sucesso.
-    edit:
-      title: Alterar Recurso
-      back: Voltar para recursos
-    update:
-      success: Recurso atualizado com sucesso.
-    destroy:
-      success: Recurso excluído com sucesso.
-    form:
-      resource_data: Dados do Recurso
-      resource_data_text: Informe o nome e o identificador do módulo do sistema.
-      slug_hint: "Use letras minúsculas, números e _ (ex.: users). Ele é usado para identificar o recurso no código."
-      writable_hint: Desmarque quando o recurso permitir apenas leitura.
   resource_names:
     users: Usuários
     transport_documents: CT-es
@@ -760,13 +736,41 @@ pt-BR:
     vehicles: Veículos
     expenses: Despesas
     users: Usuários
-    resources: Recursos
     show: Visualizar
     edit: Alterar
     admin_imports: Importações da Atua
+    admin_resources: Recursos
     admin_good_job: Jobs (GoodJob)
     admin_flipper: Feature flags
   admin:
+    resources:
+      index:
+        title: Recursos
+        subtitle: Módulos do sistema que poderão ter acesso controlado por perfil.
+        new_resource: Novo Recurso
+        writable: Leitura e edição
+        read_only: Somente leitura
+        confirm_destroy: Tem certeza que deseja excluir este recurso?
+      filters:
+        name: Nome do recurso
+        slug: Identificador
+      new:
+        title: Novo Recurso
+        back: Voltar para recursos
+      create:
+        success: Recurso cadastrado com sucesso.
+      edit:
+        title: Alterar Recurso
+        back: Voltar para recursos
+      update:
+        success: Recurso atualizado com sucesso.
+      destroy:
+        success: Recurso excluído com sucesso.
+      form:
+        resource_data: Dados do Recurso
+        resource_data_text: Informe o nome e o identificador do módulo do sistema.
+        slug_hint: "Use letras minúsculas, números e _ (ex.: users). Ele é usado para identificar o recurso no código."
+        writable_hint: Desmarque quando o recurso permitir apenas leitura.
     sessions:
       unauthenticated: Faça login para acessar o painel administrativo.
       expired: Sua sessão expirou por inatividade. Faça login novamente.

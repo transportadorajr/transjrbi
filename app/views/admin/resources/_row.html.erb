@@ -1,8 +1,8 @@
 <tr id="<%= dom_id(item) %>">
   <td class="fw-semibold text-break"><%= item.translated_name %></td>
   <td class="d-none d-md-table-cell font-monospace text-muted text-break"><%= item.slug %></td>
-  <td><%= resource_writable_badge(item) %></td>
+  <td><%= admin_resource_writable_badge(item) %></td>
   <td class="text-end text-nowrap">
-    <%= responsive_actions_menu(resources_menu(item)) %>
+    <%= responsive_actions_menu(admin_resource_menu(item)) %>
   </td>
 </tr>
