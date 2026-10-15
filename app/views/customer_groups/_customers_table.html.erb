@@ -1,0 +1,21 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="customer_group_customers">
+    <thead>
+      <tr>
+        <th><%= Atua::Customer.human_attribute_name(:name) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::Customer.human_attribute_name(:document) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::Customer.human_attribute_name(:city) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'customer_row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

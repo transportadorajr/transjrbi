@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_14_185915) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_14_201016) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -121,7 +121,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_185915) do
     t.datetime "removed_from_atua_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "customer_group_id"
     t.index ["atua_import_id"], name: "index_atua_customers_on_atua_import_id"
+    t.index ["customer_group_id"], name: "index_atua_customers_on_customer_group_id"
     t.index ["tenant_id", "code"], name: "index_atua_customers_on_tenant_id_and_code", unique: true
     t.index ["tenant_id", "document_digits"], name: "index_atua_customers_on_tenant_id_and_document_digits"
     t.index ["tenant_id", "status"], name: "index_atua_customers_on_tenant_id_and_status"
@@ -471,6 +473,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_185915) do
     t.index ["tenant_id", "status"], name: "index_atua_vehicles_on_tenant_id_and_status"
   end
 
+  create_table "customer_groups", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.string "terms", default: [], null: false, array: true
+    t.datetime "activated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_customer_groups_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_customer_groups_on_tenant_id"
+  end
+
   create_table "empty_leg_transport_documents", force: :cascade do |t|
     t.bigint "empty_leg_id", null: false
     t.bigint "tenant_id", null: false
@@ -720,6 +733,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_185915) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "admin_sessions", "admin_users", column: "user_id"
   add_foreign_key "atua_customers", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_customers", "customer_groups"
   add_foreign_key "atua_customers", "tenants"
   add_foreign_key "atua_expenses", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_expenses", "tenants"
@@ -734,6 +748,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_14_185915) do
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_vehicles", "tenants"
+  add_foreign_key "customer_groups", "tenants"
   add_foreign_key "empty_leg_transport_documents", "empty_legs", on_delete: :cascade
   add_foreign_key "empty_leg_transport_documents", "tenants"
   add_foreign_key "empty_legs", "locations", column: "destination_id"

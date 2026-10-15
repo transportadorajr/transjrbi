@@ -37,8 +37,9 @@ describe 'Customers' do
     end
 
     context 'when there are customers' do
+      let!(:steel_group) { create(:customer_group, tenant:, name: 'ARCELORMITTAL', terms: ['ARCELOR']) }
       let!(:steel) do
-        create(:atua_customer, tenant:, name: 'ARCELORMITTAL BRASIL S.A.', trade_name: 'ARCELOR MONLEVADE', document: '17.469.701/0066-12',
+        create(:atua_customer, tenant:, customer_group: steel_group, name: 'ARCELORMITTAL BRASIL S.A.', trade_name: 'ARCELOR MONLEVADE', document: '17.469.701/0066-12',
                                document_digits: '17469701006612', city: 'JOAO MONLEVADE', state: 'MG', activity: 'INDUSTRIA METALURGICA')
       end
       let!(:warehouse) do
@@ -59,9 +60,9 @@ describe 'Customers' do
         expect(Atua::Customer.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
-            ['ARCELORMITTAL BRASIL S.A. ARCELOR MONLEVADE', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', 'INDUSTRIA METALURGICA', ''],
-            ['TL ARMAZENS GERAIS LTDA. -', '10.622.725/0001-75', 'IPATINGA/MG', '-', ''],
+            ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
+            ['ARCELORMITTAL BRASIL S.A. ARCELOR MONLEVADE', 'ARCELORMITTAL', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', 'INDUSTRIA METALURGICA', ''],
+            ['TL ARMAZENS GERAIS LTDA. -', '-', '10.622.725/0001-75', 'IPATINGA/MG', '-', ''],
           ],
         )
         expect(page).to have_text('2 registros')
@@ -77,8 +78,8 @@ describe 'Customers' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
-            ['ARCELORMITTAL BRASIL S.A. ARCELOR MONLEVADE', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', 'INDUSTRIA METALURGICA', ''],
+            ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
+            ['ARCELORMITTAL BRASIL S.A. ARCELOR MONLEVADE', 'ARCELORMITTAL', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', 'INDUSTRIA METALURGICA', ''],
           ],
         )
       end
@@ -91,8 +92,21 @@ describe 'Customers' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
-            ['TL ARMAZENS GERAIS LTDA. -', '10.622.725/0001-75', 'IPATINGA/MG', '-', ''],
+            ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
+            ['TL ARMAZENS GERAIS LTDA. -', '-', '10.622.725/0001-75', 'IPATINGA/MG', '-', ''],
+          ],
+        )
+      end
+
+      scenario 'filters the customers by group' do
+        visit customers_path
+        select 'ARCELORMITTAL', from: 'Grupo'
+        click_on 'Aplicar Filtros'
+
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
+            ['ARCELORMITTAL BRASIL S.A. ARCELOR MONLEVADE', 'ARCELORMITTAL', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', 'INDUSTRIA METALURGICA', ''],
           ],
         )
       end
@@ -123,8 +137,9 @@ describe 'Customers' do
     end
 
     context 'when a customer has every detail' do
+      let!(:customer_group) { create(:customer_group, tenant:, name: 'ARCELORMITTAL', terms: ['ARCELOR']) }
       let!(:customer) do
-        create(:atua_customer, tenant:, code: 7752, name: 'ARCELORMITTAL BRASIL S.A.', trade_name: 'ARCELOR MONLEVADE',
+        create(:atua_customer, tenant:, customer_group:, code: 7752, name: 'ARCELORMITTAL BRASIL S.A.', trade_name: 'ARCELOR MONLEVADE',
                                person_kind: 'Pessoa Jurídica', document: '17.469.701/0066-12', state_registration: '3620031410092',
                                activity: 'INDUSTRIA METALURGICA', status: 'Normal', registered_on: Date.new(2019, 3, 12),
                                last_billed_on: Date.new(2026, 10, 1), street: 'AV. GETULIO VARGAS, 100', complement: 'PORTARIA 2',
@@ -142,6 +157,7 @@ describe 'Customers' do
           'Código' => '7752',
           'Nome' => 'ARCELORMITTAL BRASIL S.A.',
           'Nome fantasia' => 'ARCELOR MONLEVADE',
+          'Grupo' => 'ARCELORMITTAL',
           'Tipo de pessoa' => 'Pessoa Jurídica',
           'CPF/CNPJ' => '17.469.701/0066-12',
           'Inscrição estadual' => '3620031410092',

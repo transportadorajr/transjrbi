@@ -40,6 +40,9 @@ Rails.application.routes.draw do
   resources :transport_documents, only: %i[index show]
   resources :manifests, only: %i[index show]
   resources :customers, only: %i[index show]
+  resources :customer_groups do
+    patch :regroup, on: :member
+  end
   resources :drivers, only: %i[index show]
   resources :vehicles, only: %i[index show]
   resources :expenses, only: %i[index show]

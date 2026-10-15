@@ -28,6 +28,9 @@
             <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:trade_name) %></dt>
             <dd class="col-12 col-md-7 text-break"><%= tax_value(@customer.trade_name) %></dd>
 
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:customer_group) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= customer_group_name(@customer) %></dd>
+
             <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:person_kind) %></dt>
             <dd class="col-12 col-md-7"><%= tax_value(@customer.person_kind) %></dd>
 

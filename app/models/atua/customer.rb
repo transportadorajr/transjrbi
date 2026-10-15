@@ -2,6 +2,8 @@ module Atua
   class Customer < ApplicationRecord
     include Importable
 
+    belongs_to :customer_group, optional: true
+
     with_options class_name: 'Atua::TransportDocument', primary_key: %i[tenant_id code], inverse_of: false do
       has_many :sent_transport_documents, foreign_key: %i[tenant_id sender_code]
       has_many :received_transport_documents, foreign_key: %i[tenant_id recipient_code]
@@ -20,6 +22,8 @@ module Atua
     }
     scope :by_document, ->(document) { where(document_digits: document.to_s.gsub(/\D/, '')) }
     scope :by_city, ->(city) { where(arel_table[:city].matches("%#{sanitize_sql_like(city.to_s.strip)}%")) }
+    scope :by_customer_group, ->(customer_group_id) { where(customer_group_id:) }
+    scope :without_customer_group, -> { where(customer_group_id: nil) }
   end
 end
 
@@ -61,11 +65,13 @@ end
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  atua_import_id       :bigint
+#  customer_group_id    :bigint
 #  tenant_id            :bigint           not null
 #
 # Indexes
 #
 #  index_atua_customers_on_atua_import_id                 (atua_import_id)
+#  index_atua_customers_on_customer_group_id              (customer_group_id)
 #  index_atua_customers_on_tenant_id_and_code             (tenant_id,code) UNIQUE
 #  index_atua_customers_on_tenant_id_and_document_digits  (tenant_id,document_digits)
 #  index_atua_customers_on_tenant_id_and_status           (tenant_id,status)
@@ -73,5 +79,6 @@ end
 # Foreign Keys
 #
 #  fk_rails_...  (atua_import_id => atua_imports.id) ON DELETE => nullify
+#  fk_rails_...  (customer_group_id => customer_groups.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #

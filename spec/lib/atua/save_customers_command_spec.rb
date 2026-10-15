@@ -18,6 +18,19 @@ RSpec.describe Atua::SaveCustomersCommand do
     end
   end
 
+  context 'when the customers are saved' do
+    let!(:customer_group) { create(:customer_group, tenant:, name: 'MANUAL') }
+    let!(:record) { create(:atua_customer, tenant:, code:, customer_group:) }
+
+    it 'links the new customers to a group and keeps the group of the existing ones' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_customers.count).to be > 1
+      expect(tenant.atua_customers.without_customer_group.count).to eq(0)
+      expect(record.reload.customer_group).to eq(customer_group)
+    end
+  end
+
   it 'is the save command of the customers report' do
     expect(Atua::SaveReportCommand.for(:customers)).to eq(described_class)
   end

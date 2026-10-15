@@ -4,7 +4,10 @@ RSpec.describe 'db/seeds.rb' do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant) }
 
-  before { allow(EmptyLegs::CalculateAllCommand).to receive(:call).and_return([]) }
+  before do
+    allow(EmptyLegs::CalculateAllCommand).to receive(:call).and_return([])
+    allow(CustomerGroups::BackfillCommand).to receive(:call).and_return([])
+  end
 
   def run_seeds
     Rails.application.load_seed
@@ -29,5 +32,12 @@ RSpec.describe 'db/seeds.rb' do
 
       expect(EmptyLegs::CalculateAllCommand).not_to have_received(:call)
     end
+  end
+
+  it 'backfills the customer groups of every tenant' do
+    run_seeds
+
+    expect(CustomerGroups::BackfillCommand).to have_received(:call).with(tenant)
+    expect(CustomerGroups::BackfillCommand).to have_received(:call).with(other_tenant)
   end
 end

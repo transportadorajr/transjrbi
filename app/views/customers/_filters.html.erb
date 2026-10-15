@@ -21,6 +21,13 @@
         <%= f.text_field :city, value: params[:city], class: 'form-control bg-light', autocomplete: :off,
                                 placeholder: t('customers.filters.city') %>
       </div>
+
+      <div class="col-12">
+        <%= f.label :customer_group, t('customers.filters.customer_group'), class: 'form-label fw-medium' %>
+        <%= f.collection_select :customer_group, @customer_groups, :id, :name,
+                                { include_blank: t('shared.all'), selected: params[:customer_group] },
+                                { class: 'form-select bg-light' } %>
+      </div>
     </div>
 
     <div class="d-flex flex-column gap-2 mt-4">

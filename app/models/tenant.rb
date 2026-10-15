@@ -10,6 +10,7 @@ class Tenant < ApplicationRecord
   has_many :atua_customers, class_name: 'Atua::Customer', dependent: :delete_all
   has_many :atua_vehicles, class_name: 'Atua::Vehicle', dependent: :delete_all
   has_many :empty_legs, dependent: :delete_all
+  has_many :customer_groups, dependent: :delete_all
 
   validates :name, :legal_id, :trade_name, presence: true
   validates :legal_id, uniqueness: true

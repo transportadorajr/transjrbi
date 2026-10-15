@@ -1,0 +1,13 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <div class="table-identity">
+      <span class="fw-semibold d-block text-break"><%= tax_value(item.name) %></span>
+      <span class="text-muted text-small d-block text-break"><%= tax_value(item.trade_name) %></span>
+    </div>
+  </td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.document) %></td>
+  <td class="d-none d-lg-table-cell"><%= tax_city(item.city, item.state) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(customers_menu(item)) %>
+  </td>
+</tr>
