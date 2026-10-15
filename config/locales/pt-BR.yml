@@ -287,17 +287,6 @@ pt-BR:
         email: E-mail
         phone: Telefone
         user_type: Perfil
-<<<<<<< Updated upstream
-      resource_form:
-        name: Nome
-        slug: Identificador
-        writable: Permite edição
-=======
-      customer_group_form:
-        name: Nome
-        terms: Termos
-        active: Ativo
->>>>>>> Stashed changes
     errors:
       models:
         admin/login_form:
@@ -315,24 +304,11 @@ pt-BR:
           attributes:
             start_date:
               future: não pode ser posterior a hoje
-<<<<<<< Updated upstream
-        resource_form:
-=======
         admin/resource_form:
->>>>>>> Stashed changes
           attributes:
             slug:
               taken: já está em uso por outro recurso
               invalid: deve começar com uma letra minúscula e conter apenas letras minúsculas, números e _
-<<<<<<< Updated upstream
-=======
-        customer_group_form:
-          attributes:
-            name:
-              taken: já está em uso por outro grupo
-            terms:
-              without_letters_or_numbers: devem ter ao menos uma letra ou um número em cada linha
->>>>>>> Stashed changes
         user_confirmation_form:
           attributes:
             base:
