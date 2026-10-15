@@ -335,14 +335,16 @@ describe 'Vehicles' do
         expect(page).to have_no_link('JOSE DA SILVA')
       end
 
-      scenario 'does not show the expenses without access to them' do
-        create(:atua_expense, tenant:, history_name: 'PNEUS', plate: 'EXU0F72', cost_object: vehicle)
+      context 'when the vehicle has expenses' do
+        let!(:tire) { create(:atua_expense, tenant:, history_name: 'PNEUS', plate: 'EXU0F72', cost_object: vehicle) }
 
-        visit vehicle_path(vehicle)
+        scenario 'does not show the expenses without access to them' do
+          visit vehicle_path(vehicle)
 
-        expect(Atua::Expense.count).to eq(1)
-        expect(page).to have_no_text('Despesas do veículo')
-        expect(page).to have_no_text('PNEUS')
+          expect(Atua::Expense.count).to eq(1)
+          expect(page).to have_no_text('Despesas do veículo')
+          expect(page).to have_no_text('PNEUS')
+        end
       end
     end
   end

@@ -357,14 +357,16 @@ describe 'Transport documents' do
         end
       end
 
-      scenario 'does not show the expenses without access to them' do
-        create(:atua_expense, tenant:, history_name: 'PEDAGIO', cost_object: transport_document)
+      context 'when the transport document has expenses' do
+        let!(:toll) { create(:atua_expense, tenant:, history_name: 'PEDAGIO', cost_object: transport_document) }
 
-        visit transport_document_path(transport_document)
+        scenario 'does not show the expenses without access to them' do
+          visit transport_document_path(transport_document)
 
-        expect(Atua::Expense.count).to eq(1)
-        expect(page).to have_no_text('Despesas do frete')
-        expect(page).to have_no_text('PEDAGIO')
+          expect(Atua::Expense.count).to eq(1)
+          expect(page).to have_no_text('Despesas do frete')
+          expect(page).to have_no_text('PEDAGIO')
+        end
       end
     end
   end

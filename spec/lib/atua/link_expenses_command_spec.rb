@@ -28,16 +28,12 @@ RSpec.describe Atua::LinkExpensesCommand do
     end
   end
 
-  context 'when the freight of an expense is imported after it' do
+  context 'when the freight of an expense is imported after the expense was linked to the vehicle' do
     let!(:truck) { create(:atua_vehicle, tenant:, code: 812, plate: 'EXU0F72') }
-    let!(:toll) { create(:atua_expense, tenant:, transport_document_code: 80_512, plate: 'EXU0F72') }
-
-    before { described_class.call(tenant) }
+    let!(:toll) { create(:atua_expense, tenant:, transport_document_code: 80_512, plate: 'EXU0F72', cost_object: truck) }
+    let!(:transport_document) { create(:atua_transport_document, tenant:, code: 80_512, vehicle_code: 812) }
 
     it 'moves the expense from the vehicle to the freight' do
-      expect(toll.reload.cost_object).to eq(truck)
-
-      transport_document = create(:atua_transport_document, tenant:, code: 80_512, vehicle_code: 812)
       described_class.call(tenant)
 
       expect(toll.reload.cost_object).to eq(transport_document)
