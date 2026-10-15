@@ -67,12 +67,13 @@ module Atua
 
     def map_expense(code, rows)
       row = rows.first
+      attributes = map_columns(row)
       transport_document_number, transport_document_series = convert(row, 'nr_ctrc', :number_series)
       trip_driver_code, trip_driver_name = convert(row, 'nm_motorista_viagem', :code_name)
       credits = rows.map { |credit_row| [convert(credit_row, 'vl_credito_icms', :cents), convert(credit_row, 'pr_credito_icms', :decimal)] }
 
-      map_columns(row).merge(
-        transport_document_number:,
+      attributes.merge(
+        transport_document_number: transport_document_number || unloading_transport_document_number(attributes),
         transport_document_series:,
         trip_driver_code:,
         trip_driver_name:,
@@ -81,6 +82,12 @@ module Atua
         attachment_at: yes_no(row, 'arquivo_anexo', key: code, attribute: :attachment_at),
         raw_data: rows,
       )
+    end
+
+    def unloading_transport_document_number(attributes)
+      return if attributes[:transport_document_code]
+
+      Expense.unloading_transport_document_number(attributes[:history_code], attributes[:document_number])
     end
   end
 end

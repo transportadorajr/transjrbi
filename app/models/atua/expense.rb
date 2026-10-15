@@ -7,6 +7,8 @@ module Atua
       'vehicle' => 'Atua::Vehicle',
       'overhead' => nil,
     }.freeze
+    UNLOADING_HISTORY_CODES = [72, 474].freeze
+    UNLOADING_DOCUMENT_NUMBER = /\A\s*(\d{3,7})(?:\.0)?\s*(?:-?\s*(?:chapa\s+guia|guia|chapa))?\s*\z/i
 
     belongs_to :cost_object, polymorphic: true, optional: true
     belongs_to :vehicle, class_name: 'Atua::Vehicle', foreign_key: %i[tenant_id plate], primary_key: %i[tenant_id plate],
@@ -42,6 +44,7 @@ module Atua
     scope :by_trip, ->(number) { where(trip_number: number) }
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :by_headquarters, ->(name) { where(headquarters_name: name) }
+    scope :unloading, -> { where(history_code: UNLOADING_HISTORY_CODES) }
 
     class << self
       def allocations
@@ -50,6 +53,12 @@ module Atua
 
       def total_by_allocation
         group(:cost_object_type).sum(:total_cents).to_h { |type, cents| [ALLOCATION_TYPES.key(type), Money.from_cents(cents)] }
+      end
+
+      def unloading_transport_document_number(history_code, document_number)
+        return unless UNLOADING_HISTORY_CODES.include?(history_code)
+
+        UNLOADING_DOCUMENT_NUMBER.match(document_number.to_s)&.captures&.first&.to_i
       end
     end
 
