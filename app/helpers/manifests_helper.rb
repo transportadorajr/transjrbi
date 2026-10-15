@@ -31,6 +31,25 @@ module ManifestsHelper
     render 'manifests/empty_leg', empty_leg:
   end
 
+  def manifest_expenses(expenses, total)
+    return if expenses.nil?
+
+    render 'manifests/expenses/card', expenses:, total:
+  end
+
+  def manifest_expenses_table(expenses, total)
+    return content_tag(:p, t('manifests.show.no_expenses'), class: 'text-body-secondary mb-0') if expenses.none?
+
+    render 'manifests/expenses/table', expenses:, total:
+  end
+
+  def manifest_expense_transport_document(expense)
+    transport_document = expense.cost_object
+    return transport_document.number unless can?(:read, :transport_documents)
+
+    link_to transport_document.number, transport_document_path(transport_document), class: 'fw-semibold text-decoration-none'
+  end
+
   private
 
   def manifest_show_menu(manifest)

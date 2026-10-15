@@ -188,6 +188,68 @@ describe 'Manifests' do
 
         expect(page).to have_current_path(transport_document_path(transport_document))
       end
+
+      context 'with access to the expenses' do
+        let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
+
+        scenario 'tells that there are no expenses linked to the transport documents of the manifest' do
+          visit manifest_path(manifest)
+
+          expect(Atua::Expense.count).to eq(0)
+          expect(page).to have_text('Nenhuma despesa vinculada aos CT-es deste manifesto.')
+        end
+
+        context 'when the transport documents of the manifest have expenses' do
+          let!(:other_transport_document) do
+            create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_name: 'JR TRANSPORTES')
+          end
+          let!(:toll) do
+            create(:atua_expense, tenant:, code: 590_401, posted_at: Time.zone.local(2026, 10, 2, 7), posted_on: Date.new(2026, 10, 2),
+                                  history_name: 'PEDAGIO', payee_name: 'VIA 040', total_cents: 15_000, cost_object: transport_document)
+          end
+          let!(:unload) do
+            create(:atua_expense, tenant:, code: 590_402, posted_at: Time.zone.local(2026, 10, 3, 15), posted_on: Date.new(2026, 10, 3),
+                                  history_name: 'DESCARGA - CHAPA', payee_name: nil, total_cents: 35_000, cost_object: other_transport_document)
+          end
+
+          before do
+            create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74131', transport_document_series: 1,
+                                            branch_name: 'JR TRANSPORTES')
+            outside = create(:atua_transport_document, tenant:, number: '74200', series: 1, branch_name: 'JR TRANSPORTES')
+            create(:atua_expense, tenant:, history_name: 'FORA DA VIAGEM', cost_object: outside)
+            create(:atua_expense, tenant:, history_name: 'PNEUS', cost_object: create(:atua_vehicle, tenant:, plate: 'RHJ4E07'))
+            create(:atua_expense, tenant:, history_name: 'REMOVIDA', cost_object: transport_document, removed_from_atua_at: Time.current)
+          end
+
+          scenario 'lists the expenses of the transport documents of the trip with the total' do
+            visit manifest_path(manifest)
+
+            expect(Atua::Expense.count).to eq(5)
+            expect(html_table_to_rows(table: find_by_id('manifest_expenses'))).to eq(
+              [
+                ['Histórico', 'CT-e', 'Lançado em', 'Favorecido', 'Valor total'],
+                ['DESCARGA - CHAPA', '74131', '03/10/2026', '-', 'R$ 350,00'],
+                ['PEDAGIO', '74130', '02/10/2026', 'VIA 040', 'R$ 150,00'],
+              ],
+            )
+            expect(page).to have_css('#manifest_expenses_total', text: 'Total de despesas R$ 500,00')
+          end
+
+          scenario 'opens an expense of the trip' do
+            visit manifest_path(manifest)
+            click_on 'PEDAGIO'
+
+            expect(page).to have_current_path(expense_path(toll))
+          end
+
+          scenario 'opens the transport document of an expense' do
+            visit manifest_path(manifest)
+            within('#manifest_expenses') { click_on '74131' }
+
+            expect(page).to have_current_path(transport_document_path(other_transport_document))
+          end
+        end
+      end
     end
 
     context 'when the manifest has an empty leg from the previous trip of the truck' do
@@ -289,6 +351,16 @@ describe 'Manifests' do
           expect(page).to have_css('#manifest_documents', text: document.transport_document_number)
           expect(page).to have_no_link('74130')
         end
+
+        scenario 'does not show the expenses of the trip without access to them' do
+          create(:atua_expense, tenant:, history_name: 'PEDAGIO', cost_object: transport_document)
+
+          visit manifest_path(manifest)
+
+          expect(Atua::Expense.count).to eq(1)
+          expect(page).to have_no_text('Despesas da viagem')
+          expect(page).to have_no_text('PEDAGIO')
+        end
       end
     end
   end
@@ -300,6 +372,26 @@ describe 'Manifests' do
     before do
       login_as(admin, scope: :user)
       use_mobile_screen
+    end
+
+    context 'when the manifest has expenses' do
+      let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
+
+      before do
+        transport_document = create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: manifest.branch_name)
+        create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
+                                        transport_document_series: 1, branch_name: manifest.branch_name)
+        create(:atua_expense, tenant:, history_name: 'PEDAGIO', payee_name: 'VIA 040', total_cents: 15_000, cost_object: transport_document)
+      end
+
+      scenario 'keeps only the history and the total of the expenses without horizontal scroll' do
+        visit manifest_path(manifest)
+
+        expect(page).to have_css('#manifest_expenses td', text: 'R$ 150,00')
+        expect(page).to have_no_css('#manifest_expenses th', text: 'Favorecido')
+        expect(page).to have_no_css('#manifest_expenses th', text: 'CT-e')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
     end
 
     scenario 'keeps only the essential columns without horizontal scroll' do

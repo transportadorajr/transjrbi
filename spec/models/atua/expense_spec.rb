@@ -161,6 +161,34 @@ RSpec.describe Atua::Expense do
       end
     end
 
+    context 'with expenses of the transport documents carried by a manifest' do
+      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_236) }
+      let!(:other_manifest) { create(:atua_manifest, tenant:, code: 41_237) }
+      let!(:carried) { create(:atua_transport_document, tenant:, number: '74130') }
+      let!(:also_carried) { create(:atua_transport_document, tenant:, number: '74131') }
+      let!(:dropped) { create(:atua_transport_document, tenant:, number: '74132') }
+      let!(:elsewhere) { create(:atua_transport_document, tenant:, number: '74133') }
+      let!(:toll) { create(:atua_expense, tenant:, cost_object: carried) }
+      let!(:unload) { create(:atua_expense, tenant:, cost_object: also_carried) }
+      let!(:dropped_toll) { create(:atua_expense, tenant:, cost_object: dropped) }
+      let!(:elsewhere_toll) { create(:atua_expense, tenant:, cost_object: elsewhere) }
+      let!(:tire) { create(:atua_expense, tenant:, cost_object: create(:atua_vehicle, tenant:)) }
+
+      before do
+        create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74130')
+        create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74131')
+        create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74132',
+                                        removed_from_atua_at: Time.current)
+        create(:atua_manifest_document, tenant:, manifest_code: 41_237, transport_document_number: '74133')
+      end
+
+      it 'filters by the freights still carried by the manifest' do
+        expect(described_class.by_manifest(manifest)).to contain_exactly(toll, unload)
+        expect(described_class.by_manifest(other_manifest)).to eq([elsewhere_toll])
+        expect(described_class.count).to eq(5)
+      end
+    end
+
     context 'with the allocations offered by the filter' do
       it 'maps each translated allocation to its key' do
         expect(described_class.allocations).to eq('Frete' => 'freight', 'Veículo' => 'vehicle', 'Despesa geral' => 'overhead')

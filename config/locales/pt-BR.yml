@@ -578,6 +578,10 @@ pt-BR:
       documents: CT-es do manifesto
       empty_leg: KM vazio
       no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
+      expenses: Despesas da viagem
+      no_expenses: Nenhuma despesa vinculada aos CT-es deste manifesto.
+    expenses:
+      total: Total de despesas
   empty_legs:
     distance: '%{distance} km'
   customers:

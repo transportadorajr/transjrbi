@@ -31,6 +31,9 @@ module Atua
     scope :by_vehicle, ->(vehicle) {
       where(cost_object: vehicle).or(freight.where(cost_object_id: TransportDocument.by_vehicle(vehicle).select(:id)))
     }
+    scope :by_manifest, ->(manifest) {
+      freight.where(cost_object_id: manifest.transport_documents.merge(ManifestDocument.active).select(TransportDocument.arel_table[:id]))
+    }
     scope :by_period_start, ->(date) { by_period(date, nil) }
     scope :by_period_end, ->(date) { by_period(nil, date) }
     scope :by_payee, ->(code) { where(payee_code: code) }

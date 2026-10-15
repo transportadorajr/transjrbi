@@ -24,5 +24,15 @@ class ManifestsController < BaseController
 
     @manifest = current_tenant.atua_manifests.active.preload(empty_leg: %i[origin destination previous_manifest]).find(params.expect(:id))
     @documents = @manifest.documents.active.preload(:transport_document).order(:transport_document_number)
+    load_expenses if can?(:read, :expenses)
+  end
+
+  private
+
+  def load_expenses
+    expenses = current_tenant.atua_expenses.active.by_manifest(@manifest)
+
+    @expenses = expenses.preload(:cost_object).order(Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc)
+    @expenses_total = Money.from_cents(expenses.sum(:total_cents))
   end
 end
