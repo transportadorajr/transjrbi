@@ -17,6 +17,37 @@ RSpec.describe Atua::ProcessImportCommand do
     expect { described_class.call(import) }.to have_enqueued_job(EmptyLegs::CalculateJob).with(tenant.id, '2026-10-01')
   end
 
+  it 'does not link the expenses after importing manifests' do
+    expect { described_class.call(import) }.not_to have_enqueued_job(Atua::LinkExpensesJob)
+  end
+
+  %w[expenses transport_documents vehicles].each do |report_type|
+    context "when importing #{report_type}" do
+      let(:import) { create(:atua_import, tenant:, report_type:, status_type: 'running', started_at: Time.current) }
+
+      before { import.file.attach(io: atua_fixture_path(report_type).open, filename: "#{report_type}.xls") }
+
+      it 'links the expenses of the tenant to their freights and vehicles' do
+        expect { described_class.call(import) }.to have_enqueued_job(Atua::LinkExpensesJob).with(tenant.id)
+      end
+    end
+  end
+
+  context 'when saving the expenses fails' do
+    let(:import) { create(:atua_import, tenant:, report_type: 'expenses', status_type: 'running', started_at: Time.current) }
+
+    before do
+      import.file.attach(io: atua_fixture_path(:expenses).open, filename: 'expenses.xls')
+      allow(Atua::Expense).to receive(:upsert_all).and_raise(ActiveRecord::StatementInvalid, 'PG::Error: connection lost')
+    end
+
+    it 'does not link the expenses' do
+      expect { described_class.call(import) }.not_to have_enqueued_job(Atua::LinkExpensesJob)
+
+      expect(import.reload.status_type).to eq('failed')
+    end
+  end
+
   context 'when saving fails halfway' do
     before do
       allow(Atua::ManifestDocument).to receive(:insert_all).and_raise(ActiveRecord::StatementInvalid, 'PG::Error: connection lost')

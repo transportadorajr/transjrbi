@@ -131,6 +131,8 @@ describe 'Vehicles' do
 
     context 'when a vehicle has every detail' do
       let!(:drivers_resource) { create(:resource, name: 'Motoristas', slug: 'drivers', writable: false) }
+      let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
+      let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
       let!(:vehicle) do
         create(:atua_vehicle, tenant:, code: 812, plate: 'EXU0F72', category: 'Caminhão / Cavalo', vehicle_kind: 'TRUCK', brand: 'VOLVO',
                               model: 'FH 540', manufacture_year: 2021, model_year: 2022, color: 'BRANCA', body: 'NAO APLICAVEL',
@@ -228,6 +230,65 @@ describe 'Vehicles' do
           expect(page).to have_css('#vehicle_empty_legs_total', text: 'Total de KM vazio 265,64 km')
         end
       end
+
+      scenario 'tells that the vehicle has no expenses' do
+        visit vehicle_path(vehicle)
+
+        expect(Atua::Expense.count).to eq(0)
+        expect(page).to have_text('Nenhuma despesa vinculada a este veículo ou aos fretes dele.')
+      end
+
+      context 'when the vehicle and its freights have expenses' do
+        let!(:transport_document) { create(:atua_transport_document, tenant:, number: '74512', vehicle_code: 812, plate: 'EXU0F72') }
+        let!(:tire) do
+          create(:atua_expense, tenant:, code: 590_301, posted_at: Time.zone.local(2026, 10, 5, 10), posted_on: Date.new(2026, 10, 5),
+                                history_name: 'PNEUS', payee_name: 'PNEUS BH LTDA', plate: 'EXU0F72', total_cents: 200_000,
+                                cost_object: vehicle)
+        end
+        let!(:toll) do
+          create(:atua_expense, tenant:, code: 590_302, posted_at: Time.zone.local(2026, 10, 2, 7), posted_on: Date.new(2026, 10, 2),
+                                history_name: 'PEDAGIO', payee_name: 'VIA 040', plate: 'EXU0F72', total_cents: 15_000,
+                                cost_object: transport_document)
+        end
+
+        before do
+          other_truck = create(:atua_vehicle, tenant:, code: 900, plate: 'UAV4A05')
+          create(:atua_expense, tenant:, history_name: 'OUTRO CAMINHAO', plate: 'UAV4A05', cost_object: other_truck)
+          create(:atua_expense, tenant:, history_name: 'REMOVIDA', plate: 'EXU0F72', cost_object: vehicle,
+                                removed_from_atua_at: Time.current)
+          create(:atua_expense, tenant:, history_name: 'ALUGUEL', plate: nil)
+          stranger_truck = create(:atua_vehicle, tenant: other_tenant, code: 812, plate: 'EXU0F72')
+          create(:atua_expense, tenant: other_tenant, history_name: 'ESTRANHA', plate: 'EXU0F72', cost_object: stranger_truck)
+        end
+
+        scenario 'lists its own expenses and the expenses of its freights with the totals' do
+          visit vehicle_path(vehicle)
+
+          expect(Atua::Expense.count).to eq(6)
+          expect(html_table_to_rows(table: find_by_id('vehicle_expenses'))).to eq(
+            [
+              ['Histórico', 'Lançado em', 'Origem', 'Favorecido', 'Valor total'],
+              ['PNEUS', '05/10/2026', 'Veículo', 'PNEUS BH LTDA', 'R$ 2.000,00'],
+              ['PEDAGIO', '02/10/2026', 'CT-e 74512', 'VIA 040', 'R$ 150,00'],
+            ],
+          )
+          expect(dl_to_hash('#vehicle_expenses_totals')).to eq(
+            'Despesas diretas do veículo' => 'R$ 2.000,00',
+            'Despesas dos fretes' => 'R$ 150,00',
+            'Total de despesas' => 'R$ 2.150,00',
+          )
+        end
+
+        scenario 'opens the expense and the freight of the expense' do
+          visit vehicle_path(vehicle)
+
+          expect(page).to have_link('CT-e 74512', href: transport_document_path(transport_document))
+
+          click_on 'PNEUS'
+
+          expect(page).to have_current_path(expense_path(tire))
+        end
+      end
     end
   end
 
@@ -273,6 +334,16 @@ describe 'Vehicles' do
         expect(page).to have_css('#ownership_data', text: 'JOSE DA SILVA')
         expect(page).to have_no_link('JOSE DA SILVA')
       end
+
+      scenario 'does not show the expenses without access to them' do
+        create(:atua_expense, tenant:, history_name: 'PNEUS', plate: 'EXU0F72', cost_object: vehicle)
+
+        visit vehicle_path(vehicle)
+
+        expect(Atua::Expense.count).to eq(1)
+        expect(page).to have_no_text('Despesas do veículo')
+        expect(page).to have_no_text('PNEUS')
+      end
     end
   end
 
@@ -309,6 +380,20 @@ describe 'Vehicles' do
 
         expect(page).to have_css('#vehicle_empty_legs td', text: '48,20 km')
         expect(page).to have_no_css('#vehicle_empty_legs th', text: 'Saída (última entrega)')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
+    end
+
+    context 'when the vehicle has expenses' do
+      let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
+
+      before { create(:atua_expense, tenant:, history_name: 'PNEUS', plate: 'EXU0F72', total_cents: 200_000, cost_object: vehicle) }
+
+      scenario 'keeps only the history and the total of the expenses without horizontal scroll' do
+        visit vehicle_path(vehicle)
+
+        expect(page).to have_css('#vehicle_expenses td', text: 'R$ 2.000,00')
+        expect(page).to have_no_css('#vehicle_expenses th', text: 'Origem')
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end
     end

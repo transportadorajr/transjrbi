@@ -32,9 +32,13 @@ module ExpensesHelper
 
   def expense_transport_document(expense)
     number = expense.transport_document_number.presence || expense.transport_document_code
-    return tax_value(number) unless expense.transport_document&.active? && can?(:read, :transport_documents)
+    return tax_value(number) unless expense.allocation == 'freight' && can?(:read, :transport_documents)
 
-    link_to number, transport_document_path(expense.transport_document), class: 'fw-semibold text-decoration-none'
+    link_to number, transport_document_path(expense.cost_object), class: 'fw-semibold text-decoration-none'
+  end
+
+  def expense_link(expense)
+    link_to tax_value(expense.history_name), expense_path(expense), class: 'fw-semibold text-decoration-none text-body text-break'
   end
 
   def expense_attachment(expense)

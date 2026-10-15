@@ -27,6 +27,38 @@ module VehiclesHelper
     render 'vehicles/empty_legs/table', empty_legs:, total:
   end
 
+  def vehicle_expenses(expenses, totals)
+    return if expenses.nil?
+
+    render 'vehicles/expenses/card', expenses:, totals:
+  end
+
+  def vehicle_expenses_table(expenses, totals)
+    return content_tag(:p, t('vehicles.show.no_expenses'), class: 'text-body-secondary mb-0') if expenses.none?
+
+    render 'vehicles/expenses/table', expenses:, totals:
+  end
+
+  def vehicle_expense_totals(totals)
+    vehicle = totals.fetch('vehicle', Money.from_cents(0))
+    freight = totals.fetch('freight', Money.from_cents(0))
+
+    {
+      t('vehicles.expenses.totals.vehicle') => vehicle,
+      t('vehicles.expenses.totals.freight') => freight,
+      t('vehicles.expenses.totals.total') => vehicle + freight,
+    }
+  end
+
+  def vehicle_expense_origin(expense)
+    return expense.allocation_name unless expense.allocation == 'freight'
+
+    label = t('vehicles.expenses.freight_origin', number: expense.cost_object.number)
+    return label unless can?(:read, :transport_documents)
+
+    link_to label, transport_document_path(expense.cost_object), class: 'fw-semibold text-decoration-none'
+  end
+
   private
 
   def vehicle_show_menu(vehicle)

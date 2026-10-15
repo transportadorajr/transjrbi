@@ -31,6 +31,18 @@ module TransportDocumentsHelper
     content_tag(:div, render(partial: 'transport_documents/empty_leg', collection: empty_legs), class: 'd-flex flex-column gap-4')
   end
 
+  def transport_document_expenses(expenses, total)
+    return if expenses.nil?
+
+    render 'transport_documents/expenses/card', expenses:, total:
+  end
+
+  def transport_document_expenses_table(expenses, total)
+    return content_tag(:p, t('transport_documents.show.no_expenses'), class: 'text-body-secondary mb-0') if expenses.none?
+
+    render 'transport_documents/expenses/table', expenses:, total:
+  end
+
   def transport_document_manifests_table(manifests)
     return render('shared/no_content') if manifests.none?
 

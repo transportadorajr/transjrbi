@@ -25,7 +25,7 @@ RSpec.describe Atua::TransportDocument do
         create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
                                         transport_document_series: 1, branch_name: 'JR TRANSPORTES')
       end
-      let!(:expense) { create(:atua_expense, tenant:, transport_document_code: 80_842) }
+      let!(:expense) { create(:atua_expense, tenant:, transport_document_code: 80_842, cost_object: transport_document) }
 
       before do
         create(:atua_customer, tenant: other_tenant, code: 7752)
@@ -58,7 +58,7 @@ RSpec.describe Atua::TransportDocument do
         expect(transport_document.manifest_documents).to eq([manifest_document])
       end
 
-      it 'reaches the expenses by code inside the tenant' do
+      it 'reaches the expenses linked to it as their cost object' do
         expect(transport_document.expenses).to eq([expense])
         expect(Atua::Expense.count).to eq(2)
       end

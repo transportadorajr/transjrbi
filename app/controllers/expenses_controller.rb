@@ -1,6 +1,7 @@
 class ExpensesController < BaseController
   has_scope :by_plate, as: :plate
   has_scope :by_history, as: :history
+  has_scope :by_allocation, as: :allocation
   has_scope :by_payee_name, as: :payee
   has_scope :by_period_start, as: :start_date
   has_scope :by_period_end, as: :end_date
@@ -19,6 +20,6 @@ class ExpensesController < BaseController
   def show
     authorize!(:read, :expenses)
 
-    @expense = current_tenant.atua_expenses.active.find(params.expect(:id))
+    @expense = current_tenant.atua_expenses.active.preload(:cost_object).find(params.expect(:id))
   end
 end

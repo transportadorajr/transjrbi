@@ -1,6 +1,7 @@
 module Atua
   class ProcessImportCommand
     EMPTY_LEG_REPORTS = %w[manifests transport_documents].freeze
+    EXPENSE_LINK_REPORTS = %w[expenses transport_documents vehicles].freeze
 
     class << self
       def call(import)
@@ -21,6 +22,7 @@ module Atua
         removed_count: result.removed, warning_message: result.warning
       )
       calculate_empty_legs
+      link_expenses
       import
     rescue StandardError => e
       FailImportCommand.call(import, e)
@@ -34,6 +36,12 @@ module Atua
       return unless EMPTY_LEG_REPORTS.include?(import.report_type)
 
       EmptyLegs::CalculateJob.perform_later(import.tenant_id, import.start_date&.iso8601)
+    end
+
+    def link_expenses
+      return unless EXPENSE_LINK_REPORTS.include?(import.report_type)
+
+      LinkExpensesJob.perform_later(import.tenant_id)
     end
 
     def read_spreadsheet

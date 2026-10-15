@@ -1,0 +1,7 @@
+<tr id="<%= dom_id(expense) %>">
+  <td><%= expense_link(expense) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(expense.posted_on) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= vehicle_expense_origin(expense) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(expense.payee_name) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(expense.total) %></td>
+</tr>

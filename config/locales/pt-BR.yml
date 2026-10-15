@@ -175,6 +175,8 @@ pt-BR:
         plates: Placas
       atua/expense:
         code: Código
+        allocation: Alocação
+        origin: Origem
         history_name: Histórico
         description: Complemento
         posted_on: Lançado em
@@ -353,6 +355,11 @@ pt-BR:
       precision_type:
         address: Endereço
         city: Centro da cidade
+    atua/expense:
+      allocation:
+        freight: Frete
+        vehicle: Veículo
+        overhead: Despesa geral
     atua/import:
       report_type:
         transport_documents: Conhecimentos de transporte
@@ -522,6 +529,8 @@ pt-BR:
       canceled: Cancelado
   transport_documents:
     route: '%{origin} → %{destination}'
+    expenses:
+      total: Total de despesas
     document_kinds:
       cte: CT-e
       ce: CE
@@ -545,6 +554,8 @@ pt-BR:
       transport: Transporte
       values: Valores
       manifests: Manifestos
+      expenses: Despesas do frete
+      no_expenses: Nenhuma despesa vinculada a este CT-e.
       empty_legs: KM vazio para chegar à coleta
       no_empty_leg: Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.
   manifests:
@@ -657,8 +668,16 @@ pt-BR:
       ownership_data: Propriedade e motorista
       empty_legs: Trechos rodados vazios
       no_empty_legs: Nenhum trecho rodado vazio por esta placa.
+      expenses: Despesas do veículo
+      no_expenses: Nenhuma despesa vinculada a este veículo ou aos fretes dele.
     empty_legs:
       total: Total de KM vazio
+    expenses:
+      freight_origin: 'CT-e %{number}'
+      totals:
+        vehicle: Despesas diretas do veículo
+        freight: Despesas dos fretes
+        total: Total de despesas
   expenses:
     code: 'Lançamento %{code}'
     attachment:
@@ -671,6 +690,7 @@ pt-BR:
       history: Histórico
       payee: Favorecido
       plate: Placa
+      allocation: Alocação
       start_date: Lançadas a partir de
       end_date: Lançadas até
     show:
