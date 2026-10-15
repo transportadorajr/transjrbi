@@ -9,6 +9,7 @@ Rails.application.routes.draw do
         post :reprocess, on: :member
       end
       resources :initial_loads, only: %i[new create]
+      resources :resources, only: %i[index new create edit update destroy]
 
       constraints ->(request) { Admin::Session.authenticate(request.session[Admin::Authentication::SESSION_TOKEN_KEY]) } do
         mount Flipper::UI.app(Flipper), at: 'flipper', as: :flipper
@@ -36,7 +37,6 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   resources :users, only: %i[index show new create edit update]
-  resources :resources, only: %i[index new create edit update destroy]
   resources :transport_documents, only: %i[index show]
   resources :manifests, only: %i[index show]
   resources :customers, only: %i[index show]

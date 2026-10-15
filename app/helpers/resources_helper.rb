@@ -1,47 +1,40 @@
-module ResourcesHelper
-  def resources_menu(resource)
-    menus = []
+module Admin
+  module ResourcesHelper
+    def admin_resource_menu(resource)
+      [admin_resource_edit_menu(resource), admin_resource_destroy_menu(resource)]
+    end
 
-    menus << resource_edit_menu(resource) if can?(:update, resource)
-    menus << resource_destroy_menu(resource) if can?(:destroy, resource)
+    def admin_resource_writable_badge(resource)
+      return status_badge(t('admin.resources.index.writable'), kind: :success) if resource.writable?
 
-    menus
-  end
+      status_badge(t('admin.resources.index.read_only'), kind: :secondary)
+    end
 
-  def resource_writable_badge(resource)
-    return status_badge(t('resources.index.writable'), kind: :success) if resource.writable?
+    def admin_resource_form_url(resource_form)
+      resource_form.persisted? ? admin_resource_path(resource_form.resource) : admin_resources_path
+    end
 
-    status_badge(t('resources.index.read_only'), kind: :secondary)
-  end
+    def admin_resource_form_submit_label(resource_form)
+      t("helpers.submit.admin_resource.#{resource_form.persisted? ? :update : :create}")
+    end
 
-  def resource_form_url(resource_form)
-    resource_form.persisted? ? resource_path(resource_form.resource) : resources_path
-  end
+    private
 
-  def resource_form_submit_label(resource_form)
-    t("helpers.submit.resource.#{resource_form.persisted? ? :update : :create}")
-  end
+    def admin_resource_edit_menu(resource)
+      Menu.new(name: :edit, record: resource, url: edit_admin_resource_path(resource), icon: :pencil)
+    end
 
-  def resource_create_button
-    create_button(t('resources.index.new_resource')) if can?(:create, Resource)
-  end
-
-  private
-
-  def resource_edit_menu(resource)
-    Menu.new(name: :edit, record: resource, url: edit_resource_path(resource), icon: :pencil)
-  end
-
-  def resource_destroy_menu(resource)
-    Menu.new(
-      name: :destroy,
-      record: resource,
-      url: resource_path(resource),
-      icon: :'x-circle',
-      data: {
-        turbo_confirm: t('resources.index.confirm_destroy'),
-        turbo_method: :delete,
-      },
-    )
+    def admin_resource_destroy_menu(resource)
+      Menu.new(
+        name: :destroy,
+        record: resource,
+        url: admin_resource_path(resource),
+        icon: :'x-circle',
+        data: {
+          turbo_confirm: t('admin.resources.index.confirm_destroy'),
+          turbo_method: :delete,
+        },
+      )
+    end
   end
 end

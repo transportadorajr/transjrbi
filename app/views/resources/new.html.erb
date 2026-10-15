@@ -4,11 +4,11 @@
   <div class="mb-3 page-breadcrumb">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><%= link_to t('resources.index.title'), resources_path %></li>
+        <li class="breadcrumb-item"><%= link_to t('admin.resources.index.title'), admin_resources_path %></li>
         <li class="breadcrumb-item active" aria-current="page"><%= t('.title') %></li>
       </ol>
     </nav>
-    <%= page_header_tag t('.title'), back_path: resources_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+    <%= page_header_tag t('.title'), back_path: admin_resources_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
   </div>
 
   <%= render 'form', resource_form: @resource_form %>

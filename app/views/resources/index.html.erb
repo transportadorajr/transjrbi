@@ -3,7 +3,7 @@
 <div class="page-shell">
   <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
     <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
-    <%= resource_create_button %>
+    <%= create_button(t('.new_resource'), new_admin_resource_path) %>
   <% end %>
 
   <%= render 'filters' %>

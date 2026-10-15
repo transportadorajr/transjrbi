@@ -11,12 +11,7 @@ class Ability
     return if user.operator?
 
     can %i[read create update], User, tenant_id: user.tenant_id
-    can :read, Resource
     resource_privileges
-
-    return unless user.owner?
-
-    can %i[create update destroy], Resource
   end
 
   private

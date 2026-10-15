@@ -40,11 +40,6 @@ shared:
       url: /users
       controllers:
         - users
-    - name: resources
-      icon: shield-lock
-      url: /resources
-      controllers:
-        - resources
   admin:
     - name: admin_imports
       icon: cloud-arrow-down
@@ -52,6 +47,11 @@ shared:
       controllers:
         - admin/imports
         - admin/initial_loads
+    - name: admin_resources
+      icon: shield-lock
+      url: /resources
+      controllers:
+        - admin/resources
     - name: admin_good_job
       icon: hourglass-split
       url: /good_job
