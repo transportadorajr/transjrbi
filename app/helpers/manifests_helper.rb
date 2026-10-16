@@ -43,6 +43,12 @@ module ManifestsHelper
     render 'manifests/expenses/table', expenses:, total:
   end
 
+  def manifest_commissions(commissions, total)
+    return if commissions.blank?
+
+    render 'manifests/commissions/card', commissions:, total:
+  end
+
   def manifest_expense_transport_document(expense)
     transport_document = expense.cost_object
     return transport_document.number unless can?(:read, :transport_documents)

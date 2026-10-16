@@ -26,9 +26,20 @@ class TransportDocumentsController < BaseController
     @manifests = @transport_document.manifests.active.order(:issued_on, :number)
     @empty_legs = @transport_document.empty_legs.preload(:origin, :destination).order(:next_manifest_code)
     load_expenses if can?(:read, :expenses)
+    load_net_freight if can?(:read, :freight_expenses)
   end
 
   private
+
+  def load_net_freight
+    return if @transport_document.canceled?
+
+    @net_freight = NetFreight.for(current_tenant.atua_transport_documents.where(id: @transport_document.id))
+    commissions = @transport_document.freight_expenses.commission
+
+    @commissions = commissions.preload(:commission_rule).order(:id)
+    @commissions_total = Money.from_cents(commissions.sum(:amount_cents))
+  end
 
   def load_expenses
     expenses = @transport_document.expenses.active

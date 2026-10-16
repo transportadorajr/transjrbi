@@ -46,6 +46,10 @@ Rails.application.routes.draw do
   resources :drivers, only: %i[index show]
   resources :vehicles, only: %i[index show]
   resources :expenses, only: %i[index show]
+  resources :commission_rules
+  resources :freight_expenses, only: %i[index] do
+    post :recalculate, on: :collection
+  end
 
   root 'home#index'
 end

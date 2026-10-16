@@ -43,6 +43,12 @@ module TransportDocumentsHelper
     render 'transport_documents/expenses/table', expenses:, total:
   end
 
+  def transport_document_commissions(commissions, total)
+    return if commissions.blank?
+
+    render 'transport_documents/commissions/card', commissions:, total:
+  end
+
   def transport_document_manifests_table(manifests)
     return render('shared/no_content') if manifests.none?
 

@@ -1,0 +1,32 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= commission_rule_create_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="row g-3 mb-4">
+    <%= counter_card(:dark, t('.total'), @total_count) %>
+    <%= counter_card(:success, t('.active_rules'), @active_count) %>
+    <%= counter_card(:danger, t('.deactivated_rules'), @deactivated_count) %>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @commission_rules.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @commission_rules.any? %>
+        <%= render 'table', collection: @commission_rules %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

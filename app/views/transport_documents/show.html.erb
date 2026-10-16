@@ -178,6 +178,10 @@
     </div>
   </div>
 
+  <%= net_freight_card(@net_freight, id: 'transport_document_net_freight') %>
+
+  <%= transport_document_commissions(@commissions, @commissions_total) %>
+
   <%= transport_document_expenses(@expenses, @expenses_total) %>
 
   <div class="card detail-card mb-4">

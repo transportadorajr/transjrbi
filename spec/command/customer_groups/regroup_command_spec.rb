@@ -31,6 +31,47 @@ RSpec.describe CustomerGroups::RegroupCommand do
     end
   end
 
+  context 'when only the taker name on the transport documents matches the terms' do
+    let!(:own_group) { create(:customer_group, tenant:, name: 'PESSOA 04263') }
+    let!(:customer) { create(:atua_customer, tenant:, code: 6260, name: 'PESSOA 04263', customer_group: own_group) }
+    let!(:other_customer) { create(:atua_customer, tenant:, code: 6261, name: 'PESSOA 04265') }
+    let!(:transport_document) { create(:atua_transport_document, tenant:, taker_code: 6260, taker_name: '2JM COMERCIO LTDA') }
+    let!(:sent_document) { create(:atua_transport_document, tenant:, sender_code: 6261, sender_name: '2JM COMERCIO LTDA') }
+
+    it 'moves the taker to the group' do
+      expect(described_class.call(food)).to eq(1)
+
+      expect(customer.reload.customer_group).to eq(food)
+      expect(other_customer.reload.customer_group).to be_nil
+      expect(CustomerGroup.exists?(own_group.id)).to be(false)
+    end
+  end
+
+  context 'with a taker name on a transport document of another tenant' do
+    let(:other_tenant) { create(:tenant) }
+    let!(:customer) { create(:atua_customer, tenant:, code: 6260, name: 'PESSOA 04263') }
+    let!(:stranger_document) { create(:atua_transport_document, tenant: other_tenant, taker_code: 6260, taker_name: '2JM COMERCIO LTDA') }
+
+    it 'does not use it' do
+      expect(described_class.call(food)).to eq(0)
+
+      expect(customer.reload.customer_group).to be_nil
+    end
+  end
+
+  context 'when the group left empty has commission rules' do
+    let!(:own_group) { create(:customer_group, tenant:, name: '2JM COMERCIO LTDA') }
+    let!(:rule) { create(:commission_rule, tenant:, customer_group: own_group) }
+    let!(:moved) { create(:atua_customer, tenant:, name: '2JM COMERCIO LTDA', customer_group: own_group) }
+
+    it 'moves the customers and keeps the group of the rules' do
+      expect { expect(described_class.call(food)).to eq(1) }.not_to change(CustomerGroup, :count)
+
+      expect(moved.reload.customer_group).to eq(food)
+      expect(rule.reload.customer_group).to eq(own_group)
+    end
+  end
+
   context 'when a matching customer is in another group with terms' do
     let!(:other_group) { create(:customer_group, tenant:, name: 'DISTRIBUIDORES', terms: ['DISTRIBUIDORA']) }
     let!(:customer) { create(:atua_customer, tenant:, name: '2JM DISTRIBUIDORA', customer_group: other_group) }

@@ -74,6 +74,10 @@
     </div>
   </div>
 
+  <%= net_freight_card(@net_freight, id: 'manifest_net_freight') %>
+
+  <%= manifest_commissions(@commissions, @commissions_total) %>
+
   <div class="card detail-card">
     <div class="detail-card-header">
       <p class="detail-card-title"><%= t('.documents') %></p>

@@ -2,6 +2,8 @@ class Tenant < ApplicationRecord
   has_many :users, dependent: :restrict_with_error
   has_many :accesses, dependent: :restrict_with_error
   has_many :atua_imports, class_name: 'Atua::Import', dependent: :destroy
+  has_many :freight_expenses, dependent: :delete_all
+  has_many :commission_rules, dependent: :delete_all
   has_many :atua_transport_documents, class_name: 'Atua::TransportDocument', dependent: :delete_all
   has_many :atua_transport_document_manifests, class_name: 'Atua::TransportDocumentManifest', dependent: :delete_all
   has_many :atua_manifests, class_name: 'Atua::Manifest', dependent: :delete_all

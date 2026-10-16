@@ -1,0 +1,20 @@
+<div class="card detail-card mb-4">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('freight_expenses.net_freight.title') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0" id="<%= id %>">
+      <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.freight') %></dt>
+      <dd class="col-12 col-md-6 text-md-end"><%= tax_money(net_freight.freight) %></dd>
+
+      <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.commission') %></dt>
+      <dd class="col-12 col-md-6 text-md-end text-danger"><%= tax_money(net_freight.commission) %></dd>
+
+      <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.expenses') %></dt>
+      <dd class="col-12 col-md-6 text-md-end text-danger"><%= tax_money(net_freight.expenses) %></dd>
+
+      <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.net') %></dt>
+      <dd class="col-12 col-md-6 text-md-end fw-semibold text-success"><%= tax_money(net_freight.net) %></dd>
+    </dl>
+  </div>
+</div>

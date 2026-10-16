@@ -16,6 +16,20 @@ RSpec.describe CustomerGroups::AssignCommand do
     end
   end
 
+  context 'when only the taker name on the transport documents matches the terms of a group' do
+    let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS', terms: ['USIMINAS']) }
+    let!(:customer) { create(:atua_customer, tenant:, code: 6260, name: 'PESSOA 04263', trade_name: 'PESSOA 04264') }
+    let!(:transport_document) do
+      create(:atua_transport_document, tenant:, taker_code: 6260, taker_name: 'USINAS SIDERURGICAS DE MINAS GERAIS S\\A - USIMINAS')
+    end
+
+    it 'links the customer to the group' do
+      expect { expect(described_class.call(tenant)).to eq(1) }.not_to change(CustomerGroup, :count)
+
+      expect(customer.reload.customer_group).to eq(usiminas)
+    end
+  end
+
   context 'when a customer matches no terms' do
     let!(:food) { create(:customer_group, tenant:, name: 'TERRAFEC', terms: ['TERRAFEC']) }
     let!(:first_branch) { create(:atua_customer, tenant:, name: ' USIMINAS  S.A. ') }

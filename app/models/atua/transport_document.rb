@@ -2,6 +2,8 @@ module Atua
   class TransportDocument < ApplicationRecord
     include Importable
 
+    VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
+
     with_options class_name: 'Atua::Customer', primary_key: %i[tenant_id code], optional: true, inverse_of: false do
       belongs_to :sender, foreign_key: %i[tenant_id sender_code]
       belongs_to :recipient, foreign_key: %i[tenant_id recipient_code]
@@ -26,6 +28,7 @@ module Atua
     has_many :empty_leg_transport_documents, foreign_key: %i[tenant_id transport_document_code], primary_key: %i[tenant_id code],
                                              inverse_of: :transport_document
     has_many :empty_legs, through: :empty_leg_transport_documents
+    has_many :freight_expenses, dependent: :delete_all, inverse_of: :transport_document
 
     monetize :goods_value_cents, :freight_cents, :weight_freight_cents, :value_freight_cents, :ad_valorem_cents,
              :other_charges_cents, :toll_cents, :icms_base_cents, :icms_cents, :icms_st_cents, :federal_tax_cents,
@@ -55,8 +58,17 @@ module Atua
     scope :not_canceled, -> { where(canceled_at: nil) }
     scope :canceled, -> { where.not(canceled_at: nil) }
     scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
+    scope :commissionable, -> {
+      active.not_canceled.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'])
+        .where(arel_table[:issue_kind].is_distinct_from(VALUE_COMPLEMENT))
+    }
 
     class << self
+      def taker_names_by_code
+        where.not(taker_name: [nil, '']).distinct.pluck(:taker_code, :taker_name)
+          .group_by(&:first).transform_values { |rows| rows.map(&:last) }
+      end
+
       def statuses
         {
           I18n.t('tax.situations.valid') => :valid,

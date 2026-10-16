@@ -7,7 +7,8 @@ Capybara.default_max_wait_time = 10
 Capybara.save_path = 'tmp'
 Capybara.register_driver(:cuprite) do |app|
   Capybara::Cuprite::Driver.new(app, window_size: [1920, 1080], headless: ENV['INSPECTOR'].blank?, timeout: 10,
-                                     process_timeout: 30, browser_options: { 'no-sandbox': nil })
+                                     process_timeout: 30, browser_options: { 'no-sandbox': nil },
+                                     url_blacklist: %w[https://fonts.googleapis.com https://fonts.gstatic.com])
 end
 
 module CapybaraHelpers

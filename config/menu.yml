@@ -39,6 +39,14 @@ shared:
           url: /expenses
           controllers:
             - expenses
+        - name: commission_rules
+          url: /commission_rules
+          controllers:
+            - commission_rules
+        - name: freight_expenses
+          url: /freight_expenses
+          controllers:
+            - freight_expenses
     - name: users
       icon: people
       url: /users

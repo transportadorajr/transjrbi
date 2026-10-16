@@ -249,6 +249,63 @@ describe 'Transport documents' do
         end
       end
 
+      context 'with access to the freight expenses' do
+        let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+
+        let!(:atua_expense) do
+          create(:atua_expense, tenant:, history_name: 'DESCARGA - CHAPA', total_cents: 35_000, cost_object: transport_document)
+        end
+
+        context 'when the freight has a commission' do
+          let!(:freight_expense) do
+            create(:freight_expense, tenant:, transport_document:, base_cents: 488_435, icms_cents: 66_605, amount_cents: 9_769)
+          end
+
+          scenario 'shows the net freight after the commission and the Atua expenses' do
+            visit transport_document_path(transport_document)
+
+            expect(FreightExpense.count).to eq(1)
+            expect(dl_to_hash('#transport_document_net_freight')).to eq(
+              'Frete bruto' => 'R$ 5.550,40',
+              '(−) Comissões' => 'R$ 97,69',
+              '(−) Despesas do frete na Atua' => 'R$ 350,00',
+              '(=) Frete líquido' => 'R$ 5.102,71',
+            )
+          end
+
+          scenario 'lists the commissions of the freight with the total' do
+            visit transport_document_path(transport_document)
+
+            expect(transport_document.freight_expenses.commission.count).to eq(1)
+            expect(html_table_to_rows(table: find_by_id('transport_document_commissions'))).to eq(
+              [
+                ['Regra', 'Base de cálculo', 'ICMS deduzido da base', 'Comissão', 'Valor'],
+                ['Nacional', 'R$ 4.884,35', 'R$ 666,05', '2,00%', 'R$ 97,69'],
+              ],
+            )
+            expect(page).to have_css('#transport_document_commissions_total', text: 'Total de comissões R$ 97,69')
+          end
+        end
+
+        context 'when the freight has no commission' do
+          scenario 'does not show the commissions card' do
+            visit transport_document_path(transport_document)
+
+            expect(FreightExpense.count).to eq(0)
+            expect(page).to have_css('#transport_document_net_freight')
+            expect(page).to have_no_css('#transport_document_commissions')
+          end
+        end
+      end
+
+      scenario 'does not show the net freight without access to the freight expenses' do
+        visit transport_document_path(transport_document)
+
+        expect(page).to have_css('h1.page-title', text: 'CT-e 74130')
+        expect(page).to have_no_css('#transport_document_net_freight')
+        expect(page).to have_no_css('#transport_document_commissions')
+      end
+
       context 'with access to the expenses' do
         let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
 
