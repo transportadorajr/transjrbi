@@ -1,0 +1,52 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('tonnage_rates.form.tonnage_rate_data') %></p>
+    <p class="form-card-subtitle"><%= t('tonnage_rates.form.tonnage_rate_data_text') %></p>
+  </div>
+  <%= simple_form_for(tonnage_rate_form, url: tonnage_rate_form_url(tonnage_rate_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :customer_group_id, collection: tonnage_rate_form.customer_groups, label_method: :name, value_method: :id,
+                                          required: true, include_blank: t('helpers.select.prompt'),
+                                          input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :name, required: true, hint: t('tonnage_rates.form.name_hint'),
+                             input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-5">
+          <%= f.input :origin_city, required: true, hint: t('tonnage_rates.form.origin_city_hint'),
+                                    input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-2">
+          <%= f.input :origin_state, required: true, input_html: { class: 'form-control text-uppercase', maxlength: 2, autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-5">
+          <%= f.input :nickname, required: false, hint: t('tonnage_rates.form.nickname_hint'),
+                                 input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :valid_month, as: :string, required: true, hint: t('tonnage_rates.form.valid_month_hint'),
+                                    input_html: { class: 'form-control', type: :month } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :rate, as: :string, required: true, hint: t('tonnage_rates.form.rate_hint'),
+                             input_html: { class: 'form-control', inputmode: 'decimal', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :active,
+                      as: :boolean,
+                      hint: t('tonnage_rates.form.active_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, tonnage_rate_form_submit_label(tonnage_rate_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), tonnage_rates_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

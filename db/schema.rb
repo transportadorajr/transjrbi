@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_15_191722) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_142433) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,7 +22,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_191722) do
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
-  create_enum "freight_expense_kind_type", ["commission"]
+  create_enum "freight_expense_kind_type", ["commission", "tonnage"]
   create_enum "location_precision_type", ["address", "city"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
@@ -558,15 +558,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_191722) do
     t.bigint "transport_document_id", null: false
     t.bigint "commission_rule_id"
     t.enum "kind_type", null: false, enum_type: "freight_expense_kind_type"
-    t.bigint "base_cents", null: false
+    t.bigint "base_cents"
     t.bigint "icms_cents", default: 0, null: false
-    t.decimal "percentage", precision: 7, scale: 4, null: false
+    t.decimal "percentage", precision: 7, scale: 4
     t.bigint "amount_cents", null: false
     t.datetime "calculated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "tonnage_rate_id"
+    t.decimal "weight_tons", precision: 14, scale: 3
+    t.bigint "rate_cents"
     t.index ["commission_rule_id"], name: "index_freight_expenses_on_commission_rule_id"
     t.index ["tenant_id"], name: "index_freight_expenses_on_tenant_id"
+    t.index ["tonnage_rate_id"], name: "index_freight_expenses_on_tonnage_rate_id"
     t.index ["transport_document_id", "kind_type"], name: "index_freight_expenses_on_transport_document_id_and_kind_type", unique: true
   end
 
@@ -735,6 +739,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_191722) do
     t.index ["legal_id"], name: "index_tenants_on_legal_id", unique: true
   end
 
+  create_table "tonnage_rates", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "customer_group_id", null: false
+    t.string "name", null: false
+    t.string "nickname"
+    t.string "origin_city", null: false
+    t.string "origin_state", null: false
+    t.date "valid_month", null: false
+    t.bigint "rate_cents", null: false
+    t.datetime "activated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_group_id"], name: "index_tonnage_rates_on_customer_group_id"
+    t.index ["tenant_id", "valid_month"], name: "index_tonnage_rates_on_tenant_id_and_valid_month"
+    t.index ["tenant_id"], name: "index_tonnage_rates_on_tenant_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -798,7 +819,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_191722) do
   add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
   add_foreign_key "freight_expenses", "commission_rules"
   add_foreign_key "freight_expenses", "tenants"
+  add_foreign_key "freight_expenses", "tonnage_rates"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
+  add_foreign_key "tonnage_rates", "customer_groups"
+  add_foreign_key "tonnage_rates", "tenants"
   add_foreign_key "users", "tenants"
 end

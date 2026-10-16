@@ -43,10 +43,10 @@ module ManifestsHelper
     render 'manifests/expenses/table', expenses:, total:
   end
 
-  def manifest_commissions(commissions, total)
-    return if commissions.blank?
+  def manifest_freight_expenses(freight_expenses, total)
+    return if freight_expenses.blank?
 
-    render 'manifests/commissions/card', commissions:, total:
+    render 'manifests/freight_expenses/card', freight_expenses:, total:
   end
 
   def manifest_expense_transport_document(expense)

@@ -70,7 +70,7 @@ class CommissionRuleForm < BaseForm
                               cities: city_list, activated: active)
     end
 
-    FreightExpenses::CalculateCommissionsJob.perform_later(tenant.id)
+    FreightExpenses::CalculateJob.perform_later(tenant.id)
   end
 
   private

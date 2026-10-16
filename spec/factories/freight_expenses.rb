@@ -9,5 +9,16 @@ FactoryBot.define do
     percentage { BigDecimal('2.0') }
     amount_cents { 2_000 }
     calculated_at { Time.current }
+
+    trait :tonnage do
+      commission_rule { nil }
+      tonnage_rate { association :tonnage_rate, tenant: }
+      kind_type { 'tonnage' }
+      base_cents { nil }
+      percentage { nil }
+      weight_tons { BigDecimal('32.5') }
+      rate_cents { 1_257 }
+      amount_cents { 40_853 }
+    end
   end
 end

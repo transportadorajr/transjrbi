@@ -69,15 +69,12 @@ describe 'Freight expenses' do
         expect(tenant.freight_expenses.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['CT-e', 'Emitido em', 'Tomador', 'Destino', 'Regra', 'Base de cálculo', 'Comissão', 'Valor', 'Ações'],
-            ['74002', '02/10/2026 08:00', 'USIMINAS CUBATAO', 'ROSARIO/EX', 'Argentina', 'R$ 20.000,00', '1,30%', 'R$ 260,00', ''],
-            ['74001', '30/09/2026 10:00', 'USIMINAS CUBATAO', 'IPATINGA/MG', 'Nacional', 'R$ 8.800,00', '2,00%', 'R$ 176,00', ''],
+            ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
+            ['74002', '02/10/2026 08:00', 'USIMINAS CUBATAO', 'Comissão', 'Argentina', 'R$ 20.000,00', '1,30%', 'R$ 260,00', ''],
+            ['74001', '30/09/2026 10:00', 'USIMINAS CUBATAO', 'Comissão', 'Nacional', 'R$ 8.800,00', '2,00%', 'R$ 176,00', ''],
           ],
         )
-        expect(dl_to_hash('#freight_expenses_totals')).to eq(
-          'Total da base de cálculo' => 'R$ 28.800,00',
-          'Total de comissões' => 'R$ 436,00',
-        )
+        expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 436,00')
         expect(page).to have_link(href: transport_document_path(to_rosario), title: 'Visualizar')
         expect(page).to have_no_text('99999')
       end
@@ -102,14 +99,11 @@ describe 'Freight expenses' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['CT-e', 'Emitido em', 'Tomador', 'Destino', 'Regra', 'Base de cálculo', 'Comissão', 'Valor', 'Ações'],
-            ['74002', '02/10/2026 08:00', 'USIMINAS CUBATAO', 'ROSARIO/EX', 'Argentina', 'R$ 20.000,00', '1,30%', 'R$ 260,00', ''],
+            ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
+            ['74002', '02/10/2026 08:00', 'USIMINAS CUBATAO', 'Comissão', 'Argentina', 'R$ 20.000,00', '1,30%', 'R$ 260,00', ''],
           ],
         )
-        expect(dl_to_hash('#freight_expenses_totals')).to eq(
-          'Total da base de cálculo' => 'R$ 20.000,00',
-          'Total de comissões' => 'R$ 260,00',
-        )
+        expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 260,00')
       end
 
       scenario 'opens the transport document of a commission' do
@@ -124,10 +118,10 @@ describe 'Freight expenses' do
 
         expect(page).to have_css("form[action='#{recalculate_freight_expenses_path}'] button[data-turbo-confirm]")
 
-        expect { click_on 'Recalcular comissões' }.to have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
+        expect { click_on 'Recalcular despesas' }.to have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
 
         expect(page).to have_current_path(freight_expenses_path)
-        expect(page).to have_text('Recálculo das comissões enfileirado. Ele roda em segundo plano.')
+        expect(page).to have_text('Recálculo das despesas enfileirado. Ele roda em segundo plano.')
       end
 
       scenario 'has no route to create, change or remove a commission' do
@@ -142,6 +136,70 @@ describe 'Freight expenses' do
         page.driver.submit :delete, "/freight_expenses/#{expense.id}", {}
         expect(page.status_code).to eq(404)
         expect(expense.reload.amount_cents).to eq(26_000)
+      end
+    end
+  end
+
+  context 'when an admin is signed in and the tonnage costs were calculated' do
+    around { |example| travel_to(Time.zone.local(2026, 10, 16, 12)) { example.run } }
+
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:cubatao) { create(:tonnage_rate, tenant:, customer_group: usiminas) }
+    let!(:ipatinga) do
+      create(:tonnage_rate, tenant:, customer_group: usiminas, nickname: nil, origin_city: 'Ipatinga', origin_state: 'MG',
+                            valid_month: Date.new(2026, 7, 1), rate_cents: 860)
+    end
+    let!(:weighed) do
+      create(:atua_transport_document, tenant:, number: '75001', taker_code: 501, taker_name: 'USIMINAS CUBATAO',
+                                       issued_at: Time.zone.local(2026, 10, 5, 8), origin_city: 'CUBATÃO', origin_state: 'SP',
+                                       weight_tons: BigDecimal('32.5'))
+    end
+    let!(:without_weight) do
+      create(:atua_transport_document, tenant:, number: '75002', taker_code: 501, issued_at: Time.zone.local(2026, 10, 6, 8),
+                                       origin_city: 'Cubatao', origin_state: 'SP', weight_tons: nil, weight_kg: nil)
+    end
+
+    before do
+      FreightExpenses::CalculateTonnageCommand.call(tenant)
+      login_as(admin, scope: :user)
+    end
+
+    scenario 'lists the tonnage cost of the transport document with its weight and rate' do
+      visit freight_expenses_path
+
+      expect(tenant.freight_expenses.tonnage.count).to eq(1)
+      expect(html_table_to_rows).to eq(
+        [
+          ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
+          ['75001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Custo por tonelada', 'Brasiltec – Cubatão/SP (Cubatão)', '32,500 t',
+           'R$ 12,57/t', 'R$ 408,53', ''],
+        ],
+      )
+      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 408,53')
+    end
+
+    scenario 'filters the expenses by kind' do
+      create(:freight_expense, tenant:, commission_rule: national, transport_document: create(:atua_transport_document, tenant:, number: '75003'))
+
+      visit freight_expenses_path
+      select 'Custo por tonelada', from: 'Tipo'
+      click_on 'Aplicar Filtros'
+
+      expect(html_table_to_rows.drop(1).map(&:first)).to eq(['75001'])
+    end
+
+    scenario 'warns about the transport document without weight and the outdated cost' do
+      visit freight_expenses_path
+
+      within('#missing_weight_documents') do
+        expect(page).to have_text('1 CT-e sem peso com custo por tonelada')
+        expect(page).to have_text('75002')
+        expect(page).to have_text('Cubatao/SP')
+      end
+      within('#outdated_tonnage_rates') do
+        expect(page).to have_text('1 custo por tonelada desatualizado')
+        expect(page).to have_text('Brasiltec – Ipatinga/MG')
+        expect(page).to have_text('07/2026')
       end
     end
   end
@@ -167,12 +225,12 @@ describe 'Freight expenses' do
         visit freight_expenses_path
 
         expect(page).to have_css('h1.page-title', text: 'Despesas de frete')
-        expect(page).to have_no_button('Recalcular comissões')
+        expect(page).to have_no_button('Recalcular despesas')
       end
 
       scenario 'cannot recalculate through a forged request' do
         expect { page.driver.submit :post, recalculate_freight_expenses_path, {} }
-          .not_to have_enqueued_job(FreightExpenses::CalculateCommissionsJob)
+          .not_to have_enqueued_job(FreightExpenses::CalculateJob)
 
         expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
       end

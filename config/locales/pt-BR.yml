@@ -55,6 +55,9 @@ pt-BR:
       freight_expense:
         one: Despesa de frete
         other: Despesas de frete
+      tonnage_rate:
+        one: Custo por tonelada
+        other: Custos por tonelada
     attributes:
       commission_rule:
         name: Nome
@@ -69,10 +72,28 @@ pt-BR:
       freight_expense:
         transport_document: CT-e
         commission_rule: Regra
+        tonnage_rate: Custo por tonelada
+        detail: Regra ou custo
         kind_type: Tipo
         base: Base de cálculo
         icms: ICMS deduzido da base
         percentage: Comissão
+        rate: Taxa
+        weight_tons: Peso
+        amount: Valor
+      tonnage_rate:
+        name: Nome
+        nickname: Apelido
+        customer_group: Grupo de clientes
+        origin: Origem
+        origin_city: Cidade de origem
+        origin_state: UF de origem
+        valid_month: Vigência
+        reference_month: Média de
+        rate: Valor por tonelada
+        status: Status
+        activated_at: Ativado em
+        freight_expenses: CT-es com o custo
         amount: Valor
         calculated_at: Calculada em
       customer_group:
@@ -297,10 +318,13 @@ pt-BR:
             has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
         customer_group:
           restrict_dependent_destroy:
-            has_many: Não é possível excluir um grupo com clientes ou regras de comissão vinculados. Desative o grupo para deixar de usá-lo.
+            has_many: Não é possível excluir um grupo com clientes, regras de comissão ou custos por tonelada vinculados. Desative o grupo para deixar de usá-lo.
         commission_rule:
           restrict_dependent_destroy:
             has_many: Não é possível excluir uma regra que já gerou comissões. Desative a regra para deixar de usá-la.
+        tonnage_rate:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir um custo que já foi calculado nos CT-es. Desative o custo para deixar de usá-lo.
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -346,6 +370,15 @@ pt-BR:
         percentage: Comissão (%)
         cities: Cidades de destino
         active: Ativa
+      tonnage_rate_form:
+        customer_group_id: Grupo de clientes
+        name: Nome
+        nickname: Apelido
+        origin_city: Cidade de origem
+        origin_state: UF de origem
+        valid_month: Vigência
+        rate: Valor por tonelada (R$)
+        active: Ativo
     errors:
       models:
         admin/login_form:
@@ -373,6 +406,14 @@ pt-BR:
               national_taken: nacional já tem outra regra ativa neste grupo
             cities:
               taken: '%{cities} já estão em outra regra ativa deste grupo'
+        tonnage_rate_form:
+          attributes:
+            customer_group_id:
+              invalid: não pertence a esta empresa
+            valid_month:
+              invalid: não é um mês válido
+            origin_city:
+              taken: já tem outro custo ativo deste grupo nesta vigência
         customer_group_form:
           attributes:
             name:
@@ -399,6 +440,7 @@ pt-BR:
     freight_expense:
       kind_type:
         commission: Comissão
+        tonnage: Custo por tonelada
     location:
       precision_type:
         address: Endereço
@@ -463,6 +505,9 @@ pt-BR:
       commission_rule:
         create: Cadastrar Regra
         update: Salvar Alterações
+      tonnage_rate:
+        create: Cadastrar Custo
+        update: Salvar Alterações
     tooltips:
       user:
         show: Visualizar
@@ -481,6 +526,10 @@ pt-BR:
         edit: Alterar
         destroy: Excluir
       commission_rule:
+        show: Visualizar
+        edit: Alterar
+        destroy: Excluir
+      tonnage_rate:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
@@ -585,6 +634,7 @@ pt-BR:
     vehicles: Veículos
     expenses: Despesas
     commission_rules: Regras de comissão
+    tonnage_rates: Custos por tonelada
     freight_expenses: Despesas de frete
   tax:
     blank: '-'
@@ -596,8 +646,8 @@ pt-BR:
     route: '%{origin} → %{destination}'
     expenses:
       total: Total de despesas
-    commissions:
-      total: Total de comissões
+    freight_expenses:
+      total: Total das despesas do frete
     document_kinds:
       cte: CT-e
       ce: CE
@@ -623,7 +673,7 @@ pt-BR:
       manifests: Manifestos
       expenses: Despesas do frete
       no_expenses: Nenhuma despesa vinculada a este CT-e.
-      commissions: Comissões do frete
+      freight_expenses: Despesas internas do frete
       empty_legs: KM vazio para chegar à coleta
       no_empty_leg: Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.
   manifests:
@@ -648,11 +698,11 @@ pt-BR:
       no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
       expenses: Despesas da viagem
       no_expenses: Nenhuma despesa vinculada aos CT-es deste manifesto.
-      commissions: Comissões da viagem
+      freight_expenses: Despesas internas da viagem
     expenses:
       total: Total de despesas
-    commissions:
-      total: Total de comissões
+    freight_expenses:
+      total: Total das despesas do frete
   empty_legs:
     distance: '%{distance} km'
   customers:
@@ -758,30 +808,91 @@ pt-BR:
         Só para destino no exterior: uma cidade por linha (acentos, espaços e hífen são ignorados). CT-e com UF EX e
         cidade fora das regras fica sem comissão e aparece em alerta nas despesas de frete.
       active_hint: Desmarque para deixar de calcular a comissão desta regra. Toda alteração recalcula as comissões de todos os CT-es.
+  tonnage_rates:
+    label: '%{name} – %{origin}'
+    origin_with_nickname: '%{origin} (%{nickname})'
+    per_ton: '%{rate}/t'
+    weight: '%{weight} t'
+    index:
+      title: Custos por tonelada
+      subtitle: Custos cobrados por tonelada conforme a cidade de origem do CT-e, como a Brasiltec.
+      new_tonnage_rate: Novo Custo
+      total: Total de custos
+      active_rates: Custos ativos
+      deactivated_rates: Custos inativos
+      active: Ativo
+      deactivated: Inativo
+      confirm_destroy: Tem certeza que deseja excluir este custo?
+    filters:
+      name: Nome do custo
+      customer_group: Grupo de clientes
+      valid_month: Vigência
+      status: Status
+    show:
+      back: Voltar para custos por tonelada
+      tonnage_rate_data: Dados do custo
+      expenses_total: Total calculado
+      edit: Alterar
+    new:
+      title: Novo Custo
+      back: Voltar para custos por tonelada
+    create:
+      success: Custo cadastrado com sucesso. As despesas do frete serão recalculadas em segundo plano.
+    edit:
+      title: Alterar Custo
+      back: Voltar para custos por tonelada
+    update:
+      success: Custo atualizado com sucesso. As despesas do frete serão recalculadas em segundo plano.
+    destroy:
+      success: Custo excluído com sucesso.
+    form:
+      tonnage_rate_data: Dados do Custo
+      tonnage_rate_data_text: >-
+        O custo é calculado para os CT-es cujo tomador pertence ao grupo e cuja cidade de origem é a cadastrada:
+        valor por tonelada × peso do CT-e. CT-es cancelados ou sem peso ficam sem o custo.
+      name_hint: 'Ex.: Brasiltec.'
+      origin_city_hint: Como aparece no CT-e (acentos, espaços e hífen são ignorados).
+      nickname_hint: 'Opcional. Ex.: Utinga, TESP.'
+      valid_month_hint: >-
+        Mês em que o valor é usado. Cadastre no mês a média do mês anterior. Enquanto o mês não tiver valor, vale o do mês
+        anterior; ao cadastrar, os CT-es do mês são recalculados.
+      rate_hint: 'Ex.: 12,57.'
+      active_hint: Desmarque para deixar de usar este valor. Toda alteração recalcula as despesas de todos os CT-es.
   freight_expenses:
     index:
       title: Despesas de frete
-      subtitle: Comissões calculadas pelo sistema e descontadas do frete. Somente consulta.
-      recalculate: Recalcular comissões
-      confirm_recalculate: Recalcular as comissões de todos os CT-es? O recálculo roda em segundo plano.
-      base_total: Total da base de cálculo
-      amount_total: Total de comissões
+      subtitle: Comissões e custos por tonelada calculados pelo sistema e descontados do frete. Somente consulta.
+      recalculate: Recalcular despesas
+      confirm_recalculate: Recalcular as despesas de todos os CT-es? O recálculo roda em segundo plano.
+      amount_total: Total das despesas
     filters:
       number: Número do CT-e
+      kind: Tipo
       customer_group: Grupo de clientes
       start_date: CT-es emitidos a partir de
       end_date: CT-es emitidos até
     recalculate:
-      success: Recálculo das comissões enfileirado. Ele roda em segundo plano.
+      success: Recálculo das despesas enfileirado. Ele roda em segundo plano.
     unmatched_alert:
       title:
         one: 1 CT-e com destino no exterior sem regra de comissão
         other: '%{count} CT-es com destino no exterior sem regra de comissão'
       text: A cidade de destino não está em nenhuma regra de exterior do grupo. Cadastre a cidade numa regra para calcular a comissão.
+    missing_weight_alert:
+      title:
+        one: 1 CT-e sem peso com custo por tonelada
+        other: '%{count} CT-es sem peso com custo por tonelada'
+      text: A origem do CT-e tem custo por tonelada, mas o CT-e veio da Atua sem peso, por isso o custo ficou zerado.
+    outdated_alert:
+      title:
+        one: 1 custo por tonelada desatualizado
+        other: '%{count} custos por tonelada desatualizados'
+      text: A última vigência cadastrada tem mais de 2 meses. Cadastre os valores do mês para calcular os CT-es com o valor certo.
     net_freight:
       title: Frete líquido
       freight: Frete bruto
       commission: (−) Comissões
+      tonnage: (−) Custos por tonelada
       expenses: (−) Despesas do frete na Atua
       net: (=) Frete líquido
   drivers:
@@ -885,6 +996,9 @@ pt-BR:
       toggle_sidebar: Recolher menu lateral
       options: Opções
       logout: Sair
+  date:
+    formats:
+      month_year: '%m/%Y'
   time:
     formats:
       date_time: '%d/%m/%Y %H:%M'
@@ -900,6 +1014,7 @@ pt-BR:
     vehicles: Veículos
     expenses: Despesas
     commission_rules: Regras de comissão
+    tonnage_rates: Custos por tonelada
     freight_expenses: Despesas de frete
     users: Usuários
     show: Visualizar

@@ -1,0 +1,8 @@
+<tr id="<%= dom_id(freight_expense) %>">
+  <td><%= freight_expense_transport_document(freight_expense.transport_document) %></td>
+  <td><%= freight_expense.kind_type_name %></td>
+  <td class="d-none d-md-table-cell"><%= freight_expense_detail(freight_expense) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= freight_expense_base(freight_expense) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= freight_expense_rate(freight_expense) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(freight_expense.amount) %></td>
+</tr>

@@ -1,7 +1,0 @@
-<tr id="<%= dom_id(commission) %>">
-  <td><%= freight_expense_transport_document(commission.transport_document) %></td>
-  <td class="d-none d-md-table-cell"><%= freight_expense_rule(commission) %></td>
-  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(commission.base) %></td>
-  <td class="d-none d-md-table-cell text-end text-nowrap"><%= commission_percentage(commission.percentage) %></td>
-  <td class="text-end text-nowrap"><%= tax_money(commission.amount) %></td>
-</tr>

@@ -10,6 +10,10 @@
 
   <%= freight_expense_unmatched_alert(@unmatched_documents) %>
 
+  <%= freight_expense_outdated_alert(@outdated_tonnage_rates) %>
+
+  <%= freight_expense_missing_weight_alert(@missing_weight_documents) %>
+
   <div class="card table-card">
     <div class="table-card-header">
       <div class="table-card-heading">
@@ -29,9 +33,6 @@
   <div class="card detail-card mt-4">
     <div class="detail-card-body">
       <dl class="row detail-list mb-0" id="freight_expenses_totals">
-        <dt class="col-12 col-md-6"><%= t('.base_total') %></dt>
-        <dd class="col-12 col-md-6 text-md-end"><%= tax_money(@base_total) %></dd>
-
         <dt class="col-12 col-md-6"><%= t('.amount_total') %></dt>
         <dd class="col-12 col-md-6 text-md-end fw-semibold"><%= tax_money(@amount_total) %></dd>
       </dl>

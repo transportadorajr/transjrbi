@@ -5,6 +5,7 @@ require 'sinatra/base'
 class AtuaServer < Sinatra::Base
   ROOT = File.expand_path('..', __dir__)
   FIXTURES = File.join(ROOT, 'spec/fixtures/files/atua')
+  LOCAL_REPORTS = File.join(ROOT, 'tmp/atua/mock')
   REPORTS = Dir[File.join(ROOT, 'config/atua/reports/*.yml')].to_h do |path|
     [YAML.load_file(path).fetch('endpoint'), File.basename(path, '.yml')]
   end.freeze
@@ -47,6 +48,11 @@ class AtuaServer < Sinatra::Base
     def report_type
       REPORTS.fetch(params[:endpoint]) { halt 404 }
     end
+
+    def report_file(type)
+      local = File.join(LOCAL_REPORTS, "#{type}.xls")
+      File.exist?(local) ? local : File.join(FIXTURES, "#{type}.xls")
+    end
   end
 
   get('/adm/login.php') { login_page }
@@ -72,7 +78,7 @@ class AtuaServer < Sinatra::Base
     return login_page unless logged_in?
 
     sleep(ENV.fetch('ATUA_MOCK_DELAY', 0).to_f)
-    send_file File.join(FIXTURES, "#{type}.xls"), type: XLS_CONTENT_TYPE, disposition: :attachment, filename: "#{type}_mock.xls"
+    send_file report_file(type), type: XLS_CONTENT_TYPE, disposition: :attachment, filename: "#{type}_mock.xls"
   end
 
   run! if app_file == $PROGRAM_NAME

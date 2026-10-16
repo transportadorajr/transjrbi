@@ -260,40 +260,43 @@ describe 'Transport documents' do
           let!(:freight_expense) do
             create(:freight_expense, tenant:, transport_document:, base_cents: 488_435, icms_cents: 66_605, amount_cents: 9_769)
           end
+          let!(:tonnage_expense) { create(:freight_expense, :tonnage, tenant:, transport_document:) }
 
-          scenario 'shows the net freight after the commission and the Atua expenses' do
+          scenario 'shows the net freight after the commission, the tonnage cost and the Atua expenses' do
             visit transport_document_path(transport_document)
 
-            expect(FreightExpense.count).to eq(1)
+            expect(FreightExpense.count).to eq(2)
             expect(dl_to_hash('#transport_document_net_freight')).to eq(
               'Frete bruto' => 'R$ 5.550,40',
               '(−) Comissões' => 'R$ 97,69',
+              '(−) Custos por tonelada' => 'R$ 408,53',
               '(−) Despesas do frete na Atua' => 'R$ 350,00',
-              '(=) Frete líquido' => 'R$ 5.102,71',
+              '(=) Frete líquido' => 'R$ 4.694,18',
             )
           end
 
-          scenario 'lists the commissions of the freight with the total' do
+          scenario 'lists the commission and the tonnage cost of the freight with the total' do
             visit transport_document_path(transport_document)
 
-            expect(transport_document.freight_expenses.commission.count).to eq(1)
-            expect(html_table_to_rows(table: find_by_id('transport_document_commissions'))).to eq(
+            expect(transport_document.freight_expenses.count).to eq(2)
+            expect(html_table_to_rows(table: find_by_id('transport_document_freight_expenses'))).to eq(
               [
-                ['Regra', 'Base de cálculo', 'ICMS deduzido da base', 'Comissão', 'Valor'],
-                ['Nacional', 'R$ 4.884,35', 'R$ 666,05', '2,00%', 'R$ 97,69'],
+                ['Tipo', 'Regra ou custo', 'Base de cálculo', 'ICMS deduzido da base', 'Taxa', 'Valor'],
+                ['Comissão', 'Nacional', 'R$ 4.884,35', 'R$ 666,05', '2,00%', 'R$ 97,69'],
+                ['Custo por tonelada', 'Brasiltec – Cubatão/SP (Cubatão)', '32,500 t', '-', 'R$ 12,57/t', 'R$ 408,53'],
               ],
             )
-            expect(page).to have_css('#transport_document_commissions_total', text: 'Total de comissões R$ 97,69')
+            expect(page).to have_css('#transport_document_freight_expenses_total', text: 'Total das despesas do frete R$ 506,22')
           end
         end
 
         context 'when the freight has no commission' do
-          scenario 'does not show the commissions card' do
+          scenario 'does not show the freight expenses card' do
             visit transport_document_path(transport_document)
 
             expect(FreightExpense.count).to eq(0)
             expect(page).to have_css('#transport_document_net_freight')
-            expect(page).to have_no_css('#transport_document_commissions')
+            expect(page).to have_no_css('#transport_document_freight_expenses')
           end
         end
       end
@@ -303,7 +306,7 @@ describe 'Transport documents' do
 
         expect(page).to have_css('h1.page-title', text: 'CT-e 74130')
         expect(page).to have_no_css('#transport_document_net_freight')
-        expect(page).to have_no_css('#transport_document_commissions')
+        expect(page).to have_no_css('#transport_document_freight_expenses')
       end
 
       context 'with access to the expenses' do

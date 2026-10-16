@@ -34,7 +34,7 @@ RSpec.describe Atua::ProcessImportCommand do
   end
 
   it 'does not calculate the commissions after importing manifests' do
-    expect { described_class.call(import) }.not_to have_enqueued_job(FreightExpenses::CalculateCommissionsJob)
+    expect { described_class.call(import) }.not_to have_enqueued_job(FreightExpenses::CalculateJob)
   end
 
   %w[customers transport_documents].each do |report_type|
@@ -44,7 +44,7 @@ RSpec.describe Atua::ProcessImportCommand do
       before { import.file.attach(io: atua_fixture_path(report_type).open, filename: "#{report_type}.xls") }
 
       it 'calculates the commissions of the tenant' do
-        expect { described_class.call(import) }.to have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
+        expect { described_class.call(import) }.to have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
       end
     end
   end

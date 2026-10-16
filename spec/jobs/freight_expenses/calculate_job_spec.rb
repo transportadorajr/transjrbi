@@ -1,17 +1,20 @@
 require 'rails_helper'
 
-RSpec.describe FreightExpenses::CalculateCommissionsJob do
+RSpec.describe FreightExpenses::CalculateJob do
   let!(:tenant) { create(:tenant) }
 
   before do
     allow(FreightExpenses::CalculateCommissionsCommand).to receive(:call)
       .and_return(FreightExpenses::CalculateCommissionsCommand::Result.new(saved: 0, removed: 0))
+    allow(FreightExpenses::CalculateTonnageCommand).to receive(:call)
+      .and_return(FreightExpenses::CalculateTonnageCommand::Result.new(saved: 0, removed: 0))
   end
 
-  it 'calculates the commissions of the tenant' do
+  it 'calculates the commissions and the tonnage costs of the tenant' do
     described_class.perform_now(tenant.id)
 
     expect(FreightExpenses::CalculateCommissionsCommand).to have_received(:call).with(tenant)
+    expect(FreightExpenses::CalculateTonnageCommand).to have_received(:call).with(tenant)
   end
 
   context 'when the taker of the transport documents is grouped only by the name on them' do
@@ -37,7 +40,7 @@ RSpec.describe FreightExpenses::CalculateCommissionsJob do
   context 'with the GoodJob adapter' do
     before { use_good_job_adapter(described_class) }
 
-    it 'waits while the commissions of the same tenant are being calculated' do
+    it 'waits while the freight expenses of the same tenant are being calculated' do
       mark_good_job_running(described_class.perform_later(tenant.id))
       waiting = described_class.perform_later(tenant.id)
 

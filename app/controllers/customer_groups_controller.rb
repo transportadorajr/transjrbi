@@ -77,7 +77,7 @@ class CustomerGroupsController < BaseController
     authorize!(:update, :customer_groups)
 
     count = CustomerGroups::RegroupCommand.call(@customer_group)
-    FreightExpenses::CalculateCommissionsJob.perform_later(current_tenant.id) if count.positive?
+    FreightExpenses::CalculateJob.perform_later(current_tenant.id) if count.positive?
 
     redirect_to customer_group_path(@customer_group), notice: t('.success', count:)
   end
