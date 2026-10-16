@@ -5,10 +5,10 @@
         <th><%= FreightExpense.human_attribute_name(:transport_document) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></th>
         <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:taker) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:destination) %></th>
-        <th class="d-none d-md-table-cell"><%= FreightExpense.human_attribute_name(:commission_rule) %></th>
+        <th><%= FreightExpense.human_attribute_name(:kind_type) %></th>
+        <th class="d-none d-md-table-cell"><%= FreightExpense.human_attribute_name(:detail) %></th>
         <th class="d-none d-lg-table-cell text-end"><%= FreightExpense.human_attribute_name(:base) %></th>
-        <th class="d-none d-md-table-cell text-end"><%= FreightExpense.human_attribute_name(:percentage) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= FreightExpense.human_attribute_name(:rate) %></th>
         <th class="text-end"><%= FreightExpense.human_attribute_name(:amount) %></th>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>

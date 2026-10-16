@@ -43,10 +43,10 @@ module TransportDocumentsHelper
     render 'transport_documents/expenses/table', expenses:, total:
   end
 
-  def transport_document_commissions(commissions, total)
-    return if commissions.blank?
+  def transport_document_freight_expenses(freight_expenses, total)
+    return if freight_expenses.blank?
 
-    render 'transport_documents/commissions/card', commissions:, total:
+    render 'transport_documents/freight_expenses/card', freight_expenses:, total:
   end
 
   def transport_document_manifests_table(manifests)

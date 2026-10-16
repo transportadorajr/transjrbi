@@ -32,13 +32,13 @@ class ManifestsController < BaseController
 
   def load_net_freight
     transport_documents = @manifest.transport_documents.merge(Atua::ManifestDocument.active)
-    commissions = current_tenant.freight_expenses.commission
+    freight_expenses = current_tenant.freight_expenses
       .where(transport_document_id: transport_documents.active.not_canceled.select(:id))
 
     @net_freight = NetFreight.for(transport_documents)
-    @commissions = commissions.preload(:transport_document, :commission_rule)
-      .joins(:transport_document).order(Atua::TransportDocument.arel_table[:number], :id)
-    @commissions_total = Money.from_cents(commissions.sum(:amount_cents))
+    @freight_expenses = freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate)
+      .joins(:transport_document).order(Atua::TransportDocument.arel_table[:number], :kind_type, :id)
+    @freight_expenses_total = Money.from_cents(freight_expenses.sum(:amount_cents))
   end
 
   def load_expenses

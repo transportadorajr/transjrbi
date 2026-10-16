@@ -135,7 +135,7 @@ describe 'Commission rules' do
         fill_in 'Comissão (%)', with: '2'
 
         expect { click_on 'Cadastrar Regra' }.to change(CommissionRule, :count).by(1)
-          .and have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
+          .and have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
 
         commission_rule = CommissionRule.last
         expect(page).to have_current_path(commission_rule_path(commission_rule))
@@ -164,7 +164,7 @@ describe 'Commission rules' do
         visit new_commission_rule_path
 
         expect { click_on 'Cadastrar Regra' }.to not_change(CommissionRule, :count)
-          .and not_have_enqueued_job(FreightExpenses::CalculateCommissionsJob)
+          .and not_have_enqueued_job(FreightExpenses::CalculateJob)
 
         expect(page).to have_text('Grupo de clientes não pode ficar em branco')
         expect(page).to have_text('Comissão (%) deve ser maior que 0 e menor que 100')
@@ -204,7 +204,7 @@ describe 'Commission rules' do
         uncheck 'Ativa'
 
         expect { click_on 'Salvar Alterações' }.to not_change(CommissionRule, :count)
-          .and have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
+          .and have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
 
         expect(page).to have_current_path(commission_rule_path(commission_rule))
         expect(page).to have_text('Regra atualizada com sucesso. As comissões serão recalculadas em segundo plano.')

@@ -1,0 +1,8 @@
+<div class="card detail-card mb-4">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('transport_documents.show.freight_expenses') %></p>
+  </div>
+  <div class="detail-card-body">
+    <%= render 'transport_documents/freight_expenses/table', freight_expenses:, total: %>
+  </div>
+</div>

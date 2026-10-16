@@ -11,6 +11,17 @@ RSpec.describe FreightExpense do
       expect(expense.errors[:commission_rule]).to eq(['não pode ficar em branco'])
     end
 
+    it 'requires the rate, the weight and the rate per ton of a tonnage cost' do
+      expense = build(:freight_expense, :tonnage, tenant:, tonnage_rate: nil, weight_tons: nil, rate_cents: nil)
+
+      expect(expense).not_to be_valid
+      expect(expense.errors.attribute_names).to contain_exactly(:tonnage_rate, :weight_tons, :rate_cents)
+    end
+
+    it 'accepts a tonnage cost without base and percentage' do
+      expect(build(:freight_expense, :tonnage, tenant:)).to be_valid
+    end
+
     it 'accepts a single commission per transport document' do
       existing = create(:freight_expense, tenant:)
       duplicated = build(:freight_expense, tenant:, transport_document: existing.transport_document)
@@ -38,6 +49,14 @@ RSpec.describe FreightExpense do
     it 'filters by the transport document number and by the customer group of the rule' do
       expect(described_class.by_transport_document_number(' 74001 ')).to contain_exactly(september_expense)
       expect(described_class.by_customer_group(arcelor.id)).to contain_exactly(october_expense)
+    end
+
+    it 'filters by the customer group of the tonnage rate and by kind' do
+      tonnage = create(:freight_expense, :tonnage, tenant:, tonnage_rate: create(:tonnage_rate, tenant:, customer_group: usiminas),
+                                                   transport_document: october)
+
+      expect(described_class.by_customer_group(usiminas.id)).to contain_exactly(september_expense, tonnage)
+      expect(described_class.by_kind('tonnage')).to contain_exactly(tonnage)
     end
   end
 end

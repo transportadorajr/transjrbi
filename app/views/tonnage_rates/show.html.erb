@@ -1,0 +1,51 @@
+<% content_for :title, tonnage_rate_label(@tonnage_rate) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('tonnage_rates.index.title'), tonnage_rates_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= tonnage_rate_label(@tonnage_rate) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag tonnage_rate_label(@tonnage_rate), back_path: tonnage_rates_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= tonnage_rate_edit_button(@tonnage_rate) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.tonnage_rate_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="tonnage_rate_data">
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @tonnage_rate.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:customer_group) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @tonnage_rate.customer_group.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:origin) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tonnage_rate_origin(@tonnage_rate) %></dd>
+
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:valid_month) %></dt>
+        <dd class="col-12 col-md-9"><%= tonnage_rate_month(@tonnage_rate.valid_month) %></dd>
+
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:reference_month) %></dt>
+        <dd class="col-12 col-md-9"><%= tonnage_rate_month(@tonnage_rate.reference_month) %></dd>
+
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:rate) %></dt>
+        <dd class="col-12 col-md-9"><%= tonnage_rate_per_ton(@tonnage_rate.rate) %></dd>
+
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-9"><%= tonnage_rate_status_badge(@tonnage_rate) %></dd>
+
+        <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:freight_expenses) %></dt>
+        <dd class="col-12 col-md-9"><%= @expenses_count %></dd>
+
+        <dt class="col-12 col-md-3"><%= t('.expenses_total') %></dt>
+        <dd class="col-12 col-md-9"><%= tax_money(@expenses_total) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

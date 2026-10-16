@@ -47,6 +47,7 @@ Rails.application.routes.draw do
   resources :vehicles, only: %i[index show]
   resources :expenses, only: %i[index show]
   resources :commission_rules
+  resources :tonnage_rates
   resources :freight_expenses, only: %i[index] do
     post :recalculate, on: :collection
   end

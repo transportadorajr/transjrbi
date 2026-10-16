@@ -35,10 +35,10 @@ class TransportDocumentsController < BaseController
     return if @transport_document.canceled?
 
     @net_freight = NetFreight.for(current_tenant.atua_transport_documents.where(id: @transport_document.id))
-    commissions = @transport_document.freight_expenses.commission
+    freight_expenses = @transport_document.freight_expenses
 
-    @commissions = commissions.preload(:commission_rule).order(:id)
-    @commissions_total = Money.from_cents(commissions.sum(:amount_cents))
+    @freight_expenses = freight_expenses.preload(:commission_rule, :tonnage_rate).order(:kind_type, :id)
+    @freight_expenses_total = Money.from_cents(freight_expenses.sum(:amount_cents))
   end
 
   def load_expenses

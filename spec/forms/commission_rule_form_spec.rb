@@ -10,7 +10,7 @@ RSpec.describe CommissionRuleForm do
                                  base_type: 'freight', percentage: '1,3', cities: "Buenos Aires\n rosario \n\nROSÁRIO", active: '1')
 
       expect { expect(form.save).to be(true) }.to change(CommissionRule, :count).by(1)
-        .and have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
+        .and have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
 
       rule = CommissionRule.last
       expect(rule).to have_attributes(tenant:, customer_group: usiminas, name: 'Argentina', destination_type: 'foreign',

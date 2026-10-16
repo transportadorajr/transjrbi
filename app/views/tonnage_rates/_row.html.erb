@@ -1,0 +1,14 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <%= link_to tonnage_rate_origin(item), tonnage_rate_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+  </td>
+  <td class="d-none d-md-table-cell text-break"><%= item.name %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= item.customer_group.name %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tonnage_rate_month(item.valid_month) %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= tonnage_rate_month(item.reference_month) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tonnage_rate_per_ton(item.rate) %></td>
+  <td><%= tonnage_rate_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(tonnage_rates_menu(item)) %>
+  </td>
+</tr>

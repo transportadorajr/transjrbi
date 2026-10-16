@@ -49,7 +49,7 @@ module Atua
     def calculate_commissions
       return unless COMMISSION_REPORTS.include?(import.report_type)
 
-      FreightExpenses::CalculateCommissionsJob.perform_later(import.tenant_id)
+      FreightExpenses::CalculateJob.perform_later(import.tenant_id)
     end
 
     def read_spreadsheet
