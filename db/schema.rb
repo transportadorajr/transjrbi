@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_142433) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_190139) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -18,6 +18,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_142433) do
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "atua_import_error_type", ["configuration", "authentication", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
+  create_enum "atua_import_source_type", ["mock", "production", "upload"]
   create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
@@ -222,6 +223,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_142433) do
     t.datetime "updated_at", null: false
     t.text "warning_message"
     t.enum "error_type", enum_type: "atua_import_error_type"
+    t.enum "source_type", enum_type: "atua_import_source_type"
     t.index ["status_type"], name: "index_atua_imports_on_status_type"
     t.index ["tenant_id", "report_type", "created_at"], name: "index_atua_imports_on_tenant_id_and_report_type_and_created_at"
     t.index ["tenant_id", "report_type", "finished_at"], name: "idx_on_tenant_id_report_type_finished_at_81434a2c5a"

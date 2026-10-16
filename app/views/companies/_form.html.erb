@@ -1,0 +1,51 @@
+<%= simple_form_for(company_form, url: company_path, method: :patch) do |f| %>
+  <div class="card form-card mb-4">
+    <div class="form-card-header">
+      <p class="form-card-title"><%= t('companies.form.company_data') %></p>
+      <p class="form-card-subtitle"><%= t('companies.form.company_data_text') %></p>
+    </div>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'organization' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :trade_name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :legal_id, required: true,
+                                 input_html: { class: 'form-control', inputmode: 'numeric', autocomplete: 'off',
+                                               data: { controller: 'mask', mask_pattern_value: %w[00.000.000/0000-00] } } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card form-card">
+    <div class="form-card-header">
+      <p class="form-card-title"><%= t('companies.form.atua_data') %></p>
+      <p class="form-card-subtitle"><%= t('companies.form.atua_data_text') %></p>
+    </div>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <%= f.input :atua_url, as: :url, required: false, hint: t('companies.form.atua_url_hint'),
+                                 input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :atua_device_token, as: :password, required: false, hint: t('companies.form.secret_hint'),
+                                          input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :atua_device_hash, as: :password, required: false, hint: t('companies.form.secret_hint'),
+                                         input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.company.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), company_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  </div>
+<% end %>

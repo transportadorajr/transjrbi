@@ -1,0 +1,43 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= company_edit_button %>
+  <% end %>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.company_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="company_data">
+        <dt class="col-12 col-md-3"><%= Tenant.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @company.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= Tenant.human_attribute_name(:trade_name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @company.trade_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= Tenant.human_attribute_name(:legal_id) %></dt>
+        <dd class="col-12 col-md-9"><%= @company.legal_id %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.atua_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="atua_data">
+        <dt class="col-12 col-md-3"><%= Tenant.human_attribute_name(:atua_url) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@company.atua_url) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Tenant.human_attribute_name(:atua_device_token) %></dt>
+        <dd class="col-12 col-md-9"><%= company_secret_badge(@company.atua_device_token) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Tenant.human_attribute_name(:atua_device_hash) %></dt>
+        <dd class="col-12 col-md-9"><%= company_secret_badge(@company.atua_device_hash) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

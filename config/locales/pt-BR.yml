@@ -287,6 +287,8 @@ pt-BR:
         legal_id: CNPJ
         trade_name: Nome fantasia
         atua_url: URL da Atua
+        atua_device_token: Token do dispositivo na Atua
+        atua_device_hash: Hash do dispositivo na Atua
         users: Usuários
       user:
         tenant: Empresa
@@ -346,6 +348,13 @@ pt-BR:
         name: Nome
         slug: Identificador
         writable: Permite edição
+      company_form:
+        name: Razão social
+        trade_name: Nome fantasia
+        legal_id: CNPJ
+        atua_url: URL da Atua
+        atua_device_token: Token do dispositivo na Atua
+        atua_device_hash: Hash do dispositivo na Atua
       user_confirmation_form:
         password: Senha
         password_confirmation: Confirme a senha
@@ -493,6 +502,8 @@ pt-BR:
     select:
       prompt: Selecione
     submit:
+      company:
+        update: Salvar Alterações
       user:
         create: Cadastrar Usuário
         update: Salvar Alterações
@@ -567,6 +578,27 @@ pt-BR:
     total_records:
       one: 1 registro
       other: '%{count} registros'
+  companies:
+    show:
+      title: Dados da empresa
+      subtitle: Dados cadastrais da empresa e o acesso usado para importar os relatórios da Atua.
+      company_data: Dados cadastrais
+      atua_data: Integração com a Atua
+      configured: Configurado
+      not_configured: Não configurado
+      edit: Alterar
+    edit:
+      title: Alterar dados da empresa
+      back: Voltar para os dados da empresa
+    update:
+      success: Dados da empresa atualizados com sucesso.
+    form:
+      company_data: Dados cadastrais
+      company_data_text: Razão social, nome fantasia e CNPJ como constam no cadastro da empresa na Atua.
+      atua_data: Integração com a Atua
+      atua_data_text: Endereço e dispositivo autorizado usados para baixar os relatórios da Atua desta empresa.
+      atua_url_hint: 'Ex.: https://suaempresa.atua.com.br. Deixe em branco para usar o endereço padrão.'
+      secret_hint: Por segurança o valor atual não é exibido. Deixe em branco para mantê-lo.
   users:
     index:
       title: Usuários
@@ -636,6 +668,7 @@ pt-BR:
     commission_rules: Regras de comissão
     tonnage_rates: Custos por tonelada
     freight_expenses: Despesas de frete
+    company: Dados da empresa
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -1016,6 +1049,7 @@ pt-BR:
     commission_rules: Regras de comissão
     tonnage_rates: Custos por tonelada
     freight_expenses: Despesas de frete
+    company: Empresa
     users: Usuários
     show: Visualizar
     edit: Alterar

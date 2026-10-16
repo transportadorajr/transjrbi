@@ -51,6 +51,11 @@ shared:
           url: /freight_expenses
           controllers:
             - freight_expenses
+    - name: company
+      icon: buildings
+      url: /company
+      controllers:
+        - companies
     - name: users
       icon: people
       url: /users
