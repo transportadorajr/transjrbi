@@ -3,14 +3,15 @@ module Atua
     MONTH_INTERVAL = 10.minutes
 
     class << self
-      def call(tenant, start_date)
-        new(tenant, start_date).call
+      def call(tenant, start_date, production_access: false)
+        new(tenant, start_date, production_access:).call
       end
     end
 
-    def initialize(tenant, start_date)
+    def initialize(tenant, start_date, production_access: false)
       @tenant = tenant
       @start_date = start_date.to_date
+      @production_access = production_access
     end
 
     def call
@@ -23,7 +24,7 @@ module Atua
 
     private
 
-    attr_reader :tenant, :start_date
+    attr_reader :tenant, :start_date, :production_access
 
     def pending_months
       Report.find(Report::MOVEMENT_TYPES.first).periods(start_date, Date.current).filter_map do |month_start, month_end|
@@ -38,7 +39,7 @@ module Atua
     end
 
     def enqueue(report_type, month_start = nil, month_end = nil, wait: nil)
-      ImportReportJob.set(wait:).perform_later(tenant.id, report_type.to_s, month_start, month_end)
+      ImportReportJob.set(wait:).perform_later(tenant.id, report_type.to_s, month_start, month_end, production_access:)
     end
   end
 end

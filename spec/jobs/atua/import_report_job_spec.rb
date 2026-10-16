@@ -12,13 +12,21 @@ RSpec.describe Atua::ImportReportJob do
       described_class.perform_now(tenant.id, 'manifests', start_date, end_date)
 
       expect(Atua::ImportReportCommand).to have_received(:call)
-        .with(tenant, 'manifests', start_date:, end_date:, raise_errors: true)
+        .with(tenant, 'manifests', start_date:, end_date:, raise_errors: true, production_access: false)
     end
 
     it 'imports a registry without period' do
       described_class.perform_now(tenant.id, 'customers')
 
-      expect(Atua::ImportReportCommand).to have_received(:call).with(tenant, 'customers', start_date: nil, end_date: nil, raise_errors: true)
+      expect(Atua::ImportReportCommand).to have_received(:call)
+        .with(tenant, 'customers', start_date: nil, end_date: nil, raise_errors: true, production_access: false)
+    end
+
+    it 'passes on the production access requested by the admin' do
+      described_class.perform_now(tenant.id, 'manifests', start_date, end_date, production_access: true)
+
+      expect(Atua::ImportReportCommand).to have_received(:call)
+        .with(tenant, 'manifests', start_date:, end_date:, raise_errors: true, production_access: true)
     end
   end
 

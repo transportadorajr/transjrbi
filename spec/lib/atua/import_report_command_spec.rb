@@ -23,7 +23,8 @@ RSpec.describe Atua::ImportReportCommand do
 
         expect(import).to have_attributes(
           tenant:, report_type: 'customers', status_type: 'succeeded', start_date: nil, end_date: nil,
-          rows_read: 4833, inserted_count: 4833, updated_count: 0, removed_count: 0, error_message: nil, warning_message: nil
+          rows_read: 4833, inserted_count: 4833, updated_count: 0, removed_count: 0, error_message: nil, warning_message: nil,
+          source_type: 'upload'
         )
         expect(import.started_at).to be_present
         expect(import.finished_at).to be_present
@@ -273,6 +274,7 @@ RSpec.describe Atua::ImportReportCommand do
       end
 
       before do
+        allow(client).to receive_messages(source_type: :mock)
         allow(client).to receive(:download) { |_type, start_date:, end_date:| [download(start_date, end_date)] }
       end
 
@@ -280,8 +282,16 @@ RSpec.describe Atua::ImportReportCommand do
         import = described_class.call(tenant, :manifests, **period, client:).sole
 
         expect(client).to have_received(:download).with(:manifests, start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 13))
-        expect(import).to have_attributes(status_type: 'succeeded', inserted_count: 217)
+        expect(import).to have_attributes(status_type: 'succeeded', inserted_count: 217, source_type: 'mock')
         expect(import.file.filename.to_s).to eq('9430_rel_manifesto_detalhado.xls')
+      end
+
+      it 'records the production Atua as the source of a remote download' do
+        allow(client).to receive_messages(source_type: :production)
+
+        import = described_class.call(tenant, :manifests, **period, client:).sole
+
+        expect(import).to have_attributes(status_type: 'succeeded', source_type: 'production')
       end
 
       it 'creates one import for each month of a long period' do
@@ -298,7 +308,10 @@ RSpec.describe Atua::ImportReportCommand do
     context 'when the download fails' do
       let(:client) { instance_double(Atua::Client) }
 
-      before { allow(client).to receive(:download).and_raise(Atua::DownloadError, 'O relatório manifests não veio em Excel (.xls).') }
+      before do
+        allow(client).to receive_messages(source_type: :mock)
+        allow(client).to receive(:download).and_raise(Atua::DownloadError, 'O relatório manifests não veio em Excel (.xls).')
+      end
 
       it 'records the failure in the import' do
         import = described_class.call(tenant, :manifests, **period, client:).sole
@@ -318,12 +331,38 @@ RSpec.describe Atua::ImportReportCommand do
     end
 
     context 'when the configuration is incomplete' do
-      before { allow(Atua::Configuration).to receive(:for).with(tenant).and_raise(Atua::ConfigurationError, 'Configuração da Atua incompleta.') }
+      before do
+        allow(Atua::Configuration).to receive(:for).with(tenant, production_access: false)
+          .and_raise(Atua::ConfigurationError, 'Configuração da Atua incompleta.')
+      end
 
       it 'records the failure in the import' do
         import = described_class.call(tenant, :customers).sole
 
-        expect(import).to have_attributes(status_type: 'failed', error_message: 'Configuração da Atua incompleta.', error_type: 'configuration')
+        expect(import).to have_attributes(
+          status_type: 'failed', error_message: 'Configuração da Atua incompleta.', error_type: 'configuration', source_type: nil,
+        )
+      end
+    end
+
+    context 'when the admin asks for the production Atua' do
+      let(:client) { instance_double(Atua::Client, source_type: :production) }
+      let(:configuration) { instance_double(Atua::Configuration) }
+
+      before do
+        allow(Atua::Configuration).to receive(:for).with(tenant, production_access: true).and_return(configuration)
+        allow(Atua::Client).to receive(:new).with(configuration).and_return(client)
+        allow(client).to receive(:download).and_return(
+          [Atua::Download.new(report_type: :customers, start_date: nil, end_date: nil, content: atua_fixture_path(:customers).binread,
+                              content_type: 'application/vnd.ms-excel', filename: 'rel_cliente_detalhado.xls')],
+        )
+      end
+
+      it 'builds the client with the production access' do
+        import = described_class.call(tenant, :customers, production_access: true).sole
+
+        expect(Atua::Configuration).to have_received(:for).with(tenant, production_access: true)
+        expect(import).to have_attributes(status_type: 'succeeded', source_type: 'production')
       end
     end
 

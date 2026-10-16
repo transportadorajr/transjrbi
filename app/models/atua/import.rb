@@ -2,6 +2,7 @@ module Atua
   class Import < ApplicationRecord
     FILE_RETENTION = 60.days
     STATUSES = %i[pending running succeeded failed].freeze
+    SOURCES = %i[mock production upload].freeze
     ERROR_TYPES = %i[configuration authentication session download spreadsheet layout conversion unexpected].freeze
     ACTION_REQUIRED_ERROR_TYPES = %w[configuration authentication layout].freeze
     LATEST_PER_REPORT_SQL = 'DISTINCT ON (atua_imports.tenant_id, atua_imports.report_type) atua_imports.id'.freeze
@@ -12,6 +13,7 @@ module Atua
 
     enum :report_type, Report::TYPES.index_with(&:to_s), validate: true
     enum :status_type, STATUSES.index_with(&:to_s), validate: true
+    enum :source_type, SOURCES.index_with(&:to_s), prefix: :source, validate: { allow_nil: true }
     enum :error_type, ERROR_TYPES.index_with(&:to_s), prefix: :error, validate: { allow_nil: true }
 
     validates :rows_read, :inserted_count, :updated_count, :removed_count, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -123,6 +125,7 @@ end
 #  removed_count   :integer          default(0), not null
 #  report_type     :enum             not null
 #  rows_read       :integer          default(0), not null
+#  source_type     :enum
 #  start_date      :date
 #  started_at      :datetime
 #  status_type     :enum             default("pending"), not null

@@ -267,6 +267,7 @@ pt-BR:
         tenant: Empresa
         report_type: Relatório
         status_type: Situação
+        source_type: Origem
         start_date: Data inicial
         end_date: Data final
         started_at: Iniciada em
@@ -479,6 +480,10 @@ pt-BR:
         running: Em andamento
         succeeded: Concluída
         failed: Falhou
+      source_type:
+        mock: Mock local
+        production: Atua de produção
+        upload: Arquivo enviado
       error_type:
         configuration: Configuração
         authentication: Login na Atua
@@ -1058,6 +1063,8 @@ pt-BR:
     admin_good_job: Jobs (GoodJob)
     admin_flipper: Feature flags
   admin:
+    atua:
+      production_access_banner: A flag atua_production_access está ligada. As importações disparadas manualmente neste painel buscam os dados na Atua de produção; as importações agendadas continuam no mock local.
     resources:
       index:
         title: Recursos
@@ -1162,7 +1169,7 @@ pt-BR:
     errors:
       missing_configuration: 'Configuração da Atua incompleta: falta %{keys}.'
       invalid_base_url: A URL base da Atua não é uma URL http/https válida.
-      remote_host_blocked: Fora de produção a integração com a Atua só acessa o mock local (host recebido %{host}). Defina ATUA_BASE_URL apontando para o mock.
+      remote_host_blocked: Fora de produção a integração com a Atua só acessa o mock local (host recebido %{host}). Defina ATUA_BASE_URL apontando para o mock, ou ligue a flag atua_production_access no painel administrativo para disparar importações manuais na Atua de produção.
       unknown_report: Relatório da Atua desconhecido %{type}.
       unknown_computed_value: Valor calculado desconhecido na configuração do relatório %{value}.
       login_status: O login na Atua respondeu HTTP %{status}.

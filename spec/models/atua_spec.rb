@@ -36,6 +36,22 @@ RSpec.describe Atua do
     end
   end
 
+  describe '.production_access?' do
+    it 'is off without the flag' do
+      expect(described_class.production_access?).to be(false)
+    end
+
+    it 'is on with the flag outside production', flipper: :atua_production_access do
+      expect(described_class.production_access?).to be(true)
+    end
+
+    it 'is always off in production', flipper: :atua_production_access do
+      allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('production'))
+
+      expect(described_class.production_access?).to be(false)
+    end
+  end
+
   context 'with the import disabled' do
     before { create(:tenant) }
 

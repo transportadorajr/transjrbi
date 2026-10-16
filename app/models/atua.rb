@@ -1,5 +1,6 @@
 module Atua
   FEATURE = :atua_import
+  PRODUCTION_ACCESS_FEATURE = :atua_production_access
 
   class Error < StandardError
     attr_reader :status, :headers, :body_excerpt
@@ -32,6 +33,10 @@ module Atua
 
     def enabled?(tenant)
       Flipper.enabled?(FEATURE, tenant)
+    end
+
+    def production_access?
+      !Rails.env.production? && Flipper.enabled?(PRODUCTION_ACCESS_FEATURE)
     end
 
     def enabled_tenants

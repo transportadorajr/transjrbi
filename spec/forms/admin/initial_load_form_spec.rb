@@ -8,8 +8,16 @@ RSpec.describe Admin::InitialLoadForm do
   it 'enqueues the initial load of the tenant' do
     form = described_class.new(tenant_id: tenant.id, start_date: '2026-01-01')
 
-    expect { expect(form.save).to be(true) }.to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2026, 1, 1))
+    expect { expect(form.save).to be(true) }
+      .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2026, 1, 1), production_access: false)
     expect(form.tenant).to eq(tenant)
+  end
+
+  it 'asks for the production Atua when the production access flag is on', flipper: :atua_production_access do
+    form = described_class.new(tenant_id: tenant.id, start_date: '2026-01-01')
+
+    expect { expect(form.save).to be(true) }
+      .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2026, 1, 1), production_access: true)
   end
 
   it 'requires tenant and start date' do

@@ -39,6 +39,8 @@ module Atua
 
     class SessionExpired < StandardError; end
 
+    delegate :source_type, to: :configuration
+
     def initialize(configuration, retries: true, logger: Rails.logger)
       @configuration = configuration
       @max_attempts = retries ? MAX_ATTEMPTS : 1
