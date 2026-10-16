@@ -232,14 +232,17 @@ describe 'Manifests' do
         end
       end
 
-      scenario 'does not show the commissions without access to the freight expenses' do
-        create(:freight_expense, tenant:, transport_document:, amount_cents: 11_101)
-        visit manifest_path(manifest)
+      context 'without access to the freight expenses' do
+        let!(:freight_expense) { create(:freight_expense, tenant:, transport_document:, amount_cents: 11_101) }
 
-        expect(FreightExpense.count).to eq(1)
-        expect(page).to have_css('h1.page-title', text: 'Manifesto 40772')
-        expect(page).to have_no_css('#manifest_net_freight')
-        expect(page).to have_no_css('#manifest_commissions')
+        scenario 'does not show the commissions' do
+          visit manifest_path(manifest)
+
+          expect(FreightExpense.count).to eq(1)
+          expect(page).to have_css('h1.page-title', text: 'Manifesto 40772')
+          expect(page).to have_no_css('#manifest_net_freight')
+          expect(page).to have_no_css('#manifest_commissions')
+        end
       end
 
       context 'with access to the expenses' do

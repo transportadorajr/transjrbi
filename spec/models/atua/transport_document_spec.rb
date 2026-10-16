@@ -177,6 +177,41 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.commissionable' do
+    context 'with normal, complement, CE, canceled and removed documents' do
+      let!(:normal) { create(:atua_transport_document, tenant:) }
+      let!(:complement) { create(:atua_transport_document, tenant:, issue_kind: 'Complemento de Valores') }
+      let!(:without_issue_kind) { create(:atua_transport_document, tenant:, issue_kind: nil) }
+      let!(:ce) { create(:atua_transport_document, tenant:, document_kind: 'ce') }
+      let!(:canceled) { create(:atua_transport_document, tenant:, canceled_at: Time.current) }
+      let!(:removed) { create(:atua_transport_document, tenant:, removed_from_atua_at: Time.current) }
+
+      it 'keeps only the active and valid CT-es that are not a value complement' do
+        expect(described_class.count).to eq(6)
+        expect(described_class.commissionable).to contain_exactly(normal, without_issue_kind)
+      end
+    end
+  end
+
+  describe '.taker_names_by_code' do
+    context 'with documents of takers named in different ways' do
+      let!(:first) { create(:atua_transport_document, tenant:, taker_code: 501, taker_name: 'USIMINAS CUBATAO') }
+      let!(:second) { create(:atua_transport_document, tenant:, taker_code: 501, taker_name: 'USIMINAS IPATINGA') }
+      let!(:repeated) { create(:atua_transport_document, tenant:, taker_code: 501, taker_name: 'USIMINAS CUBATAO') }
+      let!(:other) { create(:atua_transport_document, tenant:, taker_code: 777, taker_name: 'FIAT') }
+      let!(:blank) { create(:atua_transport_document, tenant:, taker_code: 888, taker_name: '') }
+
+      it 'groups the distinct taker names by the taker code' do
+        result = described_class.taker_names_by_code
+
+        expect(described_class.count).to eq(5)
+        expect(result.keys).to contain_exactly(501, 777)
+        expect(result[501]).to contain_exactly('USIMINAS CUBATAO', 'USIMINAS IPATINGA')
+        expect(result[777]).to eq(['FIAT'])
+      end
+    end
+  end
+
   describe '.statuses' do
     it 'maps the translated situations to the filter keys' do
       expect(described_class.statuses).to eq('Válido' => :valid, 'Cancelado' => :canceled)

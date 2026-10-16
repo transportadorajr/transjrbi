@@ -87,26 +87,28 @@ describe 'Commission rules' do
         )
       end
 
-      scenario 'shows the rule with its commissions' do
-        create(:freight_expense, tenant:, commission_rule: argentina, amount_cents: 26_000)
-        create(:freight_expense, tenant:, commission_rule: argentina, amount_cents: 13_000)
+      context 'when a rule has commissions' do
+        let!(:first_expense) { create(:freight_expense, tenant:, commission_rule: argentina, amount_cents: 26_000) }
+        let!(:second_expense) { create(:freight_expense, tenant:, commission_rule: argentina, amount_cents: 13_000) }
 
-        visit commission_rules_path
-        click_on 'Argentina'
+        scenario 'shows the rule with its commissions' do
+          visit commission_rules_path
+          click_on 'Argentina'
 
-        expect(page).to have_current_path(commission_rule_path(argentina))
-        expect(page).to have_css('h1.page-title', text: 'Argentina')
-        expect(dl_to_hash('#commission_rule_data')).to eq(
-          'Nome' => 'Argentina',
-          'Grupo de clientes' => 'USIMINAS',
-          'Destino' => 'Exterior (UF EX)',
-          'Cidades de destino' => 'Buenos Aires, Puerto Iguazú, Rosario',
-          'Base de cálculo' => 'Frete bruto',
-          'Comissão' => '1,30%',
-          'Status' => 'Ativa',
-          'CT-es com comissão' => '2',
-          'Total de comissões' => 'R$ 390,00',
-        )
+          expect(page).to have_current_path(commission_rule_path(argentina))
+          expect(page).to have_css('h1.page-title', text: 'Argentina')
+          expect(dl_to_hash('#commission_rule_data')).to eq(
+            'Nome' => 'Argentina',
+            'Grupo de clientes' => 'USIMINAS',
+            'Destino' => 'Exterior (UF EX)',
+            'Cidades de destino' => 'Buenos Aires, Puerto Iguazú, Rosario',
+            'Base de cálculo' => 'Frete bruto',
+            'Comissão' => '1,30%',
+            'Status' => 'Ativa',
+            'CT-es com comissão' => '2',
+            'Total de comissões' => 'R$ 390,00',
+          )
+        end
       end
 
       scenario 'shows that a national rule serves any brazilian state' do
@@ -201,7 +203,8 @@ describe 'Commission rules' do
         fill_in 'Cidades de destino', with: "Buenos Aires\nRosario\nCórdoba"
         uncheck 'Ativa'
 
-        expect { click_on 'Salvar Alterações' }.to have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
+        expect { click_on 'Salvar Alterações' }.to not_change(CommissionRule, :count)
+          .and have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
 
         expect(page).to have_current_path(commission_rule_path(commission_rule))
         expect(page).to have_text('Regra atualizada com sucesso. As comissões serão recalculadas em segundo plano.')
