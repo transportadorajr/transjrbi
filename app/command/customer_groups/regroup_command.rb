@@ -11,7 +11,9 @@ module CustomerGroups
     end
 
     def call
-      customers = movable_customers.select { |customer| customer_group.match?(customer.name, customer.trade_name) }
+      customers = movable_customers.select do |customer|
+        customer_group.match?(customer.name, customer.trade_name, *taker_names.fetch(customer.code, []))
+      end
       previous_group_ids = customers.filter_map(&:customer_group_id).uniq
 
       ActiveRecord::Base.transaction do
@@ -35,6 +37,10 @@ module CustomerGroups
         .order(:id).to_a
     end
 
+    def taker_names
+      @taker_names ||= tenant.atua_transport_documents.taker_names_by_code
+    end
+
     def groups_without_terms
       tenant.customer_groups.where(terms: []).where.not(id: customer_group.id).select(:id)
     end
@@ -42,6 +48,7 @@ module CustomerGroups
     def empty_groups(group_ids)
       tenant.customer_groups.where(id: group_ids, terms: [])
         .where.not(id: tenant.atua_customers.where(customer_group_id: group_ids).select(:customer_group_id))
+        .where.not(id: tenant.commission_rules.select(:customer_group_id))
     end
   end
 end

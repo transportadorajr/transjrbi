@@ -103,7 +103,7 @@ RSpec.describe CustomerGroup do
         expect { customer_group.destroy }.not_to change(described_class, :count)
 
         expect(customer_group.errors.full_messages).to eq(
-          ['Não é possível excluir um grupo com clientes vinculados. Desative o grupo para deixar de usá-lo.'],
+          ['Não é possível excluir um grupo com clientes ou regras de comissão vinculados. Desative o grupo para deixar de usá-lo.'],
         )
       end
     end

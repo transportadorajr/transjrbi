@@ -1,0 +1,40 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= freight_expense_recalculate_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <%= freight_expense_unmatched_alert(@unmatched_documents) %>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @freight_expenses.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @freight_expenses.any? %>
+        <%= render 'table', collection: @freight_expenses %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card detail-card mt-4">
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="freight_expenses_totals">
+        <dt class="col-12 col-md-6"><%= t('.base_total') %></dt>
+        <dd class="col-12 col-md-6 text-md-end"><%= tax_money(@base_total) %></dd>
+
+        <dt class="col-12 col-md-6"><%= t('.amount_total') %></dt>
+        <dd class="col-12 col-md-6 text-md-end fw-semibold"><%= tax_money(@amount_total) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

@@ -26,7 +26,14 @@ module CustomerGroups
     end
 
     def group_for(customer)
-      term_groups.find { |group| group.match?(customer.name, customer.trade_name) } || own_group(customer)
+      names = [customer.name, customer.trade_name, *taker_names.fetch(customer.code, [])]
+
+      term_groups.find { |group| group.match?(*names) } || own_group(customer)
+    end
+
+    def taker_names
+      @taker_names ||= tenant.atua_transport_documents.where(taker_code: tenant.atua_customers.without_customer_group.select(:code))
+        .taker_names_by_code
     end
 
     def term_groups

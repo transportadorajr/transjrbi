@@ -1,0 +1,53 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('commission_rules.form.commission_rule_data') %></p>
+    <p class="form-card-subtitle"><%= t('commission_rules.form.commission_rule_data_text') %></p>
+  </div>
+  <%= simple_form_for(commission_rule_form, url: commission_rule_form_url(commission_rule_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :customer_group_id, collection: commission_rule_form.customer_groups, label_method: :name, value_method: :id,
+                                          required: true, include_blank: t('helpers.select.prompt'),
+                                          input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :destination_type, collection: CommissionRuleForm.enum_options_for_select(:destination_type),
+                                         required: true, include_blank: t('helpers.select.prompt'),
+                                         input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :base_type, collection: CommissionRuleForm.enum_options_for_select(:base_type),
+                                  required: true, include_blank: t('helpers.select.prompt'),
+                                  input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :percentage, as: :string, required: true, hint: t('commission_rules.form.percentage_hint'),
+                                   input_html: { class: 'form-control', inputmode: 'decimal', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :cities,
+                      as: :text,
+                      required: false,
+                      hint: t('commission_rules.form.cities_hint'),
+                      input_html: { class: 'form-control', rows: 4, autocomplete: 'off', spellcheck: false } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :active,
+                      as: :boolean,
+                      hint: t('commission_rules.form.active_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, commission_rule_form_submit_label(commission_rule_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), commission_rules_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

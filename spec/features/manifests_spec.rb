@@ -189,6 +189,59 @@ describe 'Manifests' do
         expect(page).to have_current_path(transport_document_path(transport_document))
       end
 
+      context 'with access to the freight expenses' do
+        let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+        let!(:other_transport_document) do
+          create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_name: 'JR TRANSPORTES', freight_cents: 300_000)
+        end
+
+        before do
+          create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74131', transport_document_series: 1,
+                                          branch_name: 'JR TRANSPORTES')
+          create(:freight_expense, tenant:, transport_document:, amount_cents: 11_101)
+          create(:freight_expense, tenant:, transport_document: other_transport_document, amount_cents: 6_000)
+          create(:atua_expense, tenant:, history_name: 'DESCARGA - CHAPA', total_cents: 35_000, cost_object: other_transport_document)
+          outside = create(:atua_transport_document, tenant:, number: '74200', series: 1, branch_name: 'JR TRANSPORTES')
+          create(:freight_expense, tenant:, transport_document: outside, amount_cents: 99_999)
+        end
+
+        scenario 'shows the net freight of the transport documents of the trip' do
+          visit manifest_path(manifest)
+
+          expect(FreightExpense.count).to eq(3)
+          expect(dl_to_hash('#manifest_net_freight')).to eq(
+            'Frete bruto' => 'R$ 3.555,04',
+            '(−) Comissões' => 'R$ 171,01',
+            '(−) Despesas do frete na Atua' => 'R$ 350,00',
+            '(=) Frete líquido' => 'R$ 3.034,03',
+          )
+        end
+
+        scenario 'lists the commissions of the transport documents of the trip with the total' do
+          visit manifest_path(manifest)
+
+          expect(FreightExpense.count).to eq(3)
+          expect(html_table_to_rows(table: find_by_id('manifest_commissions'))).to eq(
+            [
+              ['CT-e', 'Regra', 'Base de cálculo', 'Comissão', 'Valor'],
+              ['74130', 'Nacional', 'R$ 1.000,00', '2,00%', 'R$ 111,01'],
+              ['74131', 'Nacional', 'R$ 1.000,00', '2,00%', 'R$ 60,00'],
+            ],
+          )
+          expect(page).to have_css('#manifest_commissions_total', text: 'Total de comissões R$ 171,01')
+        end
+      end
+
+      scenario 'does not show the commissions without access to the freight expenses' do
+        create(:freight_expense, tenant:, transport_document:, amount_cents: 11_101)
+        visit manifest_path(manifest)
+
+        expect(FreightExpense.count).to eq(1)
+        expect(page).to have_css('h1.page-title', text: 'Manifesto 40772')
+        expect(page).to have_no_css('#manifest_net_freight')
+        expect(page).to have_no_css('#manifest_commissions')
+      end
+
       context 'with access to the expenses' do
         let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
 

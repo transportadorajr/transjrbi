@@ -1,0 +1,20 @@
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0" id="transport_document_commissions">
+    <thead class="table-light">
+      <tr>
+        <th><%= FreightExpense.human_attribute_name(:commission_rule) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= FreightExpense.human_attribute_name(:base) %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= FreightExpense.human_attribute_name(:icms) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= FreightExpense.human_attribute_name(:percentage) %></th>
+        <th class="text-end"><%= FreightExpense.human_attribute_name(:amount) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'transport_documents/commissions/row', collection: commissions, as: :commission %>
+    </tbody>
+  </table>
+</div>
+<div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3" id="transport_document_commissions_total">
+  <span class="fw-medium"><%= t('transport_documents.commissions.total') %></span>
+  <strong class="text-nowrap"><%= tax_money(total) %></strong>
+</div>

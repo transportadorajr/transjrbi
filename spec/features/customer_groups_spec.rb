@@ -224,7 +224,7 @@ describe 'Customer groups' do
           expect { page.driver.submit :delete, customer_group_path(customer_group), {} }.not_to change(CustomerGroup, :count)
 
           expect(page).to have_current_path(customer_groups_path)
-          expect(page).to have_text('Não é possível excluir um grupo com clientes vinculados. Desative o grupo para deixar de usá-lo.')
+          expect(page).to have_text('Não é possível excluir um grupo com clientes ou regras de comissão vinculados. Desative o grupo para deixar de usá-lo.')
         end
       end
     end
@@ -250,6 +250,12 @@ describe 'Customer groups' do
             ['TERRINHA ALIMENTOS LTDA -', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', ''],
           ],
         )
+      end
+
+      scenario 'recalculates the commissions after moving customers' do
+        visit customer_group_path(food)
+
+        expect { click_on 'Reagrupar' }.to have_enqueued_job(FreightExpenses::CalculateCommissionsJob).with(tenant.id)
       end
 
       scenario 'does not offer the action on a group without terms' do

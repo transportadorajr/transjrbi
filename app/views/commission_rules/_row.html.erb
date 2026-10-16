@@ -1,0 +1,13 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <%= link_to item.name, commission_rule_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+  </td>
+  <td class="d-none d-md-table-cell text-break"><%= item.customer_group.name %></td>
+  <td class="d-none d-lg-table-cell"><%= item.destination_type_name %></td>
+  <td class="d-none d-lg-table-cell"><%= item.base_type_name %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= commission_percentage(item.percentage) %></td>
+  <td><%= commission_rule_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(commission_rules_menu(item)) %>
+  </td>
+</tr>

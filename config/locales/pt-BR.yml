@@ -49,7 +49,32 @@ pt-BR:
       customer_group:
         one: Grupo de clientes
         other: Grupos de clientes
+      commission_rule:
+        one: Regra de comissão
+        other: Regras de comissão
+      freight_expense:
+        one: Despesa de frete
+        other: Despesas de frete
     attributes:
+      commission_rule:
+        name: Nome
+        customer_group: Grupo de clientes
+        destination_type: Destino
+        base_type: Base de cálculo
+        percentage: Comissão
+        cities: Cidades de destino
+        status: Status
+        activated_at: Ativada em
+        freight_expenses: CT-es com comissão
+      freight_expense:
+        transport_document: CT-e
+        commission_rule: Regra
+        kind_type: Tipo
+        base: Base de cálculo
+        icms: ICMS deduzido da base
+        percentage: Comissão
+        amount: Valor
+        calculated_at: Calculada em
       customer_group:
         name: Nome
         terms: Termos
@@ -272,7 +297,10 @@ pt-BR:
             has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
         customer_group:
           restrict_dependent_destroy:
-            has_many: Não é possível excluir um grupo com clientes vinculados. Desative o grupo para deixar de usá-lo.
+            has_many: Não é possível excluir um grupo com clientes ou regras de comissão vinculados. Desative o grupo para deixar de usá-lo.
+        commission_rule:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir uma regra que já gerou comissões. Desative a regra para deixar de usá-la.
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -310,6 +338,14 @@ pt-BR:
         name: Nome
         terms: Termos
         active: Ativo
+      commission_rule_form:
+        customer_group_id: Grupo de clientes
+        name: Nome
+        destination_type: Destino
+        base_type: Base de cálculo
+        percentage: Comissão (%)
+        cities: Cidades de destino
+        active: Ativa
     errors:
       models:
         admin/login_form:
@@ -327,6 +363,16 @@ pt-BR:
           attributes:
             start_date:
               future: não pode ser posterior a hoje
+        commission_rule_form:
+          attributes:
+            customer_group_id:
+              invalid: não pertence a esta empresa
+            percentage:
+              out_of_range: deve ser maior que 0 e menor que 100
+            destination_type:
+              national_taken: nacional já tem outra regra ativa neste grupo
+            cities:
+              taken: '%{cities} já estão em outra regra ativa deste grupo'
         customer_group_form:
           attributes:
             name:
@@ -343,6 +389,16 @@ pt-BR:
             base:
               invalid_confirmation_link: O link de confirmação é inválido ou expirou. Solicite um novo link.
   enums:
+    commission_rule:
+      destination_type:
+        national: Nacional (qualquer UF brasileira)
+        foreign: Exterior (UF EX)
+      base_type:
+        freight: Frete bruto
+        freight_without_icms: Frete bruto sem ICMS
+    freight_expense:
+      kind_type:
+        commission: Comissão
     location:
       precision_type:
         address: Endereço
@@ -404,6 +460,9 @@ pt-BR:
       customer_group:
         create: Cadastrar Grupo
         update: Salvar Alterações
+      commission_rule:
+        create: Cadastrar Regra
+        update: Salvar Alterações
     tooltips:
       user:
         show: Visualizar
@@ -418,6 +477,10 @@ pt-BR:
       atua/customer:
         show: Visualizar
       customer_group:
+        show: Visualizar
+        edit: Alterar
+        destroy: Excluir
+      commission_rule:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
@@ -521,6 +584,8 @@ pt-BR:
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas
+    commission_rules: Regras de comissão
+    freight_expenses: Despesas de frete
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -531,6 +596,8 @@ pt-BR:
     route: '%{origin} → %{destination}'
     expenses:
       total: Total de despesas
+    commissions:
+      total: Total de comissões
     document_kinds:
       cte: CT-e
       ce: CE
@@ -556,6 +623,7 @@ pt-BR:
       manifests: Manifestos
       expenses: Despesas do frete
       no_expenses: Nenhuma despesa vinculada a este CT-e.
+      commissions: Comissões do frete
       empty_legs: KM vazio para chegar à coleta
       no_empty_leg: Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.
   manifests:
@@ -580,8 +648,11 @@ pt-BR:
       no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
       expenses: Despesas da viagem
       no_expenses: Nenhuma despesa vinculada aos CT-es deste manifesto.
+      commissions: Comissões da viagem
     expenses:
       total: Total de despesas
+    commissions:
+      total: Total de comissões
   empty_legs:
     distance: '%{distance} km'
   customers:
@@ -644,6 +715,75 @@ pt-BR:
         Um termo por linha. Todo cliente cujo nome ou nome fantasia contenha um dos termos entra neste grupo
         (acentos, espaços e pontuação são ignorados).
       active_hint: Desmarque para deixar de usar o grupo sem perder os clientes vinculados.
+  commission_rules:
+    index:
+      title: Regras de comissão
+      subtitle: Comissões comerciais calculadas sobre os fretes dos grupos de clientes.
+      new_commission_rule: Nova Regra
+      total: Total de regras
+      active_rules: Regras ativas
+      deactivated_rules: Regras inativas
+      active: Ativa
+      deactivated: Inativa
+      confirm_destroy: Tem certeza que deseja excluir esta regra?
+    filters:
+      name: Nome da regra
+      customer_group: Grupo de clientes
+      status: Status
+    show:
+      back: Voltar para regras de comissão
+      commission_rule_data: Dados da regra
+      any_brazilian_state: Qualquer UF brasileira
+      expenses_total: Total de comissões
+      edit: Alterar
+    new:
+      title: Nova Regra
+      back: Voltar para regras de comissão
+    create:
+      success: Regra cadastrada com sucesso. As comissões serão recalculadas em segundo plano.
+    edit:
+      title: Alterar Regra
+      back: Voltar para regras de comissão
+    update:
+      success: Regra atualizada com sucesso. As comissões serão recalculadas em segundo plano.
+    destroy:
+      success: Regra excluída com sucesso.
+    form:
+      commission_rule_data: Dados da Regra
+      commission_rule_data_text: >-
+        A comissão é calculada para os CT-es normais cujo tomador do frete pertence ao grupo. CEs, complementos de
+        valores e CT-es cancelados não pagam comissão.
+      percentage_hint: 'Ex.: 2 ou 1,3.'
+      cities_hint: >-
+        Só para destino no exterior: uma cidade por linha (acentos, espaços e hífen são ignorados). CT-e com UF EX e
+        cidade fora das regras fica sem comissão e aparece em alerta nas despesas de frete.
+      active_hint: Desmarque para deixar de calcular a comissão desta regra. Toda alteração recalcula as comissões de todos os CT-es.
+  freight_expenses:
+    index:
+      title: Despesas de frete
+      subtitle: Comissões calculadas pelo sistema e descontadas do frete. Somente consulta.
+      recalculate: Recalcular comissões
+      confirm_recalculate: Recalcular as comissões de todos os CT-es? O recálculo roda em segundo plano.
+      base_total: Total da base de cálculo
+      amount_total: Total de comissões
+    filters:
+      number: Número do CT-e
+      customer_group: Grupo de clientes
+      start_date: CT-es emitidos a partir de
+      end_date: CT-es emitidos até
+    recalculate:
+      success: Recálculo das comissões enfileirado. Ele roda em segundo plano.
+    unmatched_alert:
+      title:
+        one: 1 CT-e com destino no exterior sem regra de comissão
+        other: '%{count} CT-es com destino no exterior sem regra de comissão'
+      text: A cidade de destino não está em nenhuma regra de exterior do grupo. Cadastre a cidade numa regra para calcular a comissão.
+    net_freight:
+      title: Frete líquido
+      freight: Frete bruto
+      commission: (−) Comissões
+      expenses: (−) Despesas do frete na Atua
+      net: (=) Frete líquido
   drivers:
     code: 'Código %{code}'
     index:
@@ -759,6 +899,8 @@ pt-BR:
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas
+    commission_rules: Regras de comissão
+    freight_expenses: Despesas de frete
     users: Usuários
     show: Visualizar
     edit: Alterar

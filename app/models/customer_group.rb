@@ -2,6 +2,7 @@ class CustomerGroup < ApplicationRecord
   belongs_to :tenant
 
   has_many :customers, class_name: 'Atua::Customer', inverse_of: :customer_group, dependent: :restrict_with_error
+  has_many :commission_rules, inverse_of: :customer_group, dependent: :restrict_with_error
 
   time_based_flag :activated
 

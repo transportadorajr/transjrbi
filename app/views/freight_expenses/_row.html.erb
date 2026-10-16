@@ -1,0 +1,15 @@
+<tr id="<%= dom_id(item) %>">
+  <td><%= freight_expense_transport_document(item.transport_document) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_time(item.transport_document.issued_at) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.transport_document.taker_name) %></td>
+  <td class="d-none d-lg-table-cell">
+    <%= tax_city(item.transport_document.destination_city, item.transport_document.destination_state) %>
+  </td>
+  <td class="d-none d-md-table-cell"><%= freight_expense_rule(item) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(item.base) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= commission_percentage(item.percentage) %></td>
+  <td class="text-end text-nowrap fw-semibold"><%= tax_money(item.amount) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(freight_expenses_menu(item)) %>
+  </td>
+</tr>

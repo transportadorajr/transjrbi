@@ -1,0 +1,51 @@
+<% content_for :title, @commission_rule.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('commission_rules.index.title'), commission_rules_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @commission_rule.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @commission_rule.name, back_path: commission_rules_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= commission_rule_edit_button(@commission_rule) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.commission_rule_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="commission_rule_data">
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @commission_rule.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:customer_group) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @commission_rule.customer_group.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:destination_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @commission_rule.destination_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:cities) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= commission_rule_cities(@commission_rule) %></dd>
+
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:base_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @commission_rule.base_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:percentage) %></dt>
+        <dd class="col-12 col-md-9"><%= commission_percentage(@commission_rule.percentage) %></dd>
+
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-9"><%= commission_rule_status_badge(@commission_rule) %></dd>
+
+        <dt class="col-12 col-md-3"><%= CommissionRule.human_attribute_name(:freight_expenses) %></dt>
+        <dd class="col-12 col-md-9"><%= @expenses_count %></dd>
+
+        <dt class="col-12 col-md-3"><%= t('.expenses_total') %></dt>
+        <dd class="col-12 col-md-9"><%= tax_money(@expenses_total) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

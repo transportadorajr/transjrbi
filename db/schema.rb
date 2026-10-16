@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_15_145709) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_15_191722) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -19,7 +19,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_145709) do
   create_enum "atua_import_error_type", ["configuration", "authentication", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
   create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
+  create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
+  create_enum "commission_rule_destination_type", ["national", "foreign"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
+  create_enum "freight_expense_kind_type", ["commission"]
   create_enum "location_precision_type", ["address", "city"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
@@ -476,6 +479,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_145709) do
     t.index ["tenant_id", "status"], name: "index_atua_vehicles_on_tenant_id_and_status"
   end
 
+  create_table "commission_rules", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "customer_group_id", null: false
+    t.string "name", null: false
+    t.enum "destination_type", null: false, enum_type: "commission_rule_destination_type"
+    t.enum "base_type", null: false, enum_type: "commission_rule_base_type"
+    t.decimal "percentage", precision: 7, scale: 4, null: false
+    t.string "cities", default: [], null: false, array: true
+    t.datetime "activated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_group_id"], name: "index_commission_rules_on_customer_group_id"
+    t.index ["tenant_id"], name: "index_commission_rules_on_tenant_id"
+  end
+
   create_table "customer_groups", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.string "name", null: false
@@ -533,6 +551,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_145709) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["feature_key", "key", "value"], name: "index_flipper_gates_on_feature_key_and_key_and_value", unique: true
+  end
+
+  create_table "freight_expenses", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "transport_document_id", null: false
+    t.bigint "commission_rule_id"
+    t.enum "kind_type", null: false, enum_type: "freight_expense_kind_type"
+    t.bigint "base_cents", null: false
+    t.bigint "icms_cents", default: 0, null: false
+    t.decimal "percentage", precision: 7, scale: 4, null: false
+    t.bigint "amount_cents", null: false
+    t.datetime "calculated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["commission_rule_id"], name: "index_freight_expenses_on_commission_rule_id"
+    t.index ["tenant_id"], name: "index_freight_expenses_on_tenant_id"
+    t.index ["transport_document_id", "kind_type"], name: "index_freight_expenses_on_transport_document_id_and_kind_type", unique: true
   end
 
   create_table "good_job_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -751,6 +786,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_145709) do
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_vehicles", "tenants"
+  add_foreign_key "commission_rules", "customer_groups"
+  add_foreign_key "commission_rules", "tenants"
   add_foreign_key "customer_groups", "tenants"
   add_foreign_key "empty_leg_transport_documents", "empty_legs", on_delete: :cascade
   add_foreign_key "empty_leg_transport_documents", "tenants"
@@ -758,6 +795,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_15_145709) do
   add_foreign_key "empty_legs", "locations", column: "origin_id"
   add_foreign_key "empty_legs", "road_routes"
   add_foreign_key "empty_legs", "tenants"
+  add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
+  add_foreign_key "freight_expenses", "commission_rules"
+  add_foreign_key "freight_expenses", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "users", "tenants"
