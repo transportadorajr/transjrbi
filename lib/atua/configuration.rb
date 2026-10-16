@@ -9,25 +9,26 @@ module Atua
     attr_reader :base_url, :username, :password, :device_cookie, :device_hash
 
     class << self
-      def for(tenant = nil, allow_remote_host: false)
+      def for(tenant = nil, allow_remote_host: false, production_access: false)
         credentials = Rails.application.credentials.atua || {}
+        production_access &&= Atua.production_access?
 
         configuration = new(
-          base_url: base_url_for(tenant, credentials),
+          base_url: base_url_for(tenant, credentials, production_access),
           username: credentials[:username],
           password: credentials[:password],
           device_cookie: device_cookie_for(tenant),
           device_hash: device_hash_for(tenant),
         )
-        configuration.ensure_allowed_host! unless allow_remote_host
+        configuration.ensure_allowed_host! unless allow_remote_host || production_access
 
         configuration
       end
 
       private
 
-      def base_url_for(tenant, credentials)
-        return ENV[BASE_URL_ENV] if Rails.env.development? && ENV[BASE_URL_ENV].present?
+      def base_url_for(tenant, credentials, production_access)
+        return ENV[BASE_URL_ENV] if Rails.env.development? && ENV[BASE_URL_ENV].present? && !production_access
 
         tenant&.atua_url.presence || credentials[:base_url]
       end
@@ -68,6 +69,10 @@ module Atua
 
     def local?
       LOCAL_HOSTS.include?(host.to_s.delete_prefix('[').delete_suffix(']'))
+    end
+
+    def source_type
+      local? ? :mock : :production
     end
 
     def ensure_allowed_host!

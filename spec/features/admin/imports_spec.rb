@@ -42,16 +42,16 @@ describe 'Admin Atua imports', :admin do
       expect(Atua::Import.count).to eq(5)
       expect(html_table_to_rows(table: find('table'))).to eq(
         [
-          ['Relatório', 'Período', 'Situação', 'Contagens', 'Duração', 'Erro', 'Ações'],
-          ['Despesas TransJR', '01/10/2026 a 13/10/2026', 'Em andamento', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas', '-', '-', '-'],
-          ['Clientes Outra Exige ação: Login na Atua', 'Cadastro completo', 'Falhou', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas',
+          ['Relatório', 'Período', 'Situação', 'Origem', 'Contagens', 'Duração', 'Erro', 'Ações'],
+          ['Despesas TransJR', '01/10/2026 a 13/10/2026', 'Em andamento', '-', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas', '-', '-', '-'],
+          ['Clientes Outra Exige ação: Login na Atua', 'Cadastro completo', 'Falhou', '-', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas',
            '0:00:01', 'A Atua recusou o login.', '-'],
-          ['Manifestos TransJR Exige ação: Layout do relatório', '01/10/2026 a 13/10/2026', 'Falhou',
+          ['Manifestos TransJR Exige ação: Layout do relatório', '01/10/2026 a 13/10/2026', 'Falhou', '-',
            '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas', '0:00:03', 'O relatório veio sem as colunas obrigatórias.',
            'Opções Baixar arquivo Reprocessar'],
-          ['Conhecimentos de transporte TransJR', '01/10/2026 a 13/10/2026', 'Concluída',
+          ['Conhecimentos de transporte TransJR', '01/10/2026 a 13/10/2026', 'Concluída', '-',
            '420 lidas · 420 inseridas · 0 atualizadas · 0 removidas', '0:02:05', '-', 'Opções Baixar arquivo Reprocessar'],
-          ['Veículos TransJR', 'Cadastro completo', 'Concluída', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas', '0:00:00', '-', '-'],
+          ['Veículos TransJR', 'Cadastro completo', 'Concluída', '-', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas', '0:00:00', '-', '-'],
         ],
       )
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 5', 'Concluídas 2', 'Com falha 2', 'Em andamento 1'])
@@ -151,7 +151,8 @@ describe 'Admin Atua imports', :admin do
       fill_in 'Data final', with: '2026-10-14'
 
       expect { click_on 'Enfileirar importação' }
-        .to have_enqueued_job(Atua::ImportReportJob).with(other_tenant.id, 'expenses', Date.new(2026, 10, 1), Date.new(2026, 10, 14))
+        .to have_enqueued_job(Atua::ImportReportJob)
+        .with(other_tenant.id, 'expenses', Date.new(2026, 10, 1), Date.new(2026, 10, 14), production_access: false)
         .and(not_change(Atua::Import, :count))
 
       expect(page).to have_current_path(admin_imports_path)
@@ -188,7 +189,7 @@ describe 'Admin Atua imports', :admin do
       fill_in 'Data de início', with: '2025-01-01'
 
       expect { click_on 'Iniciar carga inicial' }
-        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1))
+        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), production_access: false)
         .and(not_have_enqueued_job(Atua::ImportReportJob))
 
       expect(page).to have_current_path(admin_imports_path)
@@ -203,6 +204,66 @@ describe 'Admin Atua imports', :admin do
       expect { click_on 'Iniciar carga inicial' }.not_to have_enqueued_job(Atua::InitialLoadJob)
 
       expect(page).to have_text('Data de início não pode ser posterior a hoje')
+    end
+  end
+
+  context 'with the production access flag on', flipper: :atua_production_access do
+    let!(:production_import) do
+      create(:atua_import, tenant:, report_type: 'customers', status_type: 'succeeded', source_type: 'production', start_date: nil,
+                           end_date: nil, started_at: now - 1.hour, finished_at: now - 1.hour, created_at: now - 1.hour)
+    end
+    let!(:mock_import) do
+      create(:atua_import, tenant:, report_type: 'vehicles', status_type: 'succeeded', source_type: 'mock', start_date: nil,
+                           end_date: nil, started_at: now - 2.hours, finished_at: now - 2.hours, created_at: now - 2.hours)
+    end
+
+    before { sign_in_admin(admin_user) }
+
+    scenario 'warns that the manual imports reach the production Atua and shows the source of each import' do
+      visit admin_imports_path
+
+      expect(page).to have_css('#atua-production-access', text: 'A flag atua_production_access está ligada.')
+      expect(Atua::Import.count).to eq(2)
+      expect(html_table_to_rows(table: find('table'))).to eq(
+        [
+          ['Relatório', 'Período', 'Situação', 'Origem', 'Contagens', 'Duração', 'Erro', 'Ações'],
+          ['Clientes TransJR', 'Cadastro completo', 'Concluída', 'Atua de produção', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas',
+           '0:00:00', '-', '-'],
+          ['Veículos TransJR', 'Cadastro completo', 'Concluída', 'Mock local', '0 lidas · 0 inseridas · 0 atualizadas · 0 removidas',
+           '0:00:00', '-', '-'],
+        ],
+      )
+    end
+
+    scenario 'enqueues the manual import asking for the production Atua' do
+      visit new_admin_import_path
+      select 'TransJR', from: 'Empresa'
+      select 'Clientes', from: 'Relatório'
+
+      expect { click_on 'Enfileirar importação' }
+        .to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'customers', nil, nil, production_access: true)
+
+      expect(page).to have_current_path(admin_imports_path)
+    end
+
+    scenario 'enqueues the initial load asking for the production Atua' do
+      visit new_admin_initial_load_path
+      select 'TransJR', from: 'Empresa'
+      fill_in 'Data de início', with: '2025-01-01'
+
+      expect { click_on 'Iniciar carga inicial' }
+        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), production_access: true)
+    end
+  end
+
+  context 'with the production access flag off' do
+    before { sign_in_admin(admin_user) }
+
+    scenario 'does not show the production access warning' do
+      visit admin_imports_path
+
+      expect(page).to have_css('.page-title', text: 'Importações da Atua')
+      expect(page).to have_no_css('#atua-production-access')
     end
   end
 

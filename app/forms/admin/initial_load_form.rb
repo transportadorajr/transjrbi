@@ -13,7 +13,7 @@ module Admin
     end
 
     def submit
-      Atua::InitialLoadJob.perform_later(tenant.id, start_date)
+      Atua::InitialLoadJob.perform_later(tenant.id, start_date, production_access: Atua.production_access?)
     end
 
     private

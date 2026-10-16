@@ -10,13 +10,21 @@ RSpec.describe Admin::ImportForm do
     form = described_class.new(tenant_id: tenant.id, report_type: 'manifests', start_date: '2026-10-01', end_date: '2026-10-14')
 
     expect { expect(form.save).to be(true) }
-      .to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'manifests', Date.new(2026, 10, 1), today)
+      .to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'manifests', Date.new(2026, 10, 1), today, production_access: false)
+  end
+
+  it 'asks for the production Atua when the production access flag is on', flipper: :atua_production_access do
+    form = described_class.new(tenant_id: tenant.id, report_type: 'manifests', start_date: '2026-10-01', end_date: '2026-10-14')
+
+    expect { expect(form.save).to be(true) }
+      .to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'manifests', Date.new(2026, 10, 1), today, production_access: true)
   end
 
   it 'enqueues a registry report without period' do
     form = described_class.new(tenant_id: tenant.id, report_type: 'customers', start_date: '2026-10-01', end_date: '2026-10-14')
 
-    expect { expect(form.save).to be(true) }.to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'customers', nil, nil)
+    expect { expect(form.save).to be(true) }
+      .to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'customers', nil, nil, production_access: false)
   end
 
   it 'requires tenant, report and the period of a movement report' do

@@ -1,6 +1,7 @@
 module Admin
   module ImportsHelper
     STATUS_KINDS = { 'pending' => :secondary, 'running' => :warning, 'succeeded' => :success, 'failed' => :danger }.freeze
+    SOURCE_KINDS = { 'mock' => :secondary, 'production' => :danger, 'upload' => :info }.freeze
 
     def admin_import_menu(import)
       menus = []
@@ -26,6 +27,12 @@ module Admin
 
     def admin_import_status_badge(import)
       status_badge(import.status_type_name, kind: STATUS_KINDS.fetch(import.status_type))
+    end
+
+    def admin_import_source_badge(import)
+      return t('admin.imports.index.blank') unless import.source_type
+
+      status_badge(import.source_type_name, kind: SOURCE_KINDS.fetch(import.source_type))
     end
 
     def admin_import_period(import)

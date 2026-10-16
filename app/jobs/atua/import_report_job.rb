@@ -24,8 +24,8 @@ module Atua
       end
     end
 
-    def perform(tenant_id, report_type, start_date = nil, end_date = nil)
-      ImportReportCommand.call(Tenant.find(tenant_id), report_type, start_date:, end_date:, raise_errors: true)
+    def perform(tenant_id, report_type, start_date = nil, end_date = nil, production_access: false)
+      ImportReportCommand.call(Tenant.find(tenant_id), report_type, start_date:, end_date:, raise_errors: true, production_access:)
     rescue SessionError, DownloadError => e
       raise unless e.server_unavailable?
 
