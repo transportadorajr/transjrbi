@@ -154,7 +154,7 @@ module Atua
       begin
         attempt += 1
         throttle
-        response = perform(method, URI.parse(url(path)), form, headers)
+        response = perform(method, URI.parse(url(path)), form, headers, attempt:)
         raise ServerError, response if response.code.to_i >= 500
 
         response
@@ -170,9 +170,12 @@ module Atua
       end
     end
 
-    def perform(method, uri, form, headers, redirects = 0)
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https', open_timeout: OPEN_TIMEOUT, read_timeout: READ_TIMEOUT, write_timeout: OPEN_TIMEOUT) do |http|
-        http.request(build_request(method, uri, form, headers))
+    def perform(method, uri, form, headers, attempt:, trace_id: SecureRandom.uuid, redirects: 0)
+      http_request = build_request(method, uri, form, headers)
+      response = Admin::HttpRequests::RecordCommand.call(:atua, http_request, trace_id:, attempt:, secrets: [configuration.password]) do
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == 'https', open_timeout: OPEN_TIMEOUT, read_timeout: READ_TIMEOUT, write_timeout: OPEN_TIMEOUT) do |http|
+          http.request(http_request)
+        end
       end
 
       store_cookies(response)
@@ -182,7 +185,7 @@ module Atua
       raise DownloadError.new(I18n.t('atua.errors.too_many_redirects'), **diagnostics(response)) if redirects >= MAX_REDIRECTS
 
       keep_method = %w[307 308].include?(response.code)
-      perform(keep_method ? method : :get, uri + response['location'], keep_method ? form : nil, headers.except('Origin'), redirects + 1)
+      perform(keep_method ? method : :get, uri + response['location'], keep_method ? form : nil, headers.except('Origin'), attempt:, trace_id:, redirects: redirects + 1)
     end
 
     def build_request(method, uri, form, headers)

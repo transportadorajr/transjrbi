@@ -68,6 +68,11 @@ shared:
       controllers:
         - admin/imports
         - admin/initial_loads
+    - name: admin_http_requests
+      icon: arrow-left-right
+      url: /http_requests
+      controllers:
+        - admin/http_requests
     - name: admin_resources
       icon: shield-lock
       url: /resources

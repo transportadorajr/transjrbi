@@ -286,6 +286,19 @@ RSpec.describe Atua::ImportReportCommand do
         expect(import.file.filename.to_s).to eq('9430_rel_manifesto_detalhado.xls')
       end
 
+      it 'links the requests made during the download to the import' do
+        linked_import = nil
+        allow(client).to receive(:download) do |_type, start_date:, end_date:|
+          linked_import = Current.atua_import
+          [download(start_date, end_date)]
+        end
+
+        import = described_class.call(tenant, :manifests, **period, client:).sole
+
+        expect(linked_import).to eq(import)
+        expect(Current.atua_import).to be_nil
+      end
+
       it 'records the production Atua as the source of a remote download' do
         allow(client).to receive_messages(source_type: :production)
 

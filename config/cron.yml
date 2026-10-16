@@ -2,6 +2,10 @@ shared:
   atua_expired_files:
     cron: '30 3 * * * America/Sao_Paulo'
     class: 'Atua::PurgeExpiredFilesJob'
+  admin_http_requests:
+    cron: '45 3 * * * America/Sao_Paulo'
+    class: 'Admin::PurgeHttpRequestsJob'
+    description: 'Deletes the recorded HTTP requests older than 30 days'
   atua_movements:
     cron: '0 6-22 * * * America/Sao_Paulo'
     class: 'Atua::ScheduleMovementsJob'

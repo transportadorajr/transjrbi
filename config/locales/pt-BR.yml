@@ -13,6 +13,9 @@ pt-BR:
       access:
         one: Permissão
         other: Permissões
+      admin/http_request:
+        one: Requisição HTTP
+        other: Requisições HTTP
       atua/import:
         one: Importação da Atua
         other: Importações da Atua
@@ -263,6 +266,25 @@ pt-BR:
         icms_credit_percentage: Alíquota do crédito de ICMS
         pis_credit: Crédito de PIS
         cofins_credit: Crédito de COFINS
+      admin/http_request:
+        integration_type: Integração
+        tenant: Empresa
+        atua_import: Importação
+        trace_id: Rastreio
+        attempt: Tentativa
+        http_method: Método
+        url: URL
+        request_headers: Cabeçalhos enviados
+        request_body: Body enviado
+        status_code: Status HTTP
+        status_message: Mensagem do status
+        response_headers: Cabeçalhos recebidos
+        response_body: Body recebido
+        response_content_type: Tipo do conteúdo
+        response_size: Tamanho da resposta
+        duration_ms: Duração
+        error_message: Erro
+        created_at: Data
       atua/import:
         tenant: Empresa
         report_type: Relatório
@@ -468,6 +490,10 @@ pt-BR:
         freight: Frete
         vehicle: Veículo
         overhead: Despesa geral
+    admin/http_request:
+      integration_type:
+        atua: Atua
+        tomtom: TomTom
     atua/import:
       report_type:
         transport_documents: Conhecimentos de transporte
@@ -525,6 +551,8 @@ pt-BR:
         create: Cadastrar Custo
         update: Salvar Alterações
     tooltips:
+      admin/http_request:
+        show: Visualizar
       user:
         show: Visualizar
         edit: Alterar
@@ -1059,10 +1087,48 @@ pt-BR:
     show: Visualizar
     edit: Alterar
     admin_imports: Importações da Atua
+    admin_http_requests: Requisições HTTP
     admin_resources: Recursos
     admin_good_job: Jobs (GoodJob)
     admin_flipper: Feature flags
   admin:
+    http_requests:
+      status_groups:
+        success: Sucesso (2xx)
+        redirection: Redirecionamento (3xx)
+        client_error: Erro do cliente (4xx)
+        server_error: Erro do servidor (5xx)
+        failed: Sem resposta
+      index:
+        title: Requisições HTTP
+        subtitle: Histórico das chamadas feitas às integrações externas, com o que foi enviado e o que voltou.
+        history: Histórico de requisições
+        total: Total
+        succeeded: Com sucesso
+        failed: Com falha
+        no_response: Sem resposta
+        duration: '%{value} ms'
+        blank: '-'
+      filters:
+        start_date: Data a partir de
+        end_date: Data até
+      show:
+        title: 'Requisição #%{id}'
+        back: Voltar para requisições
+        summary: Resumo
+        chain: Cadeia de redirecionamentos
+        request: Requisição (o que foi enviado)
+        response: Resposta (o que voltou)
+        headers: Cabeçalhos
+        params: Parâmetros
+        body: Body
+        copy_body: Copiar body
+        copied: Copiado!
+        empty: Nenhum item.
+        empty_body: Body vazio.
+        no_response: A requisição não recebeu resposta.
+        binary: 'Arquivo binário (%{content_type}, %{size}). O conteúdo não é exibido.'
+        truncated: 'Conteúdo truncado em 1 MB (tamanho original: %{size}).'
     atua:
       production_access_banner: A flag atua_production_access está ligada. As importações disparadas manualmente neste painel buscam os dados na Atua de produção; as importações agendadas continuam no mock local.
     resources:

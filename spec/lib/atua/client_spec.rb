@@ -489,6 +489,67 @@ RSpec.describe Atua::Client do
     end
   end
 
+  describe 'request history' do
+    context 'with a report download' do
+      before do
+        stub_login
+        stub_form('rel_cliente_detalhado.php')
+        stub_report('rel_cliente_detalhado.php')
+      end
+
+      it 'records every request with the password filtered and the spreadsheet kept out of the body' do
+        expect { client.download(:customers) }.to change(Admin::HttpRequest, :count).by(4)
+
+        requests = Admin::HttpRequest.order(:id)
+        expect(requests.map { |request| [request.integration_type, request.http_method, request.url, request.status_code] }).to eq(
+          [
+            ['atua', 'GET', "#{base_url}/login.php?f_popup=true", 200],
+            ['atua', 'POST', "#{base_url}/login.php", 200],
+            ['atua', 'GET', "#{base_url}/rel_cliente_detalhado.php", 200],
+            ['atua', 'POST', "#{base_url}/rel_cliente_detalhado.php", 200],
+          ],
+        )
+        expect(requests.second.request_body).to include('f_ds_apelido=transjr', 'f_ds_senha=[FILTERED]')
+        expect(requests.second.request_body).not_to include(password)
+        expect(requests.second.request_headers['cookie']).to eq('PHPSESSID=[FILTERED]')
+        expect(requests.first.response_headers['set-cookie']).to eq('PHPSESSID=[FILTERED]; path=/')
+        expect(requests.last).to have_attributes(response_binary: true, response_body: nil, response_size: xls.bytesize)
+      end
+    end
+
+    context 'when a request is retried' do
+      before do
+        stub_login
+        stub_form('rel_cliente_detalhado.php')
+        stub_report('rel_cliente_detalhado.php', { status: 520, body: 'Cloudflare 520' }, xls_response)
+      end
+
+      it 'records each attempt' do
+        client.download(:customers)
+
+        report_requests = Admin::HttpRequest.where(http_method: 'POST', url: "#{base_url}/rel_cliente_detalhado.php").order(:id)
+        expect(report_requests.map { |request| [request.attempt, request.status_code, request.response_body] }).to eq([[1, 520, 'Cloudflare 520'], [2, 200, nil]])
+      end
+    end
+
+    context 'when the login redirects to the home page' do
+      before do
+        stub_request(:get, "#{base_url}/login.php?f_popup=true").to_return(status: 200, body: login_form)
+        stub_request(:post, "#{base_url}/login.php").to_return(status: 302, headers: { 'Location' => 'index.php' })
+        stub_request(:get, "#{base_url}/index.php").to_return(status: 200, body: '<html>Bem-vindo</html>')
+      end
+
+      it 'records the redirect hops under the same trace' do
+        client.login
+
+        post, redirected = Admin::HttpRequest.order(:id).last(2)
+        expect([post.status_code, redirected.status_code, redirected.url]).to eq([302, 200, "#{base_url}/index.php"])
+        expect(redirected.trace_id).to eq(post.trace_id)
+        expect(redirected.chain).to eq([post, redirected])
+      end
+    end
+  end
+
   describe '#inspect' do
     it 'does not show the password' do
       expect(client.inspect).not_to include(password)

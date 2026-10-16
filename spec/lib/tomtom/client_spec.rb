@@ -84,6 +84,26 @@ RSpec.describe Tomtom::Client do
     end
   end
 
+  describe 'request history' do
+    it 'records the request with the api key filtered' do
+      stub_request(:get, geocode_url).to_return(status: 200, body: geocode_body, headers: { 'Content-Type' => 'application/json' })
+
+      expect { client.geocode('Betim, MG') }.to change(Admin::HttpRequest, :count).by(1)
+
+      request = Admin::HttpRequest.last
+      expect(request).to have_attributes(integration_type: 'tomtom', http_method: 'GET', status_code: 200, response_body: geocode_body)
+      expect(request.url).to end_with('&key=[FILTERED]')
+      expect(request.url).not_to include('test-key')
+    end
+
+    it 'records a request that timed out' do
+      stub_request(:get, geocode_url).to_timeout
+
+      expect { client.geocode('Betim, MG') }.to raise_error(Tomtom::RequestError)
+      expect(Admin::HttpRequest.last).to have_attributes(status_code: nil, error_class: 'Net::OpenTimeout')
+    end
+  end
+
   it 'hides the api key when inspected' do
     expect(client.inspect).not_to include('test-key')
   end

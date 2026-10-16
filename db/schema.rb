@@ -10,12 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_190139) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_16_200024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "admin_http_request_integration_type", ["atua", "tomtom"]
   create_enum "atua_import_error_type", ["configuration", "authentication", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
   create_enum "atua_import_source_type", ["mock", "production", "upload"]
@@ -67,6 +68,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_190139) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "admin_http_requests", force: :cascade do |t|
+    t.enum "integration_type", null: false, enum_type: "admin_http_request_integration_type"
+    t.bigint "tenant_id"
+    t.bigint "atua_import_id"
+    t.uuid "trace_id", null: false
+    t.integer "attempt", default: 1, null: false
+    t.string "http_method", null: false
+    t.text "url", null: false
+    t.jsonb "request_headers", default: {}, null: false
+    t.text "request_body"
+    t.integer "status_code"
+    t.string "status_message"
+    t.jsonb "response_headers", default: {}, null: false
+    t.text "response_body"
+    t.string "response_content_type"
+    t.bigint "response_size"
+    t.boolean "response_binary", default: false, null: false
+    t.boolean "response_truncated", default: false, null: false
+    t.integer "duration_ms"
+    t.string "error_class"
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_admin_http_requests_on_atua_import_id"
+    t.index ["created_at"], name: "index_admin_http_requests_on_created_at"
+    t.index ["integration_type"], name: "index_admin_http_requests_on_integration_type"
+    t.index ["status_code"], name: "index_admin_http_requests_on_status_code"
+    t.index ["tenant_id"], name: "index_admin_http_requests_on_tenant_id"
+    t.index ["trace_id"], name: "index_admin_http_requests_on_trace_id"
   end
 
   create_table "admin_sessions", force: :cascade do |t|
@@ -792,6 +824,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_190139) do
   add_foreign_key "accesses", "users"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "admin_http_requests", "atua_imports", on_delete: :nullify
+  add_foreign_key "admin_http_requests", "tenants", on_delete: :nullify
   add_foreign_key "admin_sessions", "admin_users", column: "user_id"
   add_foreign_key "atua_customers", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_customers", "customer_groups"
