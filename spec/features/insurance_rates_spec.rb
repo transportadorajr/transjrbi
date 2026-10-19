@@ -74,7 +74,13 @@ describe 'Insurance rates' do
         fill_in 'Vigência até', with: '2026-11-30'
         click_on 'Aplicar Filtros'
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['01/10/2026'])
+        expect(InsuranceRate.count).to eq(4)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Início da vigência', 'Alíquota do seguro', 'Alíquota do IOF', 'Situação', 'Ações'],
+            ['01/10/2026', '0,022%', '7,38%', 'Vigente', 'Opções Visualizar Alterar Excluir'],
+          ],
+        )
       end
 
       context 'when a rate was calculated on transport documents' do
@@ -155,7 +161,8 @@ describe 'Insurance rates' do
 
         expect(page).to have_current_path(insurance_rate_path(insurance_rate))
         expect(page).to have_text('Alíquota atualizada com sucesso. O seguro dos CT-es será recalculado em segundo plano.')
-        expect(insurance_rate.reload).to have_attributes(valid_from: Date.new(2026, 10, 1), iof_percentage: BigDecimal('6.38'))
+        expect(insurance_rate.reload).to have_attributes(tenant:, valid_from: Date.new(2026, 10, 1), insurance_percentage: BigDecimal('0.022'),
+                                                         iof_percentage: BigDecimal('6.38'))
       end
     end
 
