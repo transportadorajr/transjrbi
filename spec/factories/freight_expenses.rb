@@ -20,5 +20,16 @@ FactoryBot.define do
       rate_cents { 1_257 }
       amount_cents { 40_853 }
     end
+
+    trait :insurance do
+      commission_rule { nil }
+      insurance_rate { association :insurance_rate, tenant: }
+      kind_type { 'insurance' }
+      base_cents { 1_000_000 }
+      percentage { BigDecimal('0.022') }
+      iof_percentage { BigDecimal('0') }
+      iof_cents { 0 }
+      amount_cents { 220 }
+    end
   end
 end

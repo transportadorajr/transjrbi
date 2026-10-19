@@ -64,6 +64,9 @@ pt-BR:
       tonnage_rate:
         one: Custo por tonelada
         other: Custos por tonelada
+      insurance_rate:
+        one: Alíquota de seguro
+        other: Alíquotas de seguro
     attributes:
       commission_rule:
         name: Nome
@@ -79,6 +82,7 @@ pt-BR:
         transport_document: CT-e
         commission_rule: Regra
         tonnage_rate: Custo por tonelada
+        insurance_rate: Alíquota de seguro
         detail: Regra ou custo
         kind_type: Tipo
         base: Base de cálculo
@@ -102,6 +106,12 @@ pt-BR:
         freight_expenses: CT-es com o custo
         amount: Valor
         calculated_at: Calculada em
+      insurance_rate:
+        valid_from: Início da vigência
+        insurance_percentage: Alíquota do seguro
+        iof_percentage: Alíquota do IOF
+        status: Situação
+        freight_expenses: CT-es com o seguro
       customer_group:
         name: Nome
         terms: Termos
@@ -361,6 +371,9 @@ pt-BR:
         tonnage_rate:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um custo que já foi calculado nos CT-es. Desative o custo para deixar de usá-lo.
+        insurance_rate:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir uma alíquota que já foi usada nos CT-es. Cadastre uma nova vigência para mudar o valor.
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -425,6 +438,10 @@ pt-BR:
         valid_month: Vigência
         rate: Valor por tonelada (R$)
         active: Ativo
+      insurance_rate_form:
+        valid_from: Início da vigência
+        insurance_percentage: Alíquota do seguro (%)
+        iof_percentage: Alíquota do IOF (%)
     errors:
       models:
         admin/login_form:
@@ -460,6 +477,14 @@ pt-BR:
               invalid: não é um mês válido
             origin_city:
               taken: já tem outro custo ativo deste grupo nesta vigência
+        insurance_rate_form:
+          attributes:
+            valid_from:
+              taken: já tem outra alíquota cadastrada nesta data
+            insurance_percentage:
+              out_of_range: deve ser maior que 0 e menor que 100
+            iof_percentage:
+              out_of_range: deve ser maior ou igual a 0 e menor que 100
         customer_group_form:
           attributes:
             name:
@@ -487,6 +512,7 @@ pt-BR:
       kind_type:
         commission: Comissão
         tonnage: Custo por tonelada
+        insurance: Seguro da carga
     location:
       precision_type:
         address: Endereço
@@ -570,6 +596,9 @@ pt-BR:
       tonnage_rate:
         create: Cadastrar Custo
         update: Salvar Alterações
+      insurance_rate:
+        create: Cadastrar Alíquota
+        update: Salvar Alterações
     tooltips:
       admin/http_request:
         show: Visualizar
@@ -594,6 +623,10 @@ pt-BR:
         edit: Alterar
         destroy: Excluir
       tonnage_rate:
+        show: Visualizar
+        edit: Alterar
+        destroy: Excluir
+      insurance_rate:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
@@ -720,6 +753,7 @@ pt-BR:
     expenses: Despesas
     commission_rules: Regras de comissão
     tonnage_rates: Custos por tonelada
+    insurance_rates: Alíquotas de seguro
     freight_expenses: Despesas de frete
     company: Dados da empresa
   tax:
@@ -944,10 +978,52 @@ pt-BR:
         anterior; ao cadastrar, os CT-es do mês são recalculados.
       rate_hint: 'Ex.: 12,57.'
       active_hint: Desmarque para deixar de usar este valor. Toda alteração recalcula as despesas de todos os CT-es.
+  insurance_rates:
+    label: Alíquota de %{date}
+    statuses:
+      current: Vigente
+      scheduled: Futura
+      expired: Encerrada
+    index:
+      title: Alíquotas de seguro
+      subtitle: Alíquotas do seguro da carga e do IOF usadas para calcular o seguro de cada CT-e.
+      new_insurance_rate: Nova Alíquota
+      confirm_destroy: Tem certeza que deseja excluir esta alíquota?
+    filters:
+      start_date: Vigência a partir de
+      end_date: Vigência até
+    show:
+      back: Voltar para alíquotas de seguro
+      insurance_rate_data: Dados da alíquota
+      expenses_total: Total de seguro calculado
+      edit: Alterar
+    new:
+      title: Nova Alíquota
+      back: Voltar para alíquotas de seguro
+    create:
+      success: Alíquota cadastrada com sucesso. O seguro dos CT-es será recalculado em segundo plano.
+    edit:
+      title: Alterar Alíquota
+      back: Voltar para alíquotas de seguro
+    update:
+      success: Alíquota atualizada com sucesso. O seguro dos CT-es será recalculado em segundo plano.
+    destroy:
+      success: Alíquota excluída com sucesso.
+    form:
+      insurance_rate_data: Dados da Alíquota
+      insurance_rate_data_text: >-
+        O seguro da carga é calculado para os CT-es normais: (valor da carga + valor do frete) × alíquota do seguro. Nos
+        CT-es com destino no exterior (UF EX) soma-se o IOF sobre o valor do seguro. CEs, complementos de valores e
+        CT-es cancelados ficam sem seguro.
+      valid_from_hint: >-
+        Cada CT-e usa a alíquota vigente na sua data de emissão. Para mudar o valor, cadastre uma nova alíquota com a
+        data em que ela passa a valer, assim os CT-es anteriores mantêm o valor antigo.
+      insurance_percentage_hint: 'Ex.: 0,022.'
+      iof_percentage_hint: 'Só para frete internacional. Ex.: 7,38.'
   freight_expenses:
     index:
       title: Despesas de frete
-      subtitle: Comissões e custos por tonelada calculados pelo sistema e descontados do frete. Somente consulta.
+      subtitle: Comissões, custos por tonelada e seguro da carga calculados pelo sistema e descontados do frete. Somente consulta.
       recalculate: Recalcular despesas
       confirm_recalculate: Recalcular as despesas de todos os CT-es? O recálculo roda em segundo plano.
       amount_total: Total das despesas
@@ -969,6 +1045,10 @@ pt-BR:
         one: 1 CT-e sem peso com custo por tonelada
         other: '%{count} CT-es sem peso com custo por tonelada'
       text: A origem do CT-e tem custo por tonelada, mas o CT-e veio da Atua sem peso, por isso o custo ficou zerado.
+    missing_insurance_rate_alert:
+      title: Nenhuma alíquota de seguro cadastrada
+      text: Sem alíquota, o seguro da carga não é calculado nos CT-es.
+    insurance_detail_html: '%{rate} (internacional, com IOF de %{iof})'
     outdated_alert:
       title:
         one: 1 custo por tonelada desatualizado
@@ -979,6 +1059,7 @@ pt-BR:
       freight: Frete bruto
       commission: (−) Comissões
       tonnage: (−) Custos por tonelada
+      insurance: (−) Seguro da carga
       expenses: (−) Despesas do frete na Atua
       net: (=) Frete líquido
   drivers:
@@ -1101,6 +1182,7 @@ pt-BR:
     expenses: Despesas
     commission_rules: Regras de comissão
     tonnage_rates: Custos por tonelada
+    insurance_rates: Alíquotas de seguro
     freight_expenses: Despesas de frete
     company: Empresa
     users: Usuários

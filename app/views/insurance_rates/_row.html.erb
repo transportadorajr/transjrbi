@@ -1,0 +1,11 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <%= link_to l(item.valid_from), insurance_rate_path(item), class: 'fw-semibold text-decoration-none text-body text-nowrap' %>
+  </td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= insurance_percentage(item.insurance_percentage) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= insurance_percentage(item.iof_percentage) %></td>
+  <td><%= insurance_rate_status_badge(item, current_insurance_rate) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(insurance_rates_menu(item)) %>
+  </td>
+</tr>

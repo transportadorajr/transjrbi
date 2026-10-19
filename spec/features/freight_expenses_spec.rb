@@ -33,6 +33,18 @@ describe 'Freight expenses' do
       end
     end
 
+    context 'without an insurance rate' do
+      scenario 'warns that the cargo insurance is not calculated' do
+        visit freight_expenses_path
+
+        expect(InsuranceRate.count).to eq(0)
+        within('#missing_insurance_rate') do
+          expect(page).to have_text('Nenhuma alíquota de seguro cadastrada')
+          expect(page).to have_text('Sem alíquota, o seguro da carga não é calculado nos CT-es.')
+        end
+      end
+    end
+
     context 'when the commissions were calculated' do
       let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
       let!(:commission_rules_resource) { create(:resource, name: 'Regras de comissão', slug: 'commission_rules') }
@@ -201,6 +213,51 @@ describe 'Freight expenses' do
         expect(page).to have_text('Brasiltec – Ipatinga/MG')
         expect(page).to have_text('07/2026')
       end
+    end
+  end
+
+  context 'when an admin is signed in and the cargo insurance was calculated' do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:insurance_rates_resource) { create(:resource, name: 'Alíquotas de seguro', slug: 'insurance_rates') }
+    let!(:insurance_rate) { create(:insurance_rate, tenant:) }
+    let!(:to_minas) do
+      create(:atua_transport_document, tenant:, number: '76001', taker_code: 501, taker_name: 'USIMINAS CUBATAO', destination_state: 'MG',
+                                       issued_at: Time.zone.local(2026, 10, 5, 8), goods_value_cents: 838_998, freight_cents: 55_504)
+    end
+    let!(:to_rosario) do
+      create(:atua_transport_document, tenant:, number: '76002', taker_code: 501, taker_name: 'USIMINAS CUBATAO', destination_state: 'EX',
+                                       issued_at: Time.zone.local(2026, 10, 4, 8), goods_value_cents: 838_998, freight_cents: 55_504)
+    end
+
+    before do
+      FreightExpenses::CalculateInsuranceCommand.call(tenant)
+      login_as(admin, scope: :user)
+    end
+
+    scenario 'lists the cargo insurance of each transport document with the IOF of the international freight' do
+      visit freight_expenses_path
+      select 'Seguro da carga', from: 'Tipo'
+      click_on 'Aplicar Filtros'
+
+      expect(tenant.freight_expenses.insurance.count).to eq(2)
+      expect(html_table_to_rows).to eq(
+        [
+          ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
+          ['76001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga', 'Alíquota de 01/10/2026', 'R$ 8.945,02', '0,022%',
+           'R$ 1,97', ''],
+          ['76002', '04/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga',
+           'Alíquota de 01/10/2026 (internacional, com IOF de R$ 0,15)', 'R$ 8.945,02', '0,022%', 'R$ 2,12', ''],
+        ],
+      )
+      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 4,09')
+      expect(page).to have_no_css('#missing_insurance_rate')
+    end
+
+    scenario 'opens the insurance rate of the expense' do
+      visit freight_expenses_path
+      first(:link, 'Alíquota de 01/10/2026').click
+
+      expect(page).to have_current_path(insurance_rate_path(insurance_rate))
     end
   end
 

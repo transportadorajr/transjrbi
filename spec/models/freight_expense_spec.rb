@@ -22,6 +22,17 @@ RSpec.describe FreightExpense do
       expect(build(:freight_expense, :tonnage, tenant:)).to be_valid
     end
 
+    it 'requires the rate, the base and the percentages of a cargo insurance' do
+      expense = build(:freight_expense, :insurance, tenant:, insurance_rate: nil, base_cents: nil, percentage: nil, iof_percentage: nil)
+
+      expect(expense).not_to be_valid
+      expect(expense.errors.attribute_names).to contain_exactly(:insurance_rate, :base_cents, :percentage, :iof_percentage)
+    end
+
+    it 'accepts a cargo insurance without commission rule' do
+      expect(build(:freight_expense, :insurance, tenant:)).to be_valid
+    end
+
     it 'accepts a single commission per transport document' do
       existing = create(:freight_expense, tenant:)
       duplicated = build(:freight_expense, tenant:, transport_document: existing.transport_document)
@@ -57,6 +68,13 @@ RSpec.describe FreightExpense do
 
       expect(described_class.by_customer_group(usiminas.id)).to contain_exactly(september_expense, tonnage)
       expect(described_class.by_kind('tonnage')).to contain_exactly(tonnage)
+    end
+
+    it 'filters the cargo insurance by kind' do
+      insurance = create(:freight_expense, :insurance, tenant:, transport_document: october)
+
+      expect(described_class.by_kind('insurance')).to contain_exactly(insurance)
+      expect(described_class.by_customer_group(arcelor.id)).to contain_exactly(october_expense)
     end
   end
 end

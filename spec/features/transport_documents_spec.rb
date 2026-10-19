@@ -304,32 +304,38 @@ describe 'Transport documents' do
             create(:freight_expense, tenant:, transport_document:, base_cents: 488_435, icms_cents: 66_605, amount_cents: 9_769)
           end
           let!(:tonnage_expense) { create(:freight_expense, :tonnage, tenant:, transport_document:) }
+          let!(:insurance_expense) do
+            create(:freight_expense, :insurance, tenant:, transport_document:, base_cents: 1_393_502,
+                                                 iof_percentage: BigDecimal('7.38'), iof_cents: 23, amount_cents: 330)
+          end
 
-          scenario 'shows the net freight after the commission, the tonnage cost and the Atua expenses' do
+          scenario 'shows the net freight after the commission, the tonnage cost, the cargo insurance and the Atua expenses' do
             visit transport_document_path(transport_document)
 
-            expect(FreightExpense.count).to eq(2)
+            expect(FreightExpense.count).to eq(3)
             expect(dl_to_hash('#transport_document_net_freight')).to eq(
               'Frete bruto' => 'R$ 5.550,40',
               '(−) Comissões' => 'R$ 97,69',
               '(−) Custos por tonelada' => 'R$ 408,53',
+              '(−) Seguro da carga' => 'R$ 3,30',
               '(−) Despesas do frete na Atua' => 'R$ 350,00',
-              '(=) Frete líquido' => 'R$ 4.694,18',
+              '(=) Frete líquido' => 'R$ 4.690,88',
             )
           end
 
-          scenario 'lists the commission and the tonnage cost of the freight with the total' do
+          scenario 'lists the commission, the tonnage cost and the cargo insurance of the freight with the total' do
             visit transport_document_path(transport_document)
 
-            expect(transport_document.freight_expenses.count).to eq(2)
+            expect(transport_document.freight_expenses.count).to eq(3)
             expect(html_table_to_rows(table: find_by_id('transport_document_freight_expenses'))).to eq(
               [
                 ['Tipo', 'Regra ou custo', 'Base de cálculo', 'ICMS deduzido da base', 'Taxa', 'Valor'],
                 ['Comissão', 'Nacional', 'R$ 4.884,35', 'R$ 666,05', '2,00%', 'R$ 97,69'],
                 ['Custo por tonelada', 'Brasiltec – Cubatão/SP (Cubatão)', '32,500 t', '-', 'R$ 12,57/t', 'R$ 408,53'],
+                ['Seguro da carga', 'Alíquota de 01/10/2026 (internacional, com IOF de R$ 0,23)', 'R$ 13.935,02', '-', '0,022%', 'R$ 3,30'],
               ],
             )
-            expect(page).to have_css('#transport_document_freight_expenses_total', text: 'Total das despesas do frete R$ 506,22')
+            expect(page).to have_css('#transport_document_freight_expenses_total', text: 'Total das despesas do frete R$ 509,52')
           end
         end
 

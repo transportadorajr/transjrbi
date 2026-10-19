@@ -47,6 +47,10 @@ shared:
           url: /tonnage_rates
           controllers:
             - tonnage_rates
+        - name: insurance_rates
+          url: /insurance_rates
+          controllers:
+            - insurance_rates
         - name: freight_expenses
           url: /freight_expenses
           controllers:
