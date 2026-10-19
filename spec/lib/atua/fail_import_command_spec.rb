@@ -22,7 +22,7 @@ RSpec.describe Atua::FailImportCommand do
 
     it 'maps each Atua error class to its type' do
       {
-        Atua::ConfigurationError => 'configuration', Atua::SessionError => 'session', Atua::DownloadError => 'download',
+        Atua::ConfigurationError => 'configuration', Atua::DeviceVerificationError => 'device_verification', Atua::SessionError => 'session', Atua::DownloadError => 'download',
         Atua::SpreadsheetError => 'spreadsheet', Atua::LayoutError => 'layout', Atua::ConversionError => 'conversion',
         Atua::UnavailableError => 'unexpected', Atua::Error => 'unexpected', ActiveRecord::StatementInvalid => 'unexpected'
       }.each do |error_class, error_type|

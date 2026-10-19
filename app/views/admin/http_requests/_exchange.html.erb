@@ -1,0 +1,36 @@
+<div class="card detail-card h-100" id="<%= id %>" data-controller="clipboard" data-clipboard-copied-label-value="<%= t('admin.http_requests.show.copied') %>">
+  <div class="detail-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <p class="detail-card-title mb-0"><%= title %></p>
+    <%= button_tag type: :button, class: 'btn btn-sm btn-outline-secondary btn-round', data: { action: 'clipboard#copy' } do %>
+      <%= icon(:clipboard, class: 'me-1') %>
+      <%= content_tag :span, t('admin.http_requests.show.copy_body'), data: { clipboard_target: 'label' } %>
+    <% end %>
+  </div>
+  <div class="detail-card-body">
+    <ul class="nav nav-tabs flex-nowrap overflow-auto mb-3" role="tablist">
+      <li class="nav-item" role="presentation">
+        <%= button_tag t('admin.http_requests.show.headers'), type: :button, class: 'nav-link active text-nowrap', role: :tab,
+                                                              data: { bs_toggle: :tab, bs_target: "##{id}_headers" } %>
+      </li>
+      <%= admin_http_request_params_tab(id, params) %>
+      <li class="nav-item" role="presentation">
+        <%= button_tag t('admin.http_requests.show.body'), type: :button, class: 'nav-link text-nowrap', role: :tab,
+                                                           data: { bs_toggle: :tab, bs_target: "##{id}_body" } %>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="<%= id %>_headers" role="tabpanel">
+        <h3 class="h6 fw-semibold"><%= t('admin.http_requests.show.headers') %></h3>
+        <%= admin_http_request_headers(headers) %>
+      </div>
+      <%= admin_http_request_params_pane(id, params) %>
+      <div class="tab-pane fade" id="<%= id %>_body" role="tabpanel">
+        <h3 class="h6 fw-semibold"><%= t('admin.http_requests.show.body') %></h3>
+        <%= body %>
+      </div>
+    </div>
+
+    <%= content_tag :span, raw_body, class: 'd-none', data: { clipboard_target: 'source' } %>
+  </div>
+</div>

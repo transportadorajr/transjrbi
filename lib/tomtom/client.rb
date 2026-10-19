@@ -52,8 +52,11 @@ module Tomtom
       uri = URI("#{BASE_URL}#{path}")
       uri.query = URI.encode_www_form(params.merge(key: api_key))
 
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: OPEN_TIMEOUT, read_timeout: READ_TIMEOUT) do |http|
-        http.get(uri.request_uri)
+      http_request = Net::HTTP::Get.new(uri)
+      response = Admin::HttpRequests::RecordCommand.call(:tomtom, http_request, secrets: [api_key]) do
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: OPEN_TIMEOUT, read_timeout: READ_TIMEOUT) do |http|
+          http.request(http_request)
+        end
       end
 
       JSON.parse(ensure_success(response, route:).body)

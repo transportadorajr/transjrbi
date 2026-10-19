@@ -9,6 +9,10 @@ Rails.application.routes.draw do
         post :reprocess, on: :member
       end
       resources :initial_loads, only: %i[new create]
+      resources :http_requests, only: %i[index show]
+      resources :tenants, only: [] do
+        resource :device_registration, only: %i[create update]
+      end
       resources :resources, only: %i[index new create edit update destroy]
 
       constraints ->(request) { Admin::Session.authenticate(request.session[Admin::Authentication::SESSION_TOKEN_KEY]) } do

@@ -17,8 +17,8 @@ module Atua
           base_url: base_url_for(tenant, credentials, production_access),
           username: credentials[:username],
           password: credentials[:password],
-          device_cookie: device_cookie_for(tenant),
-          device_hash: device_hash_for(tenant),
+          device_cookie: device_cookie_for(tenant, credentials),
+          device_hash: device_hash_for(tenant, credentials),
         )
         configuration.ensure_allowed_host! unless allow_remote_host || production_access
 
@@ -33,16 +33,16 @@ module Atua
         tenant&.atua_url.presence || credentials[:base_url]
       end
 
-      def device_cookie_for(tenant)
+      def device_cookie_for(tenant, credentials)
         return ENV[DEVICE_COOKIE_ENV] if ENV[DEVICE_COOKIE_ENV].present?
 
-        tenant&.atua_device_token.presence
+        tenant&.atua_device_token.presence || credentials[:device_cookie].presence
       end
 
-      def device_hash_for(tenant)
+      def device_hash_for(tenant, credentials)
         return ENV[DEVICE_HASH_ENV] if ENV[DEVICE_HASH_ENV].present?
 
-        tenant&.atua_device_hash.presence
+        tenant&.atua_device_hash.presence || credentials[:device_hash].presence
       end
     end
 

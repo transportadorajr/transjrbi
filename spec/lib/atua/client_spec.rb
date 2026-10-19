@@ -478,6 +478,29 @@ RSpec.describe Atua::Client do
       expect(client.device_cookie).to eq('c_ds_dispositivo_transjr_9430=renewed')
     end
 
+    context 'with the application hash configured' do
+      let(:configuration) { Atua::Configuration.new(base_url:, username: 'transjr', password:, device_cookie:, device_hash: 'deadbeefhash') }
+
+      it 'sends the application hash and the device cookie in every request' do
+        client.login
+
+        cookie = "id_hash_aplicativo=deadbeefhash; #{device_cookie}"
+        expect(a_request(:get, "#{base_url}/login.php?f_popup=true").with(headers: { 'Cookie' => cookie })).to have_been_made.once
+        expect(a_request(:post, "#{base_url}/login.php").with(headers: { 'Cookie' => "#{cookie}; PHPSESSID=abc123" })).to have_been_made.once
+      end
+
+      it 'keeps sending them after the session expires and the client logs in again' do
+        stub_form('rel_cliente_detalhado.php')
+        stub_report('rel_cliente_detalhado.php', { status: 200, body: login_form }, xls_response)
+
+        client.download(:customers)
+
+        expect(
+          a_request(:get, "#{base_url}/login.php?f_popup=true").with(headers: { 'Cookie' => "id_hash_aplicativo=deadbeefhash; #{device_cookie}" }),
+        ).to have_been_made.twice
+      end
+    end
+
     context 'without a seeded device cookie' do
       let(:configuration) { Atua::Configuration.new(base_url:, username: 'transjr', password:) }
 
@@ -485,6 +508,134 @@ RSpec.describe Atua::Client do
         client.login
 
         expect(client.device_cookie).to be_nil
+      end
+    end
+  end
+
+  describe 'device verification' do
+    let(:base_url) { 'http://localhost:4567/adm' }
+
+    around { |example| ClimateControl.modify(ATUA_MOCK_DEVICE_VERIFICATION: 'true', ATUA_MOCK_DEVICE_CODE: 'XYZ789') { example.run } }
+
+    before do
+      require Rails.root.join('mock/atua_server')
+      AtuaServer.set(:trusted_devices, Set.new)
+      AtuaServer.set(:pending_codes, {})
+      AtuaServer.set(:verified_sessions, {})
+      stub_request(:any, /localhost:4567/).to_rack(AtuaServer)
+    end
+
+    it 'raises a device verification error when the Atua asks for the e-mail code' do
+      expect { client.login }.to raise_error(Atua::DeviceVerificationError, /não reconheceu o dispositivo/)
+      expect(client).not_to be_logged_in
+    end
+
+    it 'asks the Atua to send the code and returns the session to confirm it' do
+      state = client.request_device_code
+
+      expect(state).to include('person_id' => '9430', 'masked_email' => 'int*******@t******.test')
+      expect(state['cookies']).to include('PHPSESSID')
+      expect(state['form_fields']).to include('f_origem' => 'index.php', 'f_id_hash_aplicativo' => '')
+      expect(state['form_fields']).not_to have_key('f_ds_senha')
+      expect(
+        a_request(:get, "#{base_url}/lib/jaguar/AjaxIframe.php")
+          .with(query: { 'c' => 'UsuarioAutenticacao', 'a' => 'enviarCodigoValidacao',
+                         'p' => { 'cdPessoa' => '9430', 'idTipoModal' => '2', 'dsDadoAutenticacao' => 'integracao@transjr.test' } },
+                headers: { 'X-Requested-With' => 'XMLHttpRequest' }),
+      ).to have_been_made.once
+    end
+
+    it 'confirms the code in a new client and logs in with the device returned by the Atua' do
+      state = JSON.parse(client.request_device_code.to_json)
+
+      other_client = described_class.new(configuration)
+      allow(other_client).to receive(:pause)
+      device = other_client.confirm_device(state, ' xyz789 ')
+
+      expect(other_client).to be_logged_in
+      expect(device.device_hash).to match(/\A\h{64}\z/)
+      expect(device.device_cookie).to eq("c_ds_dispositivo_mock_9430=#{device.device_hash}")
+
+      trusted = described_class.new(Atua::Configuration.new(base_url:, username: 'transjr', password:, device_hash: device.device_hash,
+                                                            device_cookie: device.device_cookie))
+      allow(trusted).to receive(:pause)
+      trusted.login
+
+      expect(trusted).to be_logged_in
+    end
+
+    it 'raises the message of the Atua when the code is wrong' do
+      state = client.request_device_code
+
+      expect { described_class.new(configuration).tap { |c| allow(c).to receive(:pause) }.confirm_device(state, 'WRONG1') }
+        .to raise_error(Atua::DeviceVerificationError, 'Código inválido.')
+    end
+
+    it 'returns nothing when the device is already trusted' do
+      ClimateControl.modify(ATUA_MOCK_DEVICE_VERIFICATION: 'false') do
+        expect(client.request_device_code).to be_nil
+        expect(a_request(:get, /AjaxIframe\.php/)).not_to have_been_made
+      end
+    end
+  end
+
+  describe 'request history' do
+    context 'with a report download' do
+      before do
+        stub_login
+        stub_form('rel_cliente_detalhado.php')
+        stub_report('rel_cliente_detalhado.php')
+      end
+
+      it 'records every request with the password filtered and the spreadsheet kept out of the body' do
+        expect { client.download(:customers) }.to change(Admin::HttpRequest, :count).by(4)
+
+        requests = Admin::HttpRequest.order(:id)
+        expect(requests.map { |request| [request.integration_type, request.http_method, request.url, request.status_code] }).to eq(
+          [
+            ['atua', 'GET', "#{base_url}/login.php?f_popup=true", 200],
+            ['atua', 'POST', "#{base_url}/login.php", 200],
+            ['atua', 'GET', "#{base_url}/rel_cliente_detalhado.php", 200],
+            ['atua', 'POST', "#{base_url}/rel_cliente_detalhado.php", 200],
+          ],
+        )
+        expect(requests.second.request_body).to include('f_ds_apelido=transjr', 'f_ds_senha=[FILTERED]')
+        expect(requests.second.request_body).not_to include(password)
+        expect(requests.second.request_headers['cookie']).to eq('PHPSESSID=[FILTERED]')
+        expect(requests.first.response_headers['set-cookie']).to eq('PHPSESSID=[FILTERED]; path=/')
+        expect(requests.last).to have_attributes(response_binary: true, response_body: nil, response_size: xls.bytesize)
+      end
+    end
+
+    context 'when a request is retried' do
+      before do
+        stub_login
+        stub_form('rel_cliente_detalhado.php')
+        stub_report('rel_cliente_detalhado.php', { status: 520, body: 'Cloudflare 520' }, xls_response)
+      end
+
+      it 'records each attempt' do
+        client.download(:customers)
+
+        report_requests = Admin::HttpRequest.where(http_method: 'POST', url: "#{base_url}/rel_cliente_detalhado.php").order(:id)
+        expect(report_requests.map { |request| [request.attempt, request.status_code, request.response_body] }).to eq([[1, 520, 'Cloudflare 520'], [2, 200, nil]])
+      end
+    end
+
+    context 'when the login redirects to the home page' do
+      before do
+        stub_request(:get, "#{base_url}/login.php?f_popup=true").to_return(status: 200, body: login_form)
+        stub_request(:post, "#{base_url}/login.php").to_return(status: 302, headers: { 'Location' => 'index.php' })
+        stub_request(:get, "#{base_url}/index.php").to_return(status: 200, body: '<html>Bem-vindo</html>')
+      end
+
+      it 'records the redirect hops under the same trace' do
+        client.login
+
+        post, redirected = Admin::HttpRequest.order(:id).last(2)
+        expect([post.status_code, redirected.status_code, redirected.url]).to eq([302, 200, "#{base_url}/index.php"])
+        expect(redirected.trace_id).to eq(post.trace_id)
+        expect(redirected.chain).to eq([post, redirected])
       end
     end
   end

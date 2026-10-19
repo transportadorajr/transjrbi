@@ -169,6 +169,25 @@ RSpec.describe Atua::Configuration do
       expect(described_class.for(build(:tenant, atua_device_hash: 'abc123hash')).device_hash).to eq('abc123hash')
     end
 
+    it 'reads the device hash from the credentials when the tenant has none' do
+      credentials[:device_hash] = 'credentials-hash'
+
+      expect(described_class.for(build(:tenant, atua_device_hash: nil)).device_hash).to eq('credentials-hash')
+      expect(described_class.for.device_hash).to eq('credentials-hash')
+    end
+
+    it 'prefers the device hash of the tenant over the credentials' do
+      credentials[:device_hash] = 'credentials-hash'
+
+      expect(described_class.for(build(:tenant, atua_device_hash: 'stored-hash')).device_hash).to eq('stored-hash')
+    end
+
+    it 'reads the device cookie from the credentials when the tenant has none' do
+      credentials[:device_cookie] = device_cookie
+
+      expect(described_class.for(build(:tenant, atua_device_token: nil)).device_cookie).to eq(device_cookie)
+    end
+
     it 'prefers the ATUA_DEVICE_HASH override' do
       tenant = build(:tenant, atua_device_hash: 'stored-hash')
 

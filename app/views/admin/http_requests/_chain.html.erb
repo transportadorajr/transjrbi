@@ -1,0 +1,12 @@
+<div class="card detail-card mb-4" id="http_request_chain">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('admin.http_requests.show.chain') %></p>
+  </div>
+  <div class="detail-card-body">
+    <div class="list-group list-group-horizontal-md">
+      <% chain.each do |item| %>
+        <%= admin_http_request_chain_item(item, current) %>
+      <% end %>
+    </div>
+  </div>
+</div>

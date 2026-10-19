@@ -14,6 +14,13 @@
               <dd class="col-5 mb-0 text-end <%= admin_report_freshness_class(report_status) %>"><%= admin_report_freshness(report_status) %></dd>
             <% end %>
           </dl>
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 border-top pt-3 mt-3" id="<%= dom_id(tenant_status.tenant, :atua_device) %>">
+            <span class="d-flex flex-wrap align-items-center gap-2 small">
+              <%= t('admin.device_registrations.badge.label') %>
+              <%= admin_tenant_device_badge(tenant_status.tenant) %>
+            </span>
+            <%= admin_device_registration_button(tenant_status.tenant) %>
+          </div>
         </div>
       </div>
     </div>

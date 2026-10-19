@@ -29,7 +29,7 @@ RSpec.describe Atua::Import do
     end
 
     it 'lists the error types' do
-      expect(described_class.error_types.keys).to eq(%w[configuration authentication session download spreadsheet layout conversion unexpected])
+      expect(described_class.error_types.keys).to eq(%w[configuration authentication device_verification session download spreadsheet layout conversion unexpected])
     end
 
     it 'translates the error type' do
@@ -140,6 +140,7 @@ RSpec.describe Atua::Import do
       expect(build(:atua_import, status_type: 'failed', error_type: 'authentication')).to be_action_required
       expect(build(:atua_import, status_type: 'failed', error_type: 'configuration')).to be_action_required
       expect(build(:atua_import, status_type: 'failed', error_type: 'layout')).to be_action_required
+      expect(build(:atua_import, status_type: 'failed', error_type: 'device_verification')).to be_action_required
     end
 
     it 'does not flag other failures nor successful imports' do

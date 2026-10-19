@@ -57,7 +57,7 @@ module Atua
 
     def downloaded_file(import, period_start, period_end)
       import.update!(source_type: client.source_type)
-      download = client.download(report.type, start_date: period_start, end_date: period_end).sole
+      download = Current.set(atua_import: import) { client.download(report.type, start_date: period_start, end_date: period_end).sole }
 
       { io: StringIO.new(download.content), filename: download.filename, content_type: CONTENT_TYPE }
     end

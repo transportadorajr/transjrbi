@@ -1,0 +1,72 @@
+<% content_for :title, t('.title', id: @http_request.id) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('admin.http_requests.index.title'), admin_http_requests_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.title', id: @http_request.id) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag "#{@http_request.http_method} #{admin_http_request_path_label(@http_request)}",
+                        back_path: admin_http_requests_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.summary') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="http_request_data">
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:status_code) %></dt>
+        <dd class="col-12 col-md-9"><%= admin_http_request_status_badge(@http_request) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:integration_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @http_request.integration_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:http_method) %></dt>
+        <dd class="col-12 col-md-9"><%= @http_request.http_method %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:url) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @http_request.url %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:created_at) %></dt>
+        <dd class="col-12 col-md-9"><%= l(@http_request.created_at, format: :long) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:duration_ms) %></dt>
+        <dd class="col-12 col-md-9"><%= admin_http_request_duration(@http_request) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:attempt) %></dt>
+        <dd class="col-12 col-md-9"><%= @http_request.attempt %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:tenant) %></dt>
+        <dd class="col-12 col-md-9"><%= admin_http_request_tenant(@http_request) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:atua_import) %></dt>
+        <dd class="col-12 col-md-9"><%= admin_http_request_import_link(@http_request) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Admin::HttpRequest.human_attribute_name(:error_message) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= admin_http_request_error(@http_request) %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <%= admin_http_request_chain(@chain, @http_request) %>
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-6">
+      <%= render 'exchange', id: 'http_request_sent', title: t('.request'),
+                             headers: @http_request.request_headers,
+                             params: @http_request.request_params,
+                             body: admin_http_request_request_body(@http_request),
+                             raw_body: @http_request.request_body %>
+    </div>
+    <div class="col-12 col-xl-6">
+      <%= render 'exchange', id: 'http_request_received', title: t('.response'),
+                             headers: @http_request.response_headers,
+                             params: nil,
+                             body: admin_http_request_response_body(@http_request),
+                             raw_body: @http_request.formatted_response_body %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= Admin::HttpRequest.human_attribute_name(:url) %></th>
+        <th><%= Admin::HttpRequest.human_attribute_name(:status_code) %></th>
+        <th class="d-none d-md-table-cell"><%= Admin::HttpRequest.human_attribute_name(:created_at) %></th>
+        <th class="d-none d-lg-table-cell"><%= Admin::HttpRequest.human_attribute_name(:integration_type) %></th>
+        <th class="d-none d-lg-table-cell"><%= Admin::HttpRequest.human_attribute_name(:tenant) %></th>
+        <th class="d-none d-lg-table-cell"><%= Admin::HttpRequest.human_attribute_name(:duration_ms) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>
