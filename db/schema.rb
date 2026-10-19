@@ -10,14 +10,15 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_16_200024) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_121742) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "admin_http_request_integration_type", ["atua", "tomtom"]
-  create_enum "atua_import_error_type", ["configuration", "authentication", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
+  create_enum "atua_device_registration_status_type", ["code_sent", "confirmed", "failed"]
+  create_enum "atua_import_error_type", ["configuration", "authentication", "device_verification", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
   create_enum "atua_import_source_type", ["mock", "production", "upload"]
   create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
@@ -163,6 +164,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_200024) do
     t.index ["tenant_id", "code"], name: "index_atua_customers_on_tenant_id_and_code", unique: true
     t.index ["tenant_id", "document_digits"], name: "index_atua_customers_on_tenant_id_and_document_digits"
     t.index ["tenant_id", "status"], name: "index_atua_customers_on_tenant_id_and_status"
+  end
+
+  create_table "atua_device_registrations", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.enum "status_type", default: "code_sent", null: false, enum_type: "atua_device_registration_status_type"
+    t.string "masked_email"
+    t.text "session_state"
+    t.datetime "expires_at", null: false
+    t.datetime "confirmed_at"
+    t.text "error_message"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id"], name: "index_atua_device_registrations_on_tenant_id"
   end
 
   create_table "atua_expenses", force: :cascade do |t|
@@ -830,6 +844,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_16_200024) do
   add_foreign_key "atua_customers", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_customers", "customer_groups"
   add_foreign_key "atua_customers", "tenants"
+  add_foreign_key "atua_device_registrations", "tenants"
   add_foreign_key "atua_expenses", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_expenses", "tenants"
   add_foreign_key "atua_imports", "tenants"

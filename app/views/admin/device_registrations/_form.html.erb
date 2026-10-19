@@ -1,0 +1,18 @@
+<div id="device_registration_form">
+  <p class="mb-3"><%= admin_device_registration_instructions(device_registration_form) %></p>
+
+  <%= admin_device_registration_errors(device_registration_form) %>
+
+  <%= simple_form_for(device_registration_form, url: admin_tenant_device_registration_path(tenant), method: :patch) do |f| %>
+    <%= f.input :registration_id, as: :hidden %>
+    <%= f.input :code,
+                required: true,
+                input_html: { class: 'form-control bg-light text-uppercase', autocomplete: 'one-time-code', inputmode: :text,
+                              autocapitalize: :characters, maxlength: 10, autofocus: true } %>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button :submit, t('admin.device_registrations.modal.confirm'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= button_tag t('helpers.links.cancel'), type: :button, class: 'btn btn-light w-100 btn-round', data: { bs_dismiss: 'modal' } %>
+    </div>
+  <% end %>
+</div>

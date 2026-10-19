@@ -99,7 +99,37 @@ todo login:
 | `c_ds_dispositivo_<sub>_<cod>` | **cookie** | `tenants.atua_device_token` (cifrado) |
 | `id_hash_aplicativo` | **localStorage** | `tenants.atua_device_hash` (cifrado) |
 
-**Passo a passo (feito uma vez, por você):**
+**Passo a passo (pelo painel administrativo, recomendado):**
+
+1. No admin, em **Importações da Atua**, cada empresa mostra **Dispositivo na Atua:
+   Registrado / Não registrado** e o botão **Registrar dispositivo**.
+2. Clique em **Registrar dispositivo**. O client faz o login; como a Atua não reconhece o
+   dispositivo, ele pede o código pelo mesmo endpoint da tela da Atua e a Atua envia o
+   **código por e-mail** para o usuário de integração.
+3. Informe o código no modal (vale por 10 minutos). O client valida o código, recebe o
+   `id_hash_aplicativo` novo, refaz o login e grava o hash e o cookie `c_ds_dispositivo_…`
+   no tenant (`atua_device_hash` e `atua_device_token`, cifrados).
+4. Faça o registro **pelo admin do ambiente que roda as importações** (a VPS em produção):
+   se a Atua amarrar o dispositivo à máquina ou à rede, um registro feito de outro lugar não
+   vale lá.
+
+Uma importação que cai na tela do código falha com o tipo **Registrar dispositivo na Atua**
+e aparece em "Importações que exigem ação".
+
+**Como a tela da Atua faz (o que o client reproduz):**
+
+| Passo | Requisição |
+|---|---|
+| Login | `POST /adm/login.php` com o formulário; a resposta chama `validarAutenticacaoUsuario('2')` quando o dispositivo não é reconhecido. |
+| Envio do código | `GET /adm/lib/jaguar/AjaxIframe.php?c=UsuarioAutenticacao&a=enviarCodigoValidacao&p[cdPessoa]=…&p[idTipoModal]=2&p[dsDadoAutenticacao]=<e-mail>` |
+| Validação | `GET /adm/lib/jaguar/AjaxIframe.php?c=UsuarioAutenticacaoLogin&a=validarCodigo&p[cdPessoa]=…&p[idTipo]=2&p[nrVerificacao]=<código>&p[dsHashAplicativo]=…` → JSON `{ "dsHashAplicativo": "…" }` ou `{ "erro": "…" }` |
+| Novo login | `POST /adm/login.php` com `f_id_hash_aplicativo` igual ao hash devolvido. |
+
+O `cdPessoa`, o e-mail e o e-mail mascarado vêm do JavaScript da própria página de login. A
+sessão da Atua (`PHPSESSID`) fica cifrada em `atua_device_registrations` entre o envio e a
+validação do código.
+
+**Passo a passo manual (alternativa, pelo navegador):**
 
 1. Em um navegador, acesse a Atua e **faça o login normalmente**. Se for um dispositivo novo,
    ele vai pedir o **código enviado por e-mail** — informe o código para autorizar.
@@ -121,6 +151,10 @@ tenant.update!(
 
 - `atua_device_token` guarda o cookie **inteiro** (`nome=valor`).
 - `atua_device_hash` guarda **só o valor** do `id_hash_aplicativo`.
+- Sem valores no tenant, o client usa `credentials.atua.device_hash` e
+  `credentials.atua.device_cookie`.
+- O client envia o hash no campo `f_id_hash_aplicativo` e, junto com o cookie do dispositivo,
+  também como cookie `id_hash_aplicativo`.
 - As duas marcas são duráveis. Se um dia caírem, a Atua volta a pedir login (e, se o
   dispositivo for revogado, um novo código por e-mail) — aí refaça este passo.
 
@@ -133,6 +167,9 @@ O `bin/dev` sobe um **mock** da Atua (Sinatra) na porta 4567, servindo as fixtur
 `ATUA_BASE_URL=http://localhost:4567/adm`.
 
 - O mock aceita qualquer usuário/senha e não exige o registro de dispositivo.
+- Para exercitar o registro de dispositivo, suba com `ATUA_MOCK_DEVICE_VERIFICATION=true`: o
+  login passa a cair na tela do código e o código aceito é `ATUA_MOCK_DEVICE_CODE`
+  (padrão `ABC123`). O mock não envia e-mail.
 - Para desenvolver, **não** é preciso preencher cookie/hash do dispositivo.
 - Se quiser apontar para o mock manualmente: `ATUA_BASE_URL=http://localhost:4567/adm`.
 

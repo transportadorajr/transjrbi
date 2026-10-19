@@ -13,6 +13,9 @@ pt-BR:
       access:
         one: Permissão
         other: Permissões
+      atua/device_registration:
+        one: Registro de dispositivo da Atua
+        other: Registros de dispositivo da Atua
       admin/http_request:
         one: Requisição HTTP
         other: Requisições HTTP
@@ -266,6 +269,13 @@ pt-BR:
         icms_credit_percentage: Alíquota do crédito de ICMS
         pis_credit: Crédito de PIS
         cofins_credit: Crédito de COFINS
+      atua/device_registration:
+        tenant: Empresa
+        status_type: Situação
+        masked_email: E-mail
+        expires_at: Expira em
+        confirmed_at: Confirmado em
+        error_message: Erro
       admin/http_request:
         integration_type: Integração
         tenant: Empresa
@@ -357,6 +367,9 @@ pt-BR:
       admin/login_form:
         email: E-mail
         password: Senha
+      admin/device_registration_form:
+        registration_id: Registro do dispositivo
+        code: Código de verificação
       admin/import_form:
         tenant: Empresa
         tenant_id: Empresa
@@ -494,6 +507,11 @@ pt-BR:
       integration_type:
         atua: Atua
         tomtom: TomTom
+    atua/device_registration:
+      status_type:
+        code_sent: Código enviado
+        confirmed: Confirmado
+        failed: Falhou
     atua/import:
       report_type:
         transport_documents: Conhecimentos de transporte
@@ -513,6 +531,7 @@ pt-BR:
       error_type:
         configuration: Configuração
         authentication: Login na Atua
+        device_verification: Registrar dispositivo na Atua
         session: Sessão da Atua
         download: Download do relatório
         spreadsheet: Planilha
@@ -1092,6 +1111,22 @@ pt-BR:
     admin_good_job: Jobs (GoodJob)
     admin_flipper: Feature flags
   admin:
+    device_registrations:
+      badge:
+        label: Dispositivo na Atua
+        registered: Registrado
+        missing: Não registrado
+      button:
+        label: Registrar dispositivo
+        confirm: A Atua vai enviar um código de verificação para o e-mail do usuário de integração da %{tenant}. Continuar?
+      modal:
+        title: Registrar dispositivo · %{tenant}
+        instructions: A Atua enviou um código de verificação para %{email}. Informe o código abaixo em até %{minutes} minutos.
+        confirm: Confirmar código
+      create:
+        already_trusted: A Atua já reconhece o dispositivo da %{tenant}. Nenhum código foi enviado.
+      update:
+        success: Dispositivo da %{tenant} registrado na Atua. As próximas importações entram sem código.
     http_requests:
       status_groups:
         success: Sucesso (2xx)
@@ -1240,6 +1275,10 @@ pt-BR:
       unknown_computed_value: Valor calculado desconhecido na configuração do relatório %{value}.
       login_status: O login na Atua respondeu HTTP %{status}.
       invalid_credentials: A Atua recusou o login, a resposta ainda contém o formulário de login.
+      device_verification: A Atua não reconheceu o dispositivo e pediu o código de verificação enviado por e-mail. Registre o dispositivo da empresa no painel administrativo.
+      device_hash_missing: A Atua validou o código mas não devolveu o hash do dispositivo.
+      device_code_expired: O código de verificação expirou. Peça um novo código.
+      unexpected_ajax_response: 'A Atua respondeu %{action} com um conteúdo que não é JSON.'
       session_expired: A sessão da Atua expirou novamente logo após um novo login.
       request_failed: 'A requisição para %{path} falhou após %{attempts} tentativa(s): %{reason}.'
       too_many_redirects: A Atua redirecionou a requisição vezes demais.

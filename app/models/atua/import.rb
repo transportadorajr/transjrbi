@@ -3,8 +3,8 @@ module Atua
     FILE_RETENTION = 60.days
     STATUSES = %i[pending running succeeded failed].freeze
     SOURCES = %i[mock production upload].freeze
-    ERROR_TYPES = %i[configuration authentication session download spreadsheet layout conversion unexpected].freeze
-    ACTION_REQUIRED_ERROR_TYPES = %w[configuration authentication layout].freeze
+    ERROR_TYPES = %i[configuration authentication device_verification session download spreadsheet layout conversion unexpected].freeze
+    ACTION_REQUIRED_ERROR_TYPES = %w[configuration authentication device_verification layout].freeze
     LATEST_PER_REPORT_SQL = 'DISTINCT ON (atua_imports.tenant_id, atua_imports.report_type) atua_imports.id'.freeze
 
     belongs_to :tenant

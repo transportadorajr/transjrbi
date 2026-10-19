@@ -1,0 +1,5 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'device_registration_modal', title: t('admin.device_registrations.modal.title', tenant: tenant.trade_name),
+                     title_icon: :'shield-check', dialog_class: 'modal-fullscreen-sm-down', auto_show: true, show_footer: false } do %>
+  <%= render 'admin/device_registrations/form', device_registration_form:, tenant: %>
+<% end %>

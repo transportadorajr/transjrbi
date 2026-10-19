@@ -19,6 +19,7 @@ module Atua
 
   class ConfigurationError < Error; end
   class AuthenticationError < Error; end
+  class DeviceVerificationError < AuthenticationError; end
   class SessionError < Error; end
   class DownloadError < Error; end
   class SpreadsheetError < Error; end

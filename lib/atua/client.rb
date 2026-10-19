@@ -10,6 +10,14 @@ module Atua
     USERNAME_FIELD = 'f_ds_apelido'.freeze
     PASSWORD_FIELD = 'f_ds_senha'.freeze
     DEVICE_HASH_FIELD = 'f_id_hash_aplicativo'.freeze
+    DEVICE_HASH_COOKIE = 'id_hash_aplicativo'.freeze
+    AJAX_PATH = 'lib/jaguar/AjaxIframe.php'.freeze
+    AJAX_ACCEPT = 'application/json, text/javascript, */*; q=0.01'.freeze
+    DEVICE_VERIFICATION_TYPE = 2
+    DEVICE_VERIFICATION_PATTERN = /validarAutenticacaoUsuario\(\s*'#{DEVICE_VERIFICATION_TYPE}'\s*\)/
+    PERSON_PATTERN = /cdPessoa:\s*'(\d+)'/
+    EMAIL_PATTERN = /var\s+dsEmail\s*=\s*'([^']*)'/
+    MASKED_EMAIL_PATTERN = /var\s+dsEmailProtegido\s*=\s*'([^']*)'/
     BUTTON_PATTERN = /name=["'](submete\d+)["']/
     DEVICE_COOKIE_PATTERN = /\Ac_ds_dispositivo_/
     XLS_SIGNATURE = "\xD0\xCF\x11\xE0".b.freeze
@@ -39,6 +47,9 @@ module Atua
 
     class SessionExpired < StandardError; end
 
+    Device = Data.define(:device_hash, :device_cookie)
+    DeviceVerification = Data.define(:person_id, :email, :masked_email, :form_fields)
+
     delegate :source_type, to: :configuration
 
     def initialize(configuration, retries: true, logger: Rails.logger)
@@ -49,7 +60,7 @@ module Atua
       @logged_in = false
       @requests = 0
 
-      seed_device_cookie
+      seed_device_cookies
     end
 
     def logged_in?
@@ -67,9 +78,34 @@ module Atua
       response = request(:post, LOGIN_PATH, form: login_params(form_page), headers: post_headers(LOGIN_PAGE_PATH), retryable: false, failure: SessionError)
 
       raise AuthenticationError.new(I18n.t('atua.errors.login_status', status: response.code), **diagnostics(response)) unless response.code == '200'
-      raise AuthenticationError.new(I18n.t('atua.errors.invalid_credentials'), **diagnostics(response)) if login_form?(response)
 
-      @logged_in = true
+      ensure_logged_in(response)
+    end
+
+    def request_device_code
+      login
+      nil
+    rescue DeviceVerificationError
+      verification = @device_verification
+      ajax('UsuarioAutenticacao', 'enviarCodigoValidacao',
+           cdPessoa: verification.person_id, idTipoModal: DEVICE_VERIFICATION_TYPE, dsDadoAutenticacao: verification.email)
+
+      device_verification_state
+    end
+
+    def confirm_device(state, code)
+      restore_device_verification(state)
+      device_hash = ajax('UsuarioAutenticacaoLogin', 'validarCodigo',
+                         cdPessoa: state.fetch('person_id'), idTipo: DEVICE_VERIFICATION_TYPE,
+                         nrVerificacao: code.to_s.strip.upcase, dsHashAplicativo: configuration.device_hash.to_s)['dsHashAplicativo']
+      raise DeviceVerificationError, I18n.t('atua.errors.device_hash_missing') if device_hash.blank?
+
+      cookies[DEVICE_HASH_COOKIE] = device_hash
+      form = state.fetch('form_fields').merge(USERNAME_FIELD => configuration.username, PASSWORD_FIELD => configuration.password, DEVICE_HASH_FIELD => device_hash)
+      response = request(:post, LOGIN_PATH, form:, headers: post_headers(LOGIN_PAGE_PATH), retryable: false, failure: SessionError)
+      ensure_logged_in(response)
+
+      Device.new(device_hash:, device_cookie:)
     end
 
     def download(report_type, start_date: nil, end_date: nil)
@@ -116,6 +152,58 @@ module Atua
     def reset_session
       @logged_in = false
       cookies.clear
+      seed_device_cookies
+    end
+
+    def ensure_logged_in(response)
+      if device_verification_page?(response)
+        @device_verification = device_verification(response.body)
+        raise DeviceVerificationError.new(I18n.t('atua.errors.device_verification'), **diagnostics(response))
+      end
+      raise AuthenticationError.new(I18n.t('atua.errors.invalid_credentials'), **diagnostics(response)) if login_form?(response)
+
+      @logged_in = true
+    end
+
+    def device_verification_page?(response)
+      response.body.to_s.b.match?(DEVICE_VERIFICATION_PATTERN)
+    end
+
+    def device_verification(html)
+      text = document(html).css('script:not([src])').map(&:text).join("\n")
+
+      DeviceVerification.new(
+        person_id: text[PERSON_PATTERN, 1],
+        email: text[EMAIL_PATTERN, 1],
+        masked_email: text[MASKED_EMAIL_PATTERN, 1],
+        form_fields: form_fields(html, scope: PASSWORD_FIELD).except(PASSWORD_FIELD),
+      )
+    end
+
+    def device_verification_state
+      verification = @device_verification
+
+      {
+        'cookies' => cookies.dup, 'person_id' => verification.person_id,
+        'masked_email' => verification.masked_email, 'form_fields' => verification.form_fields
+      }
+    end
+
+    def restore_device_verification(state)
+      cookies.replace(state.fetch('cookies'))
+      @logged_in = false
+    end
+
+    def ajax(klass, action, params)
+      query = URI.encode_www_form([['c', klass], ['a', action], *params.map { |name, value| ["p[#{name}]", value] }])
+      response = request(:get, "#{AJAX_PATH}?#{query}", headers: { 'Accept' => AJAX_ACCEPT, 'X-Requested-With' => 'XMLHttpRequest', 'Referer' => url(LOGIN_PATH) },
+                                                        retryable: false, failure: AuthenticationError)
+      result = JSON.parse(response.body.to_s)
+      raise DeviceVerificationError.new(result['erro'].to_s, **diagnostics(response)) if result.is_a?(Hash) && result['erro'].present?
+
+      result.is_a?(Hash) ? result : {}
+    rescue JSON::ParserError
+      raise AuthenticationError.new(I18n.t('atua.errors.unexpected_ajax_response', action:), **diagnostics(response))
     end
 
     def submit_button(report)
@@ -199,7 +287,9 @@ module Atua
       http_request
     end
 
-    def seed_device_cookie
+    def seed_device_cookies
+      cookies[DEVICE_HASH_COOKIE] = configuration.device_hash if configuration.device_hash.present?
+
       pair = configuration.device_cookie
       return if pair.blank?
 

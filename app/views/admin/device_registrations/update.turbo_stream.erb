@@ -1,0 +1,3 @@
+<%= turbo_stream.replace 'device_registration_form',
+                         partial: 'admin/device_registrations/form',
+                         locals: { device_registration_form: @device_registration_form, tenant: @tenant } %>
