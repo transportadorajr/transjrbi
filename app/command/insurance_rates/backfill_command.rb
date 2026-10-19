@@ -11,10 +11,9 @@ module InsuranceRates
     end
 
     def call
-      return tenant.insurance_rates.order(:valid_from).first if tenant.insurance_rates.exists?
+      return tenant.insurance_rate if tenant.insurance_rate
 
-      rate = tenant.insurance_rates.create!(
-        valid_from:,
+      rate = tenant.create_insurance_rate!(
         insurance_percentage: InsuranceRate::DEFAULT_INSURANCE_PERCENTAGE,
         iof_percentage: InsuranceRate::DEFAULT_IOF_PERCENTAGE,
       )
@@ -26,9 +25,5 @@ module InsuranceRates
     private
 
     attr_reader :tenant
-
-    def valid_from
-      tenant.atua_transport_documents.minimum(:issued_at)&.in_time_zone&.to_date || Date.current
-    end
   end
 end

@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe FreightExpenses::CalculateInsuranceCommand do
   let(:tenant) { create(:tenant) }
 
-  context 'without insurance rates' do
+  context 'without an insurance rate' do
     before { create(:atua_transport_document, tenant:, goods_value_cents: 838_998) }
 
     it 'does not record the insurance' do
@@ -13,7 +13,7 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
   end
 
   context 'with an insurance rate' do
-    let!(:october) { create(:insurance_rate, tenant:, valid_from: Date.new(2026, 10, 1)) }
+    let!(:rate) { create(:insurance_rate, tenant:) }
     let!(:national) do
       create(:atua_transport_document, tenant:, number: '76001', goods_value_cents: 838_998, freight_cents: 55_504, destination_state: 'MG',
                                        issued_at: Time.zone.local(2026, 10, 5, 8))
@@ -37,8 +37,8 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       expect(FreightExpense.count).to eq(2)
       expect(FreightExpense.order(:transport_document_id).map { |expense| expense_values(expense) }).to eq(
         [
-          ['76001', october, 894_502, BigDecimal('0.022'), BigDecimal('0'), 0, 197],
-          ['76002', october, 894_502, BigDecimal('0.022'), BigDecimal('7.38'), 15, 212],
+          ['76001', rate, 894_502, BigDecimal('0.022'), BigDecimal('0'), 0, 197],
+          ['76002', rate, 894_502, BigDecimal('0.022'), BigDecimal('7.38'), 15, 212],
         ],
       )
       expect(FreightExpense.all).to all(have_attributes(tenant:, kind_type: 'insurance', commission_rule: nil, calculated_at: be_present))
@@ -60,22 +60,14 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       expect(national.freight_expenses.pluck(:kind_type)).to contain_exactly('commission', 'insurance')
     end
 
-    it 'uses the rate in force on the issue date of each transport document' do
-      november = create(:insurance_rate, tenant:, valid_from: Date.new(2026, 10, 6), insurance_percentage: BigDecimal('0.03'))
-
+    it 'recalculates the insurance of every transport document when the rate is changed' do
       described_class.call(tenant)
-
-      expect(FreightExpense.find_by!(transport_document: national)).to have_attributes(insurance_rate: october, amount_cents: 197)
-      expect(FreightExpense.find_by!(transport_document: international)).to have_attributes(insurance_rate: november, iof_cents: 20,
-                                                                                            amount_cents: 288)
-    end
-
-    it 'recalculates the insurance when the rate is corrected' do
-      described_class.call(tenant)
-      october.update!(insurance_percentage: BigDecimal('0.03'))
+      rate.update!(insurance_percentage: BigDecimal('0.03'))
 
       expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
       expect(FreightExpense.find_by!(transport_document: national)).to have_attributes(percentage: BigDecimal('0.03'), amount_cents: 268)
+      expect(FreightExpense.find_by!(transport_document: international)).to have_attributes(percentage: BigDecimal('0.03'), iof_cents: 20,
+                                                                                            amount_cents: 288)
     end
 
     it 'removes the insurance of a transport document canceled afterwards' do

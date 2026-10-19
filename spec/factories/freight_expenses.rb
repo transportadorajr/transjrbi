@@ -23,7 +23,7 @@ FactoryBot.define do
 
     trait :insurance do
       commission_rule { nil }
-      insurance_rate { association :insurance_rate, tenant: }
+      insurance_rate { InsuranceRate.find_by(tenant:) || association(:insurance_rate, tenant:) }
       kind_type { 'insurance' }
       base_cents { 1_000_000 }
       percentage { BigDecimal('0.022') }

@@ -332,7 +332,7 @@ describe 'Transport documents' do
                 ['Tipo', 'Regra ou custo', 'Base de cálculo', 'ICMS deduzido da base', 'Taxa', 'Valor'],
                 ['Comissão', 'Nacional', 'R$ 4.884,35', 'R$ 666,05', '2,00%', 'R$ 97,69'],
                 ['Custo por tonelada', 'Brasiltec – Cubatão/SP (Cubatão)', '32,500 t', '-', 'R$ 12,57/t', 'R$ 408,53'],
-                ['Seguro da carga', 'Alíquota de 01/10/2026 (internacional, com IOF de R$ 0,23)', 'R$ 13.935,02', '-', '0,022%', 'R$ 3,30'],
+                ['Seguro da carga', 'Alíquota de seguro (internacional, com IOF de R$ 0,23)', 'R$ 13.935,02', '-', '0,022%', 'R$ 3,30'],
               ],
             )
             expect(page).to have_css('#transport_document_freight_expenses_total', text: 'Total das despesas do frete R$ 509,52')

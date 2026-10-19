@@ -37,20 +37,17 @@ module FreightExpenses
     end
 
     def expected_expenses
-      rates = tenant.insurance_rates.order(:valid_from).to_a
-      return {} if rates.empty?
+      rate = InsuranceRate.find_by(tenant:)
+      return {} unless rate
 
-      documents.each_with_object({}) do |(document_id, issued_at, goods_value_cents, freight_cents, state), expenses|
-        next if issued_at.nil?
-
-        rate = InsuranceRate.for_date(rates, issued_at.in_time_zone.to_date)
+      documents.each_with_object({}) do |(document_id, goods_value_cents, freight_cents, state), expenses|
         expenses[document_id] = expense_attributes(rate, goods_value_cents.to_i + freight_cents.to_i, state)
       end
     end
 
     def documents
       tenant.atua_transport_documents.commissionable
-        .pluck(:id, :issued_at, :goods_value_cents, :freight_cents, :destination_state)
+        .pluck(:id, :goods_value_cents, :freight_cents, :destination_state)
     end
 
     def expense_attributes(rate, base_cents, state)

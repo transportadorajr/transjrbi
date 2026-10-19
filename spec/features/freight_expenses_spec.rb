@@ -243,10 +243,10 @@ describe 'Freight expenses' do
       expect(html_table_to_rows).to eq(
         [
           ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
-          ['76001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga', 'Alíquota de 01/10/2026', 'R$ 8.945,02', '0,022%',
+          ['76001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga', 'Alíquota de seguro', 'R$ 8.945,02', '0,022%',
            'R$ 1,97', ''],
           ['76002', '04/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga',
-           'Alíquota de 01/10/2026 (internacional, com IOF de R$ 0,15)', 'R$ 8.945,02', '0,022%', 'R$ 2,12', ''],
+           'Alíquota de seguro (internacional, com IOF de R$ 0,15)', 'R$ 8.945,02', '0,022%', 'R$ 2,12', ''],
         ],
       )
       expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 4,09')
@@ -255,9 +255,9 @@ describe 'Freight expenses' do
 
     scenario 'opens the insurance rate of the expense' do
       visit freight_expenses_path
-      first(:link, 'Alíquota de 01/10/2026').click
+      first(:link, 'Alíquota de seguro').click
 
-      expect(page).to have_current_path(insurance_rate_path(insurance_rate))
+      expect(page).to have_current_path(insurance_rate_path)
     end
   end
 

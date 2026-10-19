@@ -1,12 +1,9 @@
 class InsuranceRateForm < BaseForm
-  attribute :valid_from, :date
   attribute :insurance_percentage, :string
   attribute :iof_percentage, :string
 
-  validates :valid_from, presence: true
   validate :insurance_percentage_must_be_in_range
   validate :iof_percentage_must_be_in_range
-  validate :valid_from_must_be_unique
 
   attr_accessor :tenant
   attr_writer :insurance_rate
@@ -14,12 +11,17 @@ class InsuranceRateForm < BaseForm
   delegate :id, :persisted?, to: :insurance_rate
 
   class << self
-    def for_insurance_rate(insurance_rate)
+    def for_tenant(tenant)
+      insurance_rate = InsuranceRate.find_by(tenant:) || InsuranceRate.new(
+        tenant:,
+        insurance_percentage: InsuranceRate::DEFAULT_INSURANCE_PERCENTAGE,
+        iof_percentage: InsuranceRate::DEFAULT_IOF_PERCENTAGE,
+      )
+
       form = new(
-        valid_from: insurance_rate.valid_from,
         insurance_percentage: format_percentage(insurance_rate.insurance_percentage),
         iof_percentage: format_percentage(insurance_rate.iof_percentage),
-        tenant: insurance_rate.tenant,
+        tenant:,
       )
       form.insurance_rate = insurance_rate
       form
@@ -41,7 +43,7 @@ class InsuranceRateForm < BaseForm
   end
 
   def insurance_rate
-    @insurance_rate ||= tenant.insurance_rates.new
+    @insurance_rate ||= InsuranceRate.find_by(tenant:) || InsuranceRate.new(tenant:)
   end
 
   def insurance_percentage_value
@@ -54,7 +56,7 @@ class InsuranceRateForm < BaseForm
 
   def submit
     transaction do
-      insurance_rate.update!(valid_from:, insurance_percentage: insurance_percentage_value, iof_percentage: iof_percentage_value)
+      insurance_rate.update!(insurance_percentage: insurance_percentage_value, iof_percentage: iof_percentage_value)
     end
 
     FreightExpenses::CalculateJob.perform_later(tenant.id)
@@ -74,15 +76,5 @@ class InsuranceRateForm < BaseForm
     return if value && !value.negative? && value < 100
 
     errors.add(:iof_percentage, :out_of_range)
-  end
-
-  def valid_from_must_be_unique
-    return if valid_from.blank?
-
-    rates = tenant.insurance_rates.where(valid_from:)
-    rates = rates.where.not(id: insurance_rate.id) if persisted?
-    return unless rates.exists?
-
-    errors.add(:valid_from, :taken)
   end
 end

@@ -21,7 +21,7 @@ class FreightExpensesController < BaseController
       .order(Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, :id)
     @missing_weight_documents = TonnageRate.missing_weight_documents(current_tenant)
     @outdated_tonnage_rates = TonnageRate.outdated(current_tenant)
-    @current_insurance_rate = InsuranceRate.current(current_tenant)
+    @insurance_rate = InsuranceRate.find_by(tenant: current_tenant)
   end
 
   def recalculate

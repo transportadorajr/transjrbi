@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_144621) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_163831) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -746,13 +746,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_144621) do
 
   create_table "insurance_rates", force: :cascade do |t|
     t.bigint "tenant_id", null: false
-    t.date "valid_from", null: false
     t.decimal "insurance_percentage", precision: 7, scale: 4, null: false
     t.decimal "iof_percentage", precision: 7, scale: 4, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["tenant_id", "valid_from"], name: "index_insurance_rates_on_tenant_id_and_valid_from", unique: true
-    t.index ["tenant_id"], name: "index_insurance_rates_on_tenant_id"
+    t.index ["tenant_id"], name: "index_insurance_rates_on_tenant_id", unique: true
   end
 
   create_table "locations", force: :cascade do |t|

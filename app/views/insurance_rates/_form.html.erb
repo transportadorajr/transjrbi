@@ -3,18 +3,14 @@
     <p class="form-card-title"><%= t('insurance_rates.form.insurance_rate_data') %></p>
     <p class="form-card-subtitle"><%= t('insurance_rates.form.insurance_rate_data_text') %></p>
   </div>
-  <%= simple_form_for(insurance_rate_form, url: insurance_rate_form_url(insurance_rate_form)) do |f| %>
+  <%= simple_form_for(insurance_rate_form, url: insurance_rate_path, method: :patch) do |f| %>
     <div class="form-card-body">
       <div class="row g-3">
-        <div class="col-12 col-lg-4">
-          <%= f.input :valid_from, as: :string, required: true, hint: t('insurance_rates.form.valid_from_hint'),
-                                   input_html: { class: 'form-control', type: :date } %>
-        </div>
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-6">
           <%= f.input :insurance_percentage, as: :string, required: true, hint: t('insurance_rates.form.insurance_percentage_hint'),
                                              input_html: { class: 'form-control', inputmode: 'decimal', autocomplete: 'off' } %>
         </div>
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-6">
           <%= f.input :iof_percentage, as: :string, required: true, hint: t('insurance_rates.form.iof_percentage_hint'),
                                        input_html: { class: 'form-control', inputmode: 'decimal', autocomplete: 'off' } %>
         </div>
@@ -22,9 +18,8 @@
     </div>
 
     <div class="form-card-footer">
-      <%= f.button :submit, insurance_rate_form_submit_label(insurance_rate_form),
-                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
-      <%= link_to t('helpers.links.cancel'), insurance_rates_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+      <%= f.button :submit, t('helpers.submit.insurance_rate.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), insurance_rate_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
     </div>
   <% end %>
 </div>

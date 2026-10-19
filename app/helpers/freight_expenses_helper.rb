@@ -37,9 +37,9 @@ module FreightExpensesHelper
 
   def freight_expense_insurance_rate(insurance_rate)
     return t('tax.blank') unless insurance_rate
-    return insurance_rate_label(insurance_rate) unless can?(:read, :insurance_rates)
+    return insurance_rate_label unless can?(:read, :insurance_rates)
 
-    link_to insurance_rate_label(insurance_rate), insurance_rate_path(insurance_rate), class: 'text-decoration-none'
+    link_to insurance_rate_label, insurance_rate_path, class: 'text-decoration-none'
   end
 
   def freight_expense_insurance(freight_expense)

@@ -1,17 +1,11 @@
-<% content_for :title, insurance_rate_label(@insurance_rate) %>
+<% content_for :title, t('.title') %>
 
 <div class="page-shell">
-  <div class="mb-3 page-breadcrumb">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><%= link_to t('insurance_rates.index.title'), insurance_rates_path %></li>
-        <li class="breadcrumb-item active" aria-current="page"><%= insurance_rate_label(@insurance_rate) %></li>
-      </ol>
-    </nav>
-    <%= page_header_tag insurance_rate_label(@insurance_rate), back_path: insurance_rates_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
-      <%= insurance_rate_edit_button(@insurance_rate) %>
-    <% end %>
-  </div>
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= insurance_rate_edit_button %>
+  <% end %>
+
+  <%= freight_expense_missing_insurance_rate_alert(@insurance_rate) %>
 
   <div class="card detail-card">
     <div class="detail-card-header">
@@ -19,17 +13,11 @@
     </div>
     <div class="detail-card-body">
       <dl class="row detail-list mb-0" id="insurance_rate_data">
-        <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:valid_from) %></dt>
-        <dd class="col-12 col-md-9"><%= l(@insurance_rate.valid_from) %></dd>
-
         <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:insurance_percentage) %></dt>
-        <dd class="col-12 col-md-9"><%= insurance_percentage(@insurance_rate.insurance_percentage) %></dd>
+        <dd class="col-12 col-md-9"><%= insurance_rate_percentage(@insurance_rate, :insurance_percentage) %></dd>
 
         <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:iof_percentage) %></dt>
-        <dd class="col-12 col-md-9"><%= insurance_percentage(@insurance_rate.iof_percentage) %></dd>
-
-        <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:status) %></dt>
-        <dd class="col-12 col-md-9"><%= insurance_rate_status_badge(@insurance_rate, @current_insurance_rate) %></dd>
+        <dd class="col-12 col-md-9"><%= insurance_rate_percentage(@insurance_rate, :iof_percentage) %></dd>
 
         <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:freight_expenses) %></dt>
         <dd class="col-12 col-md-9"><%= @expenses_count %></dd>

@@ -229,7 +229,7 @@ describe 'Manifests' do
             [
               ['CT-e', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor'],
               ['74130', 'Comissão', 'Nacional', 'R$ 1.000,00', '2,00%', 'R$ 111,01'],
-              ['74130', 'Seguro da carga', 'Alíquota de 01/10/2026', 'R$ 10.000,00', '0,022%', 'R$ 2,20'],
+              ['74130', 'Seguro da carga', 'Alíquota de seguro', 'R$ 10.000,00', '0,022%', 'R$ 2,20'],
               ['74131', 'Comissão', 'Nacional', 'R$ 1.000,00', '2,00%', 'R$ 60,00'],
               ['74131', 'Custo por tonelada', 'Brasiltec – Cubatão/SP (Cubatão)', '32,500 t', 'R$ 12,57/t', 'R$ 408,53'],
             ],
