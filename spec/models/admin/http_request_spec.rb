@@ -101,6 +101,28 @@ RSpec.describe Admin::HttpRequest do
     end
   end
 
+  describe '#request_params' do
+    it 'joins the query string with the form body' do
+      http_request = build(:admin_http_request, url: 'https://atua.example.test/adm/login.php?f_origem=index.php',
+                                                request_headers: { 'content-type' => 'application/x-www-form-urlencoded' },
+                                                request_body: 'f_ds_apelido=transjr')
+
+      expect(http_request.request_params).to eq([%w[f_origem index.php], %w[f_ds_apelido transjr]])
+    end
+  end
+
+  describe '.statuses' do
+    it 'maps the translated status groups to their keys' do
+      expect(described_class.statuses).to eq(
+        'Sucesso (2xx)' => 'success',
+        'Redirecionamento (3xx)' => 'redirection',
+        'Erro do cliente (4xx)' => 'client_error',
+        'Erro do servidor (5xx)' => 'server_error',
+        'Sem resposta' => 'failed',
+      )
+    end
+  end
+
   describe '#formatted_response_body' do
     it 'indents a JSON body' do
       http_request = build(:admin_http_request, response_body: '{"results":[{"id":1}]}')

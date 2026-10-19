@@ -35,7 +35,7 @@ module Admin
     scope :by_period_end, ->(date) { parse_date(date)&.then { |day| where(created_at: ..day.end_of_day) } || all }
 
     class << self
-      def status_groups
+      def statuses
         STATUS_GROUPS.index_by { |group| I18n.t(group, scope: 'admin.http_requests.status_groups') }
       end
 
@@ -55,6 +55,10 @@ module Admin
       query.present? ? URI.decode_www_form(query) : []
     rescue URI::InvalidURIError, ArgumentError
       []
+    end
+
+    def request_params
+      query_params + request_form_params
     end
 
     def request_form_params

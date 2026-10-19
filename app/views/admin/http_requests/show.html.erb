@@ -57,7 +57,7 @@
     <div class="col-12 col-xl-6">
       <%= render 'exchange', id: 'http_request_sent', title: t('.request'),
                              headers: @http_request.request_headers,
-                             params: @http_request.query_params + @http_request.request_form_params,
+                             params: @http_request.request_params,
                              body: admin_http_request_request_body(@http_request),
                              raw_body: @http_request.request_body %>
     </div>
