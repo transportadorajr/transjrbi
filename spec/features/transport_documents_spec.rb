@@ -143,12 +143,12 @@ describe 'Transport documents' do
         visit transport_documents_path
 
         expect(Atua::TransportDocument.count).to eq(3)
-        expect(html_table_to_rows.map { |row| row.first(2) }).to eq(
+        expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Lançado em'],
-            ['74140 -', '20/10/2026'],
-            ['74142 -', '10/10/2026'],
-            ['74141 -', '03/10/2026'],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
+            ['74140 -', '20/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+            ['74142 -', '10/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+            ['74141 -', '03/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
           ],
         )
       end
@@ -159,7 +159,14 @@ describe 'Transport documents' do
         fill_in 'Lançados até', with: '2026-10-12'
         click_on 'Aplicar Filtros'
 
-        expect(html_table_to_rows.map(&:first)).to eq(['Número', '74142 -', '74141 -'])
+        expect(Atua::TransportDocument.count).to eq(3)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
+            ['74142 -', '10/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+            ['74141 -', '03/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+          ],
+        )
       end
     end
 
