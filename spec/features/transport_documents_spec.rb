@@ -39,12 +39,12 @@ describe 'Transport documents' do
     context 'when there are transport documents' do
       let!(:authorized) do
         create(:atua_transport_document, tenant:, number: '74130', sender_name: 'USIMINAS', issued_at: Time.zone.local(2026, 10, 1, 16, 45),
-                                         origin_city: 'Ipatinga', origin_state: 'MG', destination_city: 'Betim', destination_state: 'MG',
+                                         posted_on: Date.new(2026, 10, 1), origin_city: 'Ipatinga', origin_state: 'MG', destination_city: 'Betim', destination_state: 'MG',
                                          plate: 'EXU0F72', freight_cents: 55_504)
       end
       let!(:canceled) do
         create(:atua_transport_document, tenant:, number: '74131', sender_name: 'GERDAU', issued_at: Time.zone.local(2026, 10, 5, 8),
-                                         canceled_at: Time.zone.local(2026, 10, 5, 9), plate: 'RHJ4E07', freight_cents: 120_000)
+                                         posted_on: Date.new(2026, 10, 5), canceled_at: Time.zone.local(2026, 10, 5, 9), plate: 'RHJ4E07', freight_cents: 120_000)
       end
       let!(:removed) { create(:atua_transport_document, tenant:, number: '74132', removed_from_atua_at: Time.current) }
       let!(:stranger) { create(:atua_transport_document, tenant: other_tenant, number: '74133') }
@@ -60,9 +60,9 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
-            ['74131 GERDAU', '05/10/2026 08:00', '- → -', 'RHJ4E07', 'R$ 1.200,00', 'Cancelado', ''],
-            ['74130 USIMINAS', '01/10/2026 16:45', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
+            ['74131 GERDAU', '05/10/2026', '- → -', 'RHJ4E07', 'R$ 1.200,00', 'Cancelado', ''],
+            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'R$ 555,04', 'Válido', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 1', 'Cancelados 1'])
@@ -80,8 +80,8 @@ describe 'Transport documents' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026 16:45', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
+            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'R$ 555,04', 'Válido', ''],
           ],
         )
       end
@@ -89,15 +89,15 @@ describe 'Transport documents' do
       scenario 'filters the transport documents by plate, period and situation' do
         visit transport_documents_path
         fill_in 'Placa', with: 'rhj-4e07'
-        fill_in 'Emitidos a partir de', with: '2026-10-02'
-        fill_in 'Emitidos até', with: '2026-10-31'
+        fill_in 'Lançados a partir de', with: '2026-10-02'
+        fill_in 'Lançados até', with: '2026-10-31'
         select 'Cancelado', from: 'Situação'
         click_on 'Aplicar Filtros'
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
-            ['74131 GERDAU', '05/10/2026 08:00', '- → -', 'RHJ4E07', 'R$ 1.200,00', 'Cancelado', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
+            ['74131 GERDAU', '05/10/2026', '- → -', 'RHJ4E07', 'R$ 1.200,00', 'Cancelado', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 1', 'Válidos 0', 'Cancelados 1'])
@@ -128,13 +128,55 @@ describe 'Transport documents' do
       end
     end
 
+    context 'when transport documents were launched in a different order than they were issued' do
+      let!(:issued_first_launched_last) do
+        create(:atua_transport_document, tenant:, number: '74140', issued_at: Time.zone.local(2026, 10, 1, 9), posted_on: Date.new(2026, 10, 20))
+      end
+      let!(:issued_last_launched_first) do
+        create(:atua_transport_document, tenant:, number: '74141', issued_at: Time.zone.local(2026, 10, 15, 9), posted_on: Date.new(2026, 10, 3))
+      end
+      let!(:issued_between_launched_between) do
+        create(:atua_transport_document, tenant:, number: '74142', issued_at: Time.zone.local(2026, 10, 10, 9), posted_on: Date.new(2026, 10, 10))
+      end
+
+      scenario 'lists the most recently launched transport documents first' do
+        visit transport_documents_path
+
+        expect(Atua::TransportDocument.count).to eq(3)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
+            ['74140 -', '20/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+            ['74142 -', '10/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+            ['74141 -', '03/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+          ],
+        )
+      end
+
+      scenario 'filters the transport documents by the launch period instead of the emission' do
+        visit transport_documents_path
+        fill_in 'Lançados a partir de', with: '2026-10-01'
+        fill_in 'Lançados até', with: '2026-10-12'
+        click_on 'Aplicar Filtros'
+
+        expect(Atua::TransportDocument.count).to eq(3)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'],
+            ['74142 -', '10/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+            ['74141 -', '03/10/2026', '- → -', '-', 'R$ 555,04', 'Válido', ''],
+          ],
+        )
+      end
+    end
+
     context 'when a transport document has every detail and a manifest' do
       let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
       let!(:transport_document) do
         create(:atua_transport_document,
                tenant:, code: 80_842, number: '74130', series: 1, document_kind: 'cte', access_key: '31261000000000000000570010000741301000000000',
-               issued_at: Time.zone.local(2026, 10, 1, 16, 45), cte_status: 'Autorizado', issue_kind: 'Normal', service_kind: 'Normal',
-               cfop: 6352, branch_name: 'JR TRANSPORTES',
+               issued_at: Time.zone.local(2026, 10, 1, 16, 45), posted_on: Date.new(2026, 10, 2), cte_status: 'Autorizado', issue_kind: 'Normal',
+               service_kind: 'Normal', cfop: 6352, branch_name: 'JR TRANSPORTES',
                sender_name: 'USIMINAS', sender_document: '60.894.730/0001-05', recipient_name: 'FIAT', recipient_document: '16.701.716/0001-56',
                payer_name: 'USIMINAS', payer_document: '60.894.730/0001-05', taker_name: 'USIMINAS',
                origin_city: 'Ipatinga', origin_state: 'MG', destination_city: 'Betim', destination_state: 'MG', plate: 'EXU0F72',
@@ -160,6 +202,7 @@ describe 'Transport documents' do
           'Tipo do documento' => 'CT-e',
           'Chave de acesso' => transport_document.access_key,
           'Emitido em' => '01/10/2026 16:45',
+          'Lançado em' => '02/10/2026',
           'Situação' => 'Válido',
           'Situação na SEFAZ' => 'Autorizado',
           'Cancelado em' => '-',
@@ -494,7 +537,7 @@ describe 'Transport documents' do
       visit transport_documents_path
       find(:link, href: '#filtersModal').click
 
-      within('#filtersModal') { expect(page).to have_field('Emitidos até') }
+      within('#filtersModal') { expect(page).to have_field('Lançados até') }
       start_top = page.evaluate_script("document.getElementById('start_date').getBoundingClientRect().top")
       end_top = page.evaluate_script("document.getElementById('end_date').getBoundingClientRect().top")
       expect(end_top).to be > start_top

@@ -39,8 +39,9 @@ module Atua
     validates :number, presence: true
 
     scope :by_period, ->(start_date, end_date) { where(issued_at: time_range(start_date, end_date)) }
-    scope :by_period_start, ->(date) { by_period(date, nil) }
-    scope :by_period_end, ->(date) { by_period(nil, date) }
+    scope :by_posted_period, ->(start_date, end_date) { where(posted_on: date_range(start_date, end_date)) }
+    scope :by_period_start, ->(date) { by_posted_period(date, nil) }
+    scope :by_period_end, ->(date) { by_posted_period(nil, date) }
     scope :by_number, ->(number) { where(number: number.to_s.strip) }
     scope :by_plate, ->(plate) {
       plate = normalize_plate(plate)

@@ -125,6 +125,7 @@ pt-BR:
         document_kind: Tipo do documento
         access_key: Chave de acesso
         issued_at: Emitido em
+        posted_on: Lançado em
         situation: Situação
         cte_status: Situação na SEFAZ
         canceled_at: Cancelado em
@@ -746,8 +747,8 @@ pt-BR:
       number: Número do CT-e
       plate: Placa
       status: Situação
-      start_date: Emitidos a partir de
-      end_date: Emitidos até
+      start_date: Lançados a partir de
+      end_date: Lançados até
     show:
       title: CT-e %{number}
       back: Voltar para CT-es
