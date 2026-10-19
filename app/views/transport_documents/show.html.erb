@@ -35,6 +35,9 @@
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></dt>
             <dd class="col-12 col-md-7"><%= tax_time(@transport_document.issued_at) %></dd>
 
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:posted_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@transport_document.posted_on) %></dd>
+
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:situation) %></dt>
             <dd class="col-12 col-md-7"><%= tax_situation_badge(@transport_document) %></dd>
 

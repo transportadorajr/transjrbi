@@ -114,24 +114,24 @@ RSpec.describe Atua::TransportDocument do
   describe 'scopes' do
     context 'with documents of different periods, plates, customers and situations' do
       let!(:first) do
-        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 1, 0, 5), plate: 'EXU0F72',
-                                         trailer_plate: 'BEV4G50', sender_code: 7752, payer_code: 7752)
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 1, 0, 5), posted_on: Date.new(2026, 10, 1),
+                                         plate: 'EXU0F72', trailer_plate: 'BEV4G50', sender_code: 7752, payer_code: 7752)
       end
       let!(:last) do
-        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 13, 23, 55), plate: 'RHJ4E07',
-                                         recipient_code: 7752, payer_code: 9000)
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 13, 23, 55), posted_on: Date.new(2026, 10, 14),
+                                         plate: 'RHJ4E07', recipient_code: 7752, payer_code: 9000)
       end
       let!(:outside) do
-        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 14, 0, 1), plate: 'BEV4G50',
-                                         consignee_code: 7752, payer_code: 9000)
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 14, 0, 1), posted_on: Date.new(2026, 10, 14),
+                                         plate: 'BEV4G50', consignee_code: 7752, payer_code: 9000)
       end
       let!(:canceled) do
-        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 9, 30, 23, 59),
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 9, 30, 23, 59), posted_on: Date.new(2026, 9, 30),
                                          canceled_at: Time.zone.local(2026, 10, 2, 10), payer_code: 9000)
       end
       let!(:removed) do
-        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 2), removed_from_atua_at: Time.current,
-                                         payer_code: 9000)
+        create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 2), posted_on: Date.new(2026, 10, 2),
+                                         removed_from_atua_at: Time.current, payer_code: 9000)
       end
 
       it 'filters by the whole days of the emission period' do
@@ -155,9 +155,14 @@ RSpec.describe Atua::TransportDocument do
         expect(canceled).to be_canceled
       end
 
-      it 'filters by the start or the end of the emission period' do
-        expect(described_class.by_period_start('2026-10-13')).to contain_exactly(last, outside)
-        expect(described_class.by_period_end('2026-10-01')).to contain_exactly(first, canceled)
+      it 'filters by the whole days of the launch period' do
+        expect(described_class.by_posted_period('2026-10-01', '2026-10-13')).to contain_exactly(first, removed)
+        expect(described_class.by_posted_period(Date.new(2026, 10, 14), nil)).to contain_exactly(last, outside)
+      end
+
+      it 'filters by the start or the end of the launch period' do
+        expect(described_class.by_period_start('2026-10-14')).to contain_exactly(last, outside)
+        expect(described_class.by_period_end('2026-10-13')).to contain_exactly(first, canceled, removed)
       end
 
       it 'filters by the number' do
