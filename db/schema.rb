@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_121742) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_19_163831) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,7 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_121742) do
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
-  create_enum "freight_expense_kind_type", ["commission", "tonnage"]
+  create_enum "freight_expense_kind_type", ["commission", "tonnage", "insurance"]
   create_enum "location_precision_type", ["address", "city"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
@@ -616,7 +616,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_121742) do
     t.bigint "tonnage_rate_id"
     t.decimal "weight_tons", precision: 14, scale: 3
     t.bigint "rate_cents"
+    t.bigint "insurance_rate_id"
+    t.decimal "iof_percentage", precision: 7, scale: 4
+    t.bigint "iof_cents", default: 0, null: false
     t.index ["commission_rule_id"], name: "index_freight_expenses_on_commission_rule_id"
+    t.index ["insurance_rate_id"], name: "index_freight_expenses_on_insurance_rate_id"
     t.index ["tenant_id"], name: "index_freight_expenses_on_tenant_id"
     t.index ["tonnage_rate_id"], name: "index_freight_expenses_on_tonnage_rate_id"
     t.index ["transport_document_id", "kind_type"], name: "index_freight_expenses_on_transport_document_id_and_kind_type", unique: true
@@ -738,6 +742,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_121742) do
     t.index ["queue_name"], name: "index_good_jobs_on_queue_name"
     t.index ["scheduled_at", "queue_name"], name: "index_good_jobs_on_scheduled_at_and_queue_name"
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
+  end
+
+  create_table "insurance_rates", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.decimal "insurance_percentage", precision: 7, scale: 4, null: false
+    t.decimal "iof_percentage", precision: 7, scale: 4, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id"], name: "index_insurance_rates_on_tenant_id", unique: true
   end
 
   create_table "locations", force: :cascade do |t|
@@ -869,8 +882,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_121742) do
   add_foreign_key "empty_legs", "tenants"
   add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
   add_foreign_key "freight_expenses", "commission_rules"
+  add_foreign_key "freight_expenses", "insurance_rates"
   add_foreign_key "freight_expenses", "tenants"
   add_foreign_key "freight_expenses", "tonnage_rates"
+  add_foreign_key "insurance_rates", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "tonnage_rates", "customer_groups"

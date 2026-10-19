@@ -1,0 +1,30 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= insurance_rate_edit_button %>
+  <% end %>
+
+  <%= freight_expense_missing_insurance_rate_alert(@insurance_rate) %>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.insurance_rate_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="insurance_rate_data">
+        <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:insurance_percentage) %></dt>
+        <dd class="col-12 col-md-9"><%= insurance_rate_percentage(@insurance_rate, :insurance_percentage) %></dd>
+
+        <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:iof_percentage) %></dt>
+        <dd class="col-12 col-md-9"><%= insurance_rate_percentage(@insurance_rate, :iof_percentage) %></dd>
+
+        <dt class="col-12 col-md-3"><%= InsuranceRate.human_attribute_name(:freight_expenses) %></dt>
+        <dd class="col-12 col-md-9"><%= @expenses_count %></dd>
+
+        <dt class="col-12 col-md-3"><%= t('.expenses_total') %></dt>
+        <dd class="col-12 col-md-9"><%= tax_money(@expenses_total) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

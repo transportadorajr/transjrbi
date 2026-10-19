@@ -36,7 +36,7 @@ class ManifestsController < BaseController
       .where(transport_document_id: transport_documents.active.not_canceled.select(:id))
 
     @net_freight = NetFreight.for(transport_documents)
-    @freight_expenses = freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate)
+    @freight_expenses = freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate, :insurance_rate)
       .joins(:transport_document).order(Atua::TransportDocument.arel_table[:number], :kind_type, :id)
     @freight_expenses_total = Money.from_cents(freight_expenses.sum(:amount_cents))
   end

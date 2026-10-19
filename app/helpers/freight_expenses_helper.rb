@@ -15,6 +15,7 @@ module FreightExpensesHelper
 
   def freight_expense_detail(freight_expense)
     return freight_expense_tonnage_rate(freight_expense.tonnage_rate) if freight_expense.tonnage?
+    return freight_expense_insurance(freight_expense) if freight_expense.insurance?
 
     freight_expense_rule(freight_expense)
   end
@@ -34,6 +35,20 @@ module FreightExpensesHelper
     link_to tonnage_rate_label(tonnage_rate), tonnage_rate_path(tonnage_rate), class: 'text-decoration-none'
   end
 
+  def freight_expense_insurance_rate(insurance_rate)
+    return t('tax.blank') unless insurance_rate
+    return insurance_rate_label unless can?(:read, :insurance_rates)
+
+    link_to insurance_rate_label, insurance_rate_path, class: 'text-decoration-none'
+  end
+
+  def freight_expense_insurance(freight_expense)
+    rate = freight_expense_insurance_rate(freight_expense.insurance_rate)
+    return rate unless freight_expense.iof_cents.positive?
+
+    t('freight_expenses.insurance_detail_html', rate:, iof: tax_money(freight_expense.iof))
+  end
+
   def freight_expense_base(freight_expense)
     return tonnage_weight(freight_expense.weight_tons) if freight_expense.tonnage?
 
@@ -41,13 +56,14 @@ module FreightExpensesHelper
   end
 
   def freight_expense_icms(freight_expense)
-    return t('tax.blank') if freight_expense.tonnage?
+    return t('tax.blank') unless freight_expense.commission?
 
     tax_money(freight_expense.icms)
   end
 
   def freight_expense_rate(freight_expense)
     return tonnage_rate_per_ton(freight_expense.rate) if freight_expense.tonnage?
+    return insurance_percentage(freight_expense.percentage) if freight_expense.insurance?
 
     commission_percentage(freight_expense.percentage)
   end
@@ -78,6 +94,12 @@ module FreightExpensesHelper
     return if tonnage_rates.none?
 
     render 'freight_expenses/outdated_alert', tonnage_rates:
+  end
+
+  def freight_expense_missing_insurance_rate_alert(insurance_rate)
+    return if insurance_rate
+
+    render 'freight_expenses/missing_insurance_rate_alert'
   end
 
   def net_freight_card(net_freight, id:)

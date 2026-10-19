@@ -38,7 +38,7 @@ class TransportDocumentsController < BaseController
     @net_freight = NetFreight.for(current_tenant.atua_transport_documents.where(id: @transport_document.id))
     freight_expenses = @transport_document.freight_expenses
 
-    @freight_expenses = freight_expenses.preload(:commission_rule, :tonnage_rate).order(:kind_type, :id)
+    @freight_expenses = freight_expenses.preload(:commission_rule, :tonnage_rate, :insurance_rate).order(:kind_type, :id)
     @freight_expenses_total = Money.from_cents(freight_expenses.sum(:amount_cents))
   end
 

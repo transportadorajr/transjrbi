@@ -13,6 +13,7 @@ module FreightExpenses
       CustomerGroups::RecalculateCommand.call(tenant)
       CalculateCommissionsCommand.call(tenant)
       CalculateTonnageCommand.call(tenant)
+      CalculateInsuranceCommand.call(tenant)
     end
   end
 end

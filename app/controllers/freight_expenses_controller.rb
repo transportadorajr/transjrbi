@@ -10,7 +10,7 @@ class FreightExpensesController < BaseController
 
     freight_expenses = apply_scopes(current_tenant.freight_expenses)
 
-    @freight_expenses = freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate)
+    @freight_expenses = freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate, :insurance_rate)
       .joins(:transport_document)
       .order(Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, :kind_type, id: :desc)
       .page(params[:page])
@@ -21,6 +21,7 @@ class FreightExpensesController < BaseController
       .order(Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, :id)
     @missing_weight_documents = TonnageRate.missing_weight_documents(current_tenant)
     @outdated_tonnage_rates = TonnageRate.outdated(current_tenant)
+    @insurance_rate = InsuranceRate.find_by(tenant: current_tenant)
   end
 
   def recalculate
