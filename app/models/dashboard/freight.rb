@@ -5,25 +5,43 @@ module Dashboard
     HISTORY_MONTHS = 6
     RANKING_LIMIT = 15
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
-    COLUMNS = %i[manifest_code reference_on loaded_km empty_km freight_cents freight_expenses_cents expenses_cents plate
-                 trailer_plate driver_code driver_name customer_group_id origin_city origin_state].freeze
+    CALCULATED_EMPTY_LEG = 'calculated'.freeze
+    COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km empty_km empty_leg_status freight_cents
+                 freight_expenses_cents expenses_cents plate trailer_plate driver_code driver_name customer_group_id origin_city
+                 origin_state].freeze
+    ENTRY_ATTRIBUTES = %i[manifest_code weight reference_on loaded_km empty_km empty_pending freight_cents freight_expenses_cents
+                          expenses_cents plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
         manifest_code.present?
       end
 
-      def measured?
-        trip? && loaded_km.to_d.positive?
-      end
-
-      def net_cents
-        freight_cents.to_i - freight_expenses_cents.to_i - expenses_cents.to_i
+      def empty_pending?
+        empty_leg_status.present? && empty_leg_status != CALCULATED_EMPTY_LEG
       end
     end
 
-    Row = Data.define(:label, :trips_count, :loaded_km, :empty_km, :gross, :freight_expenses, :expenses, :net, :gross_per_km,
-                      :net_per_km, :share)
+    Entry = Data.define(*ENTRY_ATTRIBUTES) do
+      def trip?
+        manifest_code.present?
+      end
+
+      def measured?
+        trip? && loaded_km.positive?
+      end
+
+      def total_km
+        loaded_km + empty_km
+      end
+
+      def net_cents
+        freight_cents - freight_expenses_cents - expenses_cents
+      end
+    end
+
+    Row = Data.define(:label, :trips_count, :loaded_km, :empty_km, :total_km, :gross, :freight_expenses, :expenses, :net,
+                      :gross_per_km, :net_per_km, :share)
 
     attr_reader :dimension, :period
 
@@ -40,14 +58,14 @@ module Dashboard
       @period = period
     end
 
-    delegate :empty?, to: :facts
+    delegate :empty?, to: :entries
 
     def total
-      @total ||= build_row(I18n.t('dashboards.freight.total'), facts)
+      @total ||= build_row(I18n.t('dashboards.freight.total'), entries)
     end
 
     def rows
-      @rows ||= facts.group_by { |fact| key_for(fact) }
+      @rows ||= entries.group_by { |entry| key_for(entry) }
         .map { |key, grouped| build_row(label_for(key, grouped), grouped) }
         .sort_by { |row| [-row.gross.cents, row.label] }
     end
@@ -68,7 +86,7 @@ module Dashboard
     end
 
     def monthly_data
-      months = history_facts.group_by { |fact| fact.reference_on.beginning_of_month }
+      months = history_entries.group_by { |entry| entry.reference_on.beginning_of_month }
       labels = history_months.index_with { |month| I18n.l(month, format: :chart_month).capitalize }
 
       [
@@ -77,20 +95,79 @@ module Dashboard
       ]
     end
 
+    def empty_pending_trips_count
+      entries.select(&:empty_pending).uniq(&:manifest_code).size
+    end
+
     private
 
     attr_reader :documents, :manifests
 
-    def facts
-      @facts ||= all_facts.select { |fact| period.cover?(fact.reference_on) }
+    def entries
+      @entries ||= all_entries.select { |entry| period.cover?(entry.reference_on) }
     end
 
-    def history_facts
-      all_facts.select { |fact| history_period.cover?(fact.reference_on) }
+    def history_entries
+      all_entries.select { |entry| history_period.cover?(entry.reference_on) }
+    end
+
+    def all_entries
+      @all_entries ||= begin
+        trips, complements = all_facts.partition(&:trip?)
+
+        complements.map { |fact| complement_entry(fact) } +
+          trips.group_by(&:manifest_code).values.flat_map { |trip_facts| trip_entries(trip_facts) }
+      end
+    end
+
+    def complement_entry(fact)
+      Entry.new(
+        manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'),
+        empty_km: BigDecimal('0'), empty_pending: false, **money_of([fact]), plate: fact.plate, trailer_plate: fact.trailer_plate,
+        driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
+        origin_city: fact.origin_city, origin_state: fact.origin_state
+      )
+    end
+
+    def trip_entries(trip_facts)
+      trip = trip_facts.first
+      main = trip_facts.max_by { |fact| [fact.freight_cents.to_i, -fact.id] }
+      first_loading = trip_facts.min_by { |fact| [fact.issued_at.to_i, fact.id] }
+
+      slices_of(trip_facts).map do |slice, weight|
+        Entry.new(
+          manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
+          empty_km: trip.empty_km.to_d * weight, empty_pending: trip.empty_pending?, **money_of(slice), plate: trip.trip_plate,
+          trailer_plate: trip_facts.filter_map { |fact| fact.trailer_plate.presence }.first, driver_code: main.driver_code,
+          driver_name: main.driver_name, customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
+          origin_state: first_loading.origin_state
+        )
+      end
+    end
+
+    def slices_of(trip_facts)
+      return { trip_facts => BigDecimal('1') } unless dimension == 'customer_group'
+
+      slices = trip_facts.group_by(&:customer_group_id).values
+      trip_cents = freight_of(trip_facts)
+
+      slices.index_with { |slice| trip_cents.zero? ? BigDecimal('1') / slices.size : freight_of(slice).to_d / trip_cents }
+    end
+
+    def money_of(facts)
+      {
+        freight_cents: freight_of(facts),
+        freight_expenses_cents: facts.sum { |fact| fact.freight_expenses_cents.to_i },
+        expenses_cents: facts.sum { |fact| fact.expenses_cents.to_i },
+      }
+    end
+
+    def freight_of(facts)
+      facts.sum { |fact| fact.freight_cents.to_i }
     end
 
     def all_facts
-      @all_facts ||= documents.active.not_canceled
+      documents.active.not_canceled
         .left_joins(:taker)
         .joins(first_trip_join)
         .where(first_trips[:manifest_code].not_eq(nil).or(table[:document_kind].eq(COMPLEMENT_KIND)))
@@ -105,10 +182,14 @@ module Dashboard
 
     def fact_columns
       [
+        table[:id],
         Arel.sql('first_trips.manifest_code'),
+        Arel.sql('first_trips.plate'),
         Arel.sql(reference_on_sql),
+        table[:issued_at],
         Arel.sql('first_trips.loaded_km'),
         Arel.sql('first_trips.empty_km'),
+        Arel.sql('first_trips.empty_leg_status'),
         table[:freight_cents],
         Arel::Nodes::Grouping.new(freight_expenses_total.arel),
         Arel::Nodes::Grouping.new(expenses_total.arel),
@@ -129,11 +210,13 @@ module Dashboard
     def first_trip_join
       <<~SQL.squish
         LEFT JOIN LATERAL (
-          SELECT atua_manifests.code AS manifest_code, #{trip_on_sql} AS trip_on,
-                 (#{loaded_km_sql}) AS loaded_km, (#{empty_km_sql}) AS empty_km
+          SELECT atua_manifests.code AS manifest_code, atua_manifests.plate AS plate, #{trip_on_sql} AS trip_on,
+                 (#{loaded_km_sql}) AS loaded_km, #{empty_km_sql} AS empty_km, empty_legs.status_type AS empty_leg_status
           FROM atua_manifest_documents
           INNER JOIN atua_manifests ON atua_manifests.tenant_id = atua_manifest_documents.tenant_id
             AND atua_manifests.code = atua_manifest_documents.manifest_code
+          LEFT JOIN empty_legs ON empty_legs.tenant_id = atua_manifests.tenant_id
+            AND empty_legs.next_manifest_code = atua_manifests.code
           WHERE atua_manifest_documents.tenant_id = #{table.name}.tenant_id
             AND atua_manifest_documents.transport_document_number = #{table.name}.number
             AND atua_manifest_documents.transport_document_series = #{table.name}.series
@@ -162,10 +245,7 @@ module Dashboard
     end
 
     def empty_km_sql
-      EmptyLeg.calculated.select(:distance_km)
-        .where(EmptyLeg.arel_table[:tenant_id].eq(Atua::Manifest.arel_table[:tenant_id]))
-        .where(EmptyLeg.arel_table[:next_manifest_code].eq(Atua::Manifest.arel_table[:code]))
-        .to_sql
+      "CASE WHEN empty_legs.status_type = #{connection.quote(CALCULATED_EMPTY_LEG)} THEN empty_legs.distance_km END"
     end
 
     def freight_expenses_total
@@ -183,26 +263,32 @@ module Dashboard
     end
 
     def build_row(label, grouped)
-      trips = grouped.select(&:trip?).uniq(&:manifest_code)
-      loaded_km = trips.sum(BigDecimal('0')) { |fact| fact.loaded_km.to_d }
       measured = grouped.select(&:measured?)
-      gross_cents = grouped.sum { |fact| fact.freight_cents.to_i }
-      freight_expenses_cents = grouped.sum { |fact| fact.freight_expenses_cents.to_i }
-      expenses_cents = grouped.sum { |fact| fact.expenses_cents.to_i }
+      measured_km = measured.sum(BigDecimal('0'), &:total_km)
+      loaded_km = sum_km(grouped, &:loaded_km)
+      empty_km = sum_km(grouped, &:empty_km)
+      gross_cents = grouped.sum(&:freight_cents)
+      freight_expenses_cents = grouped.sum(&:freight_expenses_cents)
+      expenses_cents = grouped.sum(&:expenses_cents)
 
       Row.new(
         label:,
-        trips_count: trips.size,
+        trips_count: grouped.sum(BigDecimal('0'), &:weight).round(2),
         loaded_km:,
-        empty_km: trips.sum(BigDecimal('0')) { |fact| fact.empty_km.to_d },
+        empty_km:,
+        total_km: loaded_km + empty_km,
         gross: Money.from_cents(gross_cents),
         freight_expenses: Money.from_cents(freight_expenses_cents),
         expenses: Money.from_cents(expenses_cents),
         net: Money.from_cents(gross_cents - freight_expenses_cents - expenses_cents),
-        gross_per_km: per_km(measured.sum { |fact| fact.freight_cents.to_i }, loaded_km),
-        net_per_km: per_km(measured.sum(&:net_cents), loaded_km),
+        gross_per_km: per_km(measured.sum(&:freight_cents), measured_km),
+        net_per_km: per_km(measured.sum(&:net_cents), measured_km),
         share: share_of(gross_cents),
       )
+    end
+
+    def sum_km(grouped, &)
+      grouped.sum(BigDecimal('0'), &).round(2)
     end
 
     def per_km(cents, distance)
@@ -210,25 +296,25 @@ module Dashboard
     end
 
     def share_of(cents)
-      total_cents = facts.sum { |fact| fact.freight_cents.to_i }
+      total_cents = entries.sum(&:freight_cents)
       return BigDecimal('0') if total_cents.zero?
 
       (cents.to_d * 100 / total_cents).round(1)
     end
 
-    def key_for(fact)
+    def key_for(entry)
       case dimension
-      when 'vehicle' then [fact.plate.presence, fact.trailer_plate.presence]
-      when 'driver' then fact.driver_code
-      when 'customer_group' then fact.customer_group_id
-      when 'origin' then [fact.origin_city.presence, fact.origin_state.presence]
+      when 'vehicle' then [entry.plate.presence, entry.trailer_plate.presence]
+      when 'driver' then entry.driver_code
+      when 'customer_group' then entry.customer_group_id
+      when 'origin' then [entry.origin_city.presence, entry.origin_state.presence]
       end
     end
 
     def label_for(key, grouped)
       label = case dimension
               when 'vehicle' then key.compact.join(' + ')
-              when 'driver' then grouped.filter_map { |fact| fact.driver_name.presence }.first
+              when 'driver' then grouped.filter_map { |entry| entry.driver_name.presence }.first
               when 'customer_group' then customer_group_names[key]
               when 'origin' then origin_label(*key)
               end
@@ -243,7 +329,7 @@ module Dashboard
     end
 
     def customer_group_names
-      @customer_group_names ||= CustomerGroup.where(id: facts.filter_map(&:customer_group_id).uniq).pluck(:id, :name).to_h
+      @customer_group_names ||= CustomerGroup.where(id: entries.filter_map(&:customer_group_id).uniq).pluck(:id, :name).to_h
     end
 
     def history_months

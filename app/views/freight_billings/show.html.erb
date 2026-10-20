@@ -21,11 +21,13 @@
   <div class="row g-3 mb-4">
     <%= counter_card(:primary, t('.gross'), tax_money(@dashboard.total.gross), col_class: 'col-12 col-md-6 col-xl-4') %>
     <%= counter_card(:success, t('.net'), tax_money(@dashboard.total.net), col_class: 'col-12 col-md-6 col-xl-4') %>
-    <%= counter_card(:dark, t('.trips'), @dashboard.total.trips_count, col_class: 'col-12 col-md-6 col-xl-4') %>
+    <%= counter_card(:dark, t('.trips'), freight_billing_trips(@dashboard.total.trips_count), col_class: 'col-12 col-md-6 col-xl-4') %>
     <%= counter_card(:primary, t('.gross_per_km'), tax_money(@dashboard.total.gross_per_km), col_class: 'col-12 col-md-6 col-xl-4') %>
     <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-12 col-md-6 col-xl-4') %>
-    <%= counter_card(:dark, t('.loaded_km'), freight_billing_km(@dashboard.total.loaded_km), col_class: 'col-12 col-md-6 col-xl-4') %>
+    <%= counter_card(:dark, t('.total_km'), freight_billing_km(@dashboard.total.total_km), col_class: 'col-12 col-md-6 col-xl-4') %>
   </div>
+
+  <%= freight_billing_empty_pending_alert(@dashboard) %>
 
   <%= render freight_billing_content_partial(@dashboard), dashboard: @dashboard %>
 </div>
