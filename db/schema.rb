@@ -371,7 +371,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_210828) do
     t.datetime "issued_at"
     t.date "posted_on"
     t.date "arrival_on"
-    t.date "due_on"
     t.datetime "canceled_at"
     t.string "cancellation_reason"
     t.bigint "branch_code"
@@ -456,6 +455,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_210828) do
     t.datetime "removed_from_atua_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "due_dates", default: [], null: false, array: true
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
     t.index ["tenant_id", "code"], name: "index_atua_transport_documents_on_tenant_id_and_code", unique: true

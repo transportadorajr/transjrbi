@@ -93,8 +93,8 @@ module Dashboard
       @all_facts ||= documents.active.not_canceled
         .left_joins(:taker)
         .joins(first_trip_join)
-        .where("first_trips.manifest_code IS NOT NULL OR #{table.name}.document_kind = ?", COMPLEMENT_KIND)
-        .where("#{reference_on_sql} BETWEEN ? AND ?", fetched_period.first, fetched_period.last)
+        .where(first_trips[:manifest_code].not_eq(nil).or(table[:document_kind].eq(COMPLEMENT_KIND)))
+        .where(Arel.sql(reference_on_sql).between(fetched_period))
         .pluck(*fact_columns)
         .map { |values| Fact.new(*values) }
     end
@@ -254,6 +254,10 @@ module Dashboard
 
     def monthly_values(labels, months, &)
       labels.to_h { |month, label| [label, Money.from_cents(months.fetch(month, []).sum(&)).to_f] }
+    end
+
+    def first_trips
+      Arel::Table.new(:first_trips)
     end
 
     def table
