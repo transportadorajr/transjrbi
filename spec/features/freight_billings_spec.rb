@@ -104,13 +104,13 @@ describe 'Freight billing' do
         expect(html_table_to_rows).to eq(
           [
             ['Conjunto', 'Viagens', 'KM rodado', 'KM vazio', 'KM total', 'Frete bruto', 'Despesas de frete', 'Despesas',
-             'Frete líquido', 'Bruto/km', 'Líquido/km', 'Participação'],
-            ['RVR2C34 + RVR9C02', '1', '520 km', '80 km', '600 km', 'R$ 15.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 14.350,00',
-             'R$ 25,00', 'R$ 23,92', '75,0%'],
-            ['RVR8J90', '1', '200 km', '0 km', '200 km', 'R$ 5.000,00', 'R$ 0,00', 'R$ 0,00', 'R$ 5.000,00', 'R$ 20,00',
-             'R$ 20,00', '25,0%'],
-            ['Total', '2', '720 km', '80 km', '800 km', 'R$ 20.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 19.350,00', 'R$ 23,75',
-             'R$ 22,94', '100,0%'],
+             'Combustível', 'Frete líquido', 'Bruto/km', 'Líquido/km', 'Participação'],
+            ['RVR2C34 + RVR9C02', '1', '520 km', '80 km', '600 km', 'R$ 15.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 0,00',
+             'R$ 14.350,00', 'R$ 25,00', 'R$ 23,92', '75,0%'],
+            ['RVR8J90', '1', '200 km', '0 km', '200 km', 'R$ 5.000,00', 'R$ 0,00', 'R$ 0,00', 'R$ 0,00', 'R$ 5.000,00',
+             'R$ 20,00', 'R$ 20,00', '25,0%'],
+            ['Total', '2', '720 km', '80 km', '800 km', 'R$ 20.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 0,00', 'R$ 19.350,00',
+             'R$ 23,75', 'R$ 22,94', '100,0%'],
           ],
         )
         expect(page).to have_no_text('OUT1A11')
@@ -123,7 +123,7 @@ describe 'Freight billing' do
 
         expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'driver')))
         expect(page).to have_link('Motorista', class: 'btn-primary')
-        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 5, 8) }).to eq(
+        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 5, 9) }).to eq(
           [
             ['Motorista', 'Viagens', 'Frete bruto', 'Frete líquido'],
             ['JOSE SILVA', '1', 'R$ 15.000,00', 'R$ 14.350,00'],
@@ -149,7 +149,7 @@ describe 'Freight billing' do
       scenario 'groups the freight by origin' do
         visit freight_billing_path(october.merge(dimension: 'origin'))
 
-        expect(html_table_to_rows.map { |row| row.values_at(0, 5, 11) }).to eq(
+        expect(html_table_to_rows.map { |row| row.values_at(0, 5, 12) }).to eq(
           [
             ['Origem', 'Frete bruto', 'Participação'],
             ['IPATINGA/MG', 'R$ 15.000,00', '75,0%'],
@@ -177,6 +177,44 @@ describe 'Freight billing' do
 
         expect(page).to have_text('Saídas de 05/10/2026 a 31/10/2026')
         expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+      end
+
+      context 'when the trucks spent diesel and arla in the last twelve months' do
+        let!(:rented_trip) do
+          create(:atua_manifest, tenant:, code: 41_003, plate: 'PUR1A81', trip_started_at: Time.zone.local(2026, 10, 12, 8))
+        end
+        let!(:rented) do
+          create(:atua_transport_document, tenant:, number: '74004', freight_cents: 300_000, plate: 'PUR1A81',
+                                           vehicle_ownership: 'Terceiro')
+        end
+
+        before do
+          create(:atua_manifest_document, tenant:, manifest_code: 41_003, transport_document_number: '74004', calculated_distance_km: 150)
+          create(:atua_expense, tenant:, plate: 'RVR2C34', history_code: 11, document_on: Date.new(2026, 9, 20), total_cents: 150_000)
+          create(:atua_expense, tenant:, plate: 'RVR2C34', history_code: 396, document_on: Date.new(2026, 10, 3), total_cents: 30_000)
+          create(:atua_expense, tenant:, plate: 'RVR2C34', history_code: 56, document_on: Date.new(2026, 10, 3), total_cents: 40_000)
+          create(:atua_expense, tenant:, plate: 'RVR8J90', history_code: 11, document_on: Date.new(2025, 10, 31), total_cents: 90_000)
+          create(:atua_expense, tenant:, plate: 'PUR1A81', history_code: 11, document_on: Date.new(2026, 10, 12), total_cents: 60_000)
+        end
+
+        scenario 'discounts the fuel of the own trucks by their average cost per km' do
+          visit freight_billing_path(october)
+
+          expect(Atua::Expense.count).to eq(6)
+          expect(page).to have_text('Combustível = KM total da viagem × R$/km da placa, que é o diesel e o arla lançados para ela ' \
+                                    'de 01/11/2025 a 31/10/2026')
+          expect(page).to have_text('Veículos de terceiros e agregados não descontam combustível.')
+          expect(html_table_to_rows.map { |row| row.values_at(0, 4, 5, 8, 9) }).to eq(
+            [
+              ['Conjunto', 'KM total', 'Frete bruto', 'Combustível', 'Frete líquido'],
+              ['RVR2C34 + RVR9C02', '600 km', 'R$ 15.000,00', 'R$ 1.800,00', 'R$ 12.550,00'],
+              ['RVR8J90', '200 km', 'R$ 5.000,00', 'R$ 0,00', 'R$ 5.000,00'],
+              ['PUR1A81', '150 km', 'R$ 3.000,00', 'R$ 0,00', 'R$ 3.000,00'],
+              ['Total', '950 km', 'R$ 23.000,00', 'R$ 1.800,00', 'R$ 20.550,00'],
+            ],
+          )
+          expect(all('.counter-card')[1].text.squish).to eq('Frete líquido R$ 20.550,00')
+        end
       end
 
       context 'when the empty km of a trip could not be calculated' do
@@ -250,6 +288,7 @@ describe 'Freight billing' do
       expect(page).to have_css('th', text: /\AFrete líquido\z/i)
       expect(page).to have_no_css('th', text: /\AKM vazio\z/i)
       expect(page).to have_no_css('th', text: /\AKM total\z/i)
+      expect(page).to have_no_css('th', text: /\ACombustível\z/i)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end

@@ -38,6 +38,21 @@ module Atua
         Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:trip_started_at], arel_table[:departure_on], arel_table[:issued_on]])
       end
 
+      def trip_on_sql
+        started_on = "(atua_manifests.trip_started_at AT TIME ZONE 'UTC' AT TIME ZONE #{connection.quote(Time.zone.tzinfo.name)})::date"
+
+        "COALESCE(#{started_on}, atua_manifests.departure_on, atua_manifests.issued_on)"
+      end
+
+      def loaded_km_sql
+        <<~SQL.squish
+          SELECT MAX(GREATEST(COALESCE(distances.calculated_distance_km, 0), COALESCE(distances.document_distance_km, 0)))
+          FROM atua_manifest_documents distances
+          WHERE distances.tenant_id = atua_manifests.tenant_id AND distances.manifest_code = atua_manifests.code
+            AND distances.removed_from_atua_at IS NULL
+        SQL
+      end
+
       def statuses
         {
           I18n.t('tax.situations.valid') => :valid,

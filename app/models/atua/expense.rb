@@ -8,6 +8,7 @@ module Atua
       'overhead' => nil,
     }.freeze
     UNLOADING_HISTORY_CODES = [72, 474].freeze
+    FUEL_HISTORY_CODES = [11, 396, 482].freeze
     UNLOADING_DOCUMENT_NUMBER = /\A\s*(\d{3,7})(?:\.0)?\s*(?:-?\s*(?:chapa\s+guia|guia|chapa))?\s*\z/i
 
     belongs_to :cost_object, polymorphic: true, optional: true
@@ -45,6 +46,8 @@ module Atua
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :by_headquarters, ->(name) { where(headquarters_name: name) }
     scope :unloading, -> { where(history_code: UNLOADING_HISTORY_CODES) }
+    scope :fuel, -> { where(history_code: FUEL_HISTORY_CODES) }
+    scope :by_spent_period, ->(period) { where(spent_on.between(period)) }
 
     class << self
       def allocations
@@ -53,6 +56,10 @@ module Atua
 
       def total_by_allocation
         group(:cost_object_type).sum(:total_cents).to_h { |type, cents| [ALLOCATION_TYPES.key(type), Money.from_cents(cents)] }
+      end
+
+      def spent_on
+        Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:document_on], arel_table[:posted_on]])
       end
 
       def unloading_transport_document_number(history_code, document_number)

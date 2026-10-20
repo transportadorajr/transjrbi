@@ -2,7 +2,8 @@ require 'rails_helper'
 
 RSpec.describe Dashboard::Freight do
   subject(:dashboard) do
-    described_class.new(tenant.atua_transport_documents, manifests: tenant.atua_manifests, dimension:, period: october)
+    described_class.new(tenant.atua_transport_documents,
+                        manifests: tenant.atua_manifests, expenses: tenant.atua_expenses, dimension:, period: october)
   end
 
   let!(:tenant) { create(:tenant) }
@@ -109,6 +110,7 @@ RSpec.describe Dashboard::Freight do
         gross: Money.from_cents(2_000_000),
         freight_expenses: Money.from_cents(50_000),
         expenses: Money.from_cents(15_000),
+        fuel: Money.from_cents(0),
         net: Money.from_cents(1_935_000),
         gross_per_km: Money.from_cents(2_375),
         net_per_km: Money.from_cents(2_294),
@@ -121,11 +123,11 @@ RSpec.describe Dashboard::Freight do
         [
           { label: 'RVR2C34 + RVR9C02', trips_count: 1, loaded_km: BigDecimal('520'), empty_km: BigDecimal('80'),
             total_km: BigDecimal('600'), gross: Money.from_cents(1_500_000), freight_expenses: Money.from_cents(50_000),
-            expenses: Money.from_cents(15_000), net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_500),
+            expenses: Money.from_cents(15_000), fuel: Money.from_cents(0), net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_500),
             net_per_km: Money.from_cents(2_392), share: BigDecimal('75') },
           { label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
             total_km: BigDecimal('200'), gross: Money.from_cents(500_000), freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0),
-            net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000),
+            fuel: Money.from_cents(0), net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000),
             share: BigDecimal('25') },
         ],
       )
@@ -232,6 +234,33 @@ RSpec.describe Dashboard::Freight do
       it 'assigns the whole trip to the driver of its largest freight' do
         expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['PEDRO ROCHA', 1, 1_500_000]])
       end
+    end
+  end
+
+  context 'with trips of an own truck and of a third party truck' do
+    before do
+      create(:atua_manifest, tenant:, code: 43_001, plate: 'RVR3D45', trip_started_at: Time.zone.local(2026, 10, 6, 8))
+      create(:atua_manifest, tenant:, code: 43_002, plate: 'RVR3D45', trip_started_at: Time.zone.local(2026, 4, 14, 8))
+      create(:atua_manifest, tenant:, code: 43_003, plate: 'PUR1A81', trip_started_at: Time.zone.local(2026, 10, 8, 8))
+      create(:atua_transport_document, tenant:, number: '76001', freight_cents: 1_000_000, plate: 'RVR3D45', vehicle_ownership: 'Próprio')
+      create(:atua_transport_document, tenant:, number: '76002', freight_cents: 500_000, plate: 'PUR1A81', vehicle_ownership: 'Terceiro')
+      create(:atua_manifest_document, tenant:, manifest_code: 43_001, transport_document_number: '76001', calculated_distance_km: 400)
+      create(:atua_manifest_document, tenant:, manifest_code: 43_002, transport_document_number: '75900', calculated_distance_km: 500)
+      create(:atua_manifest_document, tenant:, manifest_code: 43_003, transport_document_number: '76002', calculated_distance_km: 250)
+      create(:empty_leg, tenant:, plate: 'RVR3D45', previous_manifest_code: 43_002, next_manifest_code: 43_001, distance_km: 100)
+      create(:atua_expense, tenant:, plate: 'RVR3D45', history_code: 11, document_on: Date.new(2026, 5, 2), total_cents: 300_000)
+      create(:atua_expense, tenant:, plate: 'RVR3D45', history_code: 396, document_on: Date.new(2026, 10, 7), total_cents: 20_000)
+      create(:atua_expense, tenant:, plate: 'PUR1A81', history_code: 11, document_on: Date.new(2026, 10, 8), total_cents: 50_000)
+    end
+
+    it 'discounts the fuel of the own truck by the km of the trip times the average cost per km of its plate' do
+      expect(Atua::Expense.count).to eq(3)
+      expect(dashboard.fuel_period).to eq(Date.new(2025, 11, 1)..Date.new(2026, 10, 31))
+      expect(dashboard.rows.map { |row| [row.label, row.total_km, row.fuel.cents, row.net.cents] })
+        .to eq([['RVR3D45', BigDecimal('500'), 160_000, 840_000], ['PUR1A81', BigDecimal('250'), 0, 500_000]])
+      expect(dashboard.total).to have_attributes(gross: Money.from_cents(1_500_000), fuel: Money.from_cents(160_000),
+                                                 net: Money.from_cents(1_340_000), net_per_km: Money.from_cents(1_787))
+      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(13_400.0)
     end
   end
 

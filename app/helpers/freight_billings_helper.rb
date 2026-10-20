@@ -49,6 +49,10 @@ module FreightBillingsHelper
                                                 to: l(history.last, format: :chart_month).capitalize)
   end
 
+  def freight_billing_fuel_subtitle(dashboard)
+    t('freight_billings.show.fuel_subtitle', from: l(dashboard.fuel_period.first), to: l(dashboard.fuel_period.last))
+  end
+
   def freight_billing_km(distance)
     t('freight_billings.km', distance: number_with_delimiter(distance.round))
   end

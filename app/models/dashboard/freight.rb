@@ -7,10 +7,11 @@ module Dashboard
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
     CALCULATED_EMPTY_LEG = 'calculated'.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km empty_km empty_leg_status freight_cents
-                 freight_expenses_cents expenses_cents plate trailer_plate driver_code driver_name customer_group_id origin_city
-                 origin_state].freeze
+                 freight_expenses_cents expenses_cents plate trailer_plate vehicle_ownership driver_code driver_name customer_group_id
+                 origin_city origin_state].freeze
     ENTRY_ATTRIBUTES = %i[manifest_code weight reference_on loaded_km empty_km empty_pending freight_cents freight_expenses_cents
-                          expenses_cents plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state].freeze
+                          expenses_cents fuel_cents plate trailer_plate driver_code driver_name customer_group_id origin_city
+                          origin_state].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -36,11 +37,11 @@ module Dashboard
       end
 
       def net_cents
-        freight_cents - freight_expenses_cents - expenses_cents
+        freight_cents - freight_expenses_cents - expenses_cents - fuel_cents
       end
     end
 
-    Row = Data.define(:label, :trips_count, :loaded_km, :empty_km, :total_km, :gross, :freight_expenses, :expenses, :net,
+    Row = Data.define(:label, :trips_count, :loaded_km, :empty_km, :total_km, :gross, :freight_expenses, :expenses, :fuel, :net,
                       :gross_per_km, :net_per_km, :share)
 
     attr_reader :dimension, :period
@@ -51,12 +52,15 @@ module Dashboard
       end
     end
 
-    def initialize(documents, manifests:, dimension:, period:)
+    def initialize(documents, manifests:, expenses:, dimension:, period:)
       @documents = documents
       @manifests = manifests
       @dimension = self.class.sanitize_dimension(dimension)
       @period = period
+      @fuel_cost = FuelCost.new(expenses, manifests:, until_on: period.last)
     end
+
+    delegate :period, to: :fuel_cost, prefix: :fuel
 
     delegate :empty?, to: :entries
 
@@ -101,7 +105,7 @@ module Dashboard
 
     private
 
-    attr_reader :documents, :manifests
+    attr_reader :documents, :manifests, :fuel_cost
 
     def entries
       @entries ||= all_entries.select { |entry| period.cover?(entry.reference_on) }
@@ -123,7 +127,7 @@ module Dashboard
     def complement_entry(fact)
       Entry.new(
         manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'),
-        empty_km: BigDecimal('0'), empty_pending: false, **money_of([fact]), plate: fact.plate, trailer_plate: fact.trailer_plate,
+        empty_km: BigDecimal('0'), empty_pending: false, **money_of([fact]), fuel_cents: 0, plate: fact.plate, trailer_plate: fact.trailer_plate,
         driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
         origin_city: fact.origin_city, origin_state: fact.origin_state
       )
@@ -135,9 +139,13 @@ module Dashboard
       first_loading = trip_facts.min_by { |fact| [fact.issued_at.to_i, fact.id] }
 
       slices_of(trip_facts).map do |slice, weight|
+        loaded_km = trip.loaded_km.to_d * weight
+        empty_km = trip.empty_km.to_d * weight
+
         Entry.new(
-          manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
-          empty_km: trip.empty_km.to_d * weight, empty_pending: trip.empty_pending?, **money_of(slice), plate: trip.trip_plate,
+          manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km:, empty_km:,
+          empty_pending: trip.empty_pending?, **money_of(slice),
+          fuel_cents: fuel_cost.cents_for(trip.trip_plate, loaded_km + empty_km, main.vehicle_ownership), plate: trip.trip_plate,
           trailer_plate: trip_facts.filter_map { |fact| fact.trailer_plate.presence }.first, driver_code: main.driver_code,
           driver_name: main.driver_name, customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
           origin_state: first_loading.origin_state
@@ -195,6 +203,7 @@ module Dashboard
         Arel::Nodes::Grouping.new(expenses_total.arel),
         table[:plate],
         table[:trailer_plate],
+        table[:vehicle_ownership],
         table[:driver_code],
         table[:driver_name],
         Atua::Customer.arel_table[:customer_group_id],
@@ -210,8 +219,8 @@ module Dashboard
     def first_trip_join
       <<~SQL.squish
         LEFT JOIN LATERAL (
-          SELECT atua_manifests.code AS manifest_code, atua_manifests.plate AS plate, #{trip_on_sql} AS trip_on,
-                 (#{loaded_km_sql}) AS loaded_km, #{empty_km_sql} AS empty_km, empty_legs.status_type AS empty_leg_status
+          SELECT atua_manifests.code AS manifest_code, atua_manifests.plate AS plate, #{Atua::Manifest.trip_on_sql} AS trip_on,
+                 (#{Atua::Manifest.loaded_km_sql}) AS loaded_km, #{empty_km_sql} AS empty_km, empty_legs.status_type AS empty_leg_status
           FROM atua_manifest_documents
           INNER JOIN atua_manifests ON atua_manifests.tenant_id = atua_manifest_documents.tenant_id
             AND atua_manifests.code = atua_manifest_documents.manifest_code
@@ -226,21 +235,6 @@ module Dashboard
           ORDER BY #{Atua::Manifest.trip_at.to_sql}, atua_manifests.code
           LIMIT 1
         ) first_trips ON TRUE
-      SQL
-    end
-
-    def trip_on_sql
-      started_on = "(atua_manifests.trip_started_at AT TIME ZONE 'UTC' AT TIME ZONE #{connection.quote(Time.zone.tzinfo.name)})::date"
-
-      "COALESCE(#{started_on}, atua_manifests.departure_on, atua_manifests.issued_on)"
-    end
-
-    def loaded_km_sql
-      <<~SQL.squish
-        SELECT MAX(GREATEST(COALESCE(distances.calculated_distance_km, 0), COALESCE(distances.document_distance_km, 0)))
-        FROM atua_manifest_documents distances
-        WHERE distances.tenant_id = atua_manifests.tenant_id AND distances.manifest_code = atua_manifests.code
-          AND distances.removed_from_atua_at IS NULL
       SQL
     end
 
@@ -270,6 +264,7 @@ module Dashboard
       gross_cents = grouped.sum(&:freight_cents)
       freight_expenses_cents = grouped.sum(&:freight_expenses_cents)
       expenses_cents = grouped.sum(&:expenses_cents)
+      fuel_cents = grouped.sum(&:fuel_cents)
 
       Row.new(
         label:,
@@ -280,7 +275,8 @@ module Dashboard
         gross: Money.from_cents(gross_cents),
         freight_expenses: Money.from_cents(freight_expenses_cents),
         expenses: Money.from_cents(expenses_cents),
-        net: Money.from_cents(gross_cents - freight_expenses_cents - expenses_cents),
+        fuel: Money.from_cents(fuel_cents),
+        net: Money.from_cents(gross_cents - freight_expenses_cents - expenses_cents - fuel_cents),
         gross_per_km: per_km(measured.sum(&:freight_cents), measured_km),
         net_per_km: per_km(measured.sum(&:net_cents), measured_km),
         share: share_of(gross_cents),
