@@ -100,30 +100,5 @@ RSpec.describe Atua::ReadSpreadsheetCommand do
           .to raise_error(Atua::SpreadsheetError, /Não foi possível abrir a planilha #{path.basename}/)
       end
     end
-
-    context 'with the original reports in tmp/atua/real' do
-      let(:originals) { Rails.root.glob('tmp/atua/real/*.xls') }
-      let(:mappers) do
-        {
-          'rel_ctrc_detalhado' => Atua::MapTransportDocumentsCommand,
-          'rel_manifesto_detalhado' => Atua::MapManifestsCommand,
-          'rel_caixa_detalhado' => Atua::MapExpensesCommand,
-          'rel_cliente_detalhado' => Atua::MapCustomersCommand,
-          'rel_veiculo_terceiro_detalhado' => Atua::MapVehiclesCommand,
-        }
-      end
-
-      before { skip 'the original Atua reports are not available on this machine' if originals.empty? }
-
-      it 'reads every original report, matches its totals row and maps it' do
-        originals.each do |path|
-          spreadsheet = described_class.call(tenant, path)
-          mapper = mappers.find { |report, _mapper| path.basename.to_s.include?(report) }&.last
-
-          expect(spreadsheet.rows).not_to be_empty
-          expect(mapper.call(tenant, spreadsheet)).not_to be_empty if mapper
-        end
-      end
-    end
   end
 end

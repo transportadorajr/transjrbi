@@ -125,7 +125,7 @@ end
 #  driver_document_digits    :string
 #  driver_freight_cents      :bigint
 #  driver_name               :string
-#  due_on                    :date
+#  due_dates                 :date             default([]), not null, is an Array
 #  federal_tax_cents         :bigint
 #  freight_cents             :bigint
 #  goods_invoice_keys        :string           default([]), not null, is an Array

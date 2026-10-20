@@ -22,7 +22,7 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
         code: 80_842, number: 397, series: 1, issue_kind: 'Normal', service_kind: 'Normal', cfop: 6352, cte_status: 'Autorizado',
         access_key: '31261091025477000349570010000003971521192668',
         issued_at: Time.zone.local(2026, 10, 1, 16, 45), posted_on: Date.new(2026, 10, 1), arrival_on: Date.new(2026, 10, 3),
-        due_on: Date.new(2026, 10, 29), canceled_at: nil, cancellation_reason: nil,
+        due_dates: [Date.new(2026, 10, 29)], canceled_at: nil, cancellation_reason: nil,
         branch_code: 8042, branch_name: 'EMPRESA 01', headquarters_code: 2, headquarters_name: 'EMPRESA 02',
         agency_code: 2, agency_name: 'EMPRESA 02',
         origin_city: 'JOAO MONLEVADE', origin_state: 'MG', origin_city_code: 2017,
@@ -119,6 +119,18 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
         expect(Rails.logger).to have_received(:info).with(
           'O relatório rel_ctrc_detalhado trouxe colunas novas, guardadas só em raw_data: vl_frete_novo.',
         )
+      end
+    end
+
+    context 'when the freight is charged in several installments' do
+      let(:spreadsheet) do
+        fixture = read_atua_fixture(:transport_documents)
+        rows = fixture.rows.first(1).map { |row| row.merge('dt_vencimento_titulo' => '31/01/2025, 02/09/2025, 27/03/2026') }
+        atua_spreadsheet(headers: fixture.headers, rows:)
+      end
+
+      it 'maps every installment due date into a list' do
+        expect(documents.sole[:due_dates]).to eq([Date.new(2025, 1, 31), Date.new(2025, 9, 2), Date.new(2026, 3, 27)])
       end
     end
 

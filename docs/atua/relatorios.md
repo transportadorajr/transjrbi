@@ -181,7 +181,7 @@ Amostra: 420 linhas, 199 colunas.
 | `nm_grupo_produto` | string (vazia na amostra) | 0% |  |
 | `nm_grupo_produto_transportado` | string (vazia na amostra) | 0% |  |
 | `ds_motivo_diaria` | string (vazia na amostra) | 0% |  |
-| `dt_vencimento_titulo` | date (célula de data; ignorar a hora) | 84% | 29/10/2026 |
+| `dt_vencimento_titulo` | date[] (uma data por parcela, separadas por vírgula; ignorar a hora) | 84% | 29/10/2026 |
 | `nr_pedido_pedagio` | string | 26% | 83726007442005872891 |
 | `nr_doc_anterior` | string | 0% |  |
 | `dt_emissao_doc_anterior` | date (vazia na amostra) | 0% |  |

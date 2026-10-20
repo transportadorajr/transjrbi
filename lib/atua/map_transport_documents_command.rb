@@ -15,7 +15,7 @@ module Atua
       'dt_emissao' => %i[issued_at datetime],
       'dt_lancamento' => %i[posted_on date],
       'dt_chegada' => %i[arrival_on date],
-      'dt_vencimento_titulo' => %i[due_on date],
+      'dt_vencimento_titulo' => [:due_dates, :list, { of: :date }],
       'dt_cancelamento' => %i[canceled_at datetime],
       'ds_motivo_cancelamento' => %i[cancellation_reason string],
       'cd_pessoa_filial' => %i[branch_code integer],
