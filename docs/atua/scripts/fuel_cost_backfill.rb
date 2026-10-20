@@ -22,8 +22,8 @@ def month_periods(start_date, end_date)
   periods
 end
 
-def already_imported?(tenant, report_type, start_date, end_date)
-  tenant.atua_imports.succeeded.exists?(report_type:, start_date:, end_date:)
+def already_imported?(tenant, report_type, start_date, end_date, source_type)
+  tenant.atua_imports.succeeded.exists?(report_type:, start_date:, end_date:, source_type:)
 end
 
 def import_summary(import)
@@ -56,7 +56,7 @@ steps.each_with_index do |(report_type, period_start, period_end), index|
   period = period_start ? "#{period_start} a #{period_end}" : 'cadastro completo'
   label = format('[%<index>02d/%<total>02d] %<report>-20s %<period>s', index: index + 1, total: steps.size, report: report_type, period:)
 
-  if period_start && already_imported?(tenant, report_type, period_start, period_end)
+  if period_start && already_imported?(tenant, report_type, period_start, period_end, client.source_type)
     puts "#{label} já importado, pulando"
     totals[report_type][:skipped] += 1
     next
