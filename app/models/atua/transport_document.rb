@@ -55,6 +55,9 @@ module Atua
         .or(where(taker_code: code)).or(where(consignee_code: code))
     }
     scope :by_payer, ->(code) { where(payer_code: code) }
+    scope :by_customer_group, ->(customer_group_id) {
+      where(taker_code: Customer.where(customer_group_id:).select(:code))
+    }
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :not_canceled, -> { where(canceled_at: nil) }
     scope :canceled, -> { where.not(canceled_at: nil) }

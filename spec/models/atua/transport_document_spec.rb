@@ -112,6 +112,19 @@ RSpec.describe Atua::TransportDocument do
   end
 
   describe 'scopes' do
+    context 'with takers in different customer groups' do
+      let!(:group) { create(:customer_group, tenant:, name: 'USIMINAS') }
+      let!(:grouped_taker) { create(:atua_customer, tenant:, code: 7100, customer_group: group) }
+      let!(:other_taker) { create(:atua_customer, tenant:, code: 7200) }
+      let!(:grouped) { create(:atua_transport_document, tenant:, taker_code: grouped_taker.code) }
+      let!(:other) { create(:atua_transport_document, tenant:, taker_code: other_taker.code) }
+
+      it 'filters by the customer group of the taker' do
+        expect(described_class.by_customer_group(group.id)).to eq([grouped])
+        expect(described_class.count).to eq(2)
+      end
+    end
+
     context 'with documents of different periods, plates, customers and situations' do
       let!(:first) do
         create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 1, 0, 5), posted_on: Date.new(2026, 10, 1),

@@ -373,6 +373,12 @@ pt-BR:
     models:
       user_confirmation_form: Confirmação de conta
     attributes:
+      freight_billing_filter_form:
+        start_date: Saídas a partir de
+        end_date: Saídas até
+        dimension: Agrupar por
+        plate: Placa
+        customer_group_id: Grupo de clientes
       admin/login_form:
         email: E-mail
         password: Senha
@@ -438,6 +444,10 @@ pt-BR:
         iof_percentage: Alíquota do IOF (%)
     errors:
       models:
+        freight_billing_filter_form:
+          attributes:
+            end_date:
+              before_start_date: não pode ser anterior à data inicial
         admin/login_form:
           attributes:
             base:
@@ -743,6 +753,7 @@ pt-BR:
     insurance_rates: Alíquota de seguro
     freight_expenses: Despesas de frete
     company: Dados da empresa
+    freight_billing: Faturamento de fretes
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -988,6 +999,52 @@ pt-BR:
         CT-es cancelados ficam sem seguro. Ao salvar, o seguro de todos os CT-es é recalculado com a nova alíquota.
       insurance_percentage_hint: 'Ex.: 0,022.'
       iof_percentage_hint: 'Só para frete internacional. Ex.: 7,38.'
+  dashboards:
+    freight:
+      total: Total
+      gross: Frete bruto
+      net: Frete líquido
+      none:
+        vehicle: Sem placa
+        driver: Sem motorista
+        customer_group: Sem grupo
+        origin: Sem origem
+  freight_billings:
+    km: '%{distance} km'
+    dimensions:
+      vehicle: Conjunto
+      driver: Motorista
+      customer_group: Grupo de clientes
+      origin: Origem
+    columns:
+      trips: Viagens
+      loaded_km: KM rodado
+      empty_km: KM vazio
+      gross: Frete bruto
+      freight_expenses: Despesas de frete
+      expenses: Despesas
+      net: Frete líquido
+      gross_per_km: Bruto/km
+      net_per_km: Líquido/km
+      share: Participação
+    show:
+      title: Faturamento de Fretes
+      period: Saídas de %{from} a %{to}
+      group_by: Agrupar por
+      gross: Frete bruto
+      net: Frete líquido
+      trips: Viagens
+      gross_per_km: Frete bruto por km
+      net_per_km: Frete líquido por km
+      loaded_km: KM rodado
+      ranking_title: Frete por %{dimension}
+      ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de saída da viagem
+      monthly_title: Evolução Mensal
+      monthly_subtitle: Frete bruto e líquido por mês de saída, de %{from} a %{to}
+      table_title: Detalhamento por %{dimension}
+      table_subtitle: >-
+        Frete líquido = frete bruto − despesas de frete (comissão, custo por tonelada e seguro) − despesas lançadas no CT-e.
+        O KM rodado e o vazio são contados uma vez por manifesto; o frete por km considera só os CT-es com KM rodado.
   freight_expenses:
     index:
       title: Despesas de frete
@@ -1134,6 +1191,7 @@ pt-BR:
   date:
     formats:
       month_year: '%m/%Y'
+      chart_month: '%b/%Y'
   time:
     formats:
       date_time: '%d/%m/%Y %H:%M'
@@ -1142,6 +1200,8 @@ pt-BR:
     tax: Fiscal
     transport_documents: CT-es
     manifests: Manifestos
+    intelligence: Inteligência
+    freight_billing: Faturamento de Fretes
     registrations: Cadastros
     customers: Clientes
     customer_groups: Grupos de clientes

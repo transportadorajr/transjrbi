@@ -1,0 +1,25 @@
+<%# locals: (dashboard:) %>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-7">
+    <%= render 'chart_card', title: freight_billing_ranking_title(dashboard), subtitle: t('freight_billings.show.ranking_subtitle'),
+                             chart: freight_billing_ranking_chart(dashboard) %>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <%= render 'chart_card', title: t('freight_billings.show.monthly_title'), subtitle: freight_billing_history_label(dashboard),
+                             chart: freight_billing_monthly_chart(dashboard) %>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= freight_billing_table_title(dashboard) %></p>
+      <p class="table-card-subtitle"><%= t('freight_billings.show.table_subtitle') %></p>
+    </div>
+  </div>
+  <div class="table-card-body">
+    <%= render 'table', dashboard: %>
+  </div>
+</div>

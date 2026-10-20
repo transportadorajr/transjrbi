@@ -1,0 +1,203 @@
+require 'rails_helper'
+
+RSpec.describe Dashboard::Freight do
+  subject(:dashboard) do
+    described_class.new(tenant.atua_transport_documents, manifests: tenant.atua_manifests, dimension:, period: october)
+  end
+
+  let!(:tenant) { create(:tenant) }
+  let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 31) }
+  let(:dimension) { 'vehicle' }
+
+  context 'without documents in the period' do
+    it 'is empty' do
+      expect(dashboard).to be_empty
+      expect(dashboard.rows).to eq([])
+      expect(dashboard.total).to have_attributes(trips_count: 0, gross: Money.from_cents(0), net: Money.from_cents(0),
+                                                 gross_per_km: nil, net_per_km: nil, share: BigDecimal('0'))
+    end
+  end
+
+  context 'with trips, complements and documents left out' do
+    let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+    let!(:grouped_taker) { create(:atua_customer, tenant:, code: 7100, customer_group: usiminas) }
+    let!(:loose_taker) { create(:atua_customer, tenant:, code: 7200) }
+
+    let!(:first_trip) do
+      create(:atua_manifest, tenant:, code: 41_001, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
+    end
+    let!(:second_trip) do
+      create(:atua_manifest, tenant:, code: 41_002, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 10, 7))
+    end
+    let!(:repeated_trip) do
+      create(:atua_manifest, tenant:, code: 41_003, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 20, 7))
+    end
+    let!(:canceled_trip) do
+      create(:atua_manifest, tenant:, code: 41_004, plate: 'RVR7H89', status: 'Cancelado', trip_started_at: Time.zone.local(2026, 10, 3))
+    end
+    let!(:september_trip) do
+      create(:atua_manifest, tenant:, code: 41_005, plate: 'RVR7H89', trip_started_at: Time.zone.local(2026, 9, 28, 9))
+    end
+
+    let!(:steel) do
+      create(:atua_transport_document, tenant:, number: '74001', freight_cents: 1_000_000, posted_on: Date.new(2026, 9, 30),
+                                       plate: 'RVR2C34', trailer_plate: 'RVR9C02', driver_code: 10, driver_name: 'JOSE SILVA',
+                                       taker_code: 7100, origin_city: 'IPATINGA', origin_state: 'MG')
+    end
+    let!(:coil) do
+      create(:atua_transport_document, tenant:, number: '74002', freight_cents: 500_000, plate: 'RVR2C34', trailer_plate: 'RVR9C02',
+                                       driver_code: 10, driver_name: 'JOSE SILVA', taker_code: 7200, origin_city: 'IPATINGA',
+                                       origin_state: 'MG')
+    end
+    let!(:plate) do
+      create(:atua_transport_document, tenant:, number: '74003', freight_cents: 400_000, plate: 'RVR8J90', driver_code: 20,
+                                       driver_name: 'MARIA SOUZA', taker_code: 7100, origin_city: 'BELO HORIZONTE', origin_state: 'MG')
+    end
+    let!(:complement) do
+      create(:atua_transport_document, tenant:, number: '3547', document_kind: 'ce', freight_cents: 100_000,
+                                       posted_on: Date.new(2026, 10, 15), plate: 'RVR8J90', driver_code: 20, driver_name: 'MARIA SOUZA',
+                                       taker_code: 7100, origin_city: 'BELO HORIZONTE', origin_state: 'MG')
+    end
+    let!(:late_complement) do
+      create(:atua_transport_document, tenant:, number: '3548', document_kind: 'ce', freight_cents: 90_000, posted_on: Date.new(2026, 11, 1))
+    end
+    let!(:unmanifested) { create(:atua_transport_document, tenant:, number: '74005', freight_cents: 900_000, posted_on: Date.new(2026, 10, 5)) }
+    let!(:on_canceled_trip) { create(:atua_transport_document, tenant:, number: '74004', freight_cents: 800_000) }
+    let!(:canceled) do
+      create(:atua_transport_document, tenant:, number: '74006', freight_cents: 600_000, canceled_at: Time.zone.local(2026, 10, 3))
+    end
+    let!(:september) { create(:atua_transport_document, tenant:, number: '74007', freight_cents: 700_000, posted_on: Date.new(2026, 10, 1)) }
+
+    before do
+      create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74001',
+                                      calculated_distance_km: 500, document_distance_km: 480)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74002',
+                                      calculated_distance_km: 300, document_distance_km: 520)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74006',
+                                      calculated_distance_km: 300, document_distance_km: 300)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74003',
+                                      calculated_distance_km: 200, document_distance_km: nil)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_003, transport_document_number: '74003',
+                                      calculated_distance_km: 999, document_distance_km: 999)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_004, transport_document_number: '74004', calculated_distance_km: 100)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_005, transport_document_number: '74007', calculated_distance_km: 100)
+      create(:empty_leg, tenant:, plate: 'RVR2C34', previous_manifest_code: 40_999, next_manifest_code: 41_001, distance_km: 80)
+      create(:empty_leg, tenant:, plate: 'RVR8J90', previous_manifest_code: 41_002, next_manifest_code: 41_003, distance_km: 70)
+
+      create(:freight_expense, tenant:, transport_document: steel, amount_cents: 20_000)
+      create(:freight_expense, :tonnage, tenant:, transport_document: steel, amount_cents: 30_000)
+      create(:atua_expense, tenant:, cost_object: steel, history_code: 72, total_cents: 15_000)
+      create(:atua_expense, tenant:, cost_object: steel, total_cents: 99_000, removed_from_atua_at: Time.current)
+      create(:atua_expense, tenant:, cost_object: nil, total_cents: 88_000)
+
+      other_tenant = create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra')
+      create(:atua_manifest, tenant: other_tenant, code: 41_001, plate: 'OUT1A11', trip_started_at: Time.zone.local(2026, 10, 2))
+      create(:atua_transport_document, tenant: other_tenant, number: '74001', freight_cents: 5_000_000)
+      create(:atua_manifest_document, tenant: other_tenant, manifest_code: 41_001, transport_document_number: '74001',
+                                      calculated_distance_km: 50)
+    end
+
+    it 'sums the gross and net freight of the trips and of the complements in the period' do
+      expect(Atua::TransportDocument.count).to eq(10)
+      expect(dashboard.total).to have_attributes(
+        label: 'Total',
+        trips_count: 2,
+        loaded_km: BigDecimal('720'),
+        empty_km: BigDecimal('80'),
+        gross: Money.from_cents(2_000_000),
+        freight_expenses: Money.from_cents(50_000),
+        expenses: Money.from_cents(15_000),
+        net: Money.from_cents(1_935_000),
+        gross_per_km: Money.from_cents(2_639),
+        net_per_km: Money.from_cents(2_549),
+        share: BigDecimal('100'),
+      )
+    end
+
+    it 'groups by the truck and trailer plates' do
+      expect(dashboard.rows.map(&:to_h)).to eq(
+        [
+          { label: 'RVR2C34 + RVR9C02', trips_count: 1, loaded_km: BigDecimal('520'), empty_km: BigDecimal('80'),
+            gross: Money.from_cents(1_500_000), freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000),
+            net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
+            share: BigDecimal('75') },
+          { label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
+            gross: Money.from_cents(500_000), freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0),
+            net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000),
+            share: BigDecimal('25') },
+        ],
+      )
+    end
+
+    context 'when grouped by driver' do
+      let(:dimension) { 'driver' }
+
+      it 'labels each row with the driver name' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] })
+          .to eq([['JOSE SILVA', 1, 1_500_000], ['MARIA SOUZA', 1, 500_000]])
+      end
+    end
+
+    context 'when grouped by customer group' do
+      let(:dimension) { 'customer_group' }
+
+      it 'counts the whole distance of a trip in every group it carried' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.gross.cents] })
+          .to eq([['USIMINAS', 2, BigDecimal('720'), 1_500_000], ['Sem grupo', 1, BigDecimal('520'), 500_000]])
+        expect(dashboard.total.loaded_km).to eq(BigDecimal('720'))
+      end
+    end
+
+    context 'when grouped by origin' do
+      let(:dimension) { 'origin' }
+
+      it 'labels each row with the origin city and state' do
+        expect(dashboard.rows.map { |row| [row.label, row.gross.cents, row.share] })
+          .to eq([['IPATINGA/MG', 1_500_000, BigDecimal('75')], ['BELO HORIZONTE/MG', 500_000, BigDecimal('25')]])
+      end
+    end
+
+    context 'with an unknown dimension' do
+      let(:dimension) { 'payer' }
+
+      it 'falls back to the truck and trailer plates' do
+        expect(dashboard.dimension).to eq('vehicle')
+      end
+    end
+
+    it 'plots the ranking with the gross and the net freight' do
+      expect(dashboard.ranking_data).to eq(
+        [
+          { name: 'Frete bruto', data: { 'RVR2C34 + RVR9C02' => 15_000.0, 'RVR8J90' => 5_000.0 } },
+          { name: 'Frete líquido', data: { 'RVR2C34 + RVR9C02' => 14_350.0, 'RVR8J90' => 5_000.0 } },
+        ],
+      )
+    end
+
+    it 'plots the last six months by the trip date' do
+      expect(dashboard.history_period).to eq(Date.new(2026, 5, 1)..Date.new(2026, 10, 31))
+      expect(dashboard.monthly_data).to eq(
+        [
+          { name: 'Frete bruto',
+            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 7_000.0,
+                    'Out/2026' => 20_000.0 } },
+          { name: 'Frete líquido',
+            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 7_000.0,
+                    'Out/2026' => 19_350.0 } },
+        ],
+      )
+    end
+  end
+
+  context 'with a trip started late at night on the last day of the month' do
+    before do
+      create(:atua_manifest, tenant:, code: 41_010, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 31, 22, 30))
+      create(:atua_transport_document, tenant:, number: '74010', freight_cents: 300_000, posted_on: Date.new(2026, 11, 2))
+      create(:atua_manifest_document, tenant:, manifest_code: 41_010, transport_document_number: '74010', calculated_distance_km: 150)
+    end
+
+    it 'keeps the trip in the local day it started' do
+      expect(dashboard.total).to have_attributes(trips_count: 1, gross: Money.from_cents(300_000), loaded_km: BigDecimal('150'))
+    end
+  end
+end
