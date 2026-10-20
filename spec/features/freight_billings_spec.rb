@@ -288,6 +288,7 @@ describe 'Freight billing' do
       expect(page).to have_css('th', text: /\AFrete líquido\z/i)
       expect(page).to have_no_css('th', text: /\AKM vazio\z/i)
       expect(page).to have_no_css('th', text: /\AKM total\z/i)
+      expect(page).to have_no_css('th', text: /\ACombustível\z/i)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end
