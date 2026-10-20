@@ -223,6 +223,37 @@ RSpec.describe Atua::Expense do
         expect(described_class.count).to eq(3)
       end
     end
+
+    context 'with diesel, arla, gasoline and other expenses' do
+      let!(:diesel) { create(:atua_expense, tenant:, history_code: 11, history_name: 'COMBUSTIVEL - DIESEL') }
+      let!(:arla) { create(:atua_expense, tenant:, history_code: 396, history_name: 'COMBUSTIVEL - ARLA') }
+      let!(:internal_pump) { create(:atua_expense, tenant:, history_code: 482, history_name: 'DIESEL S10 BOMBA INTERNA') }
+
+      before do
+        create(:atua_expense, tenant:, history_code: 56, history_name: 'COMBUSTIVEL - GASOLINA')
+        create(:atua_expense, tenant:, history_code: 72, history_name: 'DESCARGA')
+      end
+
+      it 'filters the diesel and arla expenses of the trucks' do
+        expect(described_class.fuel).to contain_exactly(diesel, arla, internal_pump)
+        expect(described_class.count).to eq(5)
+      end
+    end
+
+    context 'with expenses spent and posted on different days' do
+      let!(:spent_in_september) do
+        create(:atua_expense, tenant:, document_on: Date.new(2026, 9, 30), posted_on: Date.new(2026, 10, 2))
+      end
+      let!(:without_document_date) { create(:atua_expense, tenant:, document_on: nil, posted_on: Date.new(2026, 9, 15)) }
+
+      before { create(:atua_expense, tenant:, document_on: Date.new(2026, 10, 1), posted_on: Date.new(2026, 9, 29)) }
+
+      it 'filters by the document date, falling back to the posting date' do
+        expect(described_class.by_spent_period(Date.new(2026, 9, 1)..Date.new(2026, 9, 30)))
+          .to contain_exactly(spent_in_september, without_document_date)
+        expect(described_class.count).to eq(3)
+      end
+    end
   end
 
   describe '.unloading_transport_document_number' do
