@@ -33,6 +33,23 @@ RSpec.describe Atua::InitialLoadCommand do
     )
   end
 
+  it 'stops the movements at the end date chosen by the admin' do
+    described_class.call(tenant, Date.new(2026, 8, 1), Date.new(2026, 9, 30))
+
+    expect(enqueued_imports.pluck(1..3)).to eq(
+      [
+        ['customers', nil, nil],
+        ['vehicles', nil, nil],
+        ['transport_documents', Date.new(2026, 8, 1), Date.new(2026, 8, 31)],
+        ['manifests', Date.new(2026, 8, 1), Date.new(2026, 8, 31)],
+        ['expenses', Date.new(2026, 8, 1), Date.new(2026, 8, 31)],
+        ['transport_documents', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
+        ['manifests', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
+        ['expenses', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
+      ],
+    )
+  end
+
   context 'when the admin asks for the production Atua' do
     it 'passes the production access on to every import' do
       described_class.call(tenant, Date.new(2026, 10, 1), production_access: true)

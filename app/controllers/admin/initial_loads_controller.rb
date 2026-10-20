@@ -3,7 +3,7 @@ module Admin
     before_action :set_tenants
 
     def new
-      @initial_load_form = Admin::InitialLoadForm.new(tenant_id: params[:tenant_id])
+      @initial_load_form = Admin::InitialLoadForm.with_default_period(tenant_id: params[:tenant_id])
     end
 
     def create
@@ -24,7 +24,7 @@ module Admin
     end
 
     def initial_load_params
-      params.expect(admin_initial_load: %i[tenant_id start_date])
+      params.expect(admin_initial_load: %i[tenant_id start_date end_date])
     end
   end
 end

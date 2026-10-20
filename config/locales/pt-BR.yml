@@ -395,6 +395,7 @@ pt-BR:
         tenant: Empresa
         tenant_id: Empresa
         start_date: Data de início
+        end_date: Data final
       admin/resource_form:
         name: Nome
         slug: Identificador
@@ -463,6 +464,9 @@ pt-BR:
           attributes:
             start_date:
               future: não pode ser posterior a hoje
+            end_date:
+              future: não pode ser posterior a hoje
+              before_start_date: não pode ser anterior à data de início
         commission_rule_form:
           attributes:
             customer_group_id:
@@ -1377,7 +1381,7 @@ pt-BR:
         title: Carga inicial
         back: Voltar para importações
         form_title: Carga inicial da Atua
-        form_text: Enfileira os cadastros e depois os movimentos mês a mês desde a data de início até hoje, com %{interval} minutos entre os meses. Meses já importados com sucesso são ignorados.
+        form_text: Enfileira os cadastros e depois os movimentos mês a mês da data de início até a data final, com %{interval} minutos entre os meses. Meses já importados com sucesso são ignorados.
         submit: Iniciar carga inicial
         confirm: Iniciar a carga inicial desta empresa? Os jobs vão acessar a Atua ao longo das próximas horas.
       create:

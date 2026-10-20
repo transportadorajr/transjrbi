@@ -186,10 +186,15 @@ describe 'Admin Atua imports', :admin do
       visit admin_imports_path
       click_on 'Carga inicial'
       select 'TransJR', from: 'Empresa'
+
+      expect(find_field('Data de início').value).to eq('2025-09-01')
+      expect(find_field('Data final').value).to eq('2026-09-30')
+
       fill_in 'Data de início', with: '2025-01-01'
+      fill_in 'Data final', with: '2026-09-30'
 
       expect { click_on 'Iniciar carga inicial' }
-        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), production_access: false)
+        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), Date.new(2026, 9, 30), production_access: false)
         .and(not_have_enqueued_job(Atua::ImportReportJob))
 
       expect(page).to have_current_path(admin_imports_path)
@@ -252,7 +257,7 @@ describe 'Admin Atua imports', :admin do
       fill_in 'Data de início', with: '2025-01-01'
 
       expect { click_on 'Iniciar carga inicial' }
-        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), production_access: true)
+        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), Date.new(2026, 9, 30), production_access: true)
     end
   end
 
