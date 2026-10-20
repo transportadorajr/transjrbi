@@ -1020,6 +1020,7 @@ pt-BR:
       trips: Viagens
       loaded_km: KM rodado
       empty_km: KM vazio
+      total_km: KM total
       gross: Frete bruto
       freight_expenses: Despesas de frete
       expenses: Despesas
@@ -1036,15 +1037,24 @@ pt-BR:
       trips: Viagens
       gross_per_km: Frete bruto por km
       net_per_km: Frete líquido por km
-      loaded_km: KM rodado
+      total_km: KM rodado + vazio
       ranking_title: Frete por %{dimension}
-      ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de saída da viagem
+      ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de saída da viagem (MDF-e)
       monthly_title: Evolução Mensal
       monthly_subtitle: Frete bruto e líquido por mês de saída, de %{from} a %{to}
       table_title: Detalhamento por %{dimension}
       table_subtitle: >-
-        Frete líquido = frete bruto − despesas de frete (comissão, custo por tonelada e seguro) − despesas lançadas no CT-e.
-        O KM rodado e o vazio são contados uma vez por manifesto; o frete por km considera só os CT-es com KM rodado.
+        Cada viagem é um MDF-e: soma o frete e as despesas de todos os seus CT-es. Frete líquido = frete bruto − despesas
+        de frete (comissão, custo por tonelada e seguro) − despesas lançadas nos CT-es. O frete por km divide pelo KM total
+        da viagem (vazio, da descarga anterior do caminhão até a carga, + rodado) e considera só as viagens com KM rodado.
+        Uma viagem com clientes de grupos diferentes é rateada pela participação de cada grupo no frete.
+    empty_pending_alert:
+      title:
+        one: 1 viagem sem KM vazio calculado
+        other: '%{count} viagens sem KM vazio calculado'
+      text: >-
+        Não foi possível localizar os endereços ou traçar a rota do deslocamento vazio até a carga. O frete por km dessas
+        viagens considera só o KM rodado.
   freight_expenses:
     index:
       title: Despesas de frete

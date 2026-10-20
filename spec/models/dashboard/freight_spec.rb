@@ -13,8 +13,9 @@ RSpec.describe Dashboard::Freight do
     it 'is empty' do
       expect(dashboard).to be_empty
       expect(dashboard.rows).to eq([])
-      expect(dashboard.total).to have_attributes(trips_count: 0, gross: Money.from_cents(0), net: Money.from_cents(0),
+      expect(dashboard.total).to have_attributes(trips_count: 0, total_km: 0, gross: Money.from_cents(0), net: Money.from_cents(0),
                                                  gross_per_km: nil, net_per_km: nil, share: BigDecimal('0'))
+      expect(dashboard.empty_pending_trips_count).to eq(0)
     end
   end
 
@@ -97,19 +98,20 @@ RSpec.describe Dashboard::Freight do
                                       calculated_distance_km: 50)
     end
 
-    it 'sums the gross and net freight of the trips and of the complements in the period' do
+    it 'sums the gross and net freight of the trips and of the complements, dividing by the empty and loaded km of the trips' do
       expect(Atua::TransportDocument.count).to eq(10)
       expect(dashboard.total).to have_attributes(
         label: 'Total',
         trips_count: 2,
         loaded_km: BigDecimal('720'),
         empty_km: BigDecimal('80'),
+        total_km: BigDecimal('800'),
         gross: Money.from_cents(2_000_000),
         freight_expenses: Money.from_cents(50_000),
         expenses: Money.from_cents(15_000),
         net: Money.from_cents(1_935_000),
-        gross_per_km: Money.from_cents(2_639),
-        net_per_km: Money.from_cents(2_549),
+        gross_per_km: Money.from_cents(2_375),
+        net_per_km: Money.from_cents(2_294),
         share: BigDecimal('100'),
       )
     end
@@ -118,11 +120,11 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.rows.map(&:to_h)).to eq(
         [
           { label: 'RVR2C34 + RVR9C02', trips_count: 1, loaded_km: BigDecimal('520'), empty_km: BigDecimal('80'),
-            gross: Money.from_cents(1_500_000), freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000),
-            net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
-            share: BigDecimal('75') },
+            total_km: BigDecimal('600'), gross: Money.from_cents(1_500_000), freight_expenses: Money.from_cents(50_000),
+            expenses: Money.from_cents(15_000), net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_500),
+            net_per_km: Money.from_cents(2_392), share: BigDecimal('75') },
           { label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
-            gross: Money.from_cents(500_000), freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0),
+            total_km: BigDecimal('200'), gross: Money.from_cents(500_000), freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0),
             net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000),
             share: BigDecimal('25') },
         ],
@@ -141,10 +143,14 @@ RSpec.describe Dashboard::Freight do
     context 'when grouped by customer group' do
       let(:dimension) { 'customer_group' }
 
-      it 'counts the whole distance of a trip in every group it carried' do
-        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.gross.cents] })
-          .to eq([['USIMINAS', 2, BigDecimal('720'), 1_500_000], ['Sem grupo', 1, BigDecimal('520'), 500_000]])
-        expect(dashboard.total.loaded_km).to eq(BigDecimal('720'))
+      it 'splits a shared trip between the groups by their share of its freight' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.empty_km, row.gross.cents] }).to eq(
+          [
+            ['USIMINAS', BigDecimal('1.67'), BigDecimal('546.67'), BigDecimal('53.33'), 1_500_000],
+            ['Sem grupo', BigDecimal('0.33'), BigDecimal('173.33'), BigDecimal('26.67'), 500_000],
+          ],
+        )
+        expect(dashboard.total).to have_attributes(trips_count: 2, loaded_km: BigDecimal('720'), empty_km: BigDecimal('80'))
       end
     end
 
@@ -186,6 +192,46 @@ RSpec.describe Dashboard::Freight do
                     'Out/2026' => 19_350.0 } },
         ],
       )
+    end
+  end
+
+  context 'with a trip that loads in two cities and has no calculated empty km' do
+    before do
+      create(:atua_manifest, tenant:, code: 42_001, plate: 'RVR1A11', trip_started_at: Time.zone.local(2026, 10, 5, 6))
+      create(:atua_transport_document, tenant:, number: '75001', freight_cents: 600_000, issued_at: Time.zone.local(2026, 10, 4, 10),
+                                       plate: 'RVR1A11', trailer_plate: 'RVR1B22', driver_code: 30, driver_name: 'ANA LIMA',
+                                       origin_city: 'CASCAVEL', origin_state: 'PR')
+      create(:atua_transport_document, tenant:, number: '75002', freight_cents: 900_000, issued_at: Time.zone.local(2026, 10, 4, 14),
+                                       plate: 'RVR1A11', trailer_plate: 'RVR1B22', driver_code: 31, driver_name: 'PEDRO ROCHA',
+                                       origin_city: 'CAMPO MOURAO', origin_state: 'PR')
+      create(:atua_manifest_document, tenant:, manifest_code: 42_001, transport_document_number: '75001', calculated_distance_km: 450)
+      create(:atua_manifest_document, tenant:, manifest_code: 42_001, transport_document_number: '75002', calculated_distance_km: 380)
+      create(:empty_leg, tenant:, plate: 'RVR1A11', previous_manifest_code: 41_999, next_manifest_code: 42_001,
+                         status_type: 'unrouted', distance_km: nil)
+    end
+
+    it 'counts a single trip and divides only by its loaded km' do
+      expect(Atua::TransportDocument.count).to eq(2)
+      expect(dashboard.total).to have_attributes(trips_count: 1, loaded_km: BigDecimal('450'), empty_km: BigDecimal('0'),
+                                                 total_km: BigDecimal('450'), gross: Money.from_cents(1_500_000),
+                                                 gross_per_km: Money.from_cents(3_333))
+      expect(dashboard.empty_pending_trips_count).to eq(1)
+    end
+
+    context 'when grouped by origin' do
+      let(:dimension) { 'origin' }
+
+      it 'assigns the whole trip to the city of its first loading' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['CASCAVEL/PR', 1, 1_500_000]])
+      end
+    end
+
+    context 'when grouped by driver' do
+      let(:dimension) { 'driver' }
+
+      it 'assigns the whole trip to the driver of its largest freight' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['PEDRO ROCHA', 1, 1_500_000]])
+      end
     end
   end
 

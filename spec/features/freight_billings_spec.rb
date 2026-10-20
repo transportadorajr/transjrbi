@@ -27,7 +27,8 @@ describe 'Freight billing' do
         expect(page).to have_text('Nenhum registro encontrado')
         expect(page).to have_no_table
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Frete bruto R$ 0,00', 'Frete líquido R$ 0,00', 'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km'],
+          ['Frete bruto R$ 0,00', 'Frete líquido R$ 0,00', 'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -',
+           'KM rodado + vazio 0 km'],
         )
       end
     end
@@ -94,24 +95,26 @@ describe 'Freight billing' do
 
         expect(Atua::TransportDocument.count).to eq(5)
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.350,00', 'Viagens 2', 'Frete bruto por km R$ 26,39',
-           'Frete líquido por km R$ 25,49', 'KM rodado 720 km'],
+          ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.350,00', 'Viagens 2', 'Frete bruto por km R$ 23,75',
+           'Frete líquido por km R$ 22,94', 'KM rodado + vazio 800 km'],
         )
         expect(page).to have_text('Frete por Conjunto')
         expect(page).to have_text('Evolução Mensal')
         expect(page).to have_text('Frete bruto e líquido por mês de saída, de Mai/2026 a Out/2026')
         expect(html_table_to_rows).to eq(
           [
-            ['Conjunto', 'Viagens', 'KM rodado', 'KM vazio', 'Frete bruto', 'Despesas de frete', 'Despesas', 'Frete líquido',
-             'Bruto/km', 'Líquido/km', 'Participação'],
-            ['RVR2C34 + RVR9C02', '1', '520 km', '80 km', 'R$ 15.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 14.350,00', 'R$ 28,85',
-             'R$ 27,60', '75,0%'],
-            ['RVR8J90', '1', '200 km', '0 km', 'R$ 5.000,00', 'R$ 0,00', 'R$ 0,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 20,00', '25,0%'],
-            ['Total', '2', '720 km', '80 km', 'R$ 20.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 19.350,00', 'R$ 26,39', 'R$ 25,49',
-             '100,0%'],
+            ['Conjunto', 'Viagens', 'KM rodado', 'KM vazio', 'KM total', 'Frete bruto', 'Despesas de frete', 'Despesas',
+             'Frete líquido', 'Bruto/km', 'Líquido/km', 'Participação'],
+            ['RVR2C34 + RVR9C02', '1', '520 km', '80 km', '600 km', 'R$ 15.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 14.350,00',
+             'R$ 25,00', 'R$ 23,92', '75,0%'],
+            ['RVR8J90', '1', '200 km', '0 km', '200 km', 'R$ 5.000,00', 'R$ 0,00', 'R$ 0,00', 'R$ 5.000,00', 'R$ 20,00',
+             'R$ 20,00', '25,0%'],
+            ['Total', '2', '720 km', '80 km', '800 km', 'R$ 20.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 19.350,00', 'R$ 23,75',
+             'R$ 22,94', '100,0%'],
           ],
         )
         expect(page).to have_no_text('OUT1A11')
+        expect(page).to have_no_css('#empty_pending_trips')
       end
 
       scenario 'groups the freight by driver keeping the period' do
@@ -120,7 +123,7 @@ describe 'Freight billing' do
 
         expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'driver')))
         expect(page).to have_link('Motorista', class: 'btn-primary')
-        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4, 7) }).to eq(
+        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 5, 8) }).to eq(
           [
             ['Motorista', 'Viagens', 'Frete bruto', 'Frete líquido'],
             ['JOSE SILVA', '1', 'R$ 15.000,00', 'R$ 14.350,00'],
@@ -130,14 +133,14 @@ describe 'Freight billing' do
         )
       end
 
-      scenario 'groups the freight by customer group' do
+      scenario 'splits a shared trip between the customer groups by their share of its freight' do
         visit freight_billing_path(october.merge(dimension: 'customer_group'))
 
-        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2, 4) }).to eq(
+        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2, 5) }).to eq(
           [
             ['Grupo de clientes', 'Viagens', 'KM rodado', 'Frete bruto'],
-            ['USIMINAS', '2', '720 km', 'R$ 15.000,00'],
-            ['Sem grupo', '1', '520 km', 'R$ 5.000,00'],
+            ['USIMINAS', '1,7', '547 km', 'R$ 15.000,00'],
+            ['Sem grupo', '0,3', '173 km', 'R$ 5.000,00'],
             ['Total', '2', '720 km', 'R$ 20.000,00'],
           ],
         )
@@ -146,7 +149,7 @@ describe 'Freight billing' do
       scenario 'groups the freight by origin' do
         visit freight_billing_path(october.merge(dimension: 'origin'))
 
-        expect(html_table_to_rows.map { |row| row.values_at(0, 4, 10) }).to eq(
+        expect(html_table_to_rows.map { |row| row.values_at(0, 5, 11) }).to eq(
           [
             ['Origem', 'Frete bruto', 'Participação'],
             ['IPATINGA/MG', 'R$ 15.000,00', '75,0%'],
@@ -174,6 +177,24 @@ describe 'Freight billing' do
 
         expect(page).to have_text('Saídas de 05/10/2026 a 31/10/2026')
         expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+      end
+
+      context 'when the empty km of a trip could not be calculated' do
+        before do
+          create(:empty_leg, tenant:, plate: 'RVR8J90', previous_manifest_code: 41_000, next_manifest_code: 41_002,
+                             status_type: 'unrouted', distance_km: nil)
+        end
+
+        scenario 'warns that the trip is measured only by its loaded km' do
+          visit freight_billing_path(october)
+
+          expect(EmptyLeg.count).to eq(2)
+          within('#empty_pending_trips') do
+            expect(page).to have_text('1 viagem sem KM vazio calculado')
+            expect(page).to have_text('O frete por km dessas viagens considera só o KM rodado.')
+          end
+          expect(all('.counter-card').last.text.squish).to eq('KM rodado + vazio 800 km')
+        end
       end
 
       scenario 'rejects a period that ends before it starts' do
@@ -228,6 +249,7 @@ describe 'Freight billing' do
       expect(page).to have_css('canvas', count: 2)
       expect(page).to have_css('th', text: /\AFrete líquido\z/i)
       expect(page).to have_no_css('th', text: /\AKM vazio\z/i)
+      expect(page).to have_no_css('th', text: /\AKM total\z/i)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end

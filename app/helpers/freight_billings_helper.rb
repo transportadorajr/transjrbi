@@ -53,6 +53,17 @@ module FreightBillingsHelper
     t('freight_billings.km', distance: number_with_delimiter(distance.round))
   end
 
+  def freight_billing_trips(count)
+    number_with_precision(count, precision: 1, strip_insignificant_zeros: true)
+  end
+
+  def freight_billing_empty_pending_alert(dashboard)
+    count = dashboard.empty_pending_trips_count
+    return if count.zero?
+
+    render 'freight_billings/empty_pending_alert', count:
+  end
+
   def freight_billing_share(share)
     number_to_percentage(share, precision: 1)
   end
