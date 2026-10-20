@@ -54,6 +54,7 @@ Rails.application.routes.draw do
   resources :commission_rules
   resources :tonnage_rates
   resource :insurance_rate, only: %i[show edit update]
+  resource :freight_billing, only: :show
   resources :freight_expenses, only: %i[index] do
     post :recalculate, on: :collection
   end

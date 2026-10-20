@@ -1,0 +1,15 @@
+<%# locals: (row:) %>
+
+<tr>
+  <td class="fw-semibold freight-billing-label"><%= row.label %></td>
+  <td class="text-end d-none d-md-table-cell"><%= row.trips_count %></td>
+  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= freight_billing_km(row.loaded_km) %></td>
+  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= freight_billing_km(row.empty_km) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
+  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= tax_money(row.freight_expenses) %></td>
+  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= tax_money(row.expenses) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(row.net) %></td>
+  <td class="text-end text-nowrap d-none d-md-table-cell"><%= tax_money(row.gross_per_km) %></td>
+  <td class="text-end text-nowrap d-none d-md-table-cell"><%= tax_money(row.net_per_km) %></td>
+  <td class="text-end d-none d-lg-table-cell"><%= freight_billing_share(row.share) %></td>
+</tr>

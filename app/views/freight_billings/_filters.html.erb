@@ -1,0 +1,38 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
+                     dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
+  <%= form_with url: freight_billing_path, method: :get do |f| %>
+    <%= f.hidden_field :dimension, value: @filter_form.dimension %>
+
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <%= f.label :start_date, FreightBillingFilterForm.human_attribute_name(:start_date), class: 'form-label fw-medium' %>
+        <%= f.date_field :start_date, value: @filter_form.start_date, class: 'form-control bg-light' %>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <%= f.label :end_date, FreightBillingFilterForm.human_attribute_name(:end_date), class: 'form-label fw-medium' %>
+        <%= f.date_field :end_date, value: @filter_form.end_date, class: 'form-control bg-light' %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :plate, FreightBillingFilterForm.human_attribute_name(:plate), class: 'form-label fw-medium' %>
+        <%= f.text_field :plate, value: @filter_form.plate, class: 'form-control bg-light text-uppercase', autocomplete: :off,
+                                 placeholder: FreightBillingFilterForm.human_attribute_name(:plate) %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :customer_group_id, FreightBillingFilterForm.human_attribute_name(:customer_group_id), class: 'form-label fw-medium' %>
+        <%= f.select :customer_group_id,
+                     options_from_collection_for_select(@customer_groups, :id, :name, @filter_form.customer_group_id),
+                     { include_blank: t('shared.all') },
+                     { class: 'form-select bg-light' } %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button t('shared.apply_filters'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= link_to t('shared.clear_filters'), freight_billing_path(dimension: @filter_form.dimension), class: 'btn btn-light w-100 btn-round' %>
+    </div>
+  <% end %>
+<% end %>
