@@ -11,7 +11,6 @@ class FreightBillingsController < BaseController
     @customer_groups = current_tenant.customer_groups.order(:name)
     @dashboard = Dashboard::Freight.new(apply_scopes(current_tenant.atua_transport_documents),
                                         manifests: current_tenant.atua_manifests,
-                                        expenses: current_tenant.atua_expenses,
                                         dimension: @filter_form.dimension,
                                         period: @filter_form.period)
   end
