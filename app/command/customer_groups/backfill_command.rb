@@ -6,6 +6,8 @@ module CustomerGroups
       'MOVISTAR' => ['MOVISTAR'],
       'CONSOLATA' => ['CONSOLATA'],
       'ARCELORMITTAL' => ['ARCELOR'],
+      'MOINHO REGIO' => ['MOINHO REGIO'],
+      'USIMINAS' => ['USIMINAS'],
     }.freeze
 
     class << self

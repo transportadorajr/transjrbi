@@ -1,5 +1,5 @@
 class FreightExpense < ApplicationRecord
-  KINDS = %i[commission tonnage insurance].freeze
+  KINDS = %i[commission tonnage insurance tarp_lining].freeze
 
   belongs_to :tenant
   belongs_to :transport_document, class_name: 'Atua::TransportDocument', inverse_of: :freight_expenses
@@ -16,6 +16,7 @@ class FreightExpense < ApplicationRecord
   validates :commission_rule, :base_cents, :percentage, presence: true, if: :commission?
   validates :tonnage_rate, :weight_tons, :rate_cents, presence: true, if: :tonnage?
   validates :insurance_rate, :base_cents, :percentage, :iof_percentage, presence: true, if: :insurance?
+  validates :rate_cents, presence: true, if: :tarp_lining?
   validates :kind_type, uniqueness: { scope: :transport_document_id }
 
   scope :by_period, ->(start_date, end_date) {
@@ -27,6 +28,8 @@ class FreightExpense < ApplicationRecord
   scope :by_customer_group, ->(customer_group_id) {
     where(commission_rule_id: CommissionRule.where(customer_group_id:).select(:id))
       .or(where(tonnage_rate_id: TonnageRate.where(customer_group_id:).select(:id)))
+      .or(tarp_lining.where(transport_document_id: Atua::TransportDocument.joins(:taker)
+        .where(atua_customers: { customer_group_id: }).select(:id)))
   }
   scope :by_kind, ->(kind) { where(kind_type: kind) }
 

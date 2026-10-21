@@ -16,6 +16,7 @@ module FreightExpensesHelper
   def freight_expense_detail(freight_expense)
     return freight_expense_tonnage_rate(freight_expense.tonnage_rate) if freight_expense.tonnage?
     return freight_expense_insurance(freight_expense) if freight_expense.insurance?
+    return t('freight_expenses.tarp_lining_detail') if freight_expense.tarp_lining?
 
     freight_expense_rule(freight_expense)
   end
@@ -51,6 +52,7 @@ module FreightExpensesHelper
 
   def freight_expense_base(freight_expense)
     return tonnage_weight(freight_expense.weight_tons) if freight_expense.tonnage?
+    return t('tax.blank') if freight_expense.tarp_lining?
 
     tax_money(freight_expense.base)
   end
@@ -64,6 +66,7 @@ module FreightExpensesHelper
   def freight_expense_rate(freight_expense)
     return tonnage_rate_per_ton(freight_expense.rate) if freight_expense.tonnage?
     return insurance_percentage(freight_expense.percentage) if freight_expense.insurance?
+    return t('freight_expenses.per_transport_document', rate: tax_money(freight_expense.rate)) if freight_expense.tarp_lining?
 
     commission_percentage(freight_expense.percentage)
   end

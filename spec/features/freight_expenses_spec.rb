@@ -261,6 +261,43 @@ describe 'Freight expenses' do
     end
   end
 
+  context 'when an admin is signed in and the tarp lining was calculated' do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:moinho) { create(:customer_group, tenant:, name: 'MOINHO REGIO', terms: ['MOINHO REGIO'], activated_at: Time.current) }
+    let!(:moinho_customer) { create(:atua_customer, tenant:, code: 601, name: 'MOINHO REGIO ALIMENTOS S/A', customer_group: moinho) }
+    let!(:to_cascavel) do
+      create(:atua_transport_document, tenant:, number: '77001', taker_code: 601, taker_name: 'MOINHO REGIO ALIMENTOS S/A',
+                                       issued_at: Time.zone.local(2026, 10, 5, 8))
+    end
+    let!(:to_cuiaba) do
+      create(:atua_transport_document, tenant:, number: '77002', taker_code: 601, taker_name: 'MOINHO REGIO ALIMENTOS S/A',
+                                       issued_at: Time.zone.local(2026, 10, 4, 8))
+    end
+
+    before do
+      FreightExpenses::CalculateTarpLiningCommand.call(tenant)
+      login_as(admin, scope: :user)
+    end
+
+    scenario 'lists the tarp lining of each transport document of the group' do
+      visit freight_expenses_path
+      select 'MOINHO REGIO', from: 'Grupo de clientes'
+      click_on 'Aplicar Filtros'
+
+      expect(tenant.freight_expenses.tarp_lining.count).to eq(2)
+      expect(html_table_to_rows).to eq(
+        [
+          ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
+          ['77001', '05/10/2026 08:00', 'MOINHO REGIO ALIMENTOS S/A', 'Forro de lona', 'Moinho Regio — valor fixo por CT-e', '-',
+           'R$ 55,00 por CT-e', 'R$ 55,00', ''],
+          ['77002', '04/10/2026 08:00', 'MOINHO REGIO ALIMENTOS S/A', 'Forro de lona', 'Moinho Regio — valor fixo por CT-e', '-',
+           'R$ 55,00 por CT-e', 'R$ 55,00', ''],
+        ],
+      )
+      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 110,00')
+    end
+  end
+
   context 'when an operator is signed in' do
     let!(:operator) { create(:user, tenant:, name: 'Carla Operadora') }
 

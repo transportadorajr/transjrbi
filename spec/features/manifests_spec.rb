@@ -217,6 +217,7 @@ describe 'Manifests' do
             '(−) Comissões' => 'R$ 171,01',
             '(−) Custos por tonelada' => 'R$ 408,53',
             '(−) Seguro da carga' => 'R$ 2,20',
+            '(−) Forro de lona' => 'R$ 0,00',
             '(−) Despesas do frete na Atua' => 'R$ 350,00',
             '(−) Pedágio incluso no frete' => 'R$ 150,00',
             '(=) Frete líquido' => 'R$ 2.473,30',
