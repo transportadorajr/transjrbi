@@ -1030,13 +1030,10 @@ pt-BR:
     columns:
       trips: Viagens
       loaded_km: KM rodado
-      empty_km: KM vazio
-      total_km: KM total
       gross: Frete bruto
       freight_expenses: Despesas de frete
       expenses: Despesas
       toll: Pedágio
-      fuel: Combustível
       net: Frete líquido
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
@@ -1050,7 +1047,7 @@ pt-BR:
       trips: Viagens
       gross_per_km: Frete bruto por km
       net_per_km: Frete líquido por km
-      total_km: KM rodado + vazio
+      loaded_km: KM rodado
       ranking_title: Frete por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de saída da viagem (MDF-e)
       monthly_title: Evolução Mensal
@@ -1058,19 +1055,9 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
       table_subtitle: >-
         Cada viagem é um MDF-e: soma o frete e as despesas de todos os seus CT-es. Frete líquido = frete bruto − despesas
-        de frete (comissão, custo por tonelada e seguro) − despesas lançadas nos CT-es − pedágio somado ao frete do CT-e − combustível. O frete por km divide pelo KM total
-        da viagem (vazio, da descarga anterior do caminhão até a carga, + rodado) e considera só as viagens com KM rodado.
-        Uma viagem com clientes de grupos diferentes é rateada pela participação de cada grupo no frete.
-      fuel_subtitle: >-
-        Combustível = KM total da viagem × R$/km da placa, que é o diesel e o arla lançados para ela de %{from} a %{to}
-        divididos pelo KM total dos seus MDF-es no mesmo período. Veículos de terceiros e agregados não descontam combustível.
-    empty_pending_alert:
-      title:
-        one: 1 viagem sem KM vazio calculado
-        other: '%{count} viagens sem KM vazio calculado'
-      text: >-
-        Não foi possível localizar os endereços ou traçar a rota do deslocamento vazio até a carga. O frete por km dessas
-        viagens considera só o KM rodado.
+        de frete (comissão, custo por tonelada e seguro) − despesas lançadas nos CT-es − pedágio somado ao frete do CT-e. O frete
+        por km divide pelo KM rodado da viagem e considera só as viagens com KM rodado. Uma viagem com clientes de grupos
+        diferentes é rateada pela participação de cada grupo no frete.
   freight_expenses:
     index:
       title: Despesas de frete

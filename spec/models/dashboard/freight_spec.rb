@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Dashboard::Freight do
   subject(:dashboard) do
     described_class.new(tenant.atua_transport_documents,
-                        manifests: tenant.atua_manifests, expenses: tenant.atua_expenses, dimension:, period: october)
+                        manifests: tenant.atua_manifests, dimension:, period: october)
   end
 
   let!(:tenant) { create(:tenant) }
@@ -14,9 +14,8 @@ RSpec.describe Dashboard::Freight do
     it 'is empty' do
       expect(dashboard).to be_empty
       expect(dashboard.rows).to eq([])
-      expect(dashboard.total).to have_attributes(trips_count: 0, total_km: 0, gross: Money.from_cents(0), net: Money.from_cents(0),
+      expect(dashboard.total).to have_attributes(trips_count: 0, loaded_km: 0, gross: Money.from_cents(0), net: Money.from_cents(0),
                                                  gross_per_km: nil, net_per_km: nil, share: BigDecimal('0'))
-      expect(dashboard.empty_pending_trips_count).to eq(0)
     end
   end
 
@@ -99,22 +98,19 @@ RSpec.describe Dashboard::Freight do
                                       calculated_distance_km: 50)
     end
 
-    it 'sums the gross and net freight of the trips and of the complements, dividing by the empty and loaded km of the trips' do
+    it 'sums the gross and net freight of the trips and of the complements, dividing only by the loaded km of the trips' do
       expect(Atua::TransportDocument.count).to eq(10)
       expect(dashboard.total).to have_attributes(
         label: 'Total',
         trips_count: 2,
         loaded_km: BigDecimal('720'),
-        empty_km: BigDecimal('80'),
-        total_km: BigDecimal('800'),
         gross: Money.from_cents(2_000_000),
         freight_expenses: Money.from_cents(50_000),
         expenses: Money.from_cents(15_000),
         toll: Money.from_cents(0),
-        fuel: Money.from_cents(0),
         net: Money.from_cents(1_935_000),
-        gross_per_km: Money.from_cents(2_375),
-        net_per_km: Money.from_cents(2_294),
+        gross_per_km: Money.from_cents(2_639),
+        net_per_km: Money.from_cents(2_549),
         share: BigDecimal('100'),
       )
     end
@@ -122,14 +118,13 @@ RSpec.describe Dashboard::Freight do
     it 'groups by the truck and trailer plates' do
       expect(dashboard.rows.map(&:to_h)).to eq(
         [
-          { label: 'RVR2C34 + RVR9C02', trips_count: 1, loaded_km: BigDecimal('520'), empty_km: BigDecimal('80'),
-            total_km: BigDecimal('600'), gross: Money.from_cents(1_500_000), freight_expenses: Money.from_cents(50_000),
-            expenses: Money.from_cents(15_000), toll: Money.from_cents(0), fuel: Money.from_cents(0), net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_500),
-            net_per_km: Money.from_cents(2_392), share: BigDecimal('75') },
-          { label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
-            total_km: BigDecimal('200'), gross: Money.from_cents(500_000), freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0),
-            toll: Money.from_cents(0), fuel: Money.from_cents(0), net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000),
-            share: BigDecimal('25') },
+          { label: 'RVR2C34 + RVR9C02', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
+            freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0),
+            net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
+            share: BigDecimal('75') },
+          { label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), gross: Money.from_cents(500_000),
+            freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), net: Money.from_cents(500_000),
+            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('25') },
         ],
       )
     end
@@ -147,13 +142,13 @@ RSpec.describe Dashboard::Freight do
       let(:dimension) { 'customer_group' }
 
       it 'splits a shared trip between the groups by their share of its freight' do
-        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.empty_km, row.gross.cents] }).to eq(
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.gross.cents] }).to eq(
           [
-            ['USIMINAS', BigDecimal('1.67'), BigDecimal('546.67'), BigDecimal('53.33'), 1_500_000],
-            ['Sem grupo', BigDecimal('0.33'), BigDecimal('173.33'), BigDecimal('26.67'), 500_000],
+            ['USIMINAS', BigDecimal('1.67'), BigDecimal('546.67'), 1_500_000],
+            ['Sem grupo', BigDecimal('0.33'), BigDecimal('173.33'), 500_000],
           ],
         )
-        expect(dashboard.total).to have_attributes(trips_count: 2, loaded_km: BigDecimal('720'), empty_km: BigDecimal('80'))
+        expect(dashboard.total).to have_attributes(trips_count: 2, loaded_km: BigDecimal('720'))
       end
     end
 
@@ -215,10 +210,8 @@ RSpec.describe Dashboard::Freight do
 
     it 'counts a single trip and divides only by its loaded km' do
       expect(Atua::TransportDocument.count).to eq(2)
-      expect(dashboard.total).to have_attributes(trips_count: 1, loaded_km: BigDecimal('450'), empty_km: BigDecimal('0'),
-                                                 total_km: BigDecimal('450'), gross: Money.from_cents(1_500_000),
+      expect(dashboard.total).to have_attributes(trips_count: 1, loaded_km: BigDecimal('450'), gross: Money.from_cents(1_500_000),
                                                  gross_per_km: Money.from_cents(3_333))
-      expect(dashboard.empty_pending_trips_count).to eq(1)
     end
 
     context 'when grouped by origin' do
@@ -254,14 +247,13 @@ RSpec.describe Dashboard::Freight do
       create(:atua_expense, tenant:, plate: 'PUR1A81', history_code: 11, document_on: Date.new(2026, 10, 8), total_cents: 50_000)
     end
 
-    it 'discounts the fuel of the own truck by the km of the trip times the average cost per km of its plate' do
+    it 'does not discount the fuel nor count the empty km of the own truck' do
       expect(Atua::Expense.count).to eq(3)
-      expect(dashboard.fuel_period).to eq(Date.new(2025, 11, 1)..Date.new(2026, 10, 31))
-      expect(dashboard.rows.map { |row| [row.label, row.total_km, row.fuel.cents, row.net.cents] })
-        .to eq([['RVR3D45', BigDecimal('500'), 160_000, 840_000], ['PUR1A81', BigDecimal('250'), 0, 500_000]])
-      expect(dashboard.total).to have_attributes(gross: Money.from_cents(1_500_000), fuel: Money.from_cents(160_000),
-                                                 net: Money.from_cents(1_340_000), net_per_km: Money.from_cents(1_787))
-      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(13_400.0)
+      expect(dashboard.rows.map { |row| [row.label, row.loaded_km, row.net.cents] })
+        .to eq([['RVR3D45', BigDecimal('400'), 1_000_000], ['PUR1A81', BigDecimal('250'), 500_000]])
+      expect(dashboard.total).to have_attributes(gross: Money.from_cents(1_500_000), net: Money.from_cents(1_500_000),
+                                                 net_per_km: Money.from_cents(2_308))
+      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(15_000.0)
     end
   end
 
