@@ -38,7 +38,7 @@ module Atua
     def calculate_empty_legs
       return unless EMPTY_LEG_REPORTS.include?(import.report_type)
 
-      EmptyLegs::CalculateJob.perform_later(import.tenant_id, import.start_date&.iso8601)
+      EmptyLegs::ScheduleCalculationCommand.call(import.tenant_id, import.start_date&.iso8601)
     end
 
     def link_expenses
