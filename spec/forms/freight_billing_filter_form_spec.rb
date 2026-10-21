@@ -4,11 +4,27 @@ RSpec.describe FreightBillingFilterForm do
   context 'without filters' do
     around { |example| travel_to(Date.new(2026, 10, 19)) { example.run } }
 
-    it 'defaults to the current month grouped by vehicle' do
+    it 'defaults to the current week from sunday to saturday grouped by vehicle' do
       form = described_class.new
 
       expect(form).to be_valid
-      expect(form).to have_attributes(dimension: 'vehicle', period: Date.new(2026, 10, 1)..Date.new(2026, 10, 31))
+      expect(form).to have_attributes(dimension: 'vehicle', period: Date.new(2026, 10, 18)..Date.new(2026, 10, 24))
+    end
+  end
+
+  context 'without filters on a sunday' do
+    around { |example| travel_to(Date.new(2026, 10, 25)) { example.run } }
+
+    it 'starts the week on that sunday' do
+      expect(described_class.new.period).to eq(Date.new(2026, 10, 25)..Date.new(2026, 10, 31))
+    end
+  end
+
+  context 'without filters on a saturday' do
+    around { |example| travel_to(Date.new(2026, 10, 24)) { example.run } }
+
+    it 'ends the week on that saturday' do
+      expect(described_class.new.period).to eq(Date.new(2026, 10, 18)..Date.new(2026, 10, 24))
     end
   end
 
@@ -45,6 +61,24 @@ RSpec.describe FreightBillingFilterForm do
 
       expect(form).not_to be_valid
       expect(form.errors.full_messages).to eq(['Agrupar por não está incluído na lista'])
+    end
+  end
+
+  context 'with a truck configuration' do
+    it 'keeps the configuration' do
+      form = described_class.new(truck_configuration: 'rodotrem')
+
+      expect(form).to be_valid
+      expect(form.truck_configuration).to eq('rodotrem')
+    end
+  end
+
+  context 'with an unknown truck configuration' do
+    it 'is invalid' do
+      form = described_class.new(truck_configuration: 'bitruck')
+
+      expect(form).not_to be_valid
+      expect(form.errors.full_messages).to eq(['Tipo de conjunto não está incluído na lista'])
     end
   end
 end

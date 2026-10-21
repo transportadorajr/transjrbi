@@ -28,6 +28,15 @@
                      { include_blank: t('shared.all') },
                      { class: 'form-select bg-light' } %>
       </div>
+
+      <div class="col-12">
+        <%= f.label :truck_configuration, FreightBillingFilterForm.human_attribute_name(:truck_configuration), class: 'form-label fw-medium' %>
+        <%= f.select :truck_configuration,
+                     options_for_select(@truck_configurations, @filter_form.truck_configuration),
+                     { include_blank: t('shared.all') },
+                     { class: 'form-select bg-light', aria: { describedby: 'truck_configuration_hint' } } %>
+        <%= tag.div t('freight_billings.filters.truck_configuration_hint'), id: 'truck_configuration_hint', class: 'form-text' %>
+      </div>
     </div>
 
     <div class="d-flex flex-column gap-2 mt-4">

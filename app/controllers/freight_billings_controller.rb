@@ -9,7 +9,8 @@ class FreightBillingsController < BaseController
     return redirect_to(freight_billing_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
     @customer_groups = current_tenant.customer_groups.order(:name)
-    @dashboard = Dashboard::Freight.new(apply_scopes(current_tenant.atua_transport_documents),
+    @truck_configurations = Atua::TransportDocument.truck_configurations
+    @dashboard = Dashboard::Freight.new(documents,
                                         manifests: current_tenant.atua_manifests,
                                         dimension: @filter_form.dimension,
                                         period: @filter_form.period)
@@ -17,7 +18,14 @@ class FreightBillingsController < BaseController
 
   private
 
+  def documents
+    documents = apply_scopes(current_tenant.atua_transport_documents)
+    return documents if @filter_form.truck_configuration.blank?
+
+    documents.by_truck_configuration(@filter_form.truck_configuration, @filter_form.period)
+  end
+
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, :plate, :customer_group_id)
+    params.permit(:start_date, :end_date, :dimension, :plate, :customer_group_id, :truck_configuration)
   end
 end

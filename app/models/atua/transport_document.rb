@@ -5,6 +5,9 @@ module Atua
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
     TOLL_TOLERANCE_CENTS = 1
     FREIGHT_PARTS = %i[weight_freight_cents ad_valorem_cents other_charges_cents toll_cents icms_cents].freeze
+    TRUCK_CONFIGURATION_AXLES = { 'rodotrem' => 9, 'quarto_eixo' => 7, 'ls' => 6 }.freeze
+    OTHER_TRUCK_CONFIGURATION = 'other'.freeze
+    TRUCK_CONFIGURATIONS = [*TRUCK_CONFIGURATION_AXLES.keys, OTHER_TRUCK_CONFIGURATION].freeze
 
     with_options class_name: 'Atua::Customer', primary_key: %i[tenant_id code], optional: true, inverse_of: false do
       belongs_to :sender, foreign_key: %i[tenant_id sender_code]
@@ -70,6 +73,10 @@ module Atua
     }
     scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
     scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
+    scope :by_truck_configuration, ->(configuration, period) {
+      plates = truck_configuration_plates(configuration, period)
+      where(Arel.sql("(#{table_name}.tenant_id, #{table_name}.plate) IN (#{plates.to_sql})"))
+    }
 
     class << self
       def freight_toll
@@ -80,6 +87,14 @@ module Atua
         Arel::Nodes::Case.new
           .when(zero_if_null(:toll_cents).gt(0).and(difference.lteq(TOLL_TOLERANCE_CENTS))).then(arel_table[:toll_cents])
           .else(0)
+      end
+
+      def truck_configuration_plates(configuration, period)
+        predominant_axles(period).where(predominant_axles_condition(configuration)).select(:tenant_id, :plate)
+      end
+
+      def truck_configurations
+        TRUCK_CONFIGURATIONS.index_by { |configuration| I18n.t(configuration, scope: 'truck_configurations') }
       end
 
       def taker_names_by_code
@@ -95,6 +110,24 @@ module Atua
       end
 
       private
+
+      def predominant_axles(period)
+        ranked = unscoped.active.not_canceled
+          .where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'], posted_on: period)
+          .where.not(plate: [nil, '']).where.not(axles: nil)
+          .group(:tenant_id, :plate, :axles)
+          .select(:tenant_id, :plate, :axles,
+                  'ROW_NUMBER() OVER (PARTITION BY tenant_id, plate ORDER BY COUNT(*) DESC, axles DESC) AS position')
+
+        unscoped.from(ranked, table_name).where(position: 1)
+      end
+
+      def predominant_axles_condition(configuration)
+        axles = TRUCK_CONFIGURATION_AXLES.values
+        return { axles: TRUCK_CONFIGURATION_AXLES.fetch(configuration) } unless configuration == OTHER_TRUCK_CONFIGURATION
+
+        arel_table[:axles].not_in(axles)
+      end
 
       def zero_if_null(column)
         Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[column], Arel::Nodes.build_quoted(0)])
