@@ -75,7 +75,7 @@ describe 'Freight billing' do
                                         calculated_distance_km: 50)
       end
 
-      scenario 'opens the current month from the intelligence menu' do
+      scenario 'opens the current week from sunday to saturday from the intelligence menu' do
         travel_to(Date.new(2026, 10, 19)) do
           visit root_path
           within('.sidebar-desktop') do
@@ -85,7 +85,9 @@ describe 'Freight billing' do
 
           expect(page).to have_current_path(freight_billing_path)
           expect(page).to have_css('h1', text: 'Faturamento de Fretes')
-          expect(page).to have_text('Saídas de 01/10/2026 a 31/10/2026')
+          expect(page).to have_text('Saídas de 18/10/2026 a 24/10/2026')
+          expect(page).to have_field('Saídas a partir de', with: '2026-10-18', visible: :all)
+          expect(page).to have_field('Saídas até', with: '2026-10-24', visible: :all)
           expect(page).to have_link('Conjunto', class: 'btn-primary')
         end
       end
@@ -166,6 +168,50 @@ describe 'Freight billing' do
 
         expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
         expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+      end
+
+      context 'when the trucks haul sets with different axle counts' do
+        before do
+          steel.update!(axles: 9)
+          coil.update!(axles: 9)
+          sheet.update!(axles: 6)
+        end
+
+        scenario 'filters by the truck configuration of each plate' do
+          visit freight_billing_path(october)
+          select 'Rodotrem (9 eixos)', from: 'Tipo de conjunto'
+          click_on 'Aplicar Filtros'
+
+          expect(page).to have_select('Tipo de conjunto', selected: 'Rodotrem (9 eixos)')
+          expect(html_table_to_rows.map(&:first)).to eq(['Conjunto', 'RVR2C34 + RVR9C02', 'Total'])
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+
+          select 'LS (6 eixos)', from: 'Tipo de conjunto'
+          click_on 'Aplicar Filtros'
+
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+
+          select 'Quarto eixo (7 eixos)', from: 'Tipo de conjunto'
+          click_on 'Aplicar Filtros'
+
+          expect(page).to have_text('Nenhum registro encontrado')
+        end
+
+        scenario 'keeps the truck configuration when grouping by another dimension' do
+          visit freight_billing_path(october.merge(truck_configuration: 'rodotrem'))
+          click_on 'Motorista'
+
+          expect(page).to have_current_path(freight_billing_path(october.merge(truck_configuration: 'rodotrem', dimension: 'driver')))
+          expect(html_table_to_rows.map(&:first)).to eq(['Motorista', 'JOSE SILVA', 'Total'])
+        end
+
+        scenario 'rejects an unknown truck configuration' do
+          visit freight_billing_path(october.merge(truck_configuration: 'bitruck'))
+
+          expect(page).to have_current_path(freight_billing_path)
+          expect(page).to have_text('Tipo de conjunto não está incluído na lista')
+        end
       end
 
       scenario 'filters by another period' do

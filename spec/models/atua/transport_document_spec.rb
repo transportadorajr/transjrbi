@@ -211,6 +211,54 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.by_truck_configuration' do
+    context 'with trucks hauling sets with different axle counts' do
+      let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 31) }
+      let!(:other_tenant) { create(:tenant) }
+      let!(:rodotrem) do
+        [9, 9, 6].map { |axles| create(:atua_transport_document, tenant:, plate: 'RDT9A99', axles:) }
+      end
+      let!(:rodotrem_in_september) do
+        create_list(:atua_transport_document, 3, tenant:, plate: 'RDT9A99', axles: 6, posted_on: Date.new(2026, 9, 30))
+      end
+      let!(:quarto_eixo) { create(:atua_transport_document, tenant:, plate: 'QTE7B77', axles: 7) }
+      let!(:ls) { create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 6) }
+      let!(:ignored) do
+        [
+          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, canceled_at: Time.current),
+          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, removed_from_atua_at: Time.current),
+          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, document_kind: 'ce'),
+          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, document_kind: 'ce'),
+        ]
+      end
+      let!(:tied) { [6, 7].map { |axles| create(:atua_transport_document, tenant:, plate: 'TIE6D77', axles:) } }
+      let!(:truck) { create(:atua_transport_document, tenant:, plate: 'TRK3E33', axles: 3) }
+      let!(:stranger) { create_list(:atua_transport_document, 4, tenant: other_tenant, plate: 'RDT9A99', axles: 6) }
+
+      it 'keeps the plates whose most frequent axle count in the period matches the configuration' do
+        expect(described_class.count).to eq(19)
+        expect(described_class.where(tenant:).by_truck_configuration('rodotrem', october))
+          .to match_array(rodotrem + rodotrem_in_september)
+        expect(described_class.where(tenant:).by_truck_configuration('quarto_eixo', october)).to contain_exactly(quarto_eixo, *tied)
+        expect(described_class.where(tenant:).by_truck_configuration('ls', october)).to contain_exactly(ls, *ignored)
+        expect(described_class.where(tenant:).by_truck_configuration('other', october)).to eq([truck])
+      end
+
+      it 'ranks the axle counts of each tenant apart' do
+        expect(described_class.where(tenant: other_tenant).by_truck_configuration('ls', october)).to match_array(stranger)
+        expect(described_class.where(tenant: other_tenant).by_truck_configuration('rodotrem', october)).to be_empty
+      end
+    end
+  end
+
+  describe '.truck_configurations' do
+    it 'maps the translated truck configurations to the filter keys' do
+      expect(described_class.truck_configurations).to eq(
+        'Rodotrem (9 eixos)' => 'rodotrem', 'Quarto eixo (7 eixos)' => 'quarto_eixo', 'LS (6 eixos)' => 'ls', 'Outros' => 'other',
+      )
+    end
+  end
+
   describe '.toll_in_freight' do
     context 'with tolls inside and outside the gross freight' do
       let!(:included) do

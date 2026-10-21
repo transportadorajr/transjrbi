@@ -382,6 +382,7 @@ pt-BR:
         dimension: Agrupar por
         plate: Placa
         customer_group_id: Grupo de clientes
+        truck_configuration: Tipo de conjunto
       admin/login_form:
         email: E-mail
         password: Senha
@@ -1023,6 +1024,8 @@ pt-BR:
         origin: Sem origem
   freight_billings:
     km: '%{distance} km'
+    filters:
+      truck_configuration_hint: Pela quantidade de eixos mais frequente nos CT-es da placa no período.
     dimensions:
       vehicle: Conjunto
       driver: Motorista
@@ -1059,6 +1062,11 @@ pt-BR:
         de frete (comissão, custo por tonelada e seguro) − despesas lançadas nos CT-es − pedágio somado ao frete do CT-e. O frete
         por km divide pelo KM rodado da viagem e considera só as viagens com KM rodado. Uma viagem com clientes de grupos
         diferentes é rateada pela participação de cada grupo no frete.
+  truck_configurations:
+    rodotrem: Rodotrem (9 eixos)
+    quarto_eixo: Quarto eixo (7 eixos)
+    ls: LS (6 eixos)
+    other: Outros
   freight_expenses:
     index:
       title: Despesas de frete
