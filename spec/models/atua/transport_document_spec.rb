@@ -232,6 +232,36 @@ RSpec.describe Atua::TransportDocument do
         expect(described_class.toll_in_freight).to contain_exactly(included, rounded)
         expect(described_class.toll_in_freight.sum(:toll_cents)).to eq(119_050)
       end
+
+      it 'keeps apart the documents whose toll is outside the gross freight' do
+        expect(described_class.toll_outside_freight).to eq([voucher])
+      end
+
+      it 'tells where the toll of each document is' do
+        expect([included, rounded, voucher, without_toll].map(&:toll_placement)).to eq(%i[in_freight in_freight outside_freight none])
+      end
+    end
+  end
+
+  describe 'toll from Atua' do
+    context 'with the toll kind and the voucher issuer imported from Atua' do
+      let(:transport_document) do
+        build(:atua_transport_document, raw_data: { 'id_pedagio_ctrc' => 'Cobrar + Pedágio', 'nm_emissao_vale_pedagio' => 'EFRETE TAG - SEM PARAR' })
+      end
+
+      it 'reads them from the imported row' do
+        expect(transport_document.atua_toll_kind).to eq('Cobrar + Pedágio')
+        expect(transport_document.toll_voucher_issuer).to eq('EFRETE TAG - SEM PARAR')
+      end
+    end
+
+    context 'without the toll columns in the imported row' do
+      let(:transport_document) { build(:atua_transport_document, raw_data: { 'id_pedagio_ctrc' => '' }) }
+
+      it 'returns nothing' do
+        expect(transport_document.atua_toll_kind).to be_nil
+        expect(transport_document.toll_voucher_issuer).to be_nil
+      end
     end
   end
 

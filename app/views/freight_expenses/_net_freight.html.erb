@@ -24,6 +24,8 @@
 
       <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.net') %></dt>
       <dd class="col-12 col-md-6 text-md-end fw-semibold text-success"><%= tax_money(net_freight.net) %></dd>
+
+      <%= net_freight_toll_outside_freight(net_freight) %>
     </dl>
   </div>
 </div>

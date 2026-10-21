@@ -69,6 +69,7 @@ module Atua
         .where(arel_table[:issue_kind].is_distinct_from(VALUE_COMPLEMENT))
     }
     scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
+    scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
 
     class << self
       def freight_toll
@@ -102,6 +103,26 @@ module Atua
 
     def canceled?
       canceled_at.present?
+    end
+
+    def toll_placement
+      return :none unless toll_cents.to_i.positive?
+
+      toll_in_freight? ? :in_freight : :outside_freight
+    end
+
+    def atua_toll_kind
+      raw_data['id_pedagio_ctrc'].presence
+    end
+
+    def toll_voucher_issuer
+      raw_data['nm_emissao_vale_pedagio'].presence
+    end
+
+    private
+
+    def toll_in_freight?
+      (freight_cents.to_i - FREIGHT_PARTS.sum { |column| self[column].to_i }).abs <= TOLL_TOLERANCE_CENTS
     end
   end
 end

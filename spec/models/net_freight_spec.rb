@@ -36,6 +36,7 @@ RSpec.describe NetFreight do
     expect(net_freight.insurance).to eq(Money.from_cents(2_322))
     expect(net_freight.expenses).to eq(Money.from_cents(45_000))
     expect(net_freight.toll).to eq(Money.from_cents(30_000))
+    expect(net_freight.toll_outside_freight).to eq(Money.from_cents(15_000))
     expect(net_freight.net).to eq(Money.from_cents(1_063_825))
   end
 end
