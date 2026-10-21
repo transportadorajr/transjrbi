@@ -73,6 +73,10 @@ module Atua
     }
     scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
     scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
+    scope :by_truck_configuration, ->(configuration, period) {
+      plates = truck_configuration_plates(configuration, period)
+      where(Arel.sql("(#{table_name}.tenant_id, #{table_name}.plate) IN (#{plates.to_sql})"))
+    }
 
     class << self
       def freight_toll
@@ -85,10 +89,8 @@ module Atua
           .else(0)
       end
 
-      def by_truck_configuration(configuration, period)
-        plates = predominant_axles(period).where(predominant_axles_condition(configuration)).select(:tenant_id, :plate)
-
-        where(Arel.sql("(#{table_name}.tenant_id, #{table_name}.plate) IN (#{plates.to_sql})"))
+      def truck_configuration_plates(configuration, period)
+        predominant_axles(period).where(predominant_axles_condition(configuration)).select(:tenant_id, :plate)
       end
 
       def truck_configurations
