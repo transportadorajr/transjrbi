@@ -10,14 +10,17 @@ RSpec.describe FreightExpenses::CalculateJob do
       .and_return(FreightExpenses::CalculateTonnageCommand::Result.new(saved: 0, removed: 0))
     allow(FreightExpenses::CalculateInsuranceCommand).to receive(:call)
       .and_return(FreightExpenses::CalculateInsuranceCommand::Result.new(saved: 0, removed: 0))
+    allow(FreightExpenses::CalculateTarpLiningCommand).to receive(:call)
+      .and_return(FreightExpenses::CalculateTarpLiningCommand::Result.new(saved: 0, removed: 0))
   end
 
-  it 'calculates the commissions, the tonnage costs and the cargo insurance of the tenant' do
+  it 'calculates the commissions, the tonnage costs, the cargo insurance and the tarp lining of the tenant' do
     described_class.perform_now(tenant.id)
 
     expect(FreightExpenses::CalculateCommissionsCommand).to have_received(:call).with(tenant)
     expect(FreightExpenses::CalculateTonnageCommand).to have_received(:call).with(tenant)
     expect(FreightExpenses::CalculateInsuranceCommand).to have_received(:call).with(tenant)
+    expect(FreightExpenses::CalculateTarpLiningCommand).to have_received(:call).with(tenant)
   end
 
   context 'when the taker of the transport documents is grouped only by the name on them' do

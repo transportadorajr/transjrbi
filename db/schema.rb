@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_19_210828) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_21_184523) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,7 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_19_210828) do
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
-  create_enum "freight_expense_kind_type", ["commission", "tonnage", "insurance"]
+  create_enum "freight_expense_kind_type", ["commission", "tonnage", "insurance", "tarp_lining"]
   create_enum "location_precision_type", ["address", "city"]
   create_enum "user_type", ["owner", "admin", "operator"]
 

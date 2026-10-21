@@ -522,6 +522,7 @@ pt-BR:
         commission: Comissão
         tonnage: Custo por tonelada
         insurance: Seguro da carga
+        tarp_lining: Forro de lona
     location:
       precision_type:
         address: Endereço
@@ -1087,6 +1088,8 @@ pt-BR:
       title: Nenhuma alíquota de seguro cadastrada
       text: Sem alíquota, o seguro da carga não é calculado nos CT-es.
     insurance_detail_html: '%{rate} (internacional, com IOF de %{iof})'
+    tarp_lining_detail: Moinho Regio — valor fixo por CT-e
+    per_transport_document: '%{rate} por CT-e'
     outdated_alert:
       title:
         one: 1 custo por tonelada desatualizado
@@ -1098,6 +1101,7 @@ pt-BR:
       commission: (−) Comissões
       tonnage: (−) Custos por tonelada
       insurance: (−) Seguro da carga
+      tarp_lining: (−) Forro de lona
       expenses: (−) Despesas do frete na Atua
       toll: (−) Pedágio incluso no frete
       net: (=) Frete líquido

@@ -1,5 +1,5 @@
 class NetFreight
-  attr_reader :freight, :commission, :tonnage, :insurance, :expenses, :toll, :toll_outside_freight
+  attr_reader :freight, :commission, :tonnage, :insurance, :tarp_lining, :expenses, :toll, :toll_outside_freight
 
   class << self
     def for(transport_documents)
@@ -11,6 +11,7 @@ class NetFreight
         commission: Money.from_cents(FreightExpense.commission.where(transport_document_id: document_ids).sum(:amount_cents)),
         tonnage: Money.from_cents(FreightExpense.tonnage.where(transport_document_id: document_ids).sum(:amount_cents)),
         insurance: Money.from_cents(FreightExpense.insurance.where(transport_document_id: document_ids).sum(:amount_cents)),
+        tarp_lining: Money.from_cents(FreightExpense.tarp_lining.where(transport_document_id: document_ids).sum(:amount_cents)),
         expenses: Money.from_cents(Atua::Expense.active.freight.where(cost_object_id: document_ids).sum(:total_cents)),
         toll: Money.from_cents(documents.toll_in_freight.sum(:toll_cents)),
         toll_outside_freight: Money.from_cents(documents.toll_outside_freight.sum(:toll_cents)),
@@ -18,17 +19,18 @@ class NetFreight
     end
   end
 
-  def initialize(freight:, commission:, tonnage:, insurance:, expenses:, toll:, toll_outside_freight:)
+  def initialize(freight:, commission:, tonnage:, insurance:, tarp_lining:, expenses:, toll:, toll_outside_freight:)
     @freight = freight
     @commission = commission
     @tonnage = tonnage
     @insurance = insurance
+    @tarp_lining = tarp_lining
     @expenses = expenses
     @toll = toll
     @toll_outside_freight = toll_outside_freight
   end
 
   def net
-    freight - commission - tonnage - insurance - expenses - toll
+    freight - commission - tonnage - insurance - tarp_lining - expenses - toll
   end
 end

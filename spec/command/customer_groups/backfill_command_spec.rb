@@ -10,10 +10,13 @@ RSpec.describe CustomerGroups::BackfillCommand do
     let!(:virginia) { create(:atua_customer, tenant:, name: 'TRANSPORTES VIRGINIA LTDA') }
     let!(:movistar) { create(:atua_customer, tenant:, name: 'MOVISTAR LOGISTICA') }
     let!(:consolata) { create(:atua_customer, tenant:, name: 'Consolata Comércio S/A') }
-    let!(:other) { create(:atua_customer, tenant:, name: 'USIMINAS S.A.') }
+    let!(:moinho) { create(:atua_customer, tenant:, name: 'MOINHO REGIO ALIMENTOS S/A - CASCAVEL') }
+    let!(:usiminas) { create(:atua_customer, tenant:, name: 'USINAS SIDERURGICAS DE MINAS GERAIS S\\A - USIMINAS') }
+    let!(:usiminas_abbreviated) { create(:atua_customer, tenant:, name: 'USINAS SIDERUR MINAS GERAIS S/A - USIMINAS') }
+    let!(:other) { create(:atua_customer, tenant:, name: 'GERDAU ACOS LONGOS S.A.') }
 
     it 'creates the known groups and links every customer to a group' do
-      expect { described_class.call(tenant) }.to change(CustomerGroup, :count).by(6)
+      expect { described_class.call(tenant) }.to change(CustomerGroup, :count).by(8)
 
       expect(tenant.customer_groups.with_terms.order(:id).pluck(:name, :terms)).to eq(
         [
@@ -22,6 +25,8 @@ RSpec.describe CustomerGroups::BackfillCommand do
           ['MOVISTAR', ['MOVISTAR']],
           ['CONSOLATA', ['CONSOLATA']],
           ['ARCELORMITTAL', ['ARCELOR']],
+          ['MOINHO REGIO', ['MOINHO REGIO']],
+          ['USIMINAS', ['USIMINAS']],
         ],
       )
       expect(tenant.customer_groups.not_activated.count).to eq(0)
@@ -31,7 +36,10 @@ RSpec.describe CustomerGroups::BackfillCommand do
       expect(virginia.reload.customer_group.name).to eq('VIRGINIA')
       expect(movistar.reload.customer_group.name).to eq('MOVISTAR')
       expect(consolata.reload.customer_group.name).to eq('CONSOLATA')
-      expect(other.reload.customer_group.name).to eq('USIMINAS S.A.')
+      expect(moinho.reload.customer_group.name).to eq('MOINHO REGIO')
+      expect(usiminas.reload.customer_group.name).to eq('USIMINAS')
+      expect(usiminas_abbreviated.reload.customer_group.name).to eq('USIMINAS')
+      expect(other.reload.customer_group.name).to eq('GERDAU ACOS LONGOS S.A.')
       expect(tenant.atua_customers.without_customer_group.count).to eq(0)
     end
 

@@ -76,5 +76,16 @@ RSpec.describe FreightExpense do
       expect(described_class.by_kind('insurance')).to contain_exactly(insurance)
       expect(described_class.by_customer_group(arcelor.id)).to contain_exactly(october_expense)
     end
+
+    it 'filters the tarp lining by kind and by the customer group of the taker' do
+      moinho = create(:customer_group, tenant:, name: 'MOINHO REGIO', terms: ['MOINHO REGIO'])
+      customer = create(:atua_customer, tenant:, name: 'MOINHO REGIO ALIMENTOS S/A', customer_group: moinho)
+      document = create(:atua_transport_document, tenant:, taker_code: customer.code)
+      tarp_lining = create(:freight_expense, :tarp_lining, tenant:, transport_document: document)
+
+      expect(described_class.by_kind('tarp_lining')).to contain_exactly(tarp_lining)
+      expect(described_class.by_customer_group(moinho.id)).to contain_exactly(tarp_lining)
+      expect(described_class.by_customer_group(arcelor.id)).to contain_exactly(october_expense)
+    end
   end
 end

@@ -31,5 +31,14 @@ FactoryBot.define do
       iof_cents { 0 }
       amount_cents { 220 }
     end
+
+    trait :tarp_lining do
+      commission_rule { nil }
+      kind_type { 'tarp_lining' }
+      base_cents { nil }
+      percentage { nil }
+      rate_cents { 5_500 }
+      amount_cents { 5_500 }
+    end
   end
 end

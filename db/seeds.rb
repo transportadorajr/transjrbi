@@ -17,4 +17,7 @@ end
 
 Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?
 
-Tenant.find_each { |tenant| CustomerGroups::BackfillCommand.call(tenant) }
+Tenant.find_each do |tenant|
+  CustomerGroups::BackfillCommand.call(tenant)
+  FreightExpenses::CalculateTarpLiningCommand.call(tenant)
+end
