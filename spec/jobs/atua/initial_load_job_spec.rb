@@ -8,18 +8,18 @@ RSpec.describe Atua::InitialLoadJob do
   it 'runs the initial load of the tenant' do
     described_class.perform_now(tenant.id, Date.new(2026, 1, 1), Date.new(2026, 9, 30))
 
-    expect(Atua::InitialLoadCommand).to have_received(:call).with(tenant, Date.new(2026, 1, 1), Date.new(2026, 9, 30), production_access: false)
+    expect(Atua::InitialLoadCommand).to have_received(:call).with(tenant, Date.new(2026, 1, 1), Date.new(2026, 9, 30))
   end
 
-  it 'passes on the production access requested by the admin' do
+  it 'runs a job enqueued with the former production access argument' do
     described_class.perform_now(tenant.id, Date.new(2026, 1, 1), Date.new(2026, 9, 30), production_access: true)
 
-    expect(Atua::InitialLoadCommand).to have_received(:call).with(tenant, Date.new(2026, 1, 1), Date.new(2026, 9, 30), production_access: true)
+    expect(Atua::InitialLoadCommand).to have_received(:call).with(tenant, Date.new(2026, 1, 1), Date.new(2026, 9, 30))
   end
 
   it 'loads until today when a job enqueued without an end date runs' do
     described_class.perform_now(tenant.id, Date.new(2026, 1, 1))
 
-    expect(Atua::InitialLoadCommand).to have_received(:call).with(tenant, Date.new(2026, 1, 1), nil, production_access: false)
+    expect(Atua::InitialLoadCommand).to have_received(:call).with(tenant, Date.new(2026, 1, 1), nil)
   end
 end

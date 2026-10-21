@@ -345,7 +345,7 @@ RSpec.describe Atua::ImportReportCommand do
 
     context 'when the configuration is incomplete' do
       before do
-        allow(Atua::Configuration).to receive(:for).with(tenant, production_access: false)
+        allow(Atua::Configuration).to receive(:for).with(tenant)
           .and_raise(Atua::ConfigurationError, 'Configuração da Atua incompleta.')
       end
 
@@ -358,12 +358,12 @@ RSpec.describe Atua::ImportReportCommand do
       end
     end
 
-    context 'when the admin asks for the production Atua' do
+    context 'when the client reaches the production Atua' do
       let(:client) { instance_double(Atua::Client, source_type: :production) }
       let(:configuration) { instance_double(Atua::Configuration) }
 
       before do
-        allow(Atua::Configuration).to receive(:for).with(tenant, production_access: true).and_return(configuration)
+        allow(Atua::Configuration).to receive(:for).with(tenant).and_return(configuration)
         allow(Atua::Client).to receive(:new).with(configuration).and_return(client)
         allow(client).to receive(:download).and_return(
           [Atua::Download.new(report_type: :customers, start_date: nil, end_date: nil, content: atua_fixture_path(:customers).binread,
@@ -371,11 +371,31 @@ RSpec.describe Atua::ImportReportCommand do
         )
       end
 
-      it 'builds the client with the production access' do
-        import = described_class.call(tenant, :customers, production_access: true).sole
+      it 'records the production source in the import' do
+        import = described_class.call(tenant, :customers).sole
 
-        expect(Atua::Configuration).to have_received(:for).with(tenant, production_access: true)
         expect(import).to have_attributes(status_type: 'succeeded', source_type: 'production')
+      end
+    end
+
+    context 'when the production access flag is on and ATUA_BASE_URL points to the mock', flipper: :atua_production_access do
+      let(:tenant) { create(:tenant, atua_url: 'https://transjr.atua.com.br/adm') }
+      let(:client) { instance_double(Atua::Client, source_type: :production) }
+
+      before do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('development'))
+        allow(Rails.application.credentials).to receive(:atua).and_return(username: 'transjr', password: 'secret-password')
+        allow(Atua::Client).to receive(:new).and_return(client)
+        allow(client).to receive(:download).and_return(
+          [Atua::Download.new(report_type: :customers, start_date: nil, end_date: nil, content: atua_fixture_path(:customers).binread,
+                              content_type: 'application/vnd.ms-excel', filename: 'rel_cliente_detalhado.xls')],
+        )
+      end
+
+      it 'imports a scheduled report from the production Atua instead of the mock' do
+        ClimateControl.modify(ATUA_BASE_URL: 'http://localhost:4567/adm') { described_class.call(tenant, :customers) }
+
+        expect(Atua::Client).to have_received(:new).with(having_attributes(base_url: 'https://transjr.atua.com.br/adm'))
       end
     end
 

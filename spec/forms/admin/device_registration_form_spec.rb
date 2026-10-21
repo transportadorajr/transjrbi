@@ -29,7 +29,7 @@ RSpec.describe Admin::DeviceRegistrationForm do
       form = described_class.new(tenant_id: tenant.id, registration_id: registration.id, code: 'ABC123')
 
       expect(form.save).to be(true)
-      expect(Atua::ConfirmDeviceCommand).to have_received(:call).with(registration, 'ABC123', production_access: false)
+      expect(Atua::ConfirmDeviceCommand).to have_received(:call).with(registration, 'ABC123')
     end
 
     it 'shows the message of the Atua when the code is refused' do
@@ -47,7 +47,7 @@ RSpec.describe Admin::DeviceRegistrationForm do
       allow(Atua::RequestDeviceCodeCommand).to receive(:call).and_return(registration)
 
       expect(described_class.new(tenant_id: tenant.id).request_code).to eq(registration)
-      expect(Atua::RequestDeviceCodeCommand).to have_received(:call).with(tenant, production_access: false)
+      expect(Atua::RequestDeviceCodeCommand).to have_received(:call).with(tenant)
     end
 
     it 'keeps the error when the Atua refuses the login' do

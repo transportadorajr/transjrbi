@@ -108,38 +108,39 @@ RSpec.describe Atua::Configuration do
       end
     end
 
-    context 'when the production access is requested' do
+    context 'when the production access flag is on', flipper: :atua_production_access do
       let(:credentials) { { base_url: 'https://transjr.atua.com.br/adm', username: 'transjr', password: 'secret-password' } }
       let(:tenant) { build(:tenant, atua_url: 'https://transjr.atua.com.br/adm') }
 
       before { allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('development')) }
 
-      it 'reaches the production Atua ignoring ATUA_BASE_URL when the flag is on', flipper: :atua_production_access do
+      it 'reaches the production Atua ignoring ATUA_BASE_URL' do
         ClimateControl.modify(ATUA_BASE_URL: 'http://localhost:4567/adm') do
-          configuration = described_class.for(tenant, production_access: true)
+          configuration = described_class.for(tenant)
 
           expect(configuration.base_url).to eq('https://transjr.atua.com.br/adm')
           expect(configuration.source_type).to eq(:production)
         end
       end
+    end
 
-      it 'keeps the mock when the flag is off' do
+    context 'when the production access flag is off' do
+      let(:credentials) { { base_url: 'https://transjr.atua.com.br/adm', username: 'transjr', password: 'secret-password' } }
+      let(:tenant) { build(:tenant, atua_url: 'https://transjr.atua.com.br/adm') }
+
+      before { allow(Rails).to receive(:env).and_return(ActiveSupport::EnvironmentInquirer.new('development')) }
+
+      it 'keeps the mock' do
         ClimateControl.modify(ATUA_BASE_URL: 'http://localhost:4567/adm') do
-          configuration = described_class.for(tenant, production_access: true)
+          configuration = described_class.for(tenant)
 
           expect(configuration.base_url).to eq('http://localhost:4567/adm')
           expect(configuration.source_type).to eq(:mock)
         end
       end
 
-      it 'keeps blocking the remote host when the flag is off' do
-        expect { described_class.for(tenant, production_access: true) }.to raise_error(Atua::ConfigurationError, /transjr\.atua\.com\.br/)
-      end
-
-      it 'keeps the mock when the import was not requested by the admin', flipper: :atua_production_access do
-        ClimateControl.modify(ATUA_BASE_URL: 'http://localhost:4567/adm') do
-          expect(described_class.for(tenant).base_url).to eq('http://localhost:4567/adm')
-        end
+      it 'keeps blocking the remote host' do
+        expect { described_class.for(tenant) }.to raise_error(Atua::ConfigurationError, /transjr\.atua\.com\.br/)
       end
     end
   end

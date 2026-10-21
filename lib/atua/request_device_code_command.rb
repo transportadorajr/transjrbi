@@ -1,14 +1,13 @@
 module Atua
   class RequestDeviceCodeCommand
     class << self
-      def call(tenant, production_access: false, client: nil)
-        new(tenant, production_access:, client:).call
+      def call(tenant, client: nil)
+        new(tenant, client:).call
       end
     end
 
-    def initialize(tenant, production_access: false, client: nil)
+    def initialize(tenant, client: nil)
       @tenant = tenant
-      @production_access = production_access
       @client = client
     end
 
@@ -25,10 +24,10 @@ module Atua
 
     private
 
-    attr_reader :tenant, :production_access
+    attr_reader :tenant
 
     def client
-      @client ||= Client.new(Configuration.for(tenant, production_access:), retries: false)
+      @client ||= Client.new(Configuration.for(tenant), retries: false)
     end
   end
 end

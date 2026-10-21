@@ -21,7 +21,7 @@ module Admin
     end
 
     def submit
-      errors.add(:base, :already_enqueued) unless Atua::ImportReportJob.perform_later(tenant.id, report_type, *period, production_access: Atua.production_access?)
+      errors.add(:base, :already_enqueued) unless Atua::ImportReportJob.perform_later(tenant.id, report_type, *period)
     end
 
     private

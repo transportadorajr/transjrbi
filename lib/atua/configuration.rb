@@ -9,9 +9,9 @@ module Atua
     attr_reader :base_url, :username, :password, :device_cookie, :device_hash
 
     class << self
-      def for(tenant = nil, allow_remote_host: false, production_access: false)
+      def for(tenant = nil, allow_remote_host: false)
         credentials = Rails.application.credentials.atua || {}
-        production_access &&= Atua.production_access?
+        production_access = Atua.production_access?
 
         configuration = new(
           base_url: base_url_for(tenant, credentials, production_access),

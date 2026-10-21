@@ -1,15 +1,14 @@
 module Atua
   class ConfirmDeviceCommand
     class << self
-      def call(registration, code, production_access: false, client: nil)
-        new(registration, code, production_access:, client:).call
+      def call(registration, code, client: nil)
+        new(registration, code, client:).call
       end
     end
 
-    def initialize(registration, code, production_access: false, client: nil)
+    def initialize(registration, code, client: nil)
       @registration = registration
       @code = code
-      @production_access = production_access
       @client = client
     end
 
@@ -29,10 +28,10 @@ module Atua
 
     private
 
-    attr_reader :registration, :code, :production_access
+    attr_reader :registration, :code
 
     def client
-      @client ||= Client.new(Configuration.for(registration.tenant, production_access:), retries: false)
+      @client ||= Client.new(Configuration.for(registration.tenant), retries: false)
     end
   end
 end

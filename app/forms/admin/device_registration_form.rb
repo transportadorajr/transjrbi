@@ -22,14 +22,14 @@ module Admin
     end
 
     def request_code
-      @registration = Atua::RequestDeviceCodeCommand.call(tenant, production_access: Atua.production_access?)
+      @registration = Atua::RequestDeviceCodeCommand.call(tenant)
     rescue Atua::Error => e
       errors.add(:base, e.message)
       nil
     end
 
     def submit
-      @registration = Atua::ConfirmDeviceCommand.call(pending_registration, code, production_access: Atua.production_access?)
+      @registration = Atua::ConfirmDeviceCommand.call(pending_registration, code)
     rescue Atua::Error => e
       errors.add(:base, e.message)
     end

@@ -3,12 +3,12 @@ module Atua
     CONTENT_TYPE = 'application/vnd.ms-excel'.freeze
 
     class << self
-      def call(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil, raise_errors: false, production_access: false)
-        new(tenant, report_type, start_date:, end_date:, file:, client:, raise_errors:, production_access:).call
+      def call(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil, raise_errors: false)
+        new(tenant, report_type, start_date:, end_date:, file:, client:, raise_errors:).call
       end
     end
 
-    def initialize(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil, raise_errors: false, production_access: false)
+    def initialize(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil, raise_errors: false)
       @tenant = tenant
       @report = Report.find(report_type)
       @start_date = start_date&.to_date
@@ -16,7 +16,6 @@ module Atua
       @file = file
       @client = client
       @raise_errors = raise_errors
-      @production_access = production_access
     end
 
     def call
@@ -25,7 +24,7 @@ module Atua
 
     private
 
-    attr_reader :tenant, :report, :start_date, :end_date, :file, :raise_errors, :production_access
+    attr_reader :tenant, :report, :start_date, :end_date, :file, :raise_errors
 
     def periods
       file ? [[start_date, end_date]] : report.periods(start_date, end_date)
@@ -63,7 +62,7 @@ module Atua
     end
 
     def client
-      @client ||= Client.new(Configuration.for(tenant, production_access:))
+      @client ||= Client.new(Configuration.for(tenant))
     end
   end
 end

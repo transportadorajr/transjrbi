@@ -152,7 +152,7 @@ describe 'Admin Atua imports', :admin do
 
       expect { click_on 'Enfileirar importação' }
         .to have_enqueued_job(Atua::ImportReportJob)
-        .with(other_tenant.id, 'expenses', Date.new(2026, 10, 1), Date.new(2026, 10, 14), production_access: false)
+        .with(other_tenant.id, 'expenses', Date.new(2026, 10, 1), Date.new(2026, 10, 14))
         .and(not_change(Atua::Import, :count))
 
       expect(page).to have_current_path(admin_imports_path)
@@ -194,7 +194,7 @@ describe 'Admin Atua imports', :admin do
       fill_in 'Data final', with: '2026-09-30'
 
       expect { click_on 'Iniciar carga inicial' }
-        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), Date.new(2026, 9, 30), production_access: false)
+        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), Date.new(2026, 9, 30))
         .and(not_have_enqueued_job(Atua::ImportReportJob))
 
       expect(page).to have_current_path(admin_imports_path)
@@ -224,7 +224,7 @@ describe 'Admin Atua imports', :admin do
 
     before { sign_in_admin(admin_user) }
 
-    scenario 'warns that the manual imports reach the production Atua and shows the source of each import' do
+    scenario 'warns that the imports reach the production Atua and shows the source of each import' do
       visit admin_imports_path
 
       expect(page).to have_css('#atua-production-access', text: 'A flag atua_production_access está ligada.')
@@ -240,24 +240,24 @@ describe 'Admin Atua imports', :admin do
       )
     end
 
-    scenario 'enqueues the manual import asking for the production Atua' do
+    scenario 'enqueues the manual import' do
       visit new_admin_import_path
       select 'TransJR', from: 'Empresa'
       select 'Clientes', from: 'Relatório'
 
       expect { click_on 'Enfileirar importação' }
-        .to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'customers', nil, nil, production_access: true)
+        .to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'customers', nil, nil)
 
       expect(page).to have_current_path(admin_imports_path)
     end
 
-    scenario 'enqueues the initial load asking for the production Atua' do
+    scenario 'enqueues the initial load' do
       visit new_admin_initial_load_path
       select 'TransJR', from: 'Empresa'
       fill_in 'Data de início', with: '2025-01-01'
 
       expect { click_on 'Iniciar carga inicial' }
-        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), Date.new(2026, 9, 30), production_access: true)
+        .to have_enqueued_job(Atua::InitialLoadJob).with(tenant.id, Date.new(2025, 1, 1), Date.new(2026, 9, 30))
     end
   end
 

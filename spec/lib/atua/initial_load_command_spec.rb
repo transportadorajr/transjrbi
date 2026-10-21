@@ -50,17 +50,6 @@ RSpec.describe Atua::InitialLoadCommand do
     )
   end
 
-  context 'when the admin asks for the production Atua' do
-    it 'passes the production access on to every import' do
-      described_class.call(tenant, Date.new(2026, 10, 1), production_access: true)
-
-      production_accesses = enqueued_jobs.select { |job| job['job_class'] == 'Atua::ImportReportJob' }.map do |job|
-        ActiveJob::Arguments.deserialize(job['arguments']).last
-      end
-      expect(production_accesses).to eq(Array.new(5, { production_access: true }))
-    end
-  end
-
   context 'when some months were already imported' do
     before do
       %w[transport_documents manifests expenses].each do |report_type|

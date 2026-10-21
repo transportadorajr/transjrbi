@@ -1294,7 +1294,7 @@ pt-BR:
         binary: 'Arquivo binário (%{content_type}, %{size}). O conteúdo não é exibido.'
         truncated: 'Conteúdo truncado em 1 MB (tamanho original: %{size}).'
     atua:
-      production_access_banner: A flag atua_production_access está ligada. As importações disparadas manualmente neste painel buscam os dados na Atua de produção; as importações agendadas continuam no mock local.
+      production_access_banner: A flag atua_production_access está ligada. Todas as importações, manuais e agendadas, buscam os dados na Atua de produção; o mock local fica desativado.
     resources:
       index:
         title: Recursos
@@ -1399,7 +1399,7 @@ pt-BR:
     errors:
       missing_configuration: 'Configuração da Atua incompleta: falta %{keys}.'
       invalid_base_url: A URL base da Atua não é uma URL http/https válida.
-      remote_host_blocked: Fora de produção a integração com a Atua só acessa o mock local (host recebido %{host}). Defina ATUA_BASE_URL apontando para o mock, ou ligue a flag atua_production_access no painel administrativo para disparar importações manuais na Atua de produção.
+      remote_host_blocked: Fora de produção a integração com a Atua só acessa o mock local (host recebido %{host}). Defina ATUA_BASE_URL apontando para o mock, ou ligue a flag atua_production_access no painel administrativo para importar da Atua de produção.
       unknown_report: Relatório da Atua desconhecido %{type}.
       unknown_computed_value: Valor calculado desconhecido na configuração do relatório %{value}.
       login_status: O login na Atua respondeu HTTP %{status}.
