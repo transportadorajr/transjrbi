@@ -36,8 +36,7 @@ end
 tenant = find_tenant(ENV.fetch('TENANT', ''))
 start_date = ENV['START_DATE'].present? ? Date.parse(ENV['START_DATE']) : DEFAULT_START_DATE
 end_date = ENV['END_DATE'].present? ? Date.parse(ENV['END_DATE']) : DEFAULT_END_DATE
-production_access = Atua.production_access?
-client = Atua::Client.new(Atua::Configuration.for(tenant, production_access:))
+client = Atua::Client.new(Atua::Configuration.for(tenant))
 
 steps = Atua::Report::REGISTRY_TYPES.map { |report_type| [report_type, nil, nil] }
 month_periods(start_date, end_date).each do |month_start, month_end|
@@ -67,8 +66,7 @@ steps.each_with_index do |(report_type, period_start, period_end), index|
     sleep WAIT_BETWEEN_REPORTS
   end
 
-  imports = Atua::ImportReportCommand.call(tenant, report_type, start_date: period_start, end_date: period_end, client:, raise_errors: true,
-                                                                production_access:)
+  imports = Atua::ImportReportCommand.call(tenant, report_type, start_date: period_start, end_date: period_end, client:, raise_errors: true)
   fetched = true
 
   imports.each do |import|

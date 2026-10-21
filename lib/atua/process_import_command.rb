@@ -22,6 +22,7 @@ module Atua
         rows_read: spreadsheet.rows.size, inserted_count: result.inserted, updated_count: result.updated,
         removed_count: result.removed, warning_message: result.warning
       )
+      import.file.purge
       calculate_empty_legs
       link_expenses
       calculate_commissions

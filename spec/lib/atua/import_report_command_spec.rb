@@ -28,7 +28,7 @@ RSpec.describe Atua::ImportReportCommand do
         )
         expect(import.started_at).to be_present
         expect(import.finished_at).to be_present
-        expect(import.file.filename.to_s).to eq('customers.xls')
+        expect(import.file).not_to be_attached
         expect(tenant.atua_customers.count).to eq(4833)
         expect(tenant.atua_customers.find_by!(code: 7752)).to have_attributes(import:, removed_from_atua_at: nil)
       end
@@ -278,12 +278,12 @@ RSpec.describe Atua::ImportReportCommand do
         allow(client).to receive(:download) { |_type, start_date:, end_date:| [download(start_date, end_date)] }
       end
 
-      it 'attaches the downloaded file and imports it' do
+      it 'imports the downloaded file without keeping it' do
         import = described_class.call(tenant, :manifests, **period, client:).sole
 
         expect(client).to have_received(:download).with(:manifests, start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 13))
         expect(import).to have_attributes(status_type: 'succeeded', inserted_count: 217, source_type: 'mock')
-        expect(import.file.filename.to_s).to eq('9430_rel_manifesto_detalhado.xls')
+        expect(import.file).not_to be_attached
       end
 
       it 'links the requests made during the download to the import' do

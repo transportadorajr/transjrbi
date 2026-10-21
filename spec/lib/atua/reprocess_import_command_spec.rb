@@ -4,10 +4,11 @@ RSpec.describe Atua::ReprocessImportCommand do
   let(:tenant) { create(:tenant) }
   let(:period) { { start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 13) } }
 
-  context 'with an import that already has its file attached' do
+  context 'with an import that kept its file attached' do
     let!(:import) { Atua::ImportReportCommand.call(tenant, :manifests, file: atua_fixture_path(:manifests), **period).sole }
 
     before do
+      import.file.attach(io: atua_fixture_path(:manifests).open, filename: 'manifests.xls')
       allow(Atua::Client).to receive(:new)
       tenant.atua_manifests.find_by!(code: 41_236).destroy!
       tenant.atua_manifest_documents.where(manifest_code: 41_236).delete_all
@@ -36,6 +37,7 @@ RSpec.describe Atua::ReprocessImportCommand do
 
       expect(import.reload).to have_attributes(status_type: 'succeeded', error_message: nil, inserted_count: 217)
       expect(import.finished_at).to be > 1.minute.ago
+      expect(import.file).not_to be_attached
     end
   end
 

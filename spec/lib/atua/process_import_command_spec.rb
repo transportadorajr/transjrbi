@@ -13,6 +13,13 @@ RSpec.describe Atua::ProcessImportCommand do
     expect(tenant.atua_manifests.count).to eq(217)
   end
 
+  it 'deletes the file once the import succeeds' do
+    described_class.call(import)
+
+    expect(import.reload.file).not_to be_attached
+    expect(ActiveStorage::Blob.count).to eq(0)
+  end
+
   it 'calculates the empty legs from the start of the imported period' do
     expect { described_class.call(import) }.to have_enqueued_job(EmptyLegs::CalculateJob).with(tenant.id, '2026-10-01')
   end
@@ -75,6 +82,13 @@ RSpec.describe Atua::ProcessImportCommand do
       expect(import.reload).to have_attributes(status_type: 'failed', error_message: 'PG::Error: connection lost', inserted_count: 0)
       expect(tenant.atua_manifests.count).to eq(0)
       expect(tenant.atua_manifest_documents.count).to eq(0)
+    end
+
+    it 'keeps the file to reprocess it later' do
+      described_class.call(import)
+
+      expect(import.reload.file).to be_attached
+      expect(ActiveStorage::Blob.count).to eq(1)
     end
 
     it 'does not calculate the empty legs' do

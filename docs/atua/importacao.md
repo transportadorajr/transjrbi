@@ -4,10 +4,10 @@ Todas as classes que capturam dados da Atua ficam em `lib/atua/` (specs em `spec
 
 | Command | O que faz |
 | --- | --- |
-| `Atua::ImportReportCommand.call(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil)` | Cria um `Atua::Import` (`running`) por arquivo, baixa o relatório com `Atua::Client` (ou usa o `file` informado), anexa, lê e grava. Devolve a lista de imports. |
+| `Atua::ImportReportCommand.call(tenant, report_type, start_date: nil, end_date: nil, file: nil, client: nil)` | Cria um `Atua::Import` (`running`) por arquivo, baixa o relatório com `Atua::Client` (ou usa o `file` informado), anexa, lê e grava. Com sucesso, o arquivo é apagado. Devolve a lista de imports. |
 | `Atua::ImportAllCommand.call(tenant, start_date:, end_date:)` | Importa `customers → vehicles → manifests → transport_documents → expenses` com a mesma sessão do client. Para no primeiro login recusado, sem tentar logar de novo. |
 | `Atua::ReprocessImportCommand.call(import)` | Relê o arquivo já anexado ao import, sem baixar de novo. |
-| `Atua::ProcessImportCommand.call(import)` | Lê o arquivo anexado e grava numa transação; termina o import com `succeeded` ou `failed`. |
+| `Atua::ProcessImportCommand.call(import)` | Lê o arquivo anexado e grava numa transação; termina o import com `succeeded` (e apaga o arquivo) ou `failed` (e mantém o arquivo). |
 | `Atua::Save<Relatório>Command` | Grava os registros mapeados de um relatório (uma subclasse de `Atua::SaveReportCommand` por relatório). |
 
 ## Períodos
@@ -32,4 +32,4 @@ Um período maior que 31 dias é quebrado em meses (`Atua::Report#periods`), com
 
 ## Falhas
 
-Qualquer erro (configuração, login, download, layout, conversão, banco) desfaz a gravação do arquivo e fica registrado no import: `status_type: failed`, `error_message` e `finished_at`. O arquivo baixado continua anexado para reprocessamento.
+Qualquer erro (configuração, login, download, layout, conversão, banco) desfaz a gravação do arquivo e fica registrado no import: `status_type: failed`, `error_message` e `finished_at`. O arquivo baixado continua anexado para reprocessamento ou download no admin, até o `Atua::PurgeExpiredFilesJob` apagá-lo após 60 dias. Só o import com falha guarda o arquivo: com sucesso, ele é apagado assim que a gravação termina.
