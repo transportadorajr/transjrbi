@@ -192,7 +192,8 @@ describe 'Manifests' do
       context 'with access to the freight expenses' do
         let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
         let!(:other_transport_document) do
-          create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_name: 'JR TRANSPORTES', freight_cents: 300_000)
+          create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_name: 'JR TRANSPORTES', freight_cents: 300_000,
+                                           weight_freight_cents: 260_000, toll_cents: 15_000, icms_cents: 25_000)
         end
 
         before do
@@ -207,7 +208,7 @@ describe 'Manifests' do
           create(:freight_expense, tenant:, transport_document: outside, amount_cents: 99_999)
         end
 
-        scenario 'shows the net freight of the transport documents of the trip' do
+        scenario 'shows the net freight of the transport documents of the trip discounting the toll inside the gross freight' do
           visit manifest_path(manifest)
 
           expect(FreightExpense.count).to eq(5)
@@ -217,7 +218,8 @@ describe 'Manifests' do
             '(−) Custos por tonelada' => 'R$ 408,53',
             '(−) Seguro da carga' => 'R$ 2,20',
             '(−) Despesas do frete na Atua' => 'R$ 350,00',
-            '(=) Frete líquido' => 'R$ 2.623,30',
+            '(−) Pedágio' => 'R$ 150,00',
+            '(=) Frete líquido' => 'R$ 2.473,30',
           )
         end
 

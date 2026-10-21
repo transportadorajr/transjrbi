@@ -3,6 +3,8 @@ module Atua
     include Importable
 
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
+    TOLL_TOLERANCE_CENTS = 1
+    FREIGHT_PARTS = %i[weight_freight_cents ad_valorem_cents other_charges_cents toll_cents icms_cents].freeze
 
     with_options class_name: 'Atua::Customer', primary_key: %i[tenant_id code], optional: true, inverse_of: false do
       belongs_to :sender, foreign_key: %i[tenant_id sender_code]
@@ -66,8 +68,19 @@ module Atua
       active.not_canceled.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'])
         .where(arel_table[:issue_kind].is_distinct_from(VALUE_COMPLEMENT))
     }
+    scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
 
     class << self
+      def freight_toll
+        columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }
+        parts = columns.drop(1).sum(columns.first)
+        difference = Arel::Nodes::NamedFunction.new('ABS', [Arel::Nodes::Grouping.new(zero_if_null(:freight_cents) - parts)])
+
+        Arel::Nodes::Case.new
+          .when(zero_if_null(:toll_cents).gt(0).and(difference.lteq(TOLL_TOLERANCE_CENTS))).then(arel_table[:toll_cents])
+          .else(0)
+      end
+
       def taker_names_by_code
         where.not(taker_name: [nil, '']).distinct.pluck(:taker_code, :taker_name)
           .group_by(&:first).transform_values { |rows| rows.map(&:last) }
@@ -78,6 +91,12 @@ module Atua
           I18n.t('tax.situations.valid') => :valid,
           I18n.t('tax.situations.canceled') => :canceled,
         }
+      end
+
+      private
+
+      def zero_if_null(column)
+        Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[column], Arel::Nodes.build_quoted(0)])
       end
     end
 
