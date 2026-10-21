@@ -162,6 +162,8 @@ pt-BR:
         value_freight: Frete valor
         ad_valorem: Ad valorem
         toll: Pedágio
+        atua_toll_kind: Pedágio na Atua
+        toll_voucher_issuer: Emissão do vale pedágio
         other_charges: Outras cobranças
         goods_value: Valor da mercadoria
         icms_base: Base do ICMS
@@ -188,6 +190,7 @@ pt-BR:
         route: Origem / Destino
         weight_kg: Peso (kg)
         freight: Frete
+        toll: Pedágio
       atua/customer:
         code: Código
         name: Nome
@@ -773,6 +776,10 @@ pt-BR:
     document_kinds:
       cte: CT-e
       ce: CE
+    toll_placements:
+      in_freight: Incluso no frete
+      outside_freight: Fora do frete
+      none: Sem pedágio
     index:
       title: CT-es
       subtitle: Conhecimentos de transporte emitidos na Atua.
@@ -1028,6 +1035,7 @@ pt-BR:
       gross: Frete bruto
       freight_expenses: Despesas de frete
       expenses: Despesas
+      toll: Pedágio
       fuel: Combustível
       net: Frete líquido
       gross_per_km: Bruto/km
@@ -1050,7 +1058,7 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
       table_subtitle: >-
         Cada viagem é um MDF-e: soma o frete e as despesas de todos os seus CT-es. Frete líquido = frete bruto − despesas
-        de frete (comissão, custo por tonelada e seguro) − despesas lançadas nos CT-es − combustível. O frete por km divide pelo KM total
+        de frete (comissão, custo por tonelada e seguro) − despesas lançadas nos CT-es − pedágio somado ao frete do CT-e − combustível. O frete por km divide pelo KM total
         da viagem (vazio, da descarga anterior do caminhão até a carga, + rodado) e considera só as viagens com KM rodado.
         Uma viagem com clientes de grupos diferentes é rateada pela participação de cada grupo no frete.
       fuel_subtitle: >-
@@ -1104,7 +1112,9 @@ pt-BR:
       tonnage: (−) Custos por tonelada
       insurance: (−) Seguro da carga
       expenses: (−) Despesas do frete na Atua
+      toll: (−) Pedágio incluso no frete
       net: (=) Frete líquido
+      toll_outside_freight: Pedágio fora do frete (não descontado)
   drivers:
     code: 'Código %{code}'
     index:

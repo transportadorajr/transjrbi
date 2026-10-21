@@ -1,4 +1,6 @@
 module TransportDocumentsHelper
+  TOLL_BADGE_KINDS = { in_freight: :primary, outside_freight: :info, none: :secondary }.freeze
+
   def transport_documents_menu(transport_document)
     menus = []
 
@@ -23,6 +25,18 @@ module TransportDocumentsHelper
     return t('tax.blank') if name.blank?
 
     safe_join([content_tag(:span, name, class: 'd-block'), (content_tag(:span, document, class: 'text-muted text-small d-block') if document.present?)], ' ')
+  end
+
+  def transport_document_toll(transport_document)
+    content_tag :span, class: 'd-inline-flex flex-wrap align-items-center gap-2' do
+      safe_join([tax_money(transport_document.toll), transport_document_toll_badge(transport_document)], ' ')
+    end
+  end
+
+  def transport_document_toll_badge(transport_document)
+    placement = transport_document.toll_placement
+
+    status_badge(t(placement, scope: 'transport_documents.toll_placements'), kind: TOLL_BADGE_KINDS.fetch(placement))
   end
 
   def transport_document_empty_legs(empty_legs)

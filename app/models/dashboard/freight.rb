@@ -7,10 +7,10 @@ module Dashboard
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
     CALCULATED_EMPTY_LEG = 'calculated'.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km empty_km empty_leg_status freight_cents
-                 freight_expenses_cents expenses_cents plate trailer_plate vehicle_ownership driver_code driver_name customer_group_id
+                 freight_expenses_cents expenses_cents toll_cents plate trailer_plate vehicle_ownership driver_code driver_name customer_group_id
                  origin_city origin_state].freeze
     ENTRY_ATTRIBUTES = %i[manifest_code weight reference_on loaded_km empty_km empty_pending freight_cents freight_expenses_cents
-                          expenses_cents fuel_cents plate trailer_plate driver_code driver_name customer_group_id origin_city
+                          expenses_cents toll_cents fuel_cents plate trailer_plate driver_code driver_name customer_group_id origin_city
                           origin_state].freeze
 
     Fact = Data.define(*COLUMNS) do
@@ -37,11 +37,11 @@ module Dashboard
       end
 
       def net_cents
-        freight_cents - freight_expenses_cents - expenses_cents - fuel_cents
+        freight_cents - freight_expenses_cents - expenses_cents - toll_cents - fuel_cents
       end
     end
 
-    Row = Data.define(:label, :trips_count, :loaded_km, :empty_km, :total_km, :gross, :freight_expenses, :expenses, :fuel, :net,
+    Row = Data.define(:label, :trips_count, :loaded_km, :empty_km, :total_km, :gross, :freight_expenses, :expenses, :toll, :fuel, :net,
                       :gross_per_km, :net_per_km, :share)
 
     attr_reader :dimension, :period
@@ -167,6 +167,7 @@ module Dashboard
         freight_cents: freight_of(facts),
         freight_expenses_cents: facts.sum { |fact| fact.freight_expenses_cents.to_i },
         expenses_cents: facts.sum { |fact| fact.expenses_cents.to_i },
+        toll_cents: facts.sum { |fact| fact.toll_cents.to_i },
       }
     end
 
@@ -201,6 +202,7 @@ module Dashboard
         table[:freight_cents],
         Arel::Nodes::Grouping.new(freight_expenses_total.arel),
         Arel::Nodes::Grouping.new(expenses_total.arel),
+        Atua::TransportDocument.freight_toll,
         table[:plate],
         table[:trailer_plate],
         table[:vehicle_ownership],
@@ -264,6 +266,7 @@ module Dashboard
       gross_cents = grouped.sum(&:freight_cents)
       freight_expenses_cents = grouped.sum(&:freight_expenses_cents)
       expenses_cents = grouped.sum(&:expenses_cents)
+      toll_cents = grouped.sum(&:toll_cents)
       fuel_cents = grouped.sum(&:fuel_cents)
 
       Row.new(
@@ -275,8 +278,9 @@ module Dashboard
         gross: Money.from_cents(gross_cents),
         freight_expenses: Money.from_cents(freight_expenses_cents),
         expenses: Money.from_cents(expenses_cents),
+        toll: Money.from_cents(toll_cents),
         fuel: Money.from_cents(fuel_cents),
-        net: Money.from_cents(gross_cents - freight_expenses_cents - expenses_cents - fuel_cents),
+        net: Money.from_cents(gross_cents - freight_expenses_cents - expenses_cents - toll_cents - fuel_cents),
         gross_per_km: per_km(measured.sum(&:freight_cents), measured_km),
         net_per_km: per_km(measured.sum(&:net_cents), measured_km),
         share: share_of(gross_cents),

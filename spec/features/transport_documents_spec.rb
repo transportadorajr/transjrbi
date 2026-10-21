@@ -183,7 +183,8 @@ describe 'Transport documents' do
                trailer_plate: 'BEV4G50', driver_name: 'José Motorista', distance_km: BigDecimal('230.5'), weight_kg: BigDecimal('19170'),
                product_name: 'Bobinas de aço', goods_invoice_numbers: %w[1001 1002],
                freight_cents: 555_040, weight_freight_cents: 500_000, value_freight_cents: 30_000, ad_valorem_cents: 5_040, toll_cents: 20_000,
-               other_charges_cents: nil, goods_value_cents: 11_259_672, icms_base_cents: 555_040, icms_cents: 66_605)
+               other_charges_cents: nil, goods_value_cents: 11_259_672, icms_base_cents: 555_040, icms_cents: 66_605,
+               raw_data: { 'id_pedagio_ctrc' => 'Cobrar + Pedágio', 'nm_emissao_vale_pedagio' => 'VPO CLIENTE - TARGET' })
       end
       let!(:manifest) { create(:atua_manifest, tenant:, number: '40798', branch_name: 'JR TRANSPORTES', issued_on: Date.new(2026, 10, 1), plate: 'EXU0F72') }
       let!(:link) do
@@ -235,7 +236,9 @@ describe 'Transport documents' do
           'Frete peso' => 'R$ 5.000,00',
           'Frete valor' => 'R$ 300,00',
           'Ad valorem' => 'R$ 50,40',
-          'Pedágio' => 'R$ 200,00',
+          'Pedágio' => 'R$ 200,00 Fora do frete',
+          'Pedágio na Atua' => 'Cobrar + Pedágio',
+          'Emissão do vale pedágio' => 'VPO CLIENTE - TARGET',
           'Outras cobranças' => '-',
           'Valor da mercadoria' => 'R$ 112.596,72',
           'Base do ICMS' => 'R$ 5.550,40',
@@ -309,7 +312,7 @@ describe 'Transport documents' do
                                                  iof_percentage: BigDecimal('7.38'), iof_cents: 23, amount_cents: 330)
           end
 
-          scenario 'shows the net freight after the commission, the tonnage cost, the cargo insurance and the Atua expenses' do
+          scenario 'shows the net freight without discounting a toll that is outside the gross freight' do
             visit transport_document_path(transport_document)
 
             expect(FreightExpense.count).to eq(3)
@@ -319,7 +322,9 @@ describe 'Transport documents' do
               '(−) Custos por tonelada' => 'R$ 408,53',
               '(−) Seguro da carga' => 'R$ 3,30',
               '(−) Despesas do frete na Atua' => 'R$ 350,00',
+              '(−) Pedágio incluso no frete' => 'R$ 0,00',
               '(=) Frete líquido' => 'R$ 4.690,88',
+              'Pedágio fora do frete (não descontado)' => 'R$ 200,00',
             )
           end
 
@@ -405,6 +410,64 @@ describe 'Transport documents' do
             expect(page).to have_current_path(expense_path(toll))
           end
         end
+      end
+    end
+
+    context 'when transport documents carry tolls inside the freight and none at all' do
+      let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+      let!(:included) do
+        create(:atua_transport_document, tenant:, number: '74140', freight_cents: 1_000_000, weight_freight_cents: 850_000, toll_cents: 30_000,
+                                         icms_cents: 120_000, raw_data: { 'id_pedagio_ctrc' => 'Incluso', 'nm_emissao_vale_pedagio' => 'SEM VALE PEDÁGIO' })
+      end
+      let!(:without_toll) do
+        create(:atua_transport_document, tenant:, number: '74141', freight_cents: 300_000, weight_freight_cents: 300_000, toll_cents: 0)
+      end
+
+      scenario 'highlights the toll included in the freight and discounts it from the net freight' do
+        visit transport_document_path(included)
+
+        expect(Atua::TransportDocument.count).to eq(2)
+        expect(dl_to_hash('#values')).to eq(
+          'Frete' => 'R$ 10.000,00',
+          'Frete peso' => 'R$ 8.500,00',
+          'Frete valor' => '-',
+          'Ad valorem' => '-',
+          'Pedágio' => 'R$ 300,00 Incluso no frete',
+          'Pedágio na Atua' => 'Incluso',
+          'Emissão do vale pedágio' => 'SEM VALE PEDÁGIO',
+          'Outras cobranças' => '-',
+          'Valor da mercadoria' => '-',
+          'Base do ICMS' => '-',
+          'ICMS' => 'R$ 1.200,00',
+        )
+        expect(dl_to_hash('#transport_document_net_freight')).to eq(
+          'Frete bruto' => 'R$ 10.000,00',
+          '(−) Comissões' => 'R$ 0,00',
+          '(−) Custos por tonelada' => 'R$ 0,00',
+          '(−) Seguro da carga' => 'R$ 0,00',
+          '(−) Despesas do frete na Atua' => 'R$ 0,00',
+          '(−) Pedágio incluso no frete' => 'R$ 300,00',
+          '(=) Frete líquido' => 'R$ 9.700,00',
+        )
+      end
+
+      scenario 'marks a transport document without toll' do
+        visit transport_document_path(without_toll)
+
+        expect(dl_to_hash('#values')).to eq(
+          'Frete' => 'R$ 3.000,00',
+          'Frete peso' => 'R$ 3.000,00',
+          'Frete valor' => '-',
+          'Ad valorem' => '-',
+          'Pedágio' => 'R$ 0,00 Sem pedágio',
+          'Pedágio na Atua' => '-',
+          'Emissão do vale pedágio' => '-',
+          'Outras cobranças' => '-',
+          'Valor da mercadoria' => '-',
+          'Base do ICMS' => '-',
+          'ICMS' => '-',
+        )
+        expect(page).to have_no_text('Pedágio fora do frete')
       end
     end
   end

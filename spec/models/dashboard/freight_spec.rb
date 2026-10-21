@@ -110,6 +110,7 @@ RSpec.describe Dashboard::Freight do
         gross: Money.from_cents(2_000_000),
         freight_expenses: Money.from_cents(50_000),
         expenses: Money.from_cents(15_000),
+        toll: Money.from_cents(0),
         fuel: Money.from_cents(0),
         net: Money.from_cents(1_935_000),
         gross_per_km: Money.from_cents(2_375),
@@ -123,11 +124,11 @@ RSpec.describe Dashboard::Freight do
         [
           { label: 'RVR2C34 + RVR9C02', trips_count: 1, loaded_km: BigDecimal('520'), empty_km: BigDecimal('80'),
             total_km: BigDecimal('600'), gross: Money.from_cents(1_500_000), freight_expenses: Money.from_cents(50_000),
-            expenses: Money.from_cents(15_000), fuel: Money.from_cents(0), net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_500),
+            expenses: Money.from_cents(15_000), toll: Money.from_cents(0), fuel: Money.from_cents(0), net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_500),
             net_per_km: Money.from_cents(2_392), share: BigDecimal('75') },
           { label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
             total_km: BigDecimal('200'), gross: Money.from_cents(500_000), freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0),
-            fuel: Money.from_cents(0), net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000),
+            toll: Money.from_cents(0), fuel: Money.from_cents(0), net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000),
             share: BigDecimal('25') },
         ],
       )
@@ -261,6 +262,30 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.total).to have_attributes(gross: Money.from_cents(1_500_000), fuel: Money.from_cents(160_000),
                                                  net: Money.from_cents(1_340_000), net_per_km: Money.from_cents(1_787))
       expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(13_400.0)
+    end
+  end
+
+  context 'with trips carrying tolls inside and outside the gross freight' do
+    before do
+      create(:atua_manifest, tenant:, code: 44_001, plate: 'RVR4E56', trip_started_at: Time.zone.local(2026, 10, 9, 8))
+      create(:atua_manifest, tenant:, code: 44_002, plate: 'RVR5F67', trip_started_at: Time.zone.local(2026, 10, 12, 8))
+      create(:atua_transport_document, tenant:, number: '77001', freight_cents: 1_000_000, weight_freight_cents: 850_000,
+                                       toll_cents: 30_000, icms_cents: 120_000, plate: 'RVR4E56')
+      create(:atua_transport_document, tenant:, number: '77002', freight_cents: 500_000, weight_freight_cents: 500_000,
+                                       toll_cents: 40_000, icms_cents: 0, plate: 'RVR5F67')
+      create(:atua_transport_document, tenant:, number: '77003', document_kind: 'ce', freight_cents: 60_000, weight_freight_cents: 55_000,
+                                       toll_cents: 5_000, icms_cents: 0, posted_on: Date.new(2026, 10, 20), plate: 'RVR4E56')
+      create(:atua_manifest_document, tenant:, manifest_code: 44_001, transport_document_number: '77001', calculated_distance_km: 400)
+      create(:atua_manifest_document, tenant:, manifest_code: 44_002, transport_document_number: '77002', calculated_distance_km: 250)
+    end
+
+    it 'discounts only the toll already carried by the gross freight of the documents' do
+      expect(Atua::TransportDocument.count).to eq(3)
+      expect(dashboard.rows.map { |row| [row.label, row.gross.cents, row.toll.cents, row.net.cents] })
+        .to eq([['RVR4E56', 1_060_000, 35_000, 1_025_000], ['RVR5F67', 500_000, 0, 500_000]])
+      expect(dashboard.total).to have_attributes(gross: Money.from_cents(1_560_000), toll: Money.from_cents(35_000),
+                                                 net: Money.from_cents(1_525_000), net_per_km: Money.from_cents(2_262))
+      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(15_250.0)
     end
   end
 

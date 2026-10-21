@@ -20,6 +20,12 @@ module ManifestsHelper
     link_to document.transport_document_number, transport_document_path(transport_document), class: 'fw-semibold text-decoration-none'
   end
 
+  def manifest_document_toll(document)
+    return t('tax.blank') unless document.transport_document
+
+    transport_document_toll(document.transport_document)
+  end
+
   def manifest_document_route(document)
     t('transport_documents.route', origin: tax_city(document.origin_city, document.origin_state),
                                    destination: tax_city(document.destination_city, document.destination_state))

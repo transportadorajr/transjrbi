@@ -4,4 +4,5 @@
   <td class="d-none d-lg-table-cell"><%= manifest_document_route(document) %></td>
   <td class="d-none d-lg-table-cell text-nowrap"><%= tax_decimal(document.weight_kg) %></td>
   <td class="text-nowrap"><%= tax_money(document.freight) %></td>
+  <td class="d-none d-md-table-cell"><%= manifest_document_toll(document) %></td>
 </tr>

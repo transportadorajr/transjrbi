@@ -211,6 +211,60 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.toll_in_freight' do
+    context 'with tolls inside and outside the gross freight' do
+      let!(:included) do
+        create(:atua_transport_document, tenant:, freight_cents: 1_992_609, weight_freight_cents: 1_761_810, toll_cents: 98_190,
+                                         icms_cents: 132_609)
+      end
+      let!(:rounded) do
+        create(:atua_transport_document, tenant:, freight_cents: 590_001, weight_freight_cents: 569_140, toll_cents: 20_860, icms_cents: nil)
+      end
+      let!(:voucher) do
+        create(:atua_transport_document, tenant:, freight_cents: 929_241, weight_freight_cents: 929_241, toll_cents: 103_867, icms_cents: 0)
+      end
+      let!(:without_toll) do
+        create(:atua_transport_document, tenant:, freight_cents: 892_267, weight_freight_cents: 785_195, toll_cents: 0, icms_cents: 107_072)
+      end
+
+      it 'keeps only the documents whose gross freight already carries the toll' do
+        expect(described_class.count).to eq(4)
+        expect(described_class.toll_in_freight).to contain_exactly(included, rounded)
+        expect(described_class.toll_in_freight.sum(:toll_cents)).to eq(119_050)
+      end
+
+      it 'keeps apart the documents whose toll is outside the gross freight' do
+        expect(described_class.toll_outside_freight).to eq([voucher])
+      end
+
+      it 'tells where the toll of each document is' do
+        expect([included, rounded, voucher, without_toll].map(&:toll_placement)).to eq(%i[in_freight in_freight outside_freight none])
+      end
+    end
+  end
+
+  describe 'toll from Atua' do
+    context 'with the toll kind and the voucher issuer imported from Atua' do
+      let(:transport_document) do
+        build(:atua_transport_document, raw_data: { 'id_pedagio_ctrc' => 'Cobrar + Pedágio', 'nm_emissao_vale_pedagio' => 'EFRETE TAG - SEM PARAR' })
+      end
+
+      it 'reads them from the imported row' do
+        expect(transport_document.atua_toll_kind).to eq('Cobrar + Pedágio')
+        expect(transport_document.toll_voucher_issuer).to eq('EFRETE TAG - SEM PARAR')
+      end
+    end
+
+    context 'without the toll columns in the imported row' do
+      let(:transport_document) { build(:atua_transport_document, raw_data: { 'id_pedagio_ctrc' => '' }) }
+
+      it 'returns nothing' do
+        expect(transport_document.atua_toll_kind).to be_nil
+        expect(transport_document.toll_voucher_issuer).to be_nil
+      end
+    end
+  end
+
   describe '.taker_names_by_code' do
     context 'with documents of takers named in different ways' do
       let!(:first) { create(:atua_transport_document, tenant:, taker_code: 501, taker_name: 'USIMINAS CUBATAO') }

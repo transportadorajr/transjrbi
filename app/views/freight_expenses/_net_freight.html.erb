@@ -19,8 +19,13 @@
       <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.expenses') %></dt>
       <dd class="col-12 col-md-6 text-md-end text-danger"><%= tax_money(net_freight.expenses) %></dd>
 
+      <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.toll') %></dt>
+      <dd class="col-12 col-md-6 text-md-end text-danger"><%= tax_money(net_freight.toll) %></dd>
+
       <dt class="col-12 col-md-6"><%= t('freight_expenses.net_freight.net') %></dt>
       <dd class="col-12 col-md-6 text-md-end fw-semibold text-success"><%= tax_money(net_freight.net) %></dd>
+
+      <%= net_freight_toll_outside_freight(net_freight) %>
     </dl>
   </div>
 </div>

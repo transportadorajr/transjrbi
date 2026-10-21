@@ -136,7 +136,7 @@ describe 'Manifests' do
                                plate: 'RHJ4E07', goods_value_cents: 11_259_672, notes: 'Entrega agendada')
       end
       let!(:transport_document) do
-        create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR TRANSPORTES')
+        create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR TRANSPORTES', toll_cents: 20_000)
       end
       let!(:linked_document) do
         create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74130', transport_document_series: 1,
@@ -174,9 +174,9 @@ describe 'Manifests' do
         expect(manifest.documents.count).to eq(2)
         expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
           [
-            ['CT-e', 'Destinatário', 'Origem / Destino', 'Peso (kg)', 'Frete'],
-            ['74130', 'FIAT', 'Ipatinga/MG → Betim/MG', '19.170,00', 'R$ 5.550,40'],
-            ['74199', '-', '- → -', '-', '-'],
+            ['CT-e', 'Destinatário', 'Origem / Destino', 'Peso (kg)', 'Frete', 'Pedágio'],
+            ['74130', 'FIAT', 'Ipatinga/MG → Betim/MG', '19.170,00', 'R$ 5.550,40', 'R$ 200,00 Fora do frete'],
+            ['74199', '-', '- → -', '-', '-', '-'],
           ],
         )
         expect(page).to have_no_link('74199')
@@ -192,7 +192,8 @@ describe 'Manifests' do
       context 'with access to the freight expenses' do
         let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
         let!(:other_transport_document) do
-          create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_name: 'JR TRANSPORTES', freight_cents: 300_000)
+          create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_name: 'JR TRANSPORTES', freight_cents: 300_000,
+                                           weight_freight_cents: 260_000, toll_cents: 15_000, icms_cents: 25_000)
         end
 
         before do
@@ -207,7 +208,7 @@ describe 'Manifests' do
           create(:freight_expense, tenant:, transport_document: outside, amount_cents: 99_999)
         end
 
-        scenario 'shows the net freight of the transport documents of the trip' do
+        scenario 'shows the net freight of the trip discounting only the toll inside the gross freight' do
           visit manifest_path(manifest)
 
           expect(FreightExpense.count).to eq(5)
@@ -217,7 +218,9 @@ describe 'Manifests' do
             '(−) Custos por tonelada' => 'R$ 408,53',
             '(−) Seguro da carga' => 'R$ 2,20',
             '(−) Despesas do frete na Atua' => 'R$ 350,00',
-            '(=) Frete líquido' => 'R$ 2.623,30',
+            '(−) Pedágio incluso no frete' => 'R$ 150,00',
+            '(=) Frete líquido' => 'R$ 2.473,30',
+            'Pedágio fora do frete (não descontado)' => 'R$ 200,00',
           )
         end
 
@@ -452,6 +455,25 @@ describe 'Manifests' do
         expect(page).to have_css('#manifest_expenses td', text: 'R$ 150,00')
         expect(page).to have_no_css('#manifest_expenses th', text: 'Favorecido')
         expect(page).to have_no_css('#manifest_expenses th', text: 'CT-e')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
+    end
+
+    context 'when the manifest has a transport document with toll' do
+      let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
+
+      before do
+        create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: manifest.branch_name, freight_cents: 100_000,
+                                         weight_freight_cents: 90_000, toll_cents: 10_000)
+        create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
+                                        transport_document_series: 1, branch_name: manifest.branch_name, freight_cents: 100_000)
+      end
+
+      scenario 'hides the toll column of the transport documents without horizontal scroll' do
+        visit manifest_path(manifest)
+
+        expect(page).to have_css('#manifest_documents td', text: 'R$ 1.000,00')
+        expect(page).to have_no_css('#manifest_documents th', text: 'Pedágio')
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end
     end
