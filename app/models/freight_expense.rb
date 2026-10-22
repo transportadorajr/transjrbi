@@ -1,11 +1,12 @@
 class FreightExpense < ApplicationRecord
-  KINDS = %i[commission tonnage insurance tarp_lining].freeze
+  KINDS = %i[commission tonnage insurance tarp_lining fuel].freeze
 
   belongs_to :tenant
   belongs_to :transport_document, class_name: 'Atua::TransportDocument', inverse_of: :freight_expenses
   belongs_to :commission_rule, optional: true, inverse_of: :freight_expenses
   belongs_to :tonnage_rate, optional: true, inverse_of: :freight_expenses
   belongs_to :insurance_rate, optional: true, inverse_of: :freight_expenses
+  belongs_to :truck_group, optional: true, inverse_of: :freight_expenses
 
   enum :kind_type, KINDS.index_with(&:to_s), validate: true
 
@@ -17,6 +18,7 @@ class FreightExpense < ApplicationRecord
   validates :tonnage_rate, :weight_tons, :rate_cents, presence: true, if: :tonnage?
   validates :insurance_rate, :base_cents, :percentage, :iof_percentage, presence: true, if: :insurance?
   validates :rate_cents, presence: true, if: :tarp_lining?
+  validates :truck_group, :base_cents, :percentage, presence: true, if: :fuel?
   validates :kind_type, uniqueness: { scope: :transport_document_id }
 
   scope :by_period, ->(start_date, end_date) {
@@ -32,6 +34,7 @@ class FreightExpense < ApplicationRecord
         .where(atua_customers: { customer_group_id: }).select(:id)))
   }
   scope :by_kind, ->(kind) { where(kind_type: kind) }
+  scope :by_truck_group, ->(truck_group_id) { where(truck_group_id:) }
 
   class << self
     def kinds
@@ -62,6 +65,7 @@ end
 #  tenant_id             :bigint           not null
 #  tonnage_rate_id       :bigint
 #  transport_document_id :bigint           not null
+#  truck_group_id        :bigint
 #
 # Indexes
 #
@@ -70,6 +74,7 @@ end
 #  index_freight_expenses_on_tenant_id                            (tenant_id)
 #  index_freight_expenses_on_tonnage_rate_id                      (tonnage_rate_id)
 #  index_freight_expenses_on_transport_document_id_and_kind_type  (transport_document_id,kind_type) UNIQUE
+#  index_freight_expenses_on_truck_group_id                       (truck_group_id)
 #
 # Foreign Keys
 #
@@ -78,4 +83,5 @@ end
 #  fk_rails_...  (tenant_id => tenants.id)
 #  fk_rails_...  (tonnage_rate_id => tonnage_rates.id)
 #  fk_rails_...  (transport_document_id => atua_transport_documents.id)
+#  fk_rails_...  (truck_group_id => truck_groups.id)
 #

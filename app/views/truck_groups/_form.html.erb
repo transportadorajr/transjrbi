@@ -1,0 +1,40 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('truck_groups.form.truck_group_data') %></p>
+    <p class="form-card-subtitle"><%= t('truck_groups.form.truck_group_data_text') %></p>
+  </div>
+  <%= simple_form_for(truck_group_form, url: truck_group_form_url(truck_group_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :fuel_percentage, as: :string, required: true, hint: t('truck_groups.form.fuel_percentage_hint'),
+                                        input_html: { class: 'form-control', inputmode: 'decimal', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :axles,
+                      as: :check_boxes,
+                      required: true,
+                      collection: truck_group_axle_options,
+                      hint: t('truck_groups.form.axles_hint'),
+                      item_wrapper_class: 'form-check form-check-inline',
+                      input_html: { class: 'form-check-input' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :active,
+                      as: :boolean,
+                      hint: t('truck_groups.form.active_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, truck_group_form_submit_label(truck_group_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), truck_groups_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

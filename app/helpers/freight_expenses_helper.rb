@@ -17,6 +17,7 @@ module FreightExpensesHelper
     return freight_expense_tonnage_rate(freight_expense.tonnage_rate) if freight_expense.tonnage?
     return freight_expense_insurance(freight_expense) if freight_expense.insurance?
     return t('freight_expenses.tarp_lining_detail') if freight_expense.tarp_lining?
+    return freight_expense_truck_group(freight_expense.truck_group) if freight_expense.fuel?
 
     freight_expense_rule(freight_expense)
   end
@@ -27,6 +28,13 @@ module FreightExpensesHelper
     return rule.name unless can?(:read, :commission_rules)
 
     link_to rule.name, commission_rule_path(rule), class: 'text-decoration-none'
+  end
+
+  def freight_expense_truck_group(truck_group)
+    return t('tax.blank') unless truck_group
+    return truck_group.name unless can?(:read, :truck_groups)
+
+    link_to truck_group.name, truck_group_path(truck_group), class: 'text-decoration-none'
   end
 
   def freight_expense_tonnage_rate(tonnage_rate)
@@ -66,6 +74,7 @@ module FreightExpensesHelper
   def freight_expense_rate(freight_expense)
     return tonnage_rate_per_ton(freight_expense.rate) if freight_expense.tonnage?
     return insurance_percentage(freight_expense.percentage) if freight_expense.insurance?
+    return truck_group_fuel_percentage(freight_expense.percentage) if freight_expense.fuel?
     return t('freight_expenses.per_transport_document', rate: tax_money(freight_expense.rate)) if freight_expense.tarp_lining?
 
     commission_percentage(freight_expense.percentage)

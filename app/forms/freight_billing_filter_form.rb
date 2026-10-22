@@ -1,5 +1,6 @@
 class FreightBillingFilterForm < BaseForm
   WEEK_START = :sunday
+  TRUCK_GROUP_ID_FORMAT = /\A(\d+|#{TruckGroup::NONE})\z/
 
   attribute :start_date, :date
   attribute :end_date, :date
@@ -7,11 +8,11 @@ class FreightBillingFilterForm < BaseForm
   attribute :plate, :string
   attribute :customer_group_id, :integer
   attribute :macro_region_id, :string
-  attribute :truck_configuration, :string
+  attribute :truck_group_id, :string
 
   validates :start_date, :end_date, presence: true
   validates :dimension, inclusion: { in: Dashboard::Freight::DIMENSIONS }
-  validates :truck_configuration, inclusion: { in: Atua::TransportDocument::TRUCK_CONFIGURATIONS }, allow_blank: true
+  validates :truck_group_id, format: { with: TRUCK_GROUP_ID_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 
   def initialize(attributes = {})

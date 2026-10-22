@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_134410) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_164328) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,7 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_134410) do
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
-  create_enum "freight_expense_kind_type", ["commission", "tonnage", "insurance", "tarp_lining"]
+  create_enum "freight_expense_kind_type", ["commission", "tonnage", "insurance", "tarp_lining", "fuel"]
   create_enum "location_precision_type", ["address", "city"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
@@ -621,11 +621,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_134410) do
     t.bigint "insurance_rate_id"
     t.decimal "iof_percentage", precision: 7, scale: 4
     t.bigint "iof_cents", default: 0, null: false
+    t.bigint "truck_group_id"
     t.index ["commission_rule_id"], name: "index_freight_expenses_on_commission_rule_id"
     t.index ["insurance_rate_id"], name: "index_freight_expenses_on_insurance_rate_id"
     t.index ["tenant_id"], name: "index_freight_expenses_on_tenant_id"
     t.index ["tonnage_rate_id"], name: "index_freight_expenses_on_tonnage_rate_id"
     t.index ["transport_document_id", "kind_type"], name: "index_freight_expenses_on_transport_document_id_and_kind_type", unique: true
+    t.index ["truck_group_id"], name: "index_freight_expenses_on_truck_group_id"
   end
 
   create_table "good_job_batches", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -832,6 +834,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_134410) do
     t.index ["tenant_id"], name: "index_tonnage_rates_on_tenant_id"
   end
 
+  create_table "truck_groups", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.integer "axles", default: [], null: false, array: true
+    t.decimal "fuel_percentage", precision: 7, scale: 4, default: "0.0", null: false
+    t.datetime "activated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_truck_groups_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_truck_groups_on_tenant_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -901,11 +915,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_134410) do
   add_foreign_key "freight_expenses", "insurance_rates"
   add_foreign_key "freight_expenses", "tenants"
   add_foreign_key "freight_expenses", "tonnage_rates"
+  add_foreign_key "freight_expenses", "truck_groups"
   add_foreign_key "insurance_rates", "tenants"
   add_foreign_key "macro_regions", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "tonnage_rates", "customer_groups"
   add_foreign_key "tonnage_rates", "tenants"
+  add_foreign_key "truck_groups", "tenants"
   add_foreign_key "users", "tenants"
 end

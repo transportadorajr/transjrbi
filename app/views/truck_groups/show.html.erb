@@ -1,0 +1,42 @@
+<% content_for :title, @truck_group.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('truck_groups.index.title'), truck_groups_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @truck_group.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @truck_group.name, back_path: truck_groups_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= truck_group_edit_button(@truck_group) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.truck_group_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="truck_group_data">
+        <dt class="col-12 col-md-4"><%= TruckGroup.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-8 text-break"><%= @truck_group.name %></dd>
+
+        <dt class="col-12 col-md-4"><%= TruckGroup.human_attribute_name(:axles) %></dt>
+        <dd class="col-12 col-md-8"><%= truck_group_axles(@truck_group) %></dd>
+
+        <dt class="col-12 col-md-4"><%= TruckGroup.human_attribute_name(:fuel_percentage) %></dt>
+        <dd class="col-12 col-md-8"><%= truck_group_fuel_percentage(@truck_group.fuel_percentage) %></dd>
+
+        <dt class="col-12 col-md-4"><%= TruckGroup.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-8"><%= truck_group_status_badge(@truck_group) %></dd>
+
+        <dt class="col-12 col-md-4"><%= t('.month_fuels_count') %></dt>
+        <dd class="col-12 col-md-8"><%= @month_fuels_count %></dd>
+
+        <dt class="col-12 col-md-4"><%= t('.month_fuels_amount') %></dt>
+        <dd class="col-12 col-md-8"><%= tax_money(@month_fuels_amount) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

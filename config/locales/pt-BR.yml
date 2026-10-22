@@ -70,7 +70,16 @@ pt-BR:
       macro_region:
         one: Macro região
         other: Macro regiões
+      truck_group:
+        one: Grupo de caminhões
+        other: Grupos de caminhões
     attributes:
+      truck_group:
+        name: Nome
+        axles: Quantidades de eixos
+        fuel_percentage: Combustível sobre o frete
+        status: Status
+        activated_at: Ativado em
       macro_region:
         name: Nome
         state: UF
@@ -382,6 +391,9 @@ pt-BR:
         tonnage_rate:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um custo que já foi calculado nos CT-es. Desative o custo para deixar de usá-lo.
+        truck_group:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir um grupo que já gerou despesas de combustível. Desative o grupo para deixar de usá-lo.
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -393,7 +405,7 @@ pt-BR:
         plate: Placa
         customer_group_id: Grupo de clientes
         macro_region_id: Macro região de origem
-        truck_configuration: Tipo de conjunto
+        truck_group_id: Tipo de conjunto
       admin/login_form:
         email: E-mail
         password: Senha
@@ -463,6 +475,11 @@ pt-BR:
         state: UF
         cities: Cidades
         remaining_state: Abrange o restante do estado
+      truck_group_form:
+        name: Nome
+        axles: Quantidades de eixos
+        fuel_percentage: Combustível sobre o frete (%)
+        active: Ativo
     errors:
       models:
         freight_billing_filter_form:
@@ -519,6 +536,14 @@ pt-BR:
               taken: já está em outra macro região desta UF
             cities:
               taken: '%{cities} já estão em outra macro região desta UF'
+        truck_group_form:
+          attributes:
+            name:
+              taken: já está em uso por outro grupo
+            axles:
+              taken: '%{axles} já estão em outro grupo ativo'
+            fuel_percentage:
+              out_of_range: deve ser maior ou igual a 0 e menor ou igual a 100
         customer_group_form:
           attributes:
             name:
@@ -548,6 +573,7 @@ pt-BR:
         tonnage: Custo por tonelada
         insurance: Seguro da carga
         tarp_lining: Forro de lona
+        fuel: Combustível
     location:
       precision_type:
         address: Endereço
@@ -631,6 +657,9 @@ pt-BR:
       macro_region:
         create: Cadastrar Macro Região
         update: Salvar Alterações
+      truck_group:
+        create: Cadastrar Grupo
+        update: Salvar Alterações
       tonnage_rate:
         create: Cadastrar Custo
         update: Salvar Alterações
@@ -664,6 +693,10 @@ pt-BR:
         edit: Alterar
         destroy: Excluir
       macro_region:
+        show: Visualizar
+        edit: Alterar
+        destroy: Excluir
+      truck_group:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
@@ -793,6 +826,7 @@ pt-BR:
     insurance_rates: Alíquota de seguro
     freight_expenses: Despesas de frete
     macro_regions: Macro regiões
+    truck_groups: Grupos de caminhões
     company: Dados da empresa
     freight_billing: Faturamento de fretes
   tax:
@@ -1009,6 +1043,53 @@ pt-BR:
         Marque para incluir todas as cidades da UF que não estão em outra macro região (ex.: Interior SP). Nesse caso a
         lista de cidades é ignorada.
       cities_hint: Uma cidade por linha (acentos, espaços e hífen são ignorados).
+  truck_groups:
+    axles:
+      one: '%{axles} eixo'
+      other: '%{axles} eixos'
+    defaults:
+      rodotrem: Rodotrem
+      quarto_eixo: Quarto eixo
+      ls: LS
+    index:
+      title: Grupos de caminhões
+      subtitle: Agrupam os conjuntos pela quantidade de eixos e definem o percentual de combustível descontado do frete.
+      new_truck_group: Novo Grupo
+      total: Total de grupos
+      active_groups: Grupos ativos
+      deactivated_groups: Grupos inativos
+      active: Ativo
+      deactivated: Inativo
+      confirm_destroy: Tem certeza que deseja excluir este grupo?
+    filters:
+      name: Nome do grupo
+      status: Status
+    show:
+      back: Voltar para grupos de caminhões
+      truck_group_data: Dados do grupo
+      month_fuels_count: CT-es com combustível no mês
+      month_fuels_amount: Combustível do mês
+      edit: Alterar
+    new:
+      title: Novo Grupo de Caminhões
+      back: Voltar para grupos de caminhões
+    create:
+      success: Grupo cadastrado com sucesso.
+    edit:
+      title: Alterar Grupo de Caminhões
+      back: Voltar para grupos de caminhões
+    update:
+      success: Grupo atualizado com sucesso.
+    destroy:
+      success: Grupo excluído com sucesso.
+    form:
+      truck_group_data: Dados do Grupo
+      truck_group_data_text: >-
+        O grupo de cada CT-e vem da quantidade de eixos informada nele. O combustível é calculado sobre o frete dos CT-es
+        normais; CEs, complementos de valores e CT-es cancelados ficam de fora.
+      fuel_percentage_hint: 'Ex.: 35 ou 32,5. Com 0 o combustível não é calculado.'
+      axles_hint: Cada quantidade de eixos só pode estar em um grupo ativo.
+      active_hint: Desmarque para deixar de usar o grupo. Toda alteração recalcula o combustível de todos os CT-es.
   tonnage_rates:
     label: '%{name} – %{origin}'
     origin_with_nickname: '%{origin} (%{nickname})'
@@ -1096,7 +1177,8 @@ pt-BR:
   freight_billings:
     km: '%{distance} km'
     filters:
-      truck_configuration_hint: Pela quantidade de eixos mais frequente nos CT-es da placa no período.
+      truck_group_hint: Pela quantidade de eixos mais frequente nos CT-es da placa no período.
+      without_truck_group: Sem grupo
     dimensions:
       vehicle: Conjunto
       driver: Motorista
@@ -1131,14 +1213,9 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
       table_subtitle: >-
         Cada viagem é um MDF-e: soma o frete e as despesas de todos os seus CT-es. Frete líquido = frete bruto − despesas
-        de frete (comissão, custo por tonelada e seguro) − despesas lançadas nos CT-es − pedágio somado ao frete do CT-e. O frete
+        de frete (comissão, custo por tonelada, seguro, forro de lona e combustível) − despesas lançadas nos CT-es − pedágio somado ao frete do CT-e. O frete
         por km divide pelo KM rodado da viagem e considera só as viagens com KM rodado. Uma viagem com clientes de grupos
         diferentes é rateada pela participação de cada grupo no frete.
-  truck_configurations:
-    rodotrem: Rodotrem (9 eixos)
-    quarto_eixo: Quarto eixo (7 eixos)
-    ls: LS (6 eixos)
-    other: Outros
   freight_expenses:
     index:
       title: Despesas de frete
@@ -1182,6 +1259,7 @@ pt-BR:
       tonnage: (−) Custos por tonelada
       insurance: (−) Seguro da carga
       tarp_lining: (−) Forro de lona
+      fuel: (−) Combustível
       expenses: (−) Despesas do frete na Atua
       toll: (−) Pedágio incluso no frete
       net: (=) Frete líquido
@@ -1305,6 +1383,7 @@ pt-BR:
     customers: Clientes
     customer_groups: Grupos de clientes
     macro_regions: Macro regiões
+    truck_groups: Grupos de caminhões
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas

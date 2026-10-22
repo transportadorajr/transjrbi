@@ -38,12 +38,12 @@
       </div>
 
       <div class="col-12">
-        <%= f.label :truck_configuration, FreightBillingFilterForm.human_attribute_name(:truck_configuration), class: 'form-label fw-medium' %>
-        <%= f.select :truck_configuration,
-                     options_for_select(@truck_configurations, @filter_form.truck_configuration),
+        <%= f.label :truck_group_id, FreightBillingFilterForm.human_attribute_name(:truck_group_id), class: 'form-label fw-medium' %>
+        <%= f.select :truck_group_id,
+                     freight_billing_truck_group_options(@truck_groups, @filter_form.truck_group_id),
                      { include_blank: t('shared.all') },
-                     { class: 'form-select bg-light', aria: { describedby: 'truck_configuration_hint' } } %>
-        <%= tag.div t('freight_billings.filters.truck_configuration_hint'), id: 'truck_configuration_hint', class: 'form-text' %>
+                     { class: 'form-select bg-light', aria: { describedby: 'truck_group_hint' } } %>
+        <%= tag.div t('freight_billings.filters.truck_group_hint'), id: 'truck_group_hint', class: 'form-text' %>
       </div>
     </div>
 
