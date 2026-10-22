@@ -10,7 +10,8 @@ class TruckGroupForm < BaseForm
   validate :name_must_be_unique
   validate :axles_must_be_valid
   validate :axles_must_not_be_in_another_group
-  validate :fuel_percentage_must_be_in_range
+  validates :fuel_percentage, presence: true
+  validates :fuel_percentage, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_blank: true
 
   attr_accessor :tenant
   attr_writer :truck_group
@@ -25,7 +26,10 @@ class TruckGroupForm < BaseForm
       form
     end
 
-    delegate :format_percentage, to: :InsuranceRateForm
+    def format_percentage(percentage)
+      ActiveSupport::NumberHelper.number_to_rounded(percentage, precision: 4, strip_insignificant_zeros: true,
+                                                                separator: '.', delimiter: '')
+    end
   end
 
   def truck_group
@@ -36,12 +40,8 @@ class TruckGroupForm < BaseForm
     Array(axles).compact_blank.map(&:to_i).uniq.sort
   end
 
-  def fuel_percentage_value
-    InsuranceRateForm.parse_percentage(fuel_percentage)
-  end
-
   def submit
-    truck_group.update!(name:, axles: axle_list, fuel_percentage: fuel_percentage_value, activated: active)
+    truck_group.update!(name:, axles: axle_list, fuel_percentage: BigDecimal(fuel_percentage), activated: active)
 
     FreightExpenses::CalculateFuelCommand.call(tenant)
   end
@@ -71,13 +71,6 @@ class TruckGroupForm < BaseForm
 
     taken = axle_list & other_groups.activated.pluck(:axles).flatten
     errors.add(:axles, :taken, axles: taken.to_sentence) if taken.any?
-  end
-
-  def fuel_percentage_must_be_in_range
-    value = fuel_percentage_value
-    return if value && !value.negative? && value <= 100
-
-    errors.add(:fuel_percentage, :out_of_range)
   end
 
   def other_groups

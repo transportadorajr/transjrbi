@@ -7,7 +7,7 @@ RSpec.describe TruckGroupForm do
     let!(:document) { create(:atua_transport_document, tenant:, axles: 9, freight_cents: 1_000_000) }
 
     it 'creates the group and calculates the fuel of its transport documents' do
-      form = described_class.new(tenant:, name: ' Rodotrem ', axles: ['', '9'], fuel_percentage: '32,5', active: '1')
+      form = described_class.new(tenant:, name: ' Rodotrem ', axles: ['', '9'], fuel_percentage: '32.5', active: '1')
 
       expect { expect(form.save).to be(true) }.to change(TruckGroup, :count).by(1).and change(FreightExpense, :count).by(1)
 
@@ -22,7 +22,7 @@ RSpec.describe TruckGroupForm do
       expect { expect(form.save).to be_falsey }.not_to change(TruckGroup, :count)
       expect(form.errors.full_messages).to contain_exactly(
         'Nome não pode ficar em branco', 'Quantidades de eixos não pode ficar em branco',
-        'Combustível sobre o frete (%) deve ser maior ou igual a 0 e menor ou igual a 100'
+        'Combustível sobre o frete (%) não pode ficar em branco'
       )
     end
 
@@ -31,9 +31,24 @@ RSpec.describe TruckGroupForm do
 
       expect(form.save).to be_falsey
       expect(form.errors.full_messages).to contain_exactly(
-        'Quantidades de eixos não está incluído na lista',
-        'Combustível sobre o frete (%) deve ser maior ou igual a 0 e menor ou igual a 100',
+        'Quantidades de eixos não está incluído na lista', 'Combustível sobre o frete (%) deve ser menor ou igual a 100'
       )
+    end
+
+    it 'rejects a fuel percentage written as text' do
+      %w[abc 32,5].each do |fuel_percentage|
+        form = described_class.new(tenant:, name: 'Bitrem', axles: ['7'], fuel_percentage:)
+
+        expect { expect(form.save).to be_falsey }.not_to change(TruckGroup, :count)
+        expect(form.errors.full_messages).to eq(['Combustível sobre o frete (%) não é um número'])
+      end
+    end
+
+    it 'rejects a fuel percentage below zero' do
+      form = described_class.new(tenant:, name: 'Bitrem', axles: ['7'], fuel_percentage: '-1')
+
+      expect(form.save).to be_falsey
+      expect(form.errors.full_messages).to eq(['Combustível sobre o frete (%) deve ser maior ou igual a 0'])
     end
 
     context 'with other groups of the tenant' do

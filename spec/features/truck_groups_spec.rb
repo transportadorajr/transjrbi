@@ -71,13 +71,24 @@ describe 'Truck groups' do
         fill_in 'Nome do grupo', with: 'eixo'
         click_on 'Aplicar Filtros'
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['Quarto eixo'])
+        expect(TruckGroup.count).to eq(4)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'Quantidades de eixos', 'Combustível sobre o frete', 'Status', 'Ações'],
+            ['Quarto eixo', '7 e 8 eixos', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+          ],
+        )
 
         visit truck_groups_path
         select 'Inativo', from: 'Status'
         click_on 'Aplicar Filtros'
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['LS'])
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'Quantidades de eixos', 'Combustível sobre o frete', 'Status', 'Ações'],
+            ['LS', '6 eixos', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+          ],
+        )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
           ['Total de grupos 3', 'Grupos ativos 2', 'Grupos inativos 1'],
         )
@@ -134,7 +145,10 @@ describe 'Truck groups' do
         click_on 'Novo Grupo'
         fill_in 'Nome', with: 'Rodotrem'
         check '9 eixos'
-        fill_in 'Combustível sobre o frete (%)', with: '32,5'
+
+        expect(page).to have_field('Combustível sobre o frete (%)', type: 'number')
+
+        fill_in 'Combustível sobre o frete (%)', with: '32.5'
 
         expect { click_on 'Cadastrar Grupo' }.to change(TruckGroup, :count).by(1).and change(FreightExpense, :count).by(1)
 
@@ -152,7 +166,16 @@ describe 'Truck groups' do
 
         expect(page).to have_text('Nome não pode ficar em branco')
         expect(page).to have_text('Quantidades de eixos não pode ficar em branco')
-        expect(page).to have_text('Combustível sobre o frete (%) deve ser maior ou igual a 0 e menor ou igual a 100')
+        expect(page).to have_text('Combustível sobre o frete (%) não pode ficar em branco')
+      end
+
+      scenario 'rejects a fuel percentage written as text' do
+        expect do
+          page.driver.submit :post, truck_groups_path, { truck_group: { name: 'Rodotrem', axles: ['9'], fuel_percentage: 'trinta' } }
+        end.not_to change(TruckGroup, :count)
+
+        expect(page.status_code).to eq(422)
+        expect(page).to have_text('Combustível sobre o frete (%) não é um número')
       end
 
       context 'when the axle count is already in another active group' do
@@ -198,7 +221,8 @@ describe 'Truck groups' do
       scenario 'deactivates the group and removes its fuel' do
         visit edit_truck_group_path(truck_group)
         uncheck 'Ativo'
-        click_on 'Salvar Alterações'
+
+        expect { click_on 'Salvar Alterações' }.not_to change(TruckGroup, :count)
 
         expect(page).to have_text('Grupo atualizado com sucesso.')
         expect(truck_group.reload.activated?).to be(false)

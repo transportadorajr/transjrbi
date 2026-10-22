@@ -542,8 +542,6 @@ pt-BR:
               taken: já está em uso por outro grupo
             axles:
               taken: '%{axles} já estão em outro grupo ativo'
-            fuel_percentage:
-              out_of_range: deve ser maior ou igual a 0 e menor ou igual a 100
         customer_group_form:
           attributes:
             name:
@@ -1087,7 +1085,7 @@ pt-BR:
       truck_group_data_text: >-
         O grupo de cada CT-e vem da quantidade de eixos informada nele. O combustível é calculado sobre o frete dos CT-es
         normais; CEs, complementos de valores e CT-es cancelados ficam de fora.
-      fuel_percentage_hint: 'Ex.: 35 ou 32,5. Com 0 o combustível não é calculado.'
+      fuel_percentage_hint: De 0 a 100, com até 4 casas decimais. Com 0 o combustível não é calculado.
       axles_hint: Cada quantidade de eixos só pode estar em um grupo ativo.
       active_hint: Desmarque para deixar de usar o grupo. Toda alteração recalcula o combustível de todos os CT-es.
   tonnage_rates:
