@@ -22,6 +22,8 @@ module Atua
                            inverse_of: :trailer_transport_documents
     end
 
+    belongs_to :origin_macro_region, class_name: 'MacroRegion', optional: true, inverse_of: :transport_documents
+
     has_many :transport_document_manifests, class_name: 'Atua::TransportDocumentManifest',
                                             foreign_key: %i[tenant_id transport_document_code], primary_key: %i[tenant_id code],
                                             inverse_of: :transport_document
@@ -64,6 +66,9 @@ module Atua
       where(taker_code: Customer.where(customer_group_id:).select(:code))
     }
     scope :by_branch, ->(code) { where(branch_code: code) }
+    scope :by_origin_macro_region, ->(macro_region_id) {
+      where(origin_macro_region_id: macro_region_id.to_s == MacroRegion::OTHERS ? nil : macro_region_id)
+    }
     scope :not_canceled, -> { where(canceled_at: nil) }
     scope :canceled, -> { where.not(canceled_at: nil) }
     scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
@@ -263,6 +268,7 @@ end
 #  created_at                :datetime         not null
 #  updated_at                :datetime         not null
 #  atua_import_id            :bigint
+#  origin_macro_region_id    :bigint
 #  tenant_id                 :bigint           not null
 #
 # Indexes
@@ -270,6 +276,7 @@ end
 #  idx_on_tenant_id_number_series_branch_name_82ba4806a5           (tenant_id,number,series,branch_name)
 #  index_atua_transport_documents_on_atua_import_id                (atua_import_id)
 #  index_atua_transport_documents_on_manifest_numbers              (manifest_numbers) USING gin
+#  index_atua_transport_documents_on_origin_macro_region_id        (origin_macro_region_id)
 #  index_atua_transport_documents_on_tenant_id_and_code            (tenant_id,code) UNIQUE
 #  index_atua_transport_documents_on_tenant_id_and_consignee_code  (tenant_id,consignee_code)
 #  index_atua_transport_documents_on_tenant_id_and_cte_status      (tenant_id,cte_status)
@@ -286,5 +293,6 @@ end
 # Foreign Keys
 #
 #  fk_rails_...  (atua_import_id => atua_imports.id) ON DELETE => nullify
+#  fk_rails_...  (origin_macro_region_id => macro_regions.id) ON DELETE => nullify
 #  fk_rails_...  (tenant_id => tenants.id)
 #

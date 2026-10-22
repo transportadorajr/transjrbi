@@ -1,0 +1,26 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= macro_region_create_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @macro_regions.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @macro_regions.any? %>
+        <%= render 'table', collection: @macro_regions %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

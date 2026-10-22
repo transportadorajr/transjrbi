@@ -5,6 +5,10 @@ module Atua
     PREVIOUS_ATTRIBUTES = %i[charged_at nfse_pending_at].freeze
     MANIFEST_COLUMN = 'nr_mdfe'.freeze
 
+    def call
+      super.tap { MacroRegions::AssignCommand.call(tenant) }
+    end
+
     private
 
     def save_children(records)

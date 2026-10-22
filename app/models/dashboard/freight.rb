@@ -1,14 +1,16 @@
 module Dashboard
   class Freight
-    DIMENSIONS = %w[vehicle driver customer_group origin].freeze
+    DIMENSIONS = %w[vehicle driver customer_group origin macro_region].freeze
     DEFAULT_DIMENSION = 'vehicle'.freeze
     HISTORY_MONTHS = 6
     RANKING_LIMIT = 15
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
-                 toll_cents plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state].freeze
+                 toll_cents plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state
+                 origin_macro_region_id].freeze
     ENTRY_ATTRIBUTES = %i[manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
-                          plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state].freeze
+                          plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state
+                          origin_macro_region_id].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -110,7 +112,7 @@ module Dashboard
       Entry.new(
         manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'), **money_of([fact]),
         plate: fact.plate, trailer_plate: fact.trailer_plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
-        origin_city: fact.origin_city, origin_state: fact.origin_state
+        origin_city: fact.origin_city, origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id
       )
     end
 
@@ -124,7 +126,7 @@ module Dashboard
           manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
           **money_of(slice), plate: trip.trip_plate, trailer_plate: trip_facts.filter_map { |fact| fact.trailer_plate.presence }.first,
           driver_code: main.driver_code, driver_name: main.driver_name, customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
-          origin_state: first_loading.origin_state
+          origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id
         )
       end
     end
@@ -184,6 +186,7 @@ module Dashboard
         Atua::Customer.arel_table[:customer_group_id],
         table[:origin_city],
         table[:origin_state],
+        table[:origin_macro_region_id],
       ]
     end
 
@@ -265,6 +268,7 @@ module Dashboard
       when 'driver' then entry.driver_code
       when 'customer_group' then entry.customer_group_id
       when 'origin' then [entry.origin_city.presence, entry.origin_state.presence]
+      when 'macro_region' then entry.origin_macro_region_id
       end
     end
 
@@ -274,6 +278,7 @@ module Dashboard
               when 'driver' then grouped.filter_map { |entry| entry.driver_name.presence }.first
               when 'customer_group' then customer_group_names[key]
               when 'origin' then origin_label(*key)
+              when 'macro_region' then macro_region_names[key]
               end
 
       label.presence || I18n.t(dimension, scope: 'dashboards.freight.none')
@@ -287,6 +292,10 @@ module Dashboard
 
     def customer_group_names
       @customer_group_names ||= CustomerGroup.where(id: entries.filter_map(&:customer_group_id).uniq).pluck(:id, :name).to_h
+    end
+
+    def macro_region_names
+      @macro_region_names ||= MacroRegion.where(id: entries.filter_map(&:origin_macro_region_id).uniq).pluck(:id, :name).to_h
     end
 
     def history_months

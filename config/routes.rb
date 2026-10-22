@@ -52,6 +52,7 @@ Rails.application.routes.draw do
   resources :vehicles, only: %i[index show]
   resources :expenses, only: %i[index show]
   resources :commission_rules
+  resources :macro_regions
   resources :tonnage_rates
   resource :insurance_rate, only: %i[show edit update]
   resource :freight_billing, only: :show

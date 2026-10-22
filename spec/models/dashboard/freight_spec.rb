@@ -161,6 +161,20 @@ RSpec.describe Dashboard::Freight do
       end
     end
 
+    context 'when grouped by macro region' do
+      let(:dimension) { 'macro_region' }
+
+      before do
+        create(:macro_region, tenant:)
+        MacroRegions::AssignCommand.call(tenant)
+      end
+
+      it 'labels each row with the region of the origin and puts the other origins in other regions' do
+        expect(dashboard.rows.map { |row| [row.label, row.gross.cents, row.share] })
+          .to eq([['VALE DO AÇO/MG', 1_500_000, BigDecimal('75')], ['Outras Regiões', 500_000, BigDecimal('25')]])
+      end
+    end
+
     context 'with an unknown dimension' do
       let(:dimension) { 'payer' }
 
@@ -219,6 +233,19 @@ RSpec.describe Dashboard::Freight do
 
       it 'assigns the whole trip to the city of its first loading' do
         expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['CASCAVEL/PR', 1, 1_500_000]])
+      end
+    end
+
+    context 'when grouped by macro region' do
+      let(:dimension) { 'macro_region' }
+
+      before do
+        create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', cities: %w[Cascavel Corbélia])
+        MacroRegions::AssignCommand.call(tenant)
+      end
+
+      it 'assigns the whole trip to the region of its first loading' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['OESTE PARANA', 1, 1_500_000]])
       end
     end
 

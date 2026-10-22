@@ -67,7 +67,17 @@ pt-BR:
       insurance_rate:
         one: Alíquota de seguro
         other: Alíquotas de seguro
+      macro_region:
+        one: Macro região
+        other: Macro regiões
     attributes:
+      macro_region:
+        name: Nome
+        state: UF
+        cities: Cidades
+        remaining_state: Restante do estado
+        coverage: Abrangência
+        transport_documents: CT-es com origem na região
       commission_rule:
         name: Nome
         customer_group: Grupo de clientes
@@ -382,6 +392,7 @@ pt-BR:
         dimension: Agrupar por
         plate: Placa
         customer_group_id: Grupo de clientes
+        macro_region_id: Macro região de origem
         truck_configuration: Tipo de conjunto
       admin/login_form:
         email: E-mail
@@ -447,6 +458,11 @@ pt-BR:
       insurance_rate_form:
         insurance_percentage: Alíquota do seguro (%)
         iof_percentage: Alíquota do IOF (%)
+      macro_region_form:
+        name: Nome
+        state: UF
+        cities: Cidades
+        remaining_state: Abrange o restante do estado
     errors:
       models:
         freight_billing_filter_form:
@@ -495,6 +511,14 @@ pt-BR:
               out_of_range: deve ser maior que 0 e menor que 100
             iof_percentage:
               out_of_range: deve ser maior ou igual a 0 e menor que 100
+        macro_region_form:
+          attributes:
+            name:
+              taken: já está em uso por outra macro região
+            remaining_state:
+              taken: já está em outra macro região desta UF
+            cities:
+              taken: '%{cities} já estão em outra macro região desta UF'
         customer_group_form:
           attributes:
             name:
@@ -604,6 +628,9 @@ pt-BR:
       commission_rule:
         create: Cadastrar Regra
         update: Salvar Alterações
+      macro_region:
+        create: Cadastrar Macro Região
+        update: Salvar Alterações
       tonnage_rate:
         create: Cadastrar Custo
         update: Salvar Alterações
@@ -633,6 +660,10 @@ pt-BR:
         edit: Alterar
         destroy: Excluir
       tonnage_rate:
+        show: Visualizar
+        edit: Alterar
+        destroy: Excluir
+      macro_region:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
@@ -761,6 +792,7 @@ pt-BR:
     tonnage_rates: Custos por tonelada
     insurance_rates: Alíquota de seguro
     freight_expenses: Despesas de frete
+    macro_regions: Macro regiões
     company: Dados da empresa
     freight_billing: Faturamento de fretes
   tax:
@@ -939,6 +971,44 @@ pt-BR:
         Só para destino no exterior: uma cidade por linha (acentos, espaços e hífen são ignorados). CT-e com UF EX e
         cidade fora das regras fica sem comissão e aparece em alerta nas despesas de frete.
       active_hint: Desmarque para deixar de calcular a comissão desta regra. Toda alteração recalcula as comissões de todos os CT-es.
+  macro_regions:
+    coverage:
+      remaining_state: Restante de %{state}
+      cities:
+        one: 1 cidade
+        other: '%{count} cidades'
+    index:
+      title: Macro regiões
+      subtitle: Agrupam as cidades de origem dos fretes. Origens fora de todas as regiões entram em Outras Regiões.
+      new_macro_region: Nova Macro Região
+      confirm_destroy: Tem certeza que deseja excluir esta macro região? Os CT-es dela passam para Outras Regiões.
+    filters:
+      name: Nome da macro região
+    show:
+      back: Voltar para macro regiões
+      macro_region_data: Dados da macro região
+      remaining_state_cities: Todas as cidades de %{state} que não estão em outra macro região
+      edit: Alterar
+    new:
+      title: Nova Macro Região
+      back: Voltar para macro regiões
+    create:
+      success: Macro região cadastrada com sucesso.
+    edit:
+      title: Alterar Macro Região
+      back: Voltar para macro regiões
+    update:
+      success: Macro região atualizada com sucesso.
+    destroy:
+      success: Macro região excluída com sucesso.
+    form:
+      macro_region_data: Dados da Macro Região
+      macro_region_data_text: A macro região é atribuída pela cidade de origem do CT-e.
+      state_hint: 'Sigla com 2 letras. Ex.: MG.'
+      remaining_state_hint: >-
+        Marque para incluir todas as cidades da UF que não estão em outra macro região (ex.: Interior SP). Nesse caso a
+        lista de cidades é ignorada.
+      cities_hint: Uma cidade por linha (acentos, espaços e hífen são ignorados).
   tonnage_rates:
     label: '%{name} – %{origin}'
     origin_with_nickname: '%{origin} (%{nickname})'
@@ -1022,6 +1092,7 @@ pt-BR:
         driver: Sem motorista
         customer_group: Sem grupo
         origin: Sem origem
+        macro_region: Outras Regiões
   freight_billings:
     km: '%{distance} km'
     filters:
@@ -1031,6 +1102,7 @@ pt-BR:
       driver: Motorista
       customer_group: Grupo de clientes
       origin: Origem
+      macro_region: Macro região
     columns:
       trips: Viagens
       loaded_km: KM rodado
@@ -1232,6 +1304,7 @@ pt-BR:
     registrations: Cadastros
     customers: Clientes
     customer_groups: Grupos de clientes
+    macro_regions: Macro regiões
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas

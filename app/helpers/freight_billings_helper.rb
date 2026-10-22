@@ -30,6 +30,12 @@ module FreightBillingsHelper
     "btn btn-sm #{variation}"
   end
 
+  def freight_billing_macro_region_options(macro_regions, selected)
+    options = macro_regions.map { |macro_region| [macro_region.name, macro_region.id.to_s] }
+
+    options_for_select(options + [[t('dashboards.freight.none.macro_region'), MacroRegion::OTHERS]], selected)
+  end
+
   def freight_billing_period_label(filter_form)
     t('freight_billings.show.period', from: l(filter_form.start_date), to: l(filter_form.end_date))
   end

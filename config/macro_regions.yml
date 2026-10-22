@@ -1,0 +1,168 @@
+- name: GRANDE BH
+  state: MG
+  cities:
+    - Baldim
+    - Belo Horizonte
+    - Betim
+    - Brumadinho
+    - Caeté
+    - Capim Branco
+    - Confins
+    - Contagem
+    - Esmeraldas
+    - Florestal
+    - Ibirité
+    - Igarapé
+    - Itaguara
+    - Itatiaiuçu
+    - Jaboticatubas
+    - Juatuba
+    - Lagoa Santa
+    - Mário Campos
+    - Mateus Leme
+    - Matozinhos
+    - Nova Lima
+    - Nova União
+    - Pedro Leopoldo
+    - Raposos
+    - Ribeirão das Neves
+    - Rio Acima
+    - Rio Manso
+    - Sabará
+    - Santa Luzia
+    - São Joaquim de Bicas
+    - São José da Lapa
+    - Sarzedo
+    - Taquaraçu de Minas
+    - Vespasiano
+- name: VALE DO AÇO/MG
+  state: MG
+  cities:
+    - Ipatinga
+    - Coronel Fabriciano
+    - Timóteo
+    - Santana do Paraíso
+    - Açucena
+    - Antônio Dias
+    - Belo Oriente
+    - Bom Jesus do Galho
+    - Braúnas
+    - Bugre
+    - Caratinga
+    - Córrego Novo
+    - Dionísio
+    - Dom Cavati
+    - Entre Folhas
+    - Iapu
+    - Ipaba
+    - Jaguaraçu
+    - Joanésia
+    - Marliéria
+    - Mesquita
+    - Naque
+    - Periquito
+    - Pingo-d'Água
+    - São João do Oriente
+    - São José do Goiabal
+    - Sobrália
+    - Vargem Alegre
+- name: OESTE PARANA
+  state: PR
+  cities:
+    - Assis Chateaubriand
+    - Diamante d'Oeste
+    - Entre Rios do Oeste
+    - Formosa do Oeste
+    - Guaíra
+    - Iracema do Oeste
+    - Jesuítas
+    - Marechal Cândido Rondon
+    - Maripá
+    - Mercedes
+    - Nova Santa Rosa
+    - Ouro Verde do Oeste
+    - Palotina
+    - Pato Bragado
+    - Quatro Pontes
+    - Santa Helena
+    - São José das Palmeiras
+    - São Pedro do Iguaçu
+    - Terra Roxa
+    - Toledo
+    - Tupãssi
+    - Anahy
+    - Boa Vista da Aparecida
+    - Braganey
+    - Cafelândia
+    - Campo Bonito
+    - Capitão Leônidas Marques
+    - Cascavel
+    - Catanduvas
+    - Corbélia
+    - Diamante do Sul
+    - Guaraniaçu
+    - Ibema
+    - Iguatu
+    - Lindoeste
+    - Nova Aurora
+    - Santa Lúcia
+    - Santa Tereza do Oeste
+    - Três Barras do Paraná
+    - Céu Azul
+    - Foz do Iguaçu
+    - Itaipulândia
+    - Matelândia
+    - Medianeira
+    - Missal
+    - Ramilândia
+    - Santa Terezinha de Itaipu
+    - São Miguel do Iguaçu
+    - Serranópolis do Iguaçu
+    - Vera Cruz do Oeste
+- name: SAO PAULO REGIAO METROCAPITAL
+  state: SP
+  cities:
+    - Arujá
+    - Barueri
+    - Biritiba-Mirim
+    - Caieiras
+    - Cajamar
+    - Carapicuíba
+    - Cotia
+    - Diadema
+    - Embu das Artes
+    - Embu-Guaçu
+    - Ferraz de Vasconcelos
+    - Francisco Morato
+    - Franco da Rocha
+    - Guararema
+    - Guarulhos
+    - Itapecerica da Serra
+    - Itapevi
+    - Itaquaquecetuba
+    - Jandira
+    - Juquitiba
+    - Mairiporã
+    - Mauá
+    - Mogi das Cruzes
+    - Osasco
+    - Pirapora do Bom Jesus
+    - Poá
+    - Ribeirão Pires
+    - Rio Grande da Serra
+    - Salesópolis
+    - Santa Isabel
+    - Santana de Parnaíba
+    - Santo André
+    - São Bernardo do Campo
+    - São Caetano do Sul
+    - São Lourenço da Serra
+    - São Paulo
+    - Suzano
+    - Taboão da Serra
+    - Vargem Grande Paulista
+    - Cubatão
+    - Araçariguama
+- name: INTERIOR SP
+  state: SP
+  remaining_state: true

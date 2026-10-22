@@ -160,6 +160,46 @@ describe 'Freight billing' do
         )
       end
 
+      context 'when the origins belong to macro regions' do
+        let!(:grande_bh) { create(:macro_region, tenant:, name: 'GRANDE BH', state: 'MG', cities: ['Belo Horizonte', 'Betim']) }
+
+        before { MacroRegions::AssignCommand.call(tenant) }
+
+        scenario 'groups the freight by the macro region of the origin with the other origins apart' do
+          visit freight_billing_path(october)
+          click_on 'Macro região'
+
+          expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'macro_region')))
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3, 10) }).to eq(
+            [
+              ['Macro região', 'Viagens', 'Frete bruto', 'Participação'],
+              ['Outras Regiões', '1', 'R$ 15.000,00', '75,0%'],
+              ['GRANDE BH', '1', 'R$ 5.000,00', '25,0%'],
+              ['Total', '2', 'R$ 20.000,00', '100,0%'],
+            ],
+          )
+        end
+
+        scenario 'filters by a macro region of origin' do
+          visit freight_billing_path(october)
+          select 'GRANDE BH', from: 'Macro região de origem'
+          click_on 'Aplicar Filtros'
+
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+          expect(page).to have_select('Macro região de origem', selected: 'GRANDE BH', visible: :all)
+        end
+
+        scenario 'filters by the origins out of every macro region' do
+          visit freight_billing_path(october)
+          select 'Outras Regiões', from: 'Macro região de origem'
+          click_on 'Aplicar Filtros'
+
+          expect(html_table_to_rows.map(&:first)).to eq(['Conjunto', 'RVR2C34 + RVR9C02', 'Total'])
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+        end
+      end
+
       scenario 'filters by plate and customer group' do
         visit freight_billing_path(october)
         fill_in 'Placa', with: 'rvr-8j90'
