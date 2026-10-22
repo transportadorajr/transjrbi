@@ -40,5 +40,14 @@ FactoryBot.define do
       rate_cents { 5_500 }
       amount_cents { 5_500 }
     end
+
+    trait :fuel do
+      commission_rule { nil }
+      truck_group { tenant.truck_groups.first || association(:truck_group, tenant:) }
+      kind_type { 'fuel' }
+      base_cents { 1_000_000 }
+      percentage { BigDecimal('35') }
+      amount_cents { 350_000 }
+    end
   end
 end

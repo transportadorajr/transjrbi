@@ -211,46 +211,62 @@ describe 'Freight billing' do
       end
 
       context 'when the trucks haul sets with different axle counts' do
+        let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
+        let!(:ls) { create(:truck_group, :ls, tenant:) }
+
         before do
+          create(:truck_group, tenant:, name: 'Quarto eixo', axles: [7])
+          create(:truck_group, tenant:, name: 'Bitrem antigo', axles: [6], activated_at: nil)
+          create(:truck_group, tenant: other_tenant, name: 'Grupo de outra', axles: [3])
           steel.update!(axles: 9)
           coil.update!(axles: 9)
-          sheet.update!(axles: 6)
+          sheet.update!(axles: 3)
         end
 
-        scenario 'filters by the truck configuration of each plate' do
+        scenario 'filters by the active truck groups of the tenant' do
           visit freight_billing_path(october)
-          select 'Rodotrem (9 eixos)', from: 'Tipo de conjunto'
+
+          expect(TruckGroup.count).to eq(5)
+          expect(page).to have_select('Tipo de conjunto', options: ['Todos', 'LS', 'Quarto eixo', 'Rodotrem', 'Sem grupo'])
+
+          select 'Rodotrem', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
 
-          expect(page).to have_select('Tipo de conjunto', selected: 'Rodotrem (9 eixos)')
+          expect(page).to have_select('Tipo de conjunto', selected: 'Rodotrem')
           expect(html_table_to_rows.map(&:first)).to eq(['Conjunto', 'RVR2C34 + RVR9C02', 'Total'])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
 
-          select 'LS (6 eixos)', from: 'Tipo de conjunto'
+          select 'Sem grupo', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
 
           expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
-          select 'Quarto eixo (7 eixos)', from: 'Tipo de conjunto'
+          select 'LS', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
 
           expect(page).to have_text('Nenhum registro encontrado')
         end
 
-        scenario 'keeps the truck configuration when grouping by another dimension' do
-          visit freight_billing_path(october.merge(truck_configuration: 'rodotrem'))
+        scenario 'keeps the truck group when grouping by another dimension' do
+          visit freight_billing_path(october.merge(truck_group_id: rodotrem.id))
           click_on 'Motorista'
 
-          expect(page).to have_current_path(freight_billing_path(october.merge(truck_configuration: 'rodotrem', dimension: 'driver')))
+          expect(page).to have_current_path(freight_billing_path(october.merge(truck_group_id: rodotrem.id, dimension: 'driver')))
           expect(html_table_to_rows.map(&:first)).to eq(['Motorista', 'JOSE SILVA', 'Total'])
         end
 
-        scenario 'rejects an unknown truck configuration' do
-          visit freight_billing_path(october.merge(truck_configuration: 'bitruck'))
+        scenario 'finds nothing for a truck group of another tenant' do
+          visit freight_billing_path(october.merge(truck_group_id: TruckGroup.find_by!(name: 'Grupo de outra').id))
+
+          expect(page).to have_text('Nenhum registro encontrado')
+        end
+
+        scenario 'rejects an unknown truck group' do
+          visit freight_billing_path(october.merge(truck_group_id: 'rodotrem'))
 
           expect(page).to have_current_path(freight_billing_path)
-          expect(page).to have_text('Tipo de conjunto não está incluído na lista')
+          expect(page).to have_text('Tipo de conjunto não é válido')
         end
       end
 

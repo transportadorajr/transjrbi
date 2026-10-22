@@ -20,4 +20,5 @@ Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tom
 Tenant.find_each do |tenant|
   CustomerGroups::BackfillCommand.call(tenant)
   FreightExpenses::CalculateTarpLiningCommand.call(tenant)
+  TruckGroups::BackfillCommand.call(tenant)
 end

@@ -1,0 +1,22 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= TruckGroup.human_attribute_name(:name) %></th>
+        <th class="d-none d-md-table-cell"><%= TruckGroup.human_attribute_name(:axles) %></th>
+        <th class="d-none d-md-table-cell"><%= TruckGroup.human_attribute_name(:fuel_percentage) %></th>
+        <th><%= TruckGroup.human_attribute_name(:status) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

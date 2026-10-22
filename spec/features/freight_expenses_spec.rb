@@ -298,6 +298,41 @@ describe 'Freight expenses' do
     end
   end
 
+  context 'when an admin is signed in and the fuel was calculated' do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:truck_groups_resource) { create(:resource, name: 'Grupos de caminhões', slug: 'truck_groups') }
+    let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9], fuel_percentage: BigDecimal('32.5')) }
+    let!(:steel) do
+      create(:atua_transport_document, tenant:, number: '78001', axles: 9, freight_cents: 1_000_000, taker_name: 'USIMINAS',
+                                       issued_at: Time.zone.local(2026, 10, 5, 8))
+    end
+
+    before do
+      create(:atua_transport_document, tenant:, number: '78002', axles: 6, freight_cents: 1_000_000)
+      FreightExpenses::CalculateFuelCommand.call(tenant)
+      login_as(admin, scope: :user)
+    end
+
+    scenario 'lists the fuel of each transport document of an active truck group' do
+      visit freight_expenses_path
+      select 'Combustível', from: 'Tipo'
+      click_on 'Aplicar Filtros'
+
+      expect(tenant.freight_expenses.fuel.count).to eq(1)
+      expect(html_table_to_rows).to eq(
+        [
+          ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
+          ['78001', '05/10/2026 08:00', 'USIMINAS', 'Combustível', 'Rodotrem', 'R$ 10.000,00', '32,5%', 'R$ 3.250,00', ''],
+        ],
+      )
+      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 3.250,00')
+
+      click_on 'Rodotrem'
+
+      expect(page).to have_current_path(truck_group_path(rodotrem))
+    end
+  end
+
   context 'when an operator is signed in' do
     let!(:operator) { create(:user, tenant:, name: 'Carla Operadora') }
 

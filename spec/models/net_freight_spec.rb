@@ -18,6 +18,8 @@ RSpec.describe NetFreight do
   let!(:insurance_rate) { create(:insurance_rate, tenant:) }
   let!(:insurance) { create(:freight_expense, :insurance, tenant:, insurance_rate:, transport_document: document, amount_cents: 2_322) }
   let!(:tarp_lining) { create(:freight_expense, :tarp_lining, tenant:, transport_document: document) }
+  let!(:fuel) { create(:freight_expense, :fuel, tenant:, transport_document: document, amount_cents: 300_000) }
+  let!(:canceled_fuel) { create(:freight_expense, :fuel, tenant:, transport_document: canceled, amount_cents: 150_000) }
   let!(:canceled_insurance) do
     create(:freight_expense, :insurance, tenant:, insurance_rate:, transport_document: canceled, amount_cents: 1_000)
   end
@@ -28,7 +30,7 @@ RSpec.describe NetFreight do
     create(:atua_expense, tenant:, cost_object: document, total_cents: 10_000, removed_from_atua_at: Time.current)
   end
 
-  it 'subtracts the commissions, the tonnage costs, the cargo insurance, the tarp lining, the Atua expenses and the toll inside the freight from the valid transport documents' do
+  it 'subtracts the commissions, the tonnage costs, the cargo insurance, the tarp lining, the fuel, the Atua expenses and the toll inside the freight from the valid transport documents' do
     net_freight = described_class.for(tenant.atua_transport_documents)
 
     expect(net_freight.freight).to eq(Money.from_cents(1_200_000))
@@ -36,9 +38,10 @@ RSpec.describe NetFreight do
     expect(net_freight.tonnage).to eq(Money.from_cents(40_853))
     expect(net_freight.insurance).to eq(Money.from_cents(2_322))
     expect(net_freight.tarp_lining).to eq(Money.from_cents(5_500))
+    expect(net_freight.fuel).to eq(Money.from_cents(300_000))
     expect(net_freight.expenses).to eq(Money.from_cents(45_000))
     expect(net_freight.toll).to eq(Money.from_cents(30_000))
     expect(net_freight.toll_outside_freight).to eq(Money.from_cents(15_000))
-    expect(net_freight.net).to eq(Money.from_cents(1_058_325))
+    expect(net_freight.net).to eq(Money.from_cents(758_325))
   end
 end

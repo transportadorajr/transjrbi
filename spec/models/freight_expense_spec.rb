@@ -22,6 +22,13 @@ RSpec.describe FreightExpense do
       expect(build(:freight_expense, :tonnage, tenant:)).to be_valid
     end
 
+    it 'requires the truck group, the base and the percentage of a fuel cost' do
+      expense = build(:freight_expense, :fuel, tenant:, truck_group: nil, base_cents: nil, percentage: nil)
+
+      expect(expense).not_to be_valid
+      expect(expense.errors.attribute_names).to contain_exactly(:truck_group, :base_cents, :percentage)
+    end
+
     it 'requires the rate, the base and the percentages of a cargo insurance' do
       expense = build(:freight_expense, :insurance, tenant:, insurance_rate: nil, base_cents: nil, percentage: nil, iof_percentage: nil)
 

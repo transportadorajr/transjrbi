@@ -64,21 +64,19 @@ RSpec.describe FreightBillingFilterForm do
     end
   end
 
-  context 'with a truck configuration' do
-    it 'keeps the configuration' do
-      form = described_class.new(truck_configuration: 'rodotrem')
-
-      expect(form).to be_valid
-      expect(form.truck_configuration).to eq('rodotrem')
+  context 'with a truck group' do
+    it 'keeps the group or the documents without group' do
+      expect(described_class.new(truck_group_id: '12')).to be_valid
+      expect(described_class.new(truck_group_id: 'none')).to have_attributes(valid?: true, truck_group_id: 'none')
     end
   end
 
-  context 'with an unknown truck configuration' do
+  context 'with an unknown truck group' do
     it 'is invalid' do
-      form = described_class.new(truck_configuration: 'bitruck')
+      form = described_class.new(truck_group_id: 'rodotrem')
 
       expect(form).not_to be_valid
-      expect(form.errors.full_messages).to eq(['Tipo de conjunto não está incluído na lista'])
+      expect(form.errors.full_messages).to eq(['Tipo de conjunto não é válido'])
     end
   end
 end

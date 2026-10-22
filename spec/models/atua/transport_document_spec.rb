@@ -211,7 +211,7 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
-  describe '.by_truck_configuration' do
+  describe '.by_predominant_axles and .without_predominant_axles' do
     context 'with trucks hauling sets with different axle counts' do
       let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 31) }
       let!(:other_tenant) { create(:tenant) }
@@ -235,27 +235,23 @@ RSpec.describe Atua::TransportDocument do
       let!(:truck) { create(:atua_transport_document, tenant:, plate: 'TRK3E33', axles: 3) }
       let!(:stranger) { create_list(:atua_transport_document, 4, tenant: other_tenant, plate: 'RDT9A99', axles: 6) }
 
-      it 'keeps the plates whose most frequent axle count in the period matches the configuration' do
+      it 'keeps the plates whose most frequent axle count in the period is in the axle counts' do
         expect(described_class.count).to eq(19)
-        expect(described_class.where(tenant:).by_truck_configuration('rodotrem', october))
-          .to match_array(rodotrem + rodotrem_in_september)
-        expect(described_class.where(tenant:).by_truck_configuration('quarto_eixo', october)).to contain_exactly(quarto_eixo, *tied)
-        expect(described_class.where(tenant:).by_truck_configuration('ls', october)).to contain_exactly(ls, *ignored)
-        expect(described_class.where(tenant:).by_truck_configuration('other', october)).to eq([truck])
+        expect(described_class.where(tenant:).by_predominant_axles([9], october)).to match_array(rodotrem + rodotrem_in_september)
+        expect(described_class.where(tenant:).by_predominant_axles([7], october)).to contain_exactly(quarto_eixo, *tied)
+        expect(described_class.where(tenant:).by_predominant_axles([6, 3], october)).to contain_exactly(ls, *ignored, truck)
+        expect(described_class.where(tenant:).by_predominant_axles([], october)).to be_empty
+      end
+
+      it 'keeps the plates whose most frequent axle count in the period is out of the axle counts' do
+        expect(described_class.where(tenant:).without_predominant_axles([9, 7, 6], october)).to eq([truck])
+        expect(described_class.where(tenant:).without_predominant_axles([], october).count).to eq(15)
       end
 
       it 'ranks the axle counts of each tenant apart' do
-        expect(described_class.where(tenant: other_tenant).by_truck_configuration('ls', october)).to match_array(stranger)
-        expect(described_class.where(tenant: other_tenant).by_truck_configuration('rodotrem', october)).to be_empty
+        expect(described_class.where(tenant: other_tenant).by_predominant_axles([6], october)).to match_array(stranger)
+        expect(described_class.where(tenant: other_tenant).by_predominant_axles([9], october)).to be_empty
       end
-    end
-  end
-
-  describe '.truck_configurations' do
-    it 'maps the translated truck configurations to the filter keys' do
-      expect(described_class.truck_configurations).to eq(
-        'Rodotrem (9 eixos)' => 'rodotrem', 'Quarto eixo (7 eixos)' => 'quarto_eixo', 'LS (6 eixos)' => 'ls', 'Outros' => 'other',
-      )
     end
   end
 
