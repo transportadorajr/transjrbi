@@ -34,6 +34,10 @@ shared:
           url: /customer_groups
           controllers:
             - customer_groups
+        - name: macro_regions
+          url: /macro_regions
+          controllers:
+            - macro_regions
         - name: drivers
           url: /drivers
           controllers:

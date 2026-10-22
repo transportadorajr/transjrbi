@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_21_184523) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_134410) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -456,8 +456,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_184523) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.date "due_dates", default: [], null: false, array: true
+    t.bigint "origin_macro_region_id"
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
+    t.index ["origin_macro_region_id"], name: "index_atua_transport_documents_on_origin_macro_region_id"
     t.index ["tenant_id", "code"], name: "index_atua_transport_documents_on_tenant_id_and_code", unique: true
     t.index ["tenant_id", "consignee_code"], name: "index_atua_transport_documents_on_tenant_id_and_consignee_code"
     t.index ["tenant_id", "cte_status"], name: "index_atua_transport_documents_on_tenant_id_and_cte_status"
@@ -768,6 +770,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_184523) do
     t.index ["lookup_key"], name: "index_locations_on_lookup_key", unique: true
   end
 
+  create_table "macro_regions", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.string "state", null: false
+    t.string "cities", default: [], null: false, array: true
+    t.boolean "remaining_state", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_macro_regions_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id", "state"], name: "index_macro_regions_on_remaining_state", unique: true, where: "remaining_state"
+    t.index ["tenant_id"], name: "index_macro_regions_on_tenant_id"
+  end
+
   create_table "resources", force: :cascade do |t|
     t.string "name", null: false
     t.string "slug", null: false
@@ -868,6 +883,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_184523) do
   add_foreign_key "atua_transport_document_manifests", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_transport_document_manifests", "tenants"
   add_foreign_key "atua_transport_documents", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_transport_documents", "macro_regions", column: "origin_macro_region_id", on_delete: :nullify
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_vehicles", "tenants"
@@ -886,6 +902,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_21_184523) do
   add_foreign_key "freight_expenses", "tenants"
   add_foreign_key "freight_expenses", "tonnage_rates"
   add_foreign_key "insurance_rates", "tenants"
+  add_foreign_key "macro_regions", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "tonnage_rates", "customer_groups"

@@ -6,6 +6,7 @@ class FreightBillingFilterForm < BaseForm
   attribute :dimension, :string
   attribute :plate, :string
   attribute :customer_group_id, :integer
+  attribute :macro_region_id, :string
   attribute :truck_configuration, :string
 
   validates :start_date, :end_date, presence: true

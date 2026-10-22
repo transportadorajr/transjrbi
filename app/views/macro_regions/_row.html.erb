@@ -1,0 +1,10 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <%= link_to item.name, macro_region_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+  </td>
+  <td><%= item.state %></td>
+  <td class="d-none d-md-table-cell"><%= macro_region_coverage(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(macro_regions_menu(item)) %>
+  </td>
+</tr>

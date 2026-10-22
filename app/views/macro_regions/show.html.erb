@@ -1,0 +1,39 @@
+<% content_for :title, @macro_region.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('macro_regions.index.title'), macro_regions_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @macro_region.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @macro_region.name, back_path: macro_regions_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= macro_region_edit_button(@macro_region) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.macro_region_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="macro_region_data">
+        <dt class="col-12 col-md-3"><%= MacroRegion.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @macro_region.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= MacroRegion.human_attribute_name(:state) %></dt>
+        <dd class="col-12 col-md-9"><%= @macro_region.state %></dd>
+
+        <dt class="col-12 col-md-3"><%= MacroRegion.human_attribute_name(:coverage) %></dt>
+        <dd class="col-12 col-md-9"><%= macro_region_coverage(@macro_region) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MacroRegion.human_attribute_name(:cities) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= macro_region_cities(@macro_region) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MacroRegion.human_attribute_name(:transport_documents) %></dt>
+        <dd class="col-12 col-md-9"><%= @transport_documents_count %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

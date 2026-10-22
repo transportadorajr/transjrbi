@@ -1,0 +1,38 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('macro_regions.form.macro_region_data') %></p>
+    <p class="form-card-subtitle"><%= t('macro_regions.form.macro_region_data_text') %></p>
+  </div>
+  <%= simple_form_for(macro_region_form, url: macro_region_form_url(macro_region_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :state, required: true, hint: t('macro_regions.form.state_hint'),
+                              input_html: { class: 'form-control text-uppercase', maxlength: 2, autocomplete: 'off' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :remaining_state,
+                      as: :boolean,
+                      hint: t('macro_regions.form.remaining_state_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :cities,
+                      as: :text,
+                      required: false,
+                      hint: t('macro_regions.form.cities_hint'),
+                      input_html: { class: 'form-control', rows: 8, autocomplete: 'off', spellcheck: false } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, macro_region_form_submit_label(macro_region_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), macro_regions_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

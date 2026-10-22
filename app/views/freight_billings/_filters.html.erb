@@ -30,6 +30,14 @@
       </div>
 
       <div class="col-12">
+        <%= f.label :macro_region_id, FreightBillingFilterForm.human_attribute_name(:macro_region_id), class: 'form-label fw-medium' %>
+        <%= f.select :macro_region_id,
+                     freight_billing_macro_region_options(@macro_regions, @filter_form.macro_region_id),
+                     { include_blank: t('shared.all') },
+                     { class: 'form-select bg-light' } %>
+      </div>
+
+      <div class="col-12">
         <%= f.label :truck_configuration, FreightBillingFilterForm.human_attribute_name(:truck_configuration), class: 'form-label fw-medium' %>
         <%= f.select :truck_configuration,
                      options_for_select(@truck_configurations, @filter_form.truck_configuration),
