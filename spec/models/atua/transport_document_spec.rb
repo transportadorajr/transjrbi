@@ -211,46 +211,24 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
-  describe '.by_predominant_axles and .without_predominant_axles' do
-    context 'with trucks hauling sets with different axle counts' do
-      let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 31) }
-      let!(:other_tenant) { create(:tenant) }
-      let!(:rodotrem) do
-        [9, 9, 6].map { |axles| create(:atua_transport_document, tenant:, plate: 'RDT9A99', axles:) }
-      end
-      let!(:rodotrem_in_september) do
-        create_list(:atua_transport_document, 3, tenant:, plate: 'RDT9A99', axles: 6, posted_on: Date.new(2026, 9, 30))
-      end
+  describe '.by_axles and .without_axles' do
+    context 'with transport documents of sets with different axle counts' do
+      let!(:rodotrem) { create(:atua_transport_document, tenant:, plate: 'RDT9A99', axles: 9) }
+      let!(:ls_on_rodotrem) { create(:atua_transport_document, tenant:, plate: 'RDT9A99', axles: 6) }
       let!(:quarto_eixo) { create(:atua_transport_document, tenant:, plate: 'QTE7B77', axles: 7) }
-      let!(:ls) { create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 6) }
-      let!(:ignored) do
-        [
-          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, canceled_at: Time.current),
-          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, removed_from_atua_at: Time.current),
-          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, document_kind: 'ce'),
-          create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 9, document_kind: 'ce'),
-        ]
-      end
-      let!(:tied) { [6, 7].map { |axles| create(:atua_transport_document, tenant:, plate: 'TIE6D77', axles:) } }
       let!(:truck) { create(:atua_transport_document, tenant:, plate: 'TRK3E33', axles: 3) }
-      let!(:stranger) { create_list(:atua_transport_document, 4, tenant: other_tenant, plate: 'RDT9A99', axles: 6) }
+      let!(:without_axles) { create(:atua_transport_document, tenant:, plate: 'TRK3E33', axles: nil) }
 
-      it 'keeps the plates whose most frequent axle count in the period is in the axle counts' do
-        expect(described_class.count).to eq(19)
-        expect(described_class.where(tenant:).by_predominant_axles([9], october)).to match_array(rodotrem + rodotrem_in_september)
-        expect(described_class.where(tenant:).by_predominant_axles([7], october)).to contain_exactly(quarto_eixo, *tied)
-        expect(described_class.where(tenant:).by_predominant_axles([6, 3], october)).to contain_exactly(ls, *ignored, truck)
-        expect(described_class.where(tenant:).by_predominant_axles([], october)).to be_empty
+      it 'keeps the transport documents whose own axle count is in the axle counts' do
+        expect(described_class.count).to eq(5)
+        expect(described_class.by_axles([9])).to eq([rodotrem])
+        expect(described_class.by_axles([6, 7])).to contain_exactly(ls_on_rodotrem, quarto_eixo)
+        expect(described_class.by_axles([])).to be_empty
       end
 
-      it 'keeps the plates whose most frequent axle count in the period is out of the axle counts' do
-        expect(described_class.where(tenant:).without_predominant_axles([9, 7, 6], october)).to eq([truck])
-        expect(described_class.where(tenant:).without_predominant_axles([], october).count).to eq(15)
-      end
-
-      it 'ranks the axle counts of each tenant apart' do
-        expect(described_class.where(tenant: other_tenant).by_predominant_axles([6], october)).to match_array(stranger)
-        expect(described_class.where(tenant: other_tenant).by_predominant_axles([9], october)).to be_empty
+      it 'keeps the transport documents whose own axle count is out of the axle counts or missing' do
+        expect(described_class.without_axles([9, 7, 6])).to contain_exactly(truck, without_axles)
+        expect(described_class.without_axles([]).count).to eq(5)
       end
     end
   end

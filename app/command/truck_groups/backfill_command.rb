@@ -15,10 +15,12 @@ module TruckGroups
     def call
       return tenant.truck_groups.to_a if tenant.truck_groups.exists?
 
-      DEFAULTS.map do |key, axles|
+      defaults = DEFAULTS.map do |key, axles|
         tenant.truck_groups.create!(name: I18n.t(key, scope: 'truck_groups.defaults'), axles:, fuel_percentage: 0,
                                     activated: true)
       end
+
+      defaults << CreateRemainingAxlesCommand.call(tenant)
     end
 
     private

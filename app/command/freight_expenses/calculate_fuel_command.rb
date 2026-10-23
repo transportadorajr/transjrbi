@@ -37,10 +37,11 @@ module FreightExpenses
     end
 
     def expected_expenses
-      truck_groups = tenant.truck_groups.activated.where(TruckGroup.arel_table[:fuel_percentage].gt(0)).to_a
-      return {} if truck_groups.empty?
+      truck_groups = tenant.truck_groups.activated.to_a
+      fueled_groups = truck_groups.select { |truck_group| truck_group.fuel_percentage.positive? }
+      return {} if fueled_groups.empty?
 
-      documents(truck_groups).each_with_object({}) do |(document_id, axles, freight_cents), expenses|
+      documents(fueled_groups).each_with_object({}) do |(document_id, axles, freight_cents), expenses|
         truck_group = TruckGroup.for_axles(truck_groups, axles)
         amount_cents = truck_group&.fuel_cents(freight_cents) || 0
         next unless amount_cents.positive?
@@ -50,9 +51,10 @@ module FreightExpenses
       end
     end
 
-    def documents(truck_groups)
-      tenant.atua_transport_documents.commissionable.where(axles: truck_groups.flat_map(&:axles))
-        .pluck(:id, :axles, :freight_cents)
+    def documents(fueled_groups)
+      documents = tenant.atua_transport_documents.commissionable
+      documents = documents.where(axles: fueled_groups.flat_map(&:axles)) if fueled_groups.none?(&:remaining_axles?)
+      documents.pluck(:id, :axles, :freight_cents)
     end
 
     def unchanged?(expense, attributes)

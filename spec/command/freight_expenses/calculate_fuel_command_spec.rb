@@ -83,4 +83,50 @@ RSpec.describe FreightExpenses::CalculateFuelCommand do
       expect(FreightExpense.pluck(:transport_document_id)).to eq([steel.id])
     end
   end
+
+  context 'with a group of the remaining axles' do
+    let!(:others) { create(:truck_group, :others, tenant:) }
+    let!(:rodotrem) { create(:truck_group, tenant:, axles: [9], fuel_percentage: BigDecimal('29')) }
+    let!(:truck) { create(:atua_transport_document, tenant:, number: '79001', axles: 4, freight_cents: 1_000_000) }
+    let!(:without_axles) { create(:atua_transport_document, tenant:, number: '79002', axles: nil, freight_cents: 200_000) }
+    let!(:steel) { create(:atua_transport_document, tenant:, number: '79003', axles: 9, freight_cents: 1_000_000) }
+
+    before do
+      create(:truck_group, :ls, tenant:, fuel_percentage: 0)
+      create(:atua_transport_document, tenant:, number: '79004', axles: 6, freight_cents: 1_000_000)
+      create(:atua_transport_document, tenant:, number: '79005', axles: 3, document_kind: 'ce')
+      create(:atua_transport_document, tenant: create(:tenant), number: '79006', axles: 4, freight_cents: 1_000_000)
+    end
+
+    it 'records the fuel of the axle counts out of the other active groups over the gross freight' do
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 3, removed: 0))
+
+      expect(FreightExpense.count).to eq(3)
+      expect(FreightExpense.order(:transport_document_id).map do |expense|
+        [expense.transport_document.number, expense.truck_group, expense.base_cents, expense.percentage, expense.amount_cents]
+      end).to eq(
+        [
+          ['79001', others, 1_000_000, BigDecimal('33'), 330_000],
+          ['79002', others, 200_000, BigDecimal('33'), 66_000],
+          ['79003', rodotrem, 1_000_000, BigDecimal('29'), 290_000],
+        ],
+      )
+    end
+
+    it 'moves the axle count to the remaining axles group when its group is deactivated' do
+      described_class.call(tenant)
+      rodotrem.update!(activated_at: nil)
+
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 1, removed: 0))
+      expect(FreightExpense.find_by!(transport_document: steel)).to have_attributes(truck_group: others, amount_cents: 330_000)
+    end
+
+    it 'removes the fuel of the remaining axles when the group is deactivated' do
+      described_class.call(tenant)
+      others.update!(activated_at: nil)
+
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 0, removed: 2))
+      expect(FreightExpense.pluck(:transport_document_id)).to eq([steel.id])
+    end
+  end
 end

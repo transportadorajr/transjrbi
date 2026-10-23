@@ -38,8 +38,9 @@ module FreightBillingsHelper
 
   def freight_billing_truck_group_options(truck_groups, selected)
     options = truck_groups.map { |truck_group| [truck_group.name, truck_group.id.to_s] }
+    options << [t('freight_billings.filters.without_truck_group'), TruckGroup::NONE] if truck_groups.none?(&:remaining_axles?)
 
-    options_for_select(options + [[t('freight_billings.filters.without_truck_group'), TruckGroup::NONE]], selected)
+    options_for_select(options, selected)
   end
 
   def freight_billing_period_label(filter_form)

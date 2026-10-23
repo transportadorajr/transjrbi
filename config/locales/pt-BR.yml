@@ -78,6 +78,7 @@ pt-BR:
         name: Nome
         axles: Quantidades de eixos
         fuel_percentage: Combustível sobre o frete
+        remaining_axles: Abrange os demais eixos
         status: Status
         activated_at: Ativado em
       macro_region:
@@ -479,6 +480,7 @@ pt-BR:
         name: Nome
         axles: Quantidades de eixos
         fuel_percentage: Combustível sobre o frete (%)
+        remaining_axles: Abrange os demais eixos
         active: Ativo
     errors:
       models:
@@ -542,6 +544,8 @@ pt-BR:
               taken: já está em uso por outro grupo
             axles:
               taken: '%{axles} já estão em outro grupo ativo'
+            remaining_axles:
+              taken: já está em outro grupo ativo
         customer_group_form:
           attributes:
             name:
@@ -1049,6 +1053,8 @@ pt-BR:
       rodotrem: Rodotrem
       quarto_eixo: Quarto eixo
       ls: LS
+      others: Outros
+    remaining_axles: Demais eixos
     index:
       title: Grupos de caminhões
       subtitle: Agrupam os conjuntos pela quantidade de eixos e definem o percentual de combustível descontado do frete.
@@ -1087,6 +1093,9 @@ pt-BR:
         normais; CEs, complementos de valores e CT-es cancelados ficam de fora.
       fuel_percentage_hint: De 0 a 100, com até 4 casas decimais. Com 0 o combustível não é calculado.
       axles_hint: Cada quantidade de eixos só pode estar em um grupo ativo.
+      remaining_axles_hint: >-
+        Marque para incluir todas as quantidades de eixos que não estão em outro grupo ativo, inclusive CT-es sem eixos
+        informados. Nesse caso as quantidades de eixos marcadas são ignoradas.
       active_hint: Desmarque para deixar de usar o grupo. Toda alteração recalcula o combustível de todos os CT-es.
   tonnage_rates:
     label: '%{name} – %{origin}'
@@ -1175,7 +1184,7 @@ pt-BR:
   freight_billings:
     km: '%{distance} km'
     filters:
-      truck_group_hint: Pela quantidade de eixos mais frequente nos CT-es da placa no período.
+      truck_group_hint: Pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo
     dimensions:
       vehicle: Conjunto

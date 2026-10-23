@@ -15,9 +15,15 @@
                                                       autocomplete: 'off' } %>
         </div>
         <div class="col-12">
+          <%= f.input :remaining_axles,
+                      as: :boolean,
+                      hint: t('truck_groups.form.remaining_axles_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+        <div class="col-12">
           <%= f.input :axles,
                       as: :check_boxes,
-                      required: true,
+                      required: false,
                       collection: truck_group_axle_options,
                       hint: t('truck_groups.form.axles_hint'),
                       item_wrapper_class: 'form-check form-check-inline',

@@ -9,10 +9,10 @@ RSpec.describe BackfillTruckGroups do
     let!(:other_tenant) { create(:tenant) }
 
     it 'registers the default groups of every tenant' do
-      expect { migration.up }.to change(TruckGroup, :count).by(6)
+      expect { migration.up }.to change(TruckGroup, :count).by(8)
 
-      expect(tenant.truck_groups.count).to eq(3)
-      expect(other_tenant.truck_groups.count).to eq(3)
+      expect(tenant.truck_groups.count).to eq(4)
+      expect(other_tenant.truck_groups.count).to eq(4)
     end
 
     it 'can run again without duplicating the groups' do

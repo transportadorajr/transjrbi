@@ -15,6 +15,10 @@ RSpec.describe TruckGroup do
       )
     end
 
+    it 'accepts a group of the remaining axles without axle counts' do
+      expect(build(:truck_group, :others, tenant:)).to be_valid
+    end
+
     it 'accepts the same name in another tenant' do
       expect(build(:truck_group, name: 'Rodotrem')).to be_valid
     end
@@ -45,6 +49,14 @@ RSpec.describe TruckGroup do
     it 'finds the group that contains the axle count' do
       expect(described_class.for_axles([rodotrem, quarto_eixo], 8)).to eq(quarto_eixo)
       expect(described_class.for_axles([rodotrem, quarto_eixo], 6)).to be_nil
+    end
+
+    it 'falls back to the group of the remaining axles' do
+      others = build(:truck_group, :others)
+
+      expect(described_class.for_axles([others, rodotrem, quarto_eixo], 9)).to eq(rodotrem)
+      expect(described_class.for_axles([others, rodotrem, quarto_eixo], 4)).to eq(others)
+      expect(described_class.for_axles([others, rodotrem, quarto_eixo], nil)).to eq(others)
     end
   end
 
