@@ -1,0 +1,10 @@
+<%= tag.meta name: 'theme-color', content: '#0b3fae' %>
+<%= tag.meta name: 'application-name', content: t('pwa.manifest.name') %>
+<%= tag.meta name: 'mobile-web-app-capable', content: 'yes' %>
+<%= tag.meta name: 'apple-mobile-web-app-capable', content: 'yes' %>
+<%= tag.meta name: 'apple-mobile-web-app-title', content: t('pwa.manifest.short_name') %>
+<%= tag.meta name: 'apple-mobile-web-app-status-bar-style', content: 'default' %>
+<%= tag.link rel: 'manifest', href: pwa_manifest_path(format: :json) %>
+<%= favicon_link_tag '/icon.png', type: 'image/png' %>
+<%= favicon_link_tag '/icon.svg', type: 'image/svg+xml' %>
+<%= favicon_link_tag '/apple-touch-icon.png', rel: 'apple-touch-icon', type: 'image/png' %>

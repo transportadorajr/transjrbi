@@ -1372,6 +1372,11 @@ pt-BR:
       toggle_sidebar: Recolher menu lateral
       options: Opções
       logout: Sair
+  pwa:
+    manifest:
+      name: TransJRBI
+      short_name: TransJRBI
+      description: Fretes, viagens e resultados da sua transportadora em um só lugar.
   date:
     formats:
       month_year: '%m/%Y'
