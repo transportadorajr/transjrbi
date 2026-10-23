@@ -8,6 +8,8 @@ describe 'Progressive web app' do
       expect(page).to have_css('link[rel="manifest"][href="/manifest.json"]', visible: :hidden)
       expect(page).to have_css('link[rel="apple-touch-icon"][href="/apple-touch-icon.png"]', visible: :hidden)
       expect(page).to have_css('meta[name="theme-color"][content="#0b3fae"]', visible: :hidden)
+      expect(page).to have_css('meta[name="apple-mobile-web-app-title"][content="TransJRBI"]', visible: :hidden)
+      expect(page).to have_css('meta[name="application-name"][content="TransJRBI"]', visible: :hidden)
     end
 
     scenario 'serves the manifest that makes the app installable' do

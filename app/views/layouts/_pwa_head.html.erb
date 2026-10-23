@@ -1,10 +1,10 @@
-<meta name="theme-color" content="#0b3fae">
-<meta name="application-name" content="TransJRBI">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="TransJRBI">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="manifest" href="<%= pwa_manifest_path(format: :json) %>">
-<link rel="icon" href="/icon.png" type="image/png">
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<%= tag.meta name: 'theme-color', content: '#0b3fae' %>
+<%= tag.meta name: 'application-name', content: t('pwa.manifest.name') %>
+<%= tag.meta name: 'mobile-web-app-capable', content: 'yes' %>
+<%= tag.meta name: 'apple-mobile-web-app-capable', content: 'yes' %>
+<%= tag.meta name: 'apple-mobile-web-app-title', content: t('pwa.manifest.short_name') %>
+<%= tag.meta name: 'apple-mobile-web-app-status-bar-style', content: 'default' %>
+<%= tag.link rel: 'manifest', href: pwa_manifest_path(format: :json) %>
+<%= favicon_link_tag '/icon.png', type: 'image/png' %>
+<%= favicon_link_tag '/icon.svg', type: 'image/svg+xml' %>
+<%= favicon_link_tag '/apple-touch-icon.png', rel: 'apple-touch-icon', type: 'image/png' %>
