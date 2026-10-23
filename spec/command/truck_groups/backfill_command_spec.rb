@@ -7,10 +7,14 @@ RSpec.describe TruckGroups::BackfillCommand do
     before { create(:atua_transport_document, tenant:, axles: 9, freight_cents: 1_000_000) }
 
     it 'registers the active default groups without fuel' do
-      expect { described_class.call(tenant) }.to change(TruckGroup, :count).by(3)
+      expect { described_class.call(tenant) }.to change(TruckGroup, :count).by(4)
 
-      expect(tenant.truck_groups.order(:id).map { |group| [group.name, group.axles, group.fuel_percentage, group.activated?] })
-        .to eq([['Rodotrem', [9], 0, true], ['Quarto eixo', [7], 0, true], ['LS', [6], 0, true]])
+      expect(tenant.truck_groups.order(:id).map do |group|
+        [group.name, group.axles, group.remaining_axles, group.fuel_percentage, group.activated?]
+      end).to eq(
+        [['Rodotrem', [9], false, 0, true], ['Quarto eixo', [7], false, 0, true], ['LS', [6], false, 0, true],
+         ['Outros', [], true, 0, true]],
+      )
       expect(FreightExpense.count).to eq(0)
     end
   end

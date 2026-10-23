@@ -16,6 +16,8 @@ module TruckGroupsHelper
   end
 
   def truck_group_axles(truck_group)
+    return t('truck_groups.remaining_axles') if truck_group.remaining_axles?
+
     t('truck_groups.axles', count: truck_group.axles.max, axles: truck_group.axles.to_sentence)
   end
 

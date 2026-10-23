@@ -11,5 +11,12 @@ FactoryBot.define do
       axles { [6] }
       fuel_percentage { BigDecimal('30') }
     end
+
+    trait :others do
+      name { 'Outros' }
+      axles { [] }
+      remaining_axles { true }
+      fuel_percentage { BigDecimal('33') }
+    end
   end
 end

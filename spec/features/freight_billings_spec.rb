@@ -262,6 +262,40 @@ describe 'Freight billing' do
           expect(page).to have_text('Nenhum registro encontrado')
         end
 
+        context 'with a group of the remaining axles' do
+          let!(:others) { create(:truck_group, :others, tenant:) }
+
+          scenario 'lists the group instead of the transport documents without group' do
+            visit freight_billing_path(october)
+
+            expect(TruckGroup.count).to eq(6)
+            expect(page).to have_select('Tipo de conjunto', options: ['Todos', 'LS', 'Outros', 'Quarto eixo', 'Rodotrem'])
+            expect(page).to have_text('Pela quantidade de eixos informada em cada CT-e.')
+
+            select 'Outros', from: 'Tipo de conjunto'
+            click_on 'Aplicar Filtros'
+
+            expect(page).to have_select('Tipo de conjunto', selected: 'Outros')
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+            expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+          end
+        end
+
+        context 'when a truck hauls sets with another axle count' do
+          before { coil.update!(axles: 6) }
+
+          scenario 'filters each transport document by its own axle count' do
+            visit freight_billing_path(october.merge(truck_group_id: ls.id))
+
+            expect(html_table_to_rows.map(&:first)).to eq(['Conjunto', 'RVR2C34 + RVR9C02', 'Total'])
+            expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+
+            visit freight_billing_path(october.merge(truck_group_id: rodotrem.id))
+
+            expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 10.000,00')
+          end
+        end
+
         scenario 'rejects an unknown truck group' do
           visit freight_billing_path(october.merge(truck_group_id: 'rodotrem'))
 

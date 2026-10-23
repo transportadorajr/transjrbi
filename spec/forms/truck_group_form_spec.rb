@@ -16,6 +16,19 @@ RSpec.describe TruckGroupForm do
       expect(FreightExpense.last).to have_attributes(transport_document: document, kind_type: 'fuel', truck_group:, amount_cents: 325_000)
     end
 
+    it 'creates the group of the remaining axles ignoring the checked axle counts' do
+      create(:truck_group, tenant:, axles: [9], fuel_percentage: 0)
+      truck = create(:atua_transport_document, tenant:, axles: 4, freight_cents: 1_000_000)
+      form = described_class.new(tenant:, name: 'Outros', axles: ['', '3'], remaining_axles: '1', fuel_percentage: '33', active: '1')
+
+      expect { expect(form.save).to be(true) }.to change(TruckGroup, :count).by(1).and change(FreightExpense, :count).by(1)
+
+      truck_group = TruckGroup.last
+      expect(truck_group).to have_attributes(name: 'Outros', axles: [], remaining_axles: true, fuel_percentage: BigDecimal('33'))
+      expect(FreightExpense.last).to have_attributes(transport_document: truck, truck_group:, amount_cents: 330_000)
+      expect(FreightExpense.exists?(transport_document: document)).to be(false)
+    end
+
     it 'rejects a group without the required fields' do
       form = described_class.new(tenant:, axles: [''], fuel_percentage: '')
 
@@ -81,6 +94,34 @@ RSpec.describe TruckGroupForm do
 
         expect(form.save).to be(true)
         expect(TruckGroup.last.activated?).to be(false)
+      end
+
+      context 'with an active group of the remaining axles' do
+        let!(:others) { create(:truck_group, :others, tenant:) }
+
+        it 'rejects another active group of the remaining axles' do
+          form = described_class.new(tenant:, name: 'Demais', remaining_axles: '1', fuel_percentage: '30')
+
+          expect { expect(form.save).to be_falsey }.not_to change(TruckGroup, :count)
+          expect(form.errors.full_messages).to eq(['Abrange os demais eixos já está em outro grupo ativo'])
+        end
+
+        it 'accepts an inactive group of the remaining axles' do
+          form = described_class.new(tenant:, name: 'Demais', remaining_axles: '1', fuel_percentage: '30', active: '0')
+
+          expect(form.save).to be(true)
+        end
+
+        it 'updates the group of the remaining axles' do
+          form = described_class.for_truck_group(others)
+
+          expect(form).to have_attributes(axles: [], remaining_axles: true, fuel_percentage: '33')
+
+          form.assign_attributes(fuel_percentage: '30')
+
+          expect(form.save).to be(true)
+          expect(others.reload.fuel_percentage).to eq(BigDecimal('30'))
+        end
       end
 
       it 'updates the group keeping its own name and axles and recalculates the fuel' do

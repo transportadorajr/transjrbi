@@ -159,6 +159,28 @@ describe 'Truck groups' do
         expect(FreightExpense.last).to have_attributes(transport_document: document, kind_type: 'fuel', truck_group:, amount_cents: 325_000)
       end
 
+      scenario 'creates the group of the remaining axles and calculates the fuel of the other axle counts' do
+        truck = create(:atua_transport_document, tenant:, number: '78002', axles: 4, freight_cents: 500_000)
+        create(:truck_group, tenant:, name: 'Rodotrem', axles: [9], fuel_percentage: 0)
+
+        visit new_truck_group_path
+        fill_in 'Nome', with: 'Outros'
+        check 'Abrange os demais eixos'
+        fill_in 'Combustível sobre o frete (%)', with: '33'
+
+        expect { click_on 'Cadastrar Grupo' }.to change(TruckGroup, :count).by(1).and change(FreightExpense, :count).by(1)
+
+        truck_group = TruckGroup.last
+        expect(page).to have_current_path(truck_group_path(truck_group))
+        expect(truck_group).to have_attributes(name: 'Outros', axles: [], remaining_axles: true, fuel_percentage: BigDecimal('33'))
+        expect(dl_to_hash('#truck_group_data')).to include('Quantidades de eixos' => 'Demais eixos', 'Combustível sobre o frete' => '33%')
+        expect(FreightExpense.fuel.sole).to have_attributes(transport_document: truck, truck_group:, amount_cents: 165_000)
+
+        visit truck_groups_path
+
+        expect(html_table_to_rows).to include(['Outros', 'Demais eixos', '33%', 'Ativo', 'Opções Visualizar Alterar Excluir'])
+      end
+
       scenario 'shows the errors of the required fields' do
         visit new_truck_group_path
 

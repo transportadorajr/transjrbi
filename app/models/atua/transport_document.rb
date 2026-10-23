@@ -75,8 +75,8 @@ module Atua
     }
     scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
     scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
-    scope :by_predominant_axles, ->(axles, period) { where_plate_in(predominant_axles(period).where(axles:)) }
-    scope :without_predominant_axles, ->(axles, period) { where_plate_in(predominant_axles(period).where.not(axles:)) }
+    scope :by_axles, ->(axles) { where(axles:) }
+    scope :without_axles, ->(axles) { where(arel_table[:axles].not_in(axles).or(arel_table[:axles].eq(nil))) }
 
     class << self
       def freight_toll
@@ -87,21 +87,6 @@ module Atua
         Arel::Nodes::Case.new
           .when(zero_if_null(:toll_cents).gt(0).and(difference.lteq(TOLL_TOLERANCE_CENTS))).then(arel_table[:toll_cents])
           .else(0)
-      end
-
-      def predominant_axles(period)
-        ranked = unscoped.active.not_canceled
-          .where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'], posted_on: period)
-          .where.not(plate: [nil, '']).where.not(axles: nil)
-          .group(:tenant_id, :plate, :axles)
-          .select(:tenant_id, :plate, :axles,
-                  'ROW_NUMBER() OVER (PARTITION BY tenant_id, plate ORDER BY COUNT(*) DESC, axles DESC) AS position')
-
-        unscoped.from(ranked, table_name).where(position: 1)
-      end
-
-      def where_plate_in(plates)
-        where(Arel.sql("(#{table_name}.tenant_id, #{table_name}.plate) IN (#{plates.select(:tenant_id, :plate).to_sql})"))
       end
 
       def taker_names_by_code

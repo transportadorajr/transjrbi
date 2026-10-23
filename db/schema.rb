@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_164328) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_22_190834) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -842,7 +842,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_164328) do
     t.datetime "activated_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "remaining_axles", default: false, null: false
     t.index ["tenant_id", "name"], name: "index_truck_groups_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_truck_groups_on_remaining_axles", unique: true, where: "(remaining_axles AND (activated_at IS NOT NULL))"
     t.index ["tenant_id"], name: "index_truck_groups_on_tenant_id"
   end
 
