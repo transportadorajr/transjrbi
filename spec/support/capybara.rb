@@ -5,6 +5,8 @@ Capybara.server = :puma, { Silent: true }
 Capybara.javascript_driver = :cuprite
 Capybara.default_max_wait_time = 10
 Capybara.save_path = 'tmp'
+Capybara.app_host = "http://#{Rails.application.config.x.app_host}"
+Capybara.always_include_port = true
 Capybara.register_driver(:cuprite) do |app|
   Capybara::Cuprite::Driver.new(app, window_size: [1920, 1080], headless: ENV['INSPECTOR'].blank?, timeout: 10,
                                      process_timeout: 60, browser_options: { 'no-sandbox': nil },

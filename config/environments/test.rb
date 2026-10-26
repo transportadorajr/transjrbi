@@ -37,7 +37,7 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :test
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: 'example.com' }
+  config.action_mailer.default_url_options = { host: config.x.app_host }
 
   # Usa o adaptador de testes do Active Job (permite assert_enqueued_jobs/emails).
   config.active_job.queue_adapter = :test

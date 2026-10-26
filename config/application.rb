@@ -7,6 +7,7 @@ require 'rails/all'
 Bundler.require(*Rails.groups)
 
 module Transjrbi
+  APP_SUBDOMAIN = 'app'.freeze
   ADMIN_SUBDOMAIN = 'admin'.freeze
 
   class Application < Rails::Application
@@ -34,6 +35,7 @@ module Transjrbi
     config.active_job.queue_adapter = :good_job
 
     config.x.domain = ENV.fetch('APP_DOMAIN', 'localhost')
+    config.x.app_host = "#{APP_SUBDOMAIN}.#{config.x.domain}"
     config.x.admin_host = "#{ADMIN_SUBDOMAIN}.#{config.x.domain}"
     config.action_dispatch.tld_length = config.x.domain.count('.')
   end

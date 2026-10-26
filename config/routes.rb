@@ -26,12 +26,6 @@ Rails.application.routes.draw do
     end
   end
 
-  devise_for :users, controllers: { confirmations: 'users/confirmations' }
-
-  devise_scope :user do
-    put 'users/confirmation', to: 'users/confirmations#update'
-  end
-
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get 'up' => 'rails/health#show', as: :rails_health_check
@@ -39,26 +33,40 @@ Rails.application.routes.draw do
   get 'manifest' => 'rails/pwa#manifest', as: :pwa_manifest
   get 'service-worker' => 'rails/pwa#service_worker', as: :pwa_service_worker
 
-  resource :company, only: %i[show edit update]
-  resources :users, only: %i[index show new create edit update]
-  resources :transport_documents, only: %i[index show]
-  resources :manifests, only: %i[index show]
-  resources :customers, only: %i[index show]
-  resources :customer_groups do
-    patch :regroup, on: :member
-  end
-  resources :drivers, only: %i[index show]
-  resources :vehicles, only: %i[index show]
-  resources :expenses, only: %i[index show]
-  resources :commission_rules
-  resources :macro_regions
-  resources :truck_groups
-  resources :tonnage_rates
-  resource :insurance_rate, only: %i[show edit update]
-  resource :freight_billing, only: :show
-  resources :freight_expenses, only: %i[index] do
-    post :recalculate, on: :collection
+  constraints subdomain: Transjrbi::APP_SUBDOMAIN do
+    devise_for :users, controllers: { confirmations: 'users/confirmations' }
+
+    devise_scope :user do
+      put 'users/confirmation', to: 'users/confirmations#update'
+    end
+
+    resource :company, only: %i[show edit update]
+    resources :users, only: %i[index show new create edit update]
+    resources :transport_documents, only: %i[index show]
+    resources :manifests, only: %i[index show]
+    resources :customers, only: %i[index show]
+    resources :customer_groups do
+      patch :regroup, on: :member
+    end
+    resources :drivers, only: %i[index show]
+    resources :vehicles, only: %i[index show]
+    resources :expenses, only: %i[index show]
+    resources :commission_rules
+    resources :macro_regions
+    resources :truck_groups
+    resources :tonnage_rates
+    resource :insurance_rate, only: %i[show edit update]
+    resource :freight_billing, only: :show
+    resources :freight_expenses, only: %i[index] do
+      post :recalculate, on: :collection
+    end
+
+    root 'home#index'
   end
 
-  root 'home#index'
+  constraints subdomain: ['', 'www'] do
+    get '(*path)', to: redirect { |_params, request|
+      "#{request.protocol}#{Rails.application.config.x.app_host}#{request.port_string}#{request.fullpath}"
+    }
+  end
 end
