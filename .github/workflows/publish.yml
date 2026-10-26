@@ -18,6 +18,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout code
@@ -61,3 +63,26 @@ jobs:
           if ! gh release view "$VERSION" > /dev/null 2>&1; then
             gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" --generate-notes
           fi
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          APP_VERSION: ${{ needs.publish.outputs.version }}
+          APP_PATH: ${{ vars.VPS_APP_PATH }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: APP_VERSION,APP_PATH
+          script: |
+            set -e
+            cd "$APP_PATH"
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
