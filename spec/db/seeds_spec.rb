@@ -34,6 +34,29 @@ RSpec.describe 'db/seeds.rb' do
     end
   end
 
+  it 'creates every access resource' do
+    expect { run_seeds }.to change(Resource, :count).by(16)
+
+    expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
+    expect(Resource.find_by!(slug: 'customers')).to have_attributes(name: 'Clientes', writable: false)
+  end
+
+  it 'does not duplicate the access resources when run again' do
+    run_seeds
+
+    expect { run_seeds }.not_to change(Resource, :count)
+  end
+
+  context 'with a resource already registered' do
+    let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
+
+    it 'keeps the registered resource unchanged' do
+      expect { run_seeds }.to change(Resource, :count).by(15)
+
+      expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
+    end
+  end
+
   it 'backfills the customer groups of every tenant' do
     run_seeds
 
