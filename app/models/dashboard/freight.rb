@@ -56,6 +56,21 @@ module Dashboard
       @total ||= build_row(I18n.t('dashboards.freight.total'), entries)
     end
 
+    def gross
+      total.gross + unlinked_gross
+    end
+
+    def unlinked_gross
+      @unlinked_gross ||= Money.from_cents(
+        documents.active.not_canceled
+          .joins(first_trip_join)
+          .where(first_trips[:manifest_code].eq(nil))
+          .where(table[:document_kind].not_eq(COMPLEMENT_KIND))
+          .where(table[:posted_on].between(period))
+          .sum(table[:freight_cents]),
+      )
+    end
+
     def rows
       @rows ||= entries.group_by { |entry| key_for(entry) }
         .map { |key, grouped| build_row(label_for(key, grouped), grouped) }

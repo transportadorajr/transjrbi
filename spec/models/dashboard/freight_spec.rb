@@ -14,6 +14,8 @@ RSpec.describe Dashboard::Freight do
     it 'is empty' do
       expect(dashboard).to be_empty
       expect(dashboard.rows).to eq([])
+      expect(dashboard.unlinked_gross).to eq(Money.from_cents(0))
+      expect(dashboard.gross).to eq(Money.from_cents(0))
       expect(dashboard.total).to have_attributes(trips_count: 0, loaded_km: 0, gross: Money.from_cents(0), net: Money.from_cents(0),
                                                  gross_per_km: nil, net_per_km: nil, share: BigDecimal('0'))
     end
@@ -113,6 +115,22 @@ RSpec.describe Dashboard::Freight do
         net_per_km: Money.from_cents(2_549),
         share: BigDecimal('100'),
       )
+    end
+
+    context 'with documents linked to no trip' do
+      let!(:unlinked_in_november) do
+        create(:atua_transport_document, tenant:, number: '74008', freight_cents: 300_000, posted_on: Date.new(2026, 11, 1))
+      end
+      let!(:unlinked_canceled) do
+        create(:atua_transport_document, tenant:, number: '74009', freight_cents: 200_000, canceled_at: Time.zone.local(2026, 10, 3))
+      end
+
+      it 'adds the freight of the documents issued in the period without a trip to the gross freight of the trips' do
+        expect(Atua::TransportDocument.where(tenant:).count).to eq(11)
+        expect(dashboard.unlinked_gross).to eq(Money.from_cents(1_700_000))
+        expect(dashboard.total.gross).to eq(Money.from_cents(2_000_000))
+        expect(dashboard.gross).to eq(Money.from_cents(3_700_000))
+      end
     end
 
     it 'groups by the truck and trailer plates' do
