@@ -1,0 +1,26 @@
+<div class="card form-card mb-4">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('admin.tenants.form.owner_data') %></p>
+    <p class="form-card-subtitle"><%= t('admin.tenants.form.owner_data_text') %></p>
+  </div>
+  <div class="form-card-body">
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <%= f.input :owner_name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :owner_email, as: :email, required: true,
+                                  input_html: { class: 'form-control', autocomplete: 'off', autocapitalize: 'none' } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :owner_password, as: :password, required: true,
+                                     hint: t('admin.tenants.form.password_hint', minimum: Devise.password_length.min),
+                                     input_html: { class: 'form-control', autocomplete: 'new-password' } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :owner_password_confirmation, as: :password, required: true,
+                                                  input_html: { class: 'form-control', autocomplete: 'new-password' } %>
+      </div>
+    </div>
+  </div>
+</div>

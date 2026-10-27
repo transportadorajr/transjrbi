@@ -1,0 +1,21 @@
+<div class="card form-card mb-4">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('companies.form.company_data') %></p>
+    <p class="form-card-subtitle"><%= t('companies.form.company_data_text') %></p>
+  </div>
+  <div class="form-card-body">
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'organization' } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :trade_name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :legal_id, required: true,
+                               input_html: { class: 'form-control', inputmode: 'numeric', autocomplete: 'off',
+                                             data: { controller: 'mask', mask_pattern_value: %w[000.000.000-00 00.000.000/0000-00] } } %>
+      </div>
+    </div>
+  </div>
+</div>

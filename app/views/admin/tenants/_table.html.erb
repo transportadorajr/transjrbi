@@ -1,0 +1,22 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= Tenant.human_attribute_name(:trade_name) %></th>
+        <th class="d-none d-md-table-cell"><%= Tenant.human_attribute_name(:name) %></th>
+        <th class="d-none d-md-table-cell"><%= Tenant.human_attribute_name(:legal_id) %></th>
+        <th class="d-none d-lg-table-cell"><%= Tenant.human_attribute_name(:owner) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

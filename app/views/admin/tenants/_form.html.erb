@@ -1,0 +1,14 @@
+<%= simple_form_for(tenant_form, url: admin_tenant_form_url(tenant_form)) do |f| %>
+  <%= render 'companies/company_data', f: %>
+
+  <%= admin_tenant_owner_fields(f) %>
+
+  <div class="card form-card">
+    <%= render 'companies/atua_data', f: %>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, admin_tenant_form_submit_label(tenant_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), admin_tenants_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  </div>
+<% end %>

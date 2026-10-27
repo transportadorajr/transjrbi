@@ -87,6 +87,11 @@ shared:
       controllers:
         - admin/imports
         - admin/initial_loads
+    - name: admin_tenants
+      icon: buildings
+      url: /tenants
+      controllers:
+        - admin/tenants
     - name: admin_http_requests
       icon: arrow-left-right
       url: /http_requests

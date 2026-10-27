@@ -21,4 +21,27 @@ RSpec.describe Tenant do
       expect(tenant.errors.full_messages).to eq(['URL da Atua não é válido'])
     end
   end
+
+  describe '.by_name' do
+    let!(:transjr) { create(:tenant, name: 'Transportadora JR Ltda', trade_name: 'TransJR') }
+    let!(:rodominas) { create(:tenant, name: 'Rodoviário Minas S.A.', trade_name: 'RodoMinas') }
+
+    it 'finds the tenants by the legal name' do
+      expect(described_class.by_name('transportadora')).to eq([transjr])
+    end
+
+    it 'finds the tenants by the trade name' do
+      expect(described_class.by_name('rodomin')).to eq([rodominas])
+    end
+  end
+
+  describe '#owner' do
+    let!(:tenant) { create(:tenant) }
+    let!(:operator) { create(:user, tenant:, user_type: :operator) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+
+    it 'returns the user with the owner profile' do
+      expect(tenant.owner).to eq(owner)
+    end
+  end
 end
