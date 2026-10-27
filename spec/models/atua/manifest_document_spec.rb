@@ -48,6 +48,19 @@ RSpec.describe Atua::ManifestDocument do
     end
   end
 
+  describe 'database uniqueness' do
+    context 'with a document without series already imported' do
+      let!(:document) { create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74130', transport_document_series: nil) }
+
+      it 'does not store the same document without series twice in the same manifest' do
+        duplicated = document.attributes.except('id', 'created_at', 'updated_at')
+
+        expect { described_class.insert_all([duplicated]) }.not_to change(described_class, :count)
+        expect { described_class.insert_all!([duplicated]) }.to raise_error(ActiveRecord::RecordNotUnique)
+      end
+    end
+  end
+
   describe 'money' do
     it 'exposes the freight as reais' do
       expect(build(:atua_manifest_document, freight_cents: 321_720).freight).to eq(Money.from_cents(321_720, 'BRL'))
