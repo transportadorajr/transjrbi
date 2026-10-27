@@ -18,3 +18,6 @@ application.register('sidebar', SidebarController);
 
 import ClipboardController from './clipboard_controller';
 application.register('clipboard', ClipboardController);
+
+import MaskController from './mask_controller';
+application.register('mask', MaskController);

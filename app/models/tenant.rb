@@ -1,5 +1,6 @@
 class Tenant < ApplicationRecord
   has_many :users, dependent: :restrict_with_error
+  has_one :owner, -> { owner }, class_name: 'User', inverse_of: false, dependent: nil
   has_many :accesses, dependent: :restrict_with_error
   has_many :atua_imports, class_name: 'Atua::Import', dependent: :destroy
   has_many :atua_device_registrations, class_name: 'Atua::DeviceRegistration', dependent: :destroy
@@ -22,6 +23,11 @@ class Tenant < ApplicationRecord
   validates :name, :legal_id, :trade_name, presence: true
   validates :legal_id, uniqueness: true
   validates :atua_url, format: { with: URI::RFC2396_PARSER.make_regexp(%w[http https]) }, allow_blank: true
+
+  scope :by_name, ->(name) {
+    term = "%#{sanitize_sql_like(name)}%"
+    where(arel_table[:name].matches(term).or(arel_table[:trade_name].matches(term)))
+  }
 
   encrypts :atua_device_token
   encrypts :atua_device_hash

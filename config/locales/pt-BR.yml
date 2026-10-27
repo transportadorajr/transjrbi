@@ -355,6 +355,7 @@ pt-BR:
         atua_device_token: Token do dispositivo na Atua
         atua_device_hash: Hash do dispositivo na Atua
         users: Usuários
+        owner: Usuário administrador
       user:
         tenant: Empresa
         name: Nome
@@ -428,6 +429,11 @@ pt-BR:
         name: Nome
         slug: Identificador
         writable: Permite edição
+      admin/tenant_form:
+        owner_name: Nome do administrador
+        owner_email: E-mail do administrador
+        owner_password: Senha do administrador
+        owner_password_confirmation: Confirme a senha do administrador
       company_form:
         name: Razão social
         trade_name: Nome fantasia
@@ -650,6 +656,9 @@ pt-BR:
       admin_resource:
         create: Cadastrar Recurso
         update: Salvar Alterações
+      admin_tenant:
+        create: Cadastrar Empresa
+        update: Salvar Alterações
       customer_group:
         create: Cadastrar Grupo
         update: Salvar Alterações
@@ -676,6 +685,8 @@ pt-BR:
       resource:
         edit: Alterar
         destroy: Excluir
+      tenant:
+        edit: Alterar
       atua/transport_document:
         show: Visualizar
       atua/manifest:
@@ -1410,6 +1421,7 @@ pt-BR:
     admin_imports: Importações da Atua
     admin_http_requests: Requisições HTTP
     admin_resources: Recursos
+    admin_tenants: Empresas
     admin_good_job: Jobs (GoodJob)
     admin_flipper: Feature flags
   admin:
@@ -1496,6 +1508,28 @@ pt-BR:
         resource_data_text: Informe o nome e o identificador do módulo do sistema.
         slug_hint: "Use letras minúsculas, números e _ (ex.: users). Ele é usado para identificar o recurso no código."
         writable_hint: Desmarque quando o recurso permitir apenas leitura.
+    tenants:
+      index:
+        title: Empresas
+        subtitle: Empresas clientes que acessam o sistema, cada uma com seus próprios dados e usuários.
+        new_tenant: Nova Empresa
+        blank: '-'
+      filters:
+        name: Razão social ou nome fantasia
+      new:
+        title: Nova Empresa
+        back: Voltar para empresas
+      create:
+        success: Empresa cadastrada com sucesso. O usuário administrador já pode entrar no sistema.
+      edit:
+        title: Alterar Empresa
+        back: Voltar para empresas
+      update:
+        success: Empresa atualizada com sucesso.
+      form:
+        owner_data: Usuário administrador
+        owner_data_text: Primeiro acesso da empresa, com o perfil Proprietário. A conta já entra confirmada e pode acessar o sistema com a senha informada.
+        password_hint: Mínimo de %{minimum} caracteres.
     sessions:
       unauthenticated: Faça login para acessar o painel administrativo.
       expired: Sua sessão expirou por inatividade. Faça login novamente.

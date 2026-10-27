@@ -142,5 +142,21 @@ describe 'Company' do
       expect(page).to have_button('Salvar Alterações')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
+
+    scenario 'masks the legal id as a CPF or a CNPJ while typing' do
+      visit edit_company_path
+      fill_in 'CNPJ', with: '12345678901'
+
+      expect(page).to have_field('CNPJ', with: '123.456.789-01')
+
+      fill_in 'CNPJ', with: '33444555000166'
+
+      expect(page).to have_field('CNPJ', with: '33.444.555/0001-66')
+
+      expect { click_on 'Salvar Alterações' }.not_to change(Tenant, :count)
+
+      expect(page).to have_text('Dados da empresa atualizados com sucesso.')
+      expect(tenant.reload.legal_id).to eq('33.444.555/0001-66')
+    end
   end
 end

@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="fw-semibold text-break"><%= item.trade_name %></td>
+  <td class="d-none d-md-table-cell text-break"><%= item.name %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= item.legal_id %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= admin_tenant_owner(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(admin_tenant_menu(item)) %>
+  </td>
+</tr>
