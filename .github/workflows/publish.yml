@@ -73,7 +73,7 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           APP_VERSION: ${{ needs.publish.outputs.version }}
-          APP_PATH: ${{ vars.VPS_APP_PATH }}
+          APP_PATH: ${{ secrets.VPS_APP_PATH }}
         with:
           host: ${{ secrets.VPS_HOST }}
           port: ${{ secrets.VPS_PORT || 22 }}
