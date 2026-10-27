@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_22_190834) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_27_195356) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -303,7 +303,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_22_190834) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["atua_import_id"], name: "index_atua_manifest_documents_on_atua_import_id"
-    t.index ["tenant_id", "manifest_code", "transport_document_number", "transport_document_series"], name: "index_atua_manifest_documents_on_source_key", unique: true
+    t.index ["tenant_id", "manifest_code", "transport_document_number", "transport_document_series"], name: "index_atua_manifest_documents_on_source_key", unique: true, nulls_not_distinct: true
     t.index ["tenant_id", "transport_document_number", "transport_document_series", "branch_name"], name: "index_atua_manifest_documents_on_transport_document"
   end
 
