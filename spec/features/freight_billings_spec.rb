@@ -27,8 +27,8 @@ describe 'Freight billing' do
         expect(page).to have_text('Nenhum registro encontrado')
         expect(page).to have_no_table
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Frete bruto R$ 0,00', 'Frete líquido R$ 0,00', 'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -',
-           'KM rodado 0 km'],
+          ['Frete bruto R$ 0,00', 'Frete bruto com MDF-e R$ 0,00', 'Frete bruto sem MDF-e R$ 0,00', 'Frete líquido R$ 0,00',
+           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km'],
         )
       end
     end
@@ -97,8 +97,9 @@ describe 'Freight billing' do
 
         expect(Atua::TransportDocument.count).to eq(5)
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39',
-           'Frete líquido por km R$ 25,14', 'KM rodado 720 km'],
+          ['Frete bruto R$ 20.000,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 0,00',
+           'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
+           'KM rodado 720 km'],
         )
         expect(page).to have_text('Frete por Conjunto')
         expect(page).to have_text('Evolução Mensal')
@@ -208,6 +209,26 @@ describe 'Freight billing' do
 
         expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
         expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+      end
+
+      context 'when there are documents linked to no trip' do
+        let!(:pickup) { create(:atua_transport_document, tenant:, number: '74899', freight_cents: 60_000, posted_on: Date.new(2026, 10, 26)) }
+        let!(:transfer) { create(:atua_transport_document, tenant:, number: '74903', freight_cents: 26_900, posted_on: Date.new(2026, 10, 26)) }
+        let!(:november) { create(:atua_transport_document, tenant:, number: '74950', freight_cents: 90_000, posted_on: Date.new(2026, 11, 2)) }
+        let!(:canceled) do
+          create(:atua_transport_document, tenant:, number: '74951', freight_cents: 70_000, posted_on: Date.new(2026, 10, 26),
+                                           canceled_at: Time.zone.local(2026, 10, 26, 18))
+        end
+
+        scenario 'adds the freight of the documents without a trip to the gross freight like the Atua report' do
+          visit freight_billing_path(october)
+
+          expect(Atua::TransportDocument.where(tenant:).count).to eq(8)
+          expect(all('.counter-card').first(4).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 20.869,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 869,00',
+             'Frete líquido R$ 19.100,00'],
+          )
+        end
       end
 
       context 'when the trucks haul sets with different axle counts' do
@@ -346,7 +367,7 @@ describe 'Freight billing' do
               ['Total', '870 km', 'R$ 23.000,00', 'R$ 22.100,00'],
             ],
           )
-          expect(all('.counter-card')[1].text.squish).to eq('Frete líquido R$ 22.100,00')
+          expect(all('.counter-card')[3].text.squish).to eq('Frete líquido R$ 22.100,00')
         end
       end
 
