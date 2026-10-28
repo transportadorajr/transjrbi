@@ -1,0 +1,5 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'user_confirmation_modal', title: t('users.confirmation_modal.title'), title_icon: :'patch-check',
+                     dialog_class: 'modal-fullscreen-sm-down', auto_show: true, show_footer: false } do %>
+  <%= render 'users/confirmation_form', user_password_form: %>
+<% end %>

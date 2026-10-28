@@ -335,6 +335,131 @@ describe 'Users' do
     end
   end
 
+  context 'when the owner confirms a pending user from the listing' do
+    let!(:owner) { create(:user, tenant:, name: 'Arthur Dono', email: 'arthur@transjrbi.com.br', user_type: :owner) }
+    let!(:pending_user) do
+      create(:user, tenant:, name: 'Fábio Pendente', email: 'fabio@transjrbi.com.br', confirmed_at: nil)
+    end
+
+    before { login_as(owner, scope: :user) }
+
+    scenario 'lists the confirm option only for the users waiting for confirmation' do
+      visit users_path
+
+      expect(User.count).to eq(2)
+      expect(html_table_to_rows).to eq(
+        [
+          ['Nome', 'Telefone', 'Perfil', 'Status', 'Ações'],
+          ['A Arthur Dono arthur@transjrbi.com.br', '-', 'Proprietário', 'Ativo', 'Opções Visualizar Alterar'],
+          ['F Fábio Pendente fabio@transjrbi.com.br', '-', 'Operador', 'Aguardando confirmação',
+           'Opções Visualizar Alterar Confirmar Inativar'],
+        ],
+      )
+    end
+
+    scenario 'opens the confirmation modal through a turbo stream' do
+      visit confirmation_user_path(pending_user, format: :turbo_stream)
+
+      expect(page.status_code).to eq(200)
+      expect(page.body).to include('turbo-stream action="update" target="remote-container"')
+      expect(page.body).to include('Defina a senha de acesso de Fábio Pendente.')
+    end
+
+    scenario 'confirms the user with the password defined by the owner' do
+      visit users_path
+      page.driver.submit :patch, confirm_user_path(pending_user),
+                         { user_password: { password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!' } }
+
+      expect(page).to have_current_path(users_path)
+      expect(page).to have_text('Usuário confirmado com sucesso. Ele já pode acessar com a senha definida.')
+
+      pending_user.reload
+      expect(pending_user.confirmed_at).to be_present
+      expect(pending_user.confirmation_token).to be_nil
+      expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+    end
+
+    scenario 'keeps the user pending when the confirmation does not match the password' do
+      visit users_path
+      page.driver.submit :patch, confirm_user_path(pending_user, format: :turbo_stream),
+                         { user_password: { password: 'NovaSenha1!', password_confirmation: 'Outra123!' } }
+
+      expect(page.status_code).to eq(422)
+      expect(page.body).to include('turbo-stream action="replace" target="user_password_form"')
+      expect(page.body).to include('Confirme a senha não é igual a Senha')
+      expect(pending_user.reload.confirmed_at).to be_nil
+    end
+
+    scenario 'cannot confirm a user that already confirmed the account' do
+      confirmed_user = create(:user, tenant:)
+
+      visit users_path
+      page.driver.submit :patch, confirm_user_path(confirmed_user),
+                         { user_password: { password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!' } }
+
+      expect(page).to have_current_path(users_path)
+      expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
+      expect(confirmed_user.reload.valid_password?('Senha123!')).to be(true)
+    end
+
+    scenario 'confirms the user through the modal', :js do
+      visit users_path
+      within("##{ActionView::RecordIdentifier.dom_id(pending_user)}") { click_on 'Confirmar' }
+
+      within('#user_confirmation_modal') do
+        fill_in 'Senha', with: 'NovaSenha1!'
+        fill_in 'Confirme a senha', with: 'Outra123!'
+        click_on 'Confirmar usuário'
+
+        expect(page).to have_text('Confirme a senha não é igual a Senha')
+
+        fill_in 'Senha', with: 'NovaSenha1!'
+        fill_in 'Confirme a senha', with: 'NovaSenha1!'
+        click_on 'Confirmar usuário'
+      end
+
+      expect(page).to have_text('Usuário confirmado com sucesso. Ele já pode acessar com a senha definida.')
+      expect(page).to have_no_css('#user_confirmation_modal')
+
+      pending_user.reload
+      expect(pending_user.confirmed_at).to be_present
+      expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+    end
+  end
+
+  context 'when an admin sees a pending user' do
+    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', email: 'bruna@transjrbi.com.br', user_type: :admin) }
+    let!(:pending_user) do
+      create(:user, tenant:, name: 'Fábio Pendente', email: 'fabio@transjrbi.com.br', confirmed_at: nil)
+    end
+
+    before { login_as(admin, scope: :user) }
+
+    scenario 'does not list the confirm option' do
+      visit users_path
+
+      expect(User.count).to eq(2)
+      expect(html_table_to_rows).to eq(
+        [
+          ['Nome', 'Telefone', 'Perfil', 'Status', 'Ações'],
+          ['B Bruna Admin bruna@transjrbi.com.br', '-', 'Administrador', 'Ativo', 'Opções Visualizar Alterar'],
+          ['F Fábio Pendente fabio@transjrbi.com.br', '-', 'Operador', 'Aguardando confirmação',
+           'Opções Visualizar Alterar Inativar'],
+        ],
+      )
+    end
+
+    scenario 'cannot confirm the user through a forged request' do
+      visit users_path
+      page.driver.submit :patch, confirm_user_path(pending_user),
+                         { user_password: { password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!' } }
+
+      expect(page).to have_current_path(users_path)
+      expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
+      expect(pending_user.reload.confirmed_at).to be_nil
+    end
+  end
+
   context 'when an admin opens the new user screen' do
     let!(:admin) { create(:user, tenant:, user_type: :admin) }
 

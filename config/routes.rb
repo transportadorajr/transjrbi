@@ -42,7 +42,11 @@ Rails.application.routes.draw do
 
     resource :company, only: %i[show edit update]
     resources :users, only: %i[index show new create edit update destroy] do
-      patch :activate, on: :member
+      member do
+        patch :activate
+        get :confirmation
+        patch :confirm
+      end
     end
     resources :transport_documents, only: %i[index show]
     resources :manifests, only: %i[index show]
