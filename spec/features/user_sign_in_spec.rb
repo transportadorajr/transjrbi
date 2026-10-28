@@ -78,7 +78,7 @@ describe 'User sign in' do
 
       expect(user).to be_operator
       expect(page).to have_current_path(root_path)
-      expect(page).to have_css('h1', text: 'TransJRBI')
+      expect(page).to have_css('h1', text: 'Bem-vindo ao JR BI, João Silva!')
     end
 
     context 'when the operator can read the freight billing' do

@@ -866,16 +866,12 @@ pt-BR:
       success: Senha alterada com sucesso.
   home:
     index:
-      title: TransJRBI
-      stack: Rails %{rails} · Ruby %{ruby} · Stimulus · Bootstrap
-      stimulus:
-        title: Stimulus
-        description: Teste rápido de um controller Stimulus.
-        placeholder: Seu nome
-        greet: Cumprimentar
-      account:
-        title: Conta
-        signed_in_as_html: Você está conectado como <strong>%{email}</strong>.
+      title: Início
+      welcome: Bem-vindo ao JR BI, %{name}!
+      subtitle: A inteligência do seu negócio em um só lugar.
+      intro:
+        title: Decisões guiadas por dados
+        description: Acompanhe o faturamento, os custos e o desempenho da sua frota para enxergar onde a sua operação ganha mais e onde ela pode crescer.
   resource_names:
     users: Usuários
     transport_documents: CT-es
