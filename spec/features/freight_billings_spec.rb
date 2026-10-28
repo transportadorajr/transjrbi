@@ -441,5 +441,44 @@ describe 'Freight billing' do
       expect(page).to have_no_css('th', text: /\APedágio\z/i)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
+
+    scenario 'shows the indicators two per row and the grouping options in a single swipeable line' do
+      use_mobile_screen(width: 360)
+      visit freight_billing_path(october)
+
+      card_tops = page.evaluate_script("[...document.querySelectorAll('.counter-card')].map((card) => card.getBoundingClientRect().top)")
+      option_tops = page.evaluate_script("[...document.querySelectorAll('.dashboard-segmented .btn')].map((option) => option.getBoundingClientRect().top)")
+      title_top = page.evaluate_script("document.querySelector('.page-title').getBoundingClientRect().top")
+      filter_top = page.evaluate_script("document.querySelector('.page-actions').getBoundingClientRect().top")
+
+      expect(card_tops.each_slice(2).map { |pair| pair.uniq.size }).to eq([1, 1, 1, 1])
+      expect(card_tops.uniq.size).to eq(4)
+      expect(option_tops.uniq.size).to eq(1)
+      expect(filter_top).to be <= title_top
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+  end
+
+  context 'when the freight reaches hundreds of thousands on a laptop screen beside the sidebar', :js do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+
+    before do
+      create(:atua_manifest, tenant:, code: 41_002, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
+      create(:atua_transport_document, tenant:, number: '74002', freight_cents: 74_687_244, plate: 'RVR2C34', trailer_plate: 'RVR9C02')
+      create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74002', calculated_distance_km: 53_117)
+      login_as(admin, scope: :user)
+    end
+
+    scenario 'keeps every indicator value inside its card' do
+      page.driver.resize(1346, 900)
+      visit freight_billing_path(october)
+
+      overflowing = page.evaluate_script(
+        "[...document.querySelectorAll('.counter-value')].filter((value) => value.scrollWidth > value.parentElement.clientWidth).length",
+      )
+
+      expect(first('.counter-value').text).to eq('R$ 746.872,44')
+      expect(overflowing).to eq(0)
+    end
   end
 end
