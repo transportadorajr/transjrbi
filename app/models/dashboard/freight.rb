@@ -89,7 +89,7 @@ module Dashboard
     end
 
     def history_period
-      period.last.beginning_of_month.months_ago(HISTORY_MONTHS - 1)..period.last
+      period.last.beginning_of_month.months_ago(HISTORY_MONTHS - 1)..period.last.end_of_month
     end
 
     def monthly_data
@@ -179,7 +179,7 @@ module Dashboard
     end
 
     def fetched_period
-      [period.first, history_period.first].min..period.last
+      [period.first, history_period.first].min..history_period.last
     end
 
     def fact_columns
