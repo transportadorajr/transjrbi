@@ -326,6 +326,26 @@ RSpec.describe Dashboard::Freight do
     end
   end
 
+  context 'with a period that ends before the end of the month' do
+    let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 15) }
+
+    before do
+      create(:atua_manifest, tenant:, code: 45_001, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 10, 10, 8))
+      create(:atua_manifest, tenant:, code: 45_002, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 10, 25, 8))
+      create(:atua_transport_document, tenant:, number: '78001', freight_cents: 400_000, plate: 'RVR6G78')
+      create(:atua_transport_document, tenant:, number: '78002', freight_cents: 600_000, plate: 'RVR6G78')
+      create(:atua_manifest_document, tenant:, manifest_code: 45_001, transport_document_number: '78001', calculated_distance_km: 200)
+      create(:atua_manifest_document, tenant:, manifest_code: 45_002, transport_document_number: '78002', calculated_distance_km: 300)
+    end
+
+    it 'plots the whole last month while the totals keep only the period' do
+      expect(Atua::TransportDocument.count).to eq(2)
+      expect(dashboard.total).to have_attributes(trips_count: 1, gross: Money.from_cents(400_000))
+      expect(dashboard.history_period).to eq(Date.new(2026, 5, 1)..Date.new(2026, 10, 31))
+      expect(dashboard.monthly_data.first[:data]['Out/2026']).to eq(10_000.0)
+    end
+  end
+
   context 'with a trip started late at night on the last day of the month' do
     before do
       create(:atua_manifest, tenant:, code: 41_010, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 31, 22, 30))
