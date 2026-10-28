@@ -37,7 +37,7 @@ describe 'Users' do
           ['Nome', 'Telefone', 'Perfil', 'Status', 'Ações'],
           ['A Arthur Dono arthur@transjrbi.com.br', '-', 'Proprietário', 'Ativo', 'Opções Visualizar Alterar'],
           ['B Bruna Admin bruna@transjrbi.com.br', '(31) 99876-5432', 'Administrador', 'Ativo', 'Opções Visualizar Alterar'],
-          ['C Carla Operadora carla@transjrbi.com.br', '-', 'Operador', 'Inativo', 'Opções Visualizar Alterar'],
+          ['C Carla Operadora carla@transjrbi.com.br', '-', 'Operador', 'Inativo', 'Opções Visualizar Alterar Ativar'],
         ],
       )
       expect(page).to have_no_text('Diego Externo')
@@ -55,7 +55,7 @@ describe 'Users' do
       expect(html_table_to_rows).to eq(
         [
           ['Nome', 'Telefone', 'Perfil', 'Status', 'Ações'],
-          ['C Carla Operadora carla@transjrbi.com.br', '-', 'Operador', 'Inativo', 'Opções Visualizar Alterar'],
+          ['C Carla Operadora carla@transjrbi.com.br', '-', 'Operador', 'Inativo', 'Opções Visualizar Alterar Ativar'],
         ],
       )
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 1', 'Ativos 0', 'Inativos 1'])
@@ -87,6 +87,79 @@ describe 'Users' do
       visit user_path(stranger)
 
       expect(page.status_code).to eq(404)
+    end
+
+    context 'when deactivating a user' do
+      let!(:active_operator) { create(:user, tenant:, name: 'Eduardo Operador', email: 'eduardo@transjrbi.com.br') }
+
+      scenario 'deactivates the user without removing it' do
+        visit users_path
+
+        expect do
+          page.driver.submit :delete, user_path(active_operator), {}
+        end.not_to change(User, :count)
+
+        expect(page).to have_current_path(users_path)
+        expect(page).to have_text('Usuário inativado com sucesso.')
+        expect(active_operator.reload.activated_at).to be_nil
+        expect(active_operator).not_to be_activated
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 4', 'Ativos 2', 'Inativos 2'])
+      end
+
+      scenario 'keeps the filters of the listing after deactivating the user' do
+        page.driver.submit :delete, user_path(active_operator, name: 'eduardo', status: 'active'), {}
+
+        expect(page).to have_current_path(users_path(name: 'eduardo', status: 'active'))
+        expect(page).to have_text('Usuário inativado com sucesso.')
+        expect(page).to have_text('Nenhum registro encontrado')
+      end
+
+      scenario 'reactivates a deactivated user' do
+        page.driver.submit :patch, activate_user_path(inactive_operator), {}
+
+        expect(page).to have_current_path(users_path)
+        expect(page).to have_text('Usuário reativado com sucesso.')
+        expect(inactive_operator.reload.activated_at).to be_present
+        expect(inactive_operator).to be_activated
+      end
+
+      scenario 'lists the deactivate option only for the users that can be deactivated' do
+        visit users_path
+
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'Telefone', 'Perfil', 'Status', 'Ações'],
+            ['A Arthur Dono arthur@transjrbi.com.br', '-', 'Proprietário', 'Ativo', 'Opções Visualizar Alterar'],
+            ['B Bruna Admin bruna@transjrbi.com.br', '(31) 99876-5432', 'Administrador', 'Ativo', 'Opções Visualizar Alterar'],
+            ['C Carla Operadora carla@transjrbi.com.br', '-', 'Operador', 'Inativo', 'Opções Visualizar Alterar Ativar'],
+            ['E Eduardo Operador eduardo@transjrbi.com.br', '-', 'Operador', 'Ativo', 'Opções Visualizar Alterar Inativar'],
+          ],
+        )
+        expect(User.count).to eq(5)
+        expect(page).to have_link('Inativar', href: user_path(active_operator))
+        expect(page).to have_link('Ativar', href: activate_user_path(inactive_operator))
+      end
+
+      scenario 'cannot deactivate the owner of the company' do
+        page.driver.submit :delete, user_path(owner), {}
+
+        expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
+        expect(owner.reload).to be_activated
+      end
+
+      scenario 'cannot deactivate its own account' do
+        page.driver.submit :delete, user_path(admin), {}
+
+        expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
+        expect(admin.reload).to be_activated
+      end
+
+      scenario 'cannot deactivate a user of another tenant' do
+        page.driver.submit :delete, user_path(stranger), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger.reload).to be_activated
+      end
     end
 
     context 'when creating a user' do
@@ -388,6 +461,42 @@ describe 'Users' do
       expect(operator.reload.user_type).to eq('operator')
       expect(operator.name).to eq('Fábio')
     end
+
+    scenario 'cannot deactivate another user through a forged request' do
+      page.driver.submit :delete, user_path(teammate), {}
+
+      expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
+      expect(teammate.reload).to be_activated
+    end
+  end
+
+  context 'when a deactivated user tries to sign in' do
+    let!(:deactivated_user) { create(:user, tenant:, email: 'helena@transjrbi.com.br', activated_at: nil) }
+
+    scenario 'is kept on the login screen with the deactivation message' do
+      visit new_user_session_path
+      fill_in 'E-mail', with: 'helena@transjrbi.com.br'
+      fill_in 'Senha', with: 'Senha123!'
+      click_on 'Entrar'
+
+      expect(page).to have_current_path(new_user_session_path)
+      expect(page).to have_text('Seu usuário está inativo. Fale com o administrador da sua empresa.')
+    end
+  end
+
+  context 'when a signed in user is deactivated' do
+    let!(:user) { create(:user, tenant:, name: 'Igor Operador', email: 'igor@transjrbi.com.br') }
+
+    before { login_as(user, scope: :user) }
+
+    scenario 'loses the access on the next request' do
+      user.update!(activated: false)
+
+      visit users_path
+
+      expect(page).to have_current_path(new_user_session_path)
+      expect(page).to have_text('Seu usuário está inativo. Fale com o administrador da sua empresa.')
+    end
   end
 
   context 'when the screen is opened on a phone', :js do
@@ -411,6 +520,24 @@ describe 'Users' do
 
       expect(page).to have_current_path(edit_user_path(admin))
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    context 'when there is an operator to deactivate' do
+      let!(:operator) { create(:user, tenant:, name: 'Júlia Operadora', email: 'julia@transjrbi.com.br') }
+
+      scenario 'deactivates the user from the actions menu after confirming' do
+        visit users_path
+        use_mobile_screen
+
+        within("#user_#{operator.id}") do
+          click_button 'Opções'
+          accept_confirm('Tem certeza que deseja inativar este usuário? Ele perderá o acesso ao sistema.') { click_on 'Inativar' }
+        end
+
+        expect(page).to have_text('Usuário inativado com sucesso.')
+        within("#user_#{operator.id}") { expect(page).to have_text('Inativo') }
+        expect(operator.reload).not_to be_activated
+      end
     end
 
     context 'when there are resources to grant' do

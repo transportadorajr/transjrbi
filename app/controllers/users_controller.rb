@@ -2,7 +2,7 @@ class UsersController < BaseController
   has_scope :by_name, as: :name
   has_scope :by_status, as: :status
 
-  before_action :set_user, only: %i[show edit update]
+  before_action :set_user, only: %i[show edit update destroy activate]
   before_action :set_resources, only: %i[new create edit update]
 
   def index
@@ -62,7 +62,27 @@ class UsersController < BaseController
     end
   end
 
+  def destroy
+    authorize!(:deactivate, @user)
+
+    @user.update!(activated: false)
+
+    redirect_to users_path(**listing_params), notice: t('.success')
+  end
+
+  def activate
+    authorize!(:deactivate, @user)
+
+    @user.update!(activated: true)
+
+    redirect_to users_path(**listing_params), notice: t('.success')
+  end
+
   private
+
+  def listing_params
+    params.slice(:name, :status, :page).permit(:name, :status, :page).to_h.symbolize_keys
+  end
 
   def set_user
     @user = current_tenant.users.find(params.expect(:id))

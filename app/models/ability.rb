@@ -11,6 +11,9 @@ class Ability
     return if user.operator?
 
     can %i[read create update], User, tenant_id: user.tenant_id
+    can :deactivate, User, tenant_id: user.tenant_id
+    cannot :deactivate, User, user_type: 'owner'
+    cannot :deactivate, User, id: user.id
     resource_privileges
   end
 

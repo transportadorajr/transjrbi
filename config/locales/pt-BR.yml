@@ -682,6 +682,8 @@ pt-BR:
       user:
         show: Visualizar
         edit: Alterar
+        destroy: Inativar
+        activate: Ativar
       resource:
         edit: Alterar
         destroy: Excluir
@@ -777,6 +779,8 @@ pt-BR:
       deactivated_users: Inativos
       active: Ativo
       deactivated: Inativo
+      confirm_destroy: Tem certeza que deseja inativar este usuário? Ele perderá o acesso ao sistema.
+      confirm_activate: Tem certeza que deseja reativar este usuário?
     filters:
       name: Nome do usuário
       status: Status
@@ -795,6 +799,10 @@ pt-BR:
       back: Voltar para usuários
     update:
       success: Usuário atualizado com sucesso.
+    destroy:
+      success: Usuário inativado com sucesso.
+    activate:
+      success: Usuário reativado com sucesso.
     form:
       user_data: Dados do Usuário
       user_data_text: Informe os dados principais e o perfil de acesso do usuário.
@@ -1345,6 +1353,9 @@ pt-BR:
       trip_data: Viagem e veículo
       values: Valores
   devise:
+    failure:
+      user:
+        deactivated: Seu usuário está inativo. Fale com o administrador da sua empresa.
     shared:
       minimum_password_length:
         one: Mínimo de %{count} caractere.

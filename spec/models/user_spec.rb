@@ -86,6 +86,26 @@ RSpec.describe User do
     end
   end
 
+  describe '#active_for_authentication?' do
+    it 'is true for an activated and confirmed account' do
+      expect(create(:user)).to be_active_for_authentication
+    end
+
+    it 'is false for a deactivated account' do
+      user = create(:user, activated_at: nil)
+
+      expect(user).not_to be_active_for_authentication
+      expect(user.inactive_message).to eq(:deactivated)
+    end
+
+    it 'keeps the confirmation message for an activated account waiting for confirmation' do
+      user = create(:user, confirmed_at: nil, confirmation_sent_at: 4.days.ago)
+
+      expect(user).not_to be_active_for_authentication
+      expect(user.inactive_message).to eq(:unconfirmed)
+    end
+  end
+
   describe 'confirmation token' do
     it 'generates a unique hexadecimal token for an account waiting for confirmation' do
       user = create(:user, confirmed_at: nil)

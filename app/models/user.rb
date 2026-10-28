@@ -26,6 +26,14 @@ class User < ApplicationRecord
     end
   end
 
+  def active_for_authentication?
+    super && activated?
+  end
+
+  def inactive_message
+    activated? ? super : :deactivated
+  end
+
   def pending_account_confirmation?
     !confirmed? && !confirmation_period_expired?
   end
