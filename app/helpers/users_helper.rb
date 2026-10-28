@@ -57,6 +57,10 @@ module UsersHelper
     user.activated_at ? l(user.activated_at, format: :short) : t('users.show.blank')
   end
 
+  def user_password_change_required(user)
+    t(user.password_change_required? ? 'users.show.password_change_pending' : 'users.show.password_change_not_pending')
+  end
+
   def user_edit_button(user)
     return unless can?(:update, user)
 

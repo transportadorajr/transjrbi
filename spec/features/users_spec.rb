@@ -80,6 +80,7 @@ describe 'Users' do
         'Perfil' => 'Administrador',
         'Status' => 'Ativo',
         'Ativado em' => '01 de outubro, 09:30',
+        'Troca de senha pendente' => 'Não',
       )
     end
 
@@ -285,6 +286,25 @@ describe 'Users' do
       expect(user.email).to eq('eduardo@transjrbi.com.br')
       expect(user.confirmed_at).to be_present
       expect(user.valid_password?('NovaSenha1!')).to be(true)
+      expect(user.password_change_required?).to be(true)
+    end
+
+    scenario 'creates the user without requiring the password change when the owner unchecks it' do
+      visit new_user_path
+      fill_in 'Nome', with: 'Eduardo Motorista'
+      fill_in 'E-mail', with: 'eduardo@transjrbi.com.br'
+      select 'Operador', from: 'Perfil'
+      fill_in 'Senha', with: 'NovaSenha1!'
+      fill_in 'Confirme a senha', with: 'NovaSenha1!'
+
+      expect(page).to have_checked_field('Exigir troca de senha no primeiro acesso')
+      uncheck 'Exigir troca de senha no primeiro acesso'
+
+      expect { click_on 'Cadastrar Usuário' }.to change(User, :count).by(1)
+
+      user = User.last
+      expect(user.valid_password?('NovaSenha1!')).to be(true)
+      expect(user.password_change_required?).to be(false)
     end
 
     scenario 'shows the error when the confirmation does not match the password' do
@@ -321,6 +341,8 @@ describe 'Users' do
         expect(pending_user.confirmed_at).to be_present
         expect(pending_user.confirmation_token).to be_nil
         expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+        expect(pending_user.password_change_required?).to be(true)
+        expect(dl_to_hash).to include('Troca de senha pendente' => 'Sim')
       end
     end
 
@@ -332,6 +354,7 @@ describe 'Users' do
       expect(page).to have_field('Nome', with: confirmed_user.name)
       expect(page).to have_no_field('Senha')
       expect(page).to have_no_field('Confirme a senha')
+      expect(page).to have_no_field('Exigir troca de senha no primeiro acesso')
     end
   end
 
@@ -377,6 +400,20 @@ describe 'Users' do
       expect(pending_user.confirmed_at).to be_present
       expect(pending_user.confirmation_token).to be_nil
       expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+      expect(pending_user.password_change_required?).to be(true)
+    end
+
+    scenario 'confirms the user without requiring the password change when the owner unchecks it' do
+      visit users_path
+      page.driver.submit :patch, confirm_user_path(pending_user),
+                         { user_password: { password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!',
+                                            password_change_required: '0' } }
+
+      expect(page).to have_text('Usuário confirmado com sucesso. Ele já pode acessar com a senha definida.')
+
+      pending_user.reload
+      expect(pending_user.confirmed_at).to be_present
+      expect(pending_user.password_change_required?).to be(false)
     end
 
     scenario 'keeps the user pending when the confirmation does not match the password' do
@@ -407,6 +444,8 @@ describe 'Users' do
       within("##{ActionView::RecordIdentifier.dom_id(pending_user)}") { click_on 'Confirmar' }
 
       within('#user_confirmation_modal') do
+        expect(page).to have_checked_field('Exigir troca de senha no primeiro acesso')
+
         fill_in 'Senha', with: 'NovaSenha1!'
         fill_in 'Confirme a senha', with: 'Outra123!'
         click_on 'Confirmar usuário'
@@ -424,6 +463,7 @@ describe 'Users' do
       pending_user.reload
       expect(pending_user.confirmed_at).to be_present
       expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+      expect(pending_user.password_change_required?).to be(true)
     end
   end
 

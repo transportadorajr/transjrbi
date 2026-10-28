@@ -7,6 +7,7 @@ class UserForm < BaseForm
   attribute :user_type, :string
   attribute :password, :string
   attribute :password_confirmation, :string
+  attribute :password_change_required, :boolean, default: true
   attribute :access_attributes, default: -> { [] }
 
   enum :user_type, %i[admin operator]
@@ -96,7 +97,7 @@ class UserForm < BaseForm
   end
 
   def password_attributes
-    return { password:, password_confirmation: } if password_defined?
+    return { password:, password_confirmation:, password_change_required: } if password_defined?
 
     random_password = SecureRandom.hex(32)
     { password: random_password, password_confirmation: random_password }
@@ -104,7 +105,7 @@ class UserForm < BaseForm
 
   def confirm_with_password(attributes)
     user.skip_confirmation!
-    attributes.merge!(password:, password_confirmation:, confirmation_token: nil)
+    attributes.merge!(password:, password_confirmation:, password_change_required:, confirmation_token: nil)
   end
 
   def persist_accesses

@@ -36,4 +36,27 @@ describe 'User password reset' do
       expect(user.reload.valid_password?('NovaSenha1!')).to be(true)
     end
   end
+
+  context 'with a user required to change the password defined by the owner' do
+    let!(:user) { create(:user, tenant:, email: 'eduardo@transjrbi.com.br', password_change_required: true) }
+
+    scenario 'does not ask for the password change again after resetting the password', :inline_jobs do
+      visit new_user_password_path
+      fill_in 'E-mail', with: 'eduardo@transjrbi.com.br'
+      click_on 'Enviar instruções para redefinição da senha'
+
+      mail = ActionMailer::Base.deliveries.last
+      visit Capybara.string(mail.body.encoded).first(:link)[:href]
+      fill_in 'Nova senha', with: 'NovaSenha1!'
+      fill_in 'Confirme sua nova senha', with: 'NovaSenha1!'
+      click_on 'Alterar minha senha'
+
+      expect(page).to have_current_path(root_path)
+      expect(page).to have_no_text('Defina sua nova senha')
+
+      user.reload
+      expect(user.valid_password?('NovaSenha1!')).to be(true)
+      expect(user.password_change_required?).to be(false)
+    end
+  end
 end

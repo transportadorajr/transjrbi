@@ -1,0 +1,28 @@
+<% content_for :title, t('.title') %>
+
+<%= auth_header_tag t('.title'), subtitle: t('.instruction') %>
+
+<%= form_for(@password_change_form, url: password_change_path, html: { method: :patch, class: 'auth-form' }) do |f| %>
+  <%= render 'devise/shared/error_messages', resource: @password_change_form %>
+
+  <div class="form-floating mb-3">
+    <%= f.password_field :password, autofocus: true, autocomplete: 'new-password',
+                                    placeholder: PasswordChangeForm.human_attribute_name(:password), class: 'form-control auth-input' %>
+    <%= f.label :password %>
+  </div>
+
+  <div class="form-floating mb-1">
+    <%= f.password_field :password_confirmation, autocomplete: 'new-password',
+                                                 placeholder: PasswordChangeForm.human_attribute_name(:password_confirmation),
+                                                 class: 'form-control auth-input' %>
+    <%= f.label :password_confirmation %>
+  </div>
+
+  <div class="form-text mb-4"><%= t('devise.shared.minimum_password_length', count: Devise.password_length.min) %></div>
+
+  <%= f.submit t('.submit'), class: 'btn auth-btn w-100' %>
+<% end %>
+
+<div class="d-flex flex-column align-items-center gap-2 mt-4">
+  <%= link_to t('.sign_out'), destroy_user_session_path, class: 'auth-link', data: { turbo_method: :delete } %>
+</div>

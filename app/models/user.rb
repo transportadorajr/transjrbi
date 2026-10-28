@@ -9,6 +9,7 @@ class User < ApplicationRecord
          :confirmable, :trackable
 
   time_based_flag :activated
+  time_based_flag :password_change_required
 
   enum :user_type, %i[owner admin operator].index_with(&:to_s), validate: true
 
@@ -36,6 +37,12 @@ class User < ApplicationRecord
 
   def pending_account_confirmation?
     !confirmed? && !confirmation_period_expired?
+  end
+
+  def reset_password(new_password, new_password_confirmation)
+    self.password_change_required = false if new_password.present?
+
+    super
   end
 
   private
@@ -71,28 +78,29 @@ end
 #
 # Table name: users
 #
-#  id                     :bigint           not null, primary key
-#  activated_at           :datetime
-#  confirmation_sent_at   :datetime
-#  confirmation_token     :string
-#  confirmed_at           :datetime
-#  current_sign_in_at     :datetime
-#  current_sign_in_ip     :inet
-#  email                  :string           default(""), not null
-#  encrypted_password     :string           default(""), not null
-#  last_sign_in_at        :datetime
-#  last_sign_in_ip        :inet
-#  name                   :string           not null
-#  phone                  :string
-#  remember_created_at    :datetime
-#  reset_password_sent_at :datetime
-#  reset_password_token   :string
-#  sign_in_count          :integer          default(0), not null
-#  unconfirmed_email      :string
-#  user_type              :enum             default("operator"), not null
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
-#  tenant_id              :bigint           not null
+#  id                          :bigint           not null, primary key
+#  activated_at                :datetime
+#  confirmation_sent_at        :datetime
+#  confirmation_token          :string
+#  confirmed_at                :datetime
+#  current_sign_in_at          :datetime
+#  current_sign_in_ip          :inet
+#  email                       :string           default(""), not null
+#  encrypted_password          :string           default(""), not null
+#  last_sign_in_at             :datetime
+#  last_sign_in_ip             :inet
+#  name                        :string           not null
+#  password_change_required_at :datetime
+#  phone                       :string
+#  remember_created_at         :datetime
+#  reset_password_sent_at      :datetime
+#  reset_password_token        :string
+#  sign_in_count               :integer          default(0), not null
+#  unconfirmed_email           :string
+#  user_type                   :enum             default("operator"), not null
+#  created_at                  :datetime         not null
+#  updated_at                  :datetime         not null
+#  tenant_id                   :bigint           not null
 #
 # Indexes
 #

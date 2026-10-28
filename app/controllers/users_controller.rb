@@ -111,16 +111,16 @@ class UsersController < BaseController
   end
 
   def user_params
-    params.expect(user: [:name, :email, :phone, :user_type, :password, :password_confirmation,
+    params.expect(user: [:name, :email, :phone, :user_type, :password, :password_confirmation, :password_change_required,
                          { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
   end
 
   def user_password_params
-    params.expect(user_password: %i[password password_confirmation]).to_h.symbolize_keys
+    params.expect(user_password: %i[password password_confirmation password_change_required]).to_h.symbolize_keys
   end
 
   def user_edit_params
-    params.expect(user: [:name, :phone, :user_type, :password, :password_confirmation,
+    params.expect(user: [:name, :phone, :user_type, :password, :password_confirmation, :password_change_required,
                          { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
   end
 end

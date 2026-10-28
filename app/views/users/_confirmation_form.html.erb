@@ -13,6 +13,10 @@
                 as: :password,
                 required: true,
                 input_html: { class: 'form-control bg-light', autocomplete: 'new-password' } %>
+    <%= f.input :password_change_required,
+                as: :boolean,
+                hint: t('users.form.password_change_required_hint'),
+                input_html: { class: 'form-check-input me-2' } %>
 
     <div class="d-flex flex-column gap-2 mt-4">
       <%= f.button :submit, t('users.confirmation_modal.submit'), class: 'btn btn-primary w-100 btn-round' %>

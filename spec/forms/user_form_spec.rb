@@ -94,6 +94,16 @@ RSpec.describe UserForm do
       expect(user.confirmed_at).to be_present
       expect(user.confirmation_token).to be_nil
       expect(user.valid_password?('NovaSenha1!')).to be(true)
+      expect(user.password_change_required?).to be(true)
+    end
+
+    it 'does not require the password change when the owner unchecks it' do
+      form = described_class.new(editor: owner, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: 'operator',
+                                 password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!',
+                                 password_change_required: '0')
+
+      expect { form.save }.to change(User, :count).by(1)
+      expect(User.last.password_change_required?).to be(false)
     end
 
     it 'sends the confirmation e-mail when the owner leaves the password blank', :inline_jobs do
@@ -101,6 +111,7 @@ RSpec.describe UserForm do
 
       expect { form.save }.to change { ActionMailer::Base.deliveries.count }.by(1)
       expect(User.last.confirmed_at).to be_nil
+      expect(User.last.password_change_required?).to be(false)
     end
 
     it 'rejects a password that does not match its confirmation' do
@@ -130,6 +141,7 @@ RSpec.describe UserForm do
       expect(pending_user.confirmed_at).to be_present
       expect(pending_user.confirmation_token).to be_nil
       expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+      expect(pending_user.password_change_required?).to be(true)
     end
 
     it 'does not change the password of a user that already confirmed the account' do
@@ -140,6 +152,7 @@ RSpec.describe UserForm do
       expect(form.password_settable?).to be(false)
       expect(form.save).to be(true)
       expect(confirmed_user.reload.valid_password?('Senha123!')).to be(true)
+      expect(confirmed_user.password_change_required?).to be(false)
     end
 
     it 'ignores the password when the editor is not the owner' do

@@ -364,6 +364,7 @@ pt-BR:
         user_type: Perfil
         status: Status
         activated_at: Ativado em
+        password_change_required: Troca de senha pendente
       resource:
         name: Nome
         slug: Identificador
@@ -399,6 +400,7 @@ pt-BR:
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
+      password_change_form: Troca de senha
     attributes:
       freight_billing_filter_form:
         start_date: Saídas a partir de
@@ -447,6 +449,7 @@ pt-BR:
       user_password_form:
         password: Senha
         password_confirmation: Confirme a senha
+        password_change_required: Exigir troca de senha no primeiro acesso
       user_form:
         name: Nome
         email: E-mail
@@ -454,6 +457,10 @@ pt-BR:
         user_type: Perfil
         password: Senha
         password_confirmation: Confirme a senha
+        password_change_required: Exigir troca de senha no primeiro acesso
+      password_change_form:
+        password: Nova senha
+        password_confirmation: Confirme a nova senha
       resource_form:
         name: Nome
         slug: Identificador
@@ -576,6 +583,10 @@ pt-BR:
           attributes:
             base:
               already_confirmed: Este usuário já confirmou a conta.
+        password_change_form:
+          attributes:
+            password:
+              same_as_current: deve ser diferente da senha atual
   enums:
     commission_rule:
       destination_type:
@@ -800,6 +811,8 @@ pt-BR:
       user_data: Dados do Usuário
       edit: Alterar
       blank: '-'
+      password_change_pending: Sim
+      password_change_not_pending: Não
     new:
       title: Novo Usuário
       back: Voltar para usuários
@@ -828,6 +841,7 @@ pt-BR:
       phone_placeholder: (00) 00000-0000
       password_title: Senha de Acesso
       password_text: Defina a senha para confirmar a conta agora. Deixe em branco para enviar o e-mail de confirmação ao usuário.
+      password_change_required_hint: O usuário precisará definir uma nova senha antes de acessar o sistema.
     permissions:
       title: Permissões de Acesso
       text: Ative somente os níveis necessários para cada módulo disponível na plataforma.
@@ -842,6 +856,14 @@ pt-BR:
         submit: Confirmar conta
       update:
         success: Conta confirmada com sucesso. Bem-vindo ao TransJRBI!
+  password_changes:
+    edit:
+      title: Defina sua nova senha
+      instruction: Sua senha foi definida pelo administrador. Para continuar, escolha uma nova senha que só você conheça.
+      submit: Alterar senha
+      sign_out: Sair
+    update:
+      success: Senha alterada com sucesso.
   home:
     index:
       title: TransJRBI

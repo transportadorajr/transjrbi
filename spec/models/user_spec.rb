@@ -106,6 +106,23 @@ RSpec.describe User do
     end
   end
 
+  describe '#reset_password' do
+    let(:user) { create(:user, password_change_required: true) }
+
+    it 'clears the required password change' do
+      expect(user.reset_password('NovaSenha1!', 'NovaSenha1!')).to be(true)
+
+      user.reload
+      expect(user.valid_password?('NovaSenha1!')).to be(true)
+      expect(user.password_change_required?).to be(false)
+    end
+
+    it 'keeps the required password change when the new password is blank' do
+      expect(user.reset_password('', '')).to be(false)
+      expect(user.reload.password_change_required?).to be(true)
+    end
+  end
+
   describe 'confirmation token' do
     it 'generates a unique hexadecimal token for an account waiting for confirmation' do
       user = create(:user, confirmed_at: nil)

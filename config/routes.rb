@@ -40,6 +40,7 @@ Rails.application.routes.draw do
       put 'users/confirmation', to: 'users/confirmations#update'
     end
 
+    resource :password_change, only: %i[edit update]
     resource :company, only: %i[show edit update]
     resources :users, only: %i[index show new create edit update destroy] do
       member do
