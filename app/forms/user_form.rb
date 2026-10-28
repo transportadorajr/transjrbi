@@ -5,6 +5,8 @@ class UserForm < BaseForm
   attribute :email, :string
   attribute :phone, :string
   attribute :user_type, :string
+  attribute :password, :string
+  attribute :password_confirmation, :string
   attribute :access_attributes, default: -> { [] }
 
   enum :user_type, %i[admin operator]
@@ -18,6 +20,7 @@ class UserForm < BaseForm
   validates :user_type, inclusion: { in: user_types.keys }, allow_blank: true, unless: :user_type_locked?
   validate :email_must_be_unique, unless: :persisted?
   validate :phone_must_have_valid_digits
+  validates :password, confirmation: true, length: { within: Devise.password_length }, if: :password_defined?
 
   class << self
     def for_user(user, editor:)
@@ -45,6 +48,16 @@ class UserForm < BaseForm
     owner? || editor.nil? || editor.operator?
   end
 
+  def password_settable?
+    return @password_settable if defined?(@password_settable)
+
+    @password_settable = editor.present? && editor.owner? && !owner? && !(persisted? && user.confirmed?)
+  end
+
+  def password_defined?
+    password_settable? && password.present?
+  end
+
   def access_for(resource)
     submitted = submitted_accesses.find { |attrs| attrs[:resource_id].to_s == resource.id.to_s }
     return build_access(resource, submitted) if submitted
@@ -64,9 +77,8 @@ class UserForm < BaseForm
 
   def create_user
     transaction do
-      password = SecureRandom.hex(32)
-
-      @user = editor.tenant.users.new(name:, email:, phone:, user_type:, activated: true, password:, password_confirmation: password)
+      @user = editor.tenant.users.new(name:, email:, phone:, user_type:, activated: true, **password_attributes)
+      @user.skip_confirmation! if password_defined?
       @user.save!
       persist_accesses
     end
@@ -77,9 +89,22 @@ class UserForm < BaseForm
     attributes[:user_type] = user_type unless user_type_locked?
 
     transaction do
+      confirm_with_password(attributes) if password_defined?
       user.update!(attributes)
       persist_accesses
     end
+  end
+
+  def password_attributes
+    return { password:, password_confirmation: } if password_defined?
+
+    random_password = SecureRandom.hex(32)
+    { password: random_password, password_confirmation: random_password }
+  end
+
+  def confirm_with_password(attributes)
+    user.skip_confirmation!
+    attributes.merge!(password:, password_confirmation:, confirmation_token: nil)
   end
 
   def persist_accesses

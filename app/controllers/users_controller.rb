@@ -2,7 +2,7 @@ class UsersController < BaseController
   has_scope :by_name, as: :name
   has_scope :by_status, as: :status
 
-  before_action :set_user, only: %i[show edit update destroy activate]
+  before_action :set_user, only: %i[show edit update destroy activate confirmation confirm]
   before_action :set_resources, only: %i[new create edit update]
 
   def index
@@ -41,7 +41,7 @@ class UsersController < BaseController
     @user_form = UserForm.new(editor: current_user, **user_params)
 
     if @user_form.save
-      redirect_to users_path, notice: t('.success')
+      redirect_to users_path, notice: t(@user_form.password_defined? ? '.confirmed' : '.success')
     else
       flash.now[:alert] = @user_form.errors.full_messages.to_sentence
       render :new, status: :unprocessable_content
@@ -55,7 +55,7 @@ class UsersController < BaseController
     @user_form.assign_attributes(user_edit_params)
 
     if @user_form.save
-      redirect_to user_path(@user), notice: t('.success')
+      redirect_to user_path(@user), notice: t(@user_form.password_defined? ? '.confirmed' : '.success')
     else
       flash.now[:alert] = @user_form.errors.full_messages.to_sentence
       render :edit, status: :unprocessable_content
@@ -78,6 +78,24 @@ class UsersController < BaseController
     redirect_to users_path(**listing_params), notice: t('.success')
   end
 
+  def confirmation
+    authorize!(:confirm, @user)
+
+    @user_password_form = UserPasswordForm.new(user: @user)
+  end
+
+  def confirm
+    authorize!(:confirm, @user)
+
+    @user_password_form = UserPasswordForm.new(user: @user, **user_password_params)
+
+    if @user_password_form.save
+      redirect_to users_path(**listing_params), notice: t('.success'), status: :see_other
+    else
+      render status: :unprocessable_content
+    end
+  end
+
   private
 
   def listing_params
@@ -93,10 +111,16 @@ class UsersController < BaseController
   end
 
   def user_params
-    params.expect(user: [:name, :email, :phone, :user_type, { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
+    params.expect(user: [:name, :email, :phone, :user_type, :password, :password_confirmation,
+                         { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
+  end
+
+  def user_password_params
+    params.expect(user_password: %i[password password_confirmation]).to_h.symbolize_keys
   end
 
   def user_edit_params
-    params.expect(user: [:name, :phone, :user_type, { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
+    params.expect(user: [:name, :phone, :user_type, :password, :password_confirmation,
+                         { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
   end
 end

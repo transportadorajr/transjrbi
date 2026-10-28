@@ -444,11 +444,16 @@ pt-BR:
       user_confirmation_form:
         password: Senha
         password_confirmation: Confirme a senha
+      user_password_form:
+        password: Senha
+        password_confirmation: Confirme a senha
       user_form:
         name: Nome
         email: E-mail
         phone: Telefone
         user_type: Perfil
+        password: Senha
+        password_confirmation: Confirme a senha
       resource_form:
         name: Nome
         slug: Identificador
@@ -567,6 +572,10 @@ pt-BR:
           attributes:
             base:
               invalid_confirmation_link: O link de confirmação é inválido ou expirou. Solicite um novo link.
+        user_password_form:
+          attributes:
+            base:
+              already_confirmed: Este usuário já confirmou a conta.
   enums:
     commission_rule:
       destination_type:
@@ -684,6 +693,7 @@ pt-BR:
         edit: Alterar
         destroy: Inativar
         activate: Ativar
+        confirm: Confirmar
       resource:
         edit: Alterar
         destroy: Excluir
@@ -779,6 +789,7 @@ pt-BR:
       deactivated_users: Inativos
       active: Ativo
       deactivated: Inativo
+      pending: Aguardando confirmação
       confirm_destroy: Tem certeza que deseja inativar este usuário? Ele perderá o acesso ao sistema.
       confirm_activate: Tem certeza que deseja reativar este usuário?
     filters:
@@ -794,19 +805,29 @@ pt-BR:
       back: Voltar para usuários
     create:
       success: Usuário cadastrado com sucesso. Enviamos um e-mail para que ele confirme a conta e defina a senha de acesso.
+      confirmed: Usuário cadastrado com sucesso. A conta já está confirmada e ele pode acessar com a senha definida.
     edit:
       title: Alterar Usuário
       back: Voltar para usuários
     update:
       success: Usuário atualizado com sucesso.
+      confirmed: Usuário atualizado com sucesso. A conta foi confirmada e ele já pode acessar com a senha definida.
     destroy:
       success: Usuário inativado com sucesso.
     activate:
       success: Usuário reativado com sucesso.
+    confirm:
+      success: Usuário confirmado com sucesso. Ele já pode acessar com a senha definida.
+    confirmation_modal:
+      title: Confirmar usuário
+      instructions: Defina a senha de acesso de %{name}. A conta será confirmada e ele poderá entrar no sistema sem o e-mail de confirmação.
+      submit: Confirmar usuário
     form:
       user_data: Dados do Usuário
       user_data_text: Informe os dados principais e o perfil de acesso do usuário.
       phone_placeholder: (00) 00000-0000
+      password_title: Senha de Acesso
+      password_text: Defina a senha para confirmar a conta agora. Deixe em branco para enviar o e-mail de confirmação ao usuário.
     permissions:
       title: Permissões de Acesso
       text: Ative somente os níveis necessários para cada módulo disponível na plataforma.

@@ -1,0 +1,22 @@
+<div id="user_password_form">
+  <p class="mb-3"><%= t('users.confirmation_modal.instructions', name: user_password_form.user.name) %></p>
+
+  <%= user_password_form_errors(user_password_form) %>
+
+  <%= simple_form_for(user_password_form, url: confirm_user_path(user_password_form.user, **request.query_parameters), method: :patch) do |f| %>
+    <%= f.input :password,
+                as: :password,
+                required: true,
+                hint: t('devise.shared.minimum_password_length', count: Devise.password_length.min),
+                input_html: { class: 'form-control bg-light', autocomplete: 'new-password', autofocus: true } %>
+    <%= f.input :password_confirmation,
+                as: :password,
+                required: true,
+                input_html: { class: 'form-control bg-light', autocomplete: 'new-password' } %>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button :submit, t('users.confirmation_modal.submit'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= button_tag t('helpers.links.cancel'), type: :button, class: 'btn btn-light w-100 btn-round', data: { bs_dismiss: 'modal' } %>
+    </div>
+  <% end %>
+</div>

@@ -80,6 +80,81 @@ RSpec.describe UserForm do
     end
   end
 
+  describe '#save with a password defined by the owner' do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+
+    it 'creates the user already confirmed with the given password, without the confirmation e-mail', :inline_jobs do
+      form = described_class.new(editor: owner, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: 'operator',
+                                 password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!')
+
+      expect { form.save }.to change(User, :count).by(1)
+        .and not_change { ActionMailer::Base.deliveries.count }
+
+      user = User.last
+      expect(user.confirmed_at).to be_present
+      expect(user.confirmation_token).to be_nil
+      expect(user.valid_password?('NovaSenha1!')).to be(true)
+    end
+
+    it 'sends the confirmation e-mail when the owner leaves the password blank', :inline_jobs do
+      form = described_class.new(editor: owner, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: 'operator')
+
+      expect { form.save }.to change { ActionMailer::Base.deliveries.count }.by(1)
+      expect(User.last.confirmed_at).to be_nil
+    end
+
+    it 'rejects a password that does not match its confirmation' do
+      form = described_class.new(editor: owner, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: 'operator',
+                                 password: 'NovaSenha1!', password_confirmation: 'Outra123!')
+
+      expect { form.save }.not_to change(User, :count)
+      expect(form.errors[:password_confirmation]).to include('não é igual a Senha')
+    end
+
+    it 'rejects a password that is too short' do
+      form = described_class.new(editor: owner, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: 'operator',
+                                 password: '123', password_confirmation: '123')
+
+      expect(form).not_to be_valid
+      expect(form.errors[:password]).to be_present
+    end
+
+    it 'confirms a pending user with the given password' do
+      pending_user = create(:user, tenant:, confirmed_at: nil)
+      form = described_class.for_user(pending_user, editor: owner)
+      form.assign_attributes(password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!')
+
+      expect(form.save).to be(true)
+
+      pending_user.reload
+      expect(pending_user.confirmed_at).to be_present
+      expect(pending_user.confirmation_token).to be_nil
+      expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+    end
+
+    it 'does not change the password of a user that already confirmed the account' do
+      confirmed_user = create(:user, tenant:)
+      form = described_class.for_user(confirmed_user, editor: owner)
+      form.assign_attributes(password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!')
+
+      expect(form.password_settable?).to be(false)
+      expect(form.save).to be(true)
+      expect(confirmed_user.reload.valid_password?('Senha123!')).to be(true)
+    end
+
+    it 'ignores the password when the editor is not the owner' do
+      form = described_class.new(editor:, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: 'operator',
+                                 password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!')
+
+      expect(form.password_settable?).to be(false)
+      expect(form.save).to be(true)
+
+      user = User.last
+      expect(user.confirmed_at).to be_nil
+      expect(user.valid_password?('NovaSenha1!')).to be(false)
+    end
+  end
+
   describe '#save on an existing user' do
     let(:user) { create(:user, tenant:, name: 'Ana', email: 'ana@transjrbi.com.br', user_type: :operator) }
 

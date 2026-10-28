@@ -4,15 +4,23 @@ module UsersHelper
 
     menus << user_show_menu(user) if can?(:read, user)
     menus << user_edit_menu(user) if can?(:update, user)
+    menus << user_confirm_menu(user) if can?(:confirm, user)
     menus << user_deactivation_menu(user) if can?(:deactivate, user)
 
     menus
   end
 
   def user_status_badge(user)
-    return status_badge(t('users.index.active'), kind: :success) if user.activated?
+    return status_badge(t('users.index.deactivated'), kind: :danger) unless user.activated?
+    return status_badge(t('users.index.pending'), kind: :warning) unless user.confirmed?
 
-    status_badge(t('users.index.deactivated'), kind: :danger)
+    status_badge(t('users.index.active'), kind: :success)
+  end
+
+  def user_password_form_errors(user_password_form)
+    return if user_password_form.errors.empty?
+
+    content_tag(:div, user_password_form.errors.full_messages.to_sentence, class: 'alert alert-danger', role: :alert)
   end
 
   def user_initial(user)
@@ -68,6 +76,12 @@ module UsersHelper
     render 'users/permissions_fields', f: form, user_form:, resources:
   end
 
+  def user_password_fields(form, user_form)
+    return unless user_form.password_settable?
+
+    render 'users/password_fields', f: form
+  end
+
   def user_permissions_card(user, accesses)
     return if user.owner?
 
@@ -115,6 +129,17 @@ module UsersHelper
 
   def user_edit_menu(user)
     Menu.new(name: :edit, record: user, url: edit_user_path(user), icon: :pencil)
+  end
+
+  def user_confirm_menu(user)
+    Menu.new(
+      name: :confirm,
+      record: user,
+      url: confirmation_user_path(user, **request.query_parameters),
+      icon: :'patch-check',
+      color: :success,
+      data: { turbo_stream: true },
+    )
   end
 
   def user_deactivation_menu(user)
