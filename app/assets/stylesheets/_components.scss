@@ -165,6 +165,10 @@
     @media (min-width: 768px) {
       padding: 1rem 1.25rem;
     }
+
+    @media (min-width: 1200px) {
+      align-items: center;
+    }
   }
 
   .counter-icon-wrap {
@@ -188,6 +192,10 @@
 
     @media (min-width: 768px) {
       font-size: 0.72rem;
+    }
+
+    @media (min-width: 1200px) {
+      min-height: 0;
     }
   }
 
