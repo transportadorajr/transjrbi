@@ -1,6 +1,7 @@
 class UserPasswordForm < BaseForm
   attribute :password, :string
   attribute :password_confirmation, :string
+  attribute :password_change_required, :boolean, default: true
 
   attr_accessor :user
 
@@ -10,7 +11,7 @@ class UserPasswordForm < BaseForm
 
   def submit
     user.skip_confirmation!
-    user.update!(password:, password_confirmation:, confirmation_token: nil)
+    user.update!(password:, password_confirmation:, password_change_required:, confirmation_token: nil)
   end
 
   private

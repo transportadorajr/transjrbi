@@ -43,6 +43,15 @@ RSpec.describe UserPasswordForm do
       expect(user.confirmed_at).to be_present
       expect(user.confirmation_token).to be_nil
       expect(user.valid_password?('NovaSenha1!')).to be(true)
+      expect(user.password_change_required?).to be(true)
+    end
+
+    it 'does not require the password change when the owner unchecks it' do
+      form = described_class.new(user:, password: 'NovaSenha1!', password_confirmation: 'NovaSenha1!',
+                                 password_change_required: '0')
+
+      expect(form.save).to be(true)
+      expect(user.reload.password_change_required?).to be(false)
     end
 
     it 'keeps the user pending when the form is invalid' do

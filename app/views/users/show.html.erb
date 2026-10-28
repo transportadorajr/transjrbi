@@ -36,6 +36,9 @@
 
         <dt class="col-12 col-md-3"><%= User.human_attribute_name(:activated_at) %></dt>
         <dd class="col-12 col-md-9"><%= user_activated_at(@user) %></dd>
+
+        <dt class="col-12 col-md-3"><%= User.human_attribute_name(:password_change_required) %></dt>
+        <dd class="col-12 col-md-9"><%= user_password_change_required(@user) %></dd>
       </dl>
     </div>
   </div>
