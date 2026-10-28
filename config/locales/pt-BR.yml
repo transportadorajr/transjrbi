@@ -1409,7 +1409,6 @@ pt-BR:
     formats:
       date_time: '%d/%m/%Y %H:%M'
   menus:
-    home: Início
     tax: Fiscal
     transport_documents: CT-es
     manifests: Manifestos

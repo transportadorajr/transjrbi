@@ -1,10 +1,5 @@
 shared:
   companies:
-    - name: home
-      icon: house
-      url: /
-      controllers:
-        - home
     - name: tax
       icon: receipt
       menus:

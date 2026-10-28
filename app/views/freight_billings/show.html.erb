@@ -1,7 +1,7 @@
 <% content_for :title, t('.title') %>
 
 <div class="page-shell">
-  <%= page_header_tag t('.title'), subtitle: freight_billing_period_label(@filter_form) do %>
+  <%= page_header_tag t('.title'), subtitle: freight_billing_period_label(@filter_form), wrapper_class: 'page-header-inline' do %>
     <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
   <% end %>
 
@@ -10,7 +10,7 @@
   <div class="dashboard-filter-bar mb-4">
     <span class="dashboard-filter-label"><%= t('.group_by') %></span>
 
-    <%= tag.div class: 'btn-group flex-wrap', role: 'group', aria: { label: t('.group_by') } do %>
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.group_by') } do %>
       <% freight_billing_dimensions.each do |dimension| %>
         <%= link_to freight_billing_dimension_label(dimension), freight_billing_dimension_path(dimension),
                     class: freight_billing_dimension_link_class(dimension, @dashboard) %>
@@ -18,15 +18,15 @@
     <% end %>
   </div>
 
-  <div class="row g-3 mb-4">
-    <%= counter_card(:primary, t('.gross'), tax_money(@dashboard.gross), col_class: 'col-12 col-md-6 col-xl-3') %>
-    <%= counter_card(:primary, t('.trips_gross'), tax_money(@dashboard.total.gross), col_class: 'col-12 col-md-6 col-xl-3') %>
-    <%= counter_card(:warning, t('.unlinked_gross'), tax_money(@dashboard.unlinked_gross), col_class: 'col-12 col-md-6 col-xl-3') %>
-    <%= counter_card(:success, t('.net'), tax_money(@dashboard.total.net), col_class: 'col-12 col-md-6 col-xl-3') %>
-    <%= counter_card(:dark, t('.trips'), freight_billing_trips(@dashboard.total.trips_count), col_class: 'col-12 col-md-6 col-xl-3') %>
-    <%= counter_card(:primary, t('.gross_per_km'), tax_money(@dashboard.total.gross_per_km), col_class: 'col-12 col-md-6 col-xl-3') %>
-    <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-12 col-md-6 col-xl-3') %>
-    <%= counter_card(:dark, t('.loaded_km'), freight_billing_km(@dashboard.total.loaded_km), col_class: 'col-12 col-md-6 col-xl-3') %>
+  <div class="row g-2 g-md-3 mb-4 counter-grid-compact">
+    <%= counter_card(:primary, t('.gross'), tax_money(@dashboard.gross), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.trips_gross'), tax_money(@dashboard.total.gross), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:warning, t('.unlinked_gross'), tax_money(@dashboard.unlinked_gross), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:success, t('.net'), tax_money(@dashboard.total.net), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:dark, t('.trips'), freight_billing_trips(@dashboard.total.trips_count), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.gross_per_km'), tax_money(@dashboard.total.gross_per_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:dark, t('.loaded_km'), freight_billing_km(@dashboard.total.loaded_km), col_class: 'col-6 col-xl-3') %>
   </div>
 
   <%= render freight_billing_content_partial(@dashboard), dashboard: @dashboard %>
