@@ -4,6 +4,7 @@ module UsersHelper
 
     menus << user_show_menu(user) if can?(:read, user)
     menus << user_edit_menu(user) if can?(:update, user)
+    menus << user_deactivation_menu(user) if can?(:deactivate, user)
 
     menus
   end
@@ -114,5 +115,37 @@ module UsersHelper
 
   def user_edit_menu(user)
     Menu.new(name: :edit, record: user, url: edit_user_path(user), icon: :pencil)
+  end
+
+  def user_deactivation_menu(user)
+    return user_activate_menu(user) unless user.activated?
+
+    user_destroy_menu(user)
+  end
+
+  def user_destroy_menu(user)
+    Menu.new(
+      name: :destroy,
+      record: user,
+      url: user_path(user, **request.query_parameters),
+      icon: :'x-circle',
+      data: {
+        turbo_confirm: t('users.index.confirm_destroy'),
+        turbo_method: :delete,
+      },
+    )
+  end
+
+  def user_activate_menu(user)
+    Menu.new(
+      name: :activate,
+      record: user,
+      url: activate_user_path(user, **request.query_parameters),
+      icon: :'check-circle',
+      data: {
+        turbo_confirm: t('users.index.confirm_activate'),
+        turbo_method: :patch,
+      },
+    )
   end
 end

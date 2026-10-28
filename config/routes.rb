@@ -34,14 +34,16 @@ Rails.application.routes.draw do
   get 'service-worker' => 'rails/pwa#service_worker', as: :pwa_service_worker
 
   constraints subdomain: Transjrbi::APP_SUBDOMAIN do
-    devise_for :users, controllers: { confirmations: 'users/confirmations' }
+    devise_for :users, controllers: { confirmations: 'users/confirmations', sessions: 'users/sessions' }
 
     devise_scope :user do
       put 'users/confirmation', to: 'users/confirmations#update'
     end
 
     resource :company, only: %i[show edit update]
-    resources :users, only: %i[index show new create edit update]
+    resources :users, only: %i[index show new create edit update destroy] do
+      patch :activate, on: :member
+    end
     resources :transport_documents, only: %i[index show]
     resources :manifests, only: %i[index show]
     resources :customers, only: %i[index show]

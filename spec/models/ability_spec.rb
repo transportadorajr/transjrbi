@@ -14,11 +14,17 @@ RSpec.describe Ability do
       expect(ability).to be_able_to(:create, User)
       expect(ability).to be_able_to(:read, teammate)
       expect(ability).to be_able_to(:update, teammate)
+      expect(ability).to be_able_to(:deactivate, teammate)
+    end
+
+    it 'cannot deactivate its own account' do
+      expect(ability).not_to be_able_to(:deactivate, user)
     end
 
     it 'cannot reach users of another tenant' do
       expect(ability).not_to be_able_to(:read, stranger)
       expect(ability).not_to be_able_to(:update, stranger)
+      expect(ability).not_to be_able_to(:deactivate, stranger)
     end
 
     it 'cannot reach the resources' do
@@ -35,10 +41,17 @@ RSpec.describe Ability do
     it 'manages the users of its own tenant' do
       expect(ability).to be_able_to(:create, User)
       expect(ability).to be_able_to(:update, teammate)
+      expect(ability).to be_able_to(:deactivate, teammate)
+    end
+
+    it 'cannot deactivate the owner or its own account' do
+      expect(ability).not_to be_able_to(:deactivate, create(:user, tenant:, user_type: :owner))
+      expect(ability).not_to be_able_to(:deactivate, user)
     end
 
     it 'cannot reach users of another tenant' do
       expect(ability).not_to be_able_to(:read, stranger)
+      expect(ability).not_to be_able_to(:deactivate, stranger)
     end
 
     it 'cannot reach the resources' do
@@ -61,6 +74,11 @@ RSpec.describe Ability do
       expect(ability).not_to be_able_to(:create, User)
       expect(ability).not_to be_able_to(:read, teammate)
       expect(ability).not_to be_able_to(:update, teammate)
+    end
+
+    it 'cannot deactivate any user' do
+      expect(ability).not_to be_able_to(:deactivate, teammate)
+      expect(ability).not_to be_able_to(:deactivate, user)
     end
 
     it 'cannot reach the resources' do
