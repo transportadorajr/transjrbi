@@ -260,6 +260,95 @@ describe 'Users' do
     end
   end
 
+  context 'when the owner defines the password of a user' do
+    let!(:owner) { create(:user, tenant:, name: 'Arthur Dono', user_type: :owner) }
+
+    before { login_as(owner, scope: :user) }
+
+    scenario 'creates the user already confirmed without sending the confirmation e-mail', :inline_jobs do
+      visit new_user_path
+      fill_in 'Nome', with: 'Eduardo Motorista'
+      fill_in 'E-mail', with: 'eduardo@transjrbi.com.br'
+      select 'Operador', from: 'Perfil'
+      fill_in 'Senha', with: 'NovaSenha1!'
+      fill_in 'Confirme a senha', with: 'NovaSenha1!'
+
+      expect { click_on 'Cadastrar Usuário' }
+        .to change(User, :count).by(1)
+        .and not_change { ActionMailer::Base.deliveries.count }
+
+      expect(page).to have_current_path(users_path)
+      expect(page).to have_text('Usuário cadastrado com sucesso. A conta já está confirmada e ele pode acessar com ' \
+                                'a senha definida.')
+
+      user = User.last
+      expect(user.email).to eq('eduardo@transjrbi.com.br')
+      expect(user.confirmed_at).to be_present
+      expect(user.valid_password?('NovaSenha1!')).to be(true)
+    end
+
+    scenario 'shows the error when the confirmation does not match the password' do
+      visit new_user_path
+      fill_in 'Nome', with: 'Eduardo Motorista'
+      fill_in 'E-mail', with: 'eduardo@transjrbi.com.br'
+      select 'Operador', from: 'Perfil'
+      fill_in 'Senha', with: 'NovaSenha1!'
+      fill_in 'Confirme a senha', with: 'Outra123!'
+
+      expect { click_on 'Cadastrar Usuário' }.not_to change(User, :count)
+
+      expect(page).to have_text('Confirme a senha não é igual a Senha')
+      expect(enqueued_jobs).to be_empty
+    end
+
+    context 'when a user is still pending confirmation' do
+      let!(:pending_user) do
+        create(:user, tenant:, name: 'Fábio Pendente', email: 'fabio@transjrbi.com.br', confirmed_at: nil)
+      end
+
+      scenario 'confirms the user with the password defined by the owner' do
+        visit edit_user_path(pending_user)
+        fill_in 'Senha', with: 'NovaSenha1!'
+        fill_in 'Confirme a senha', with: 'NovaSenha1!'
+
+        expect { click_on 'Salvar Alterações' }.not_to change(User, :count)
+
+        expect(page).to have_current_path(user_path(pending_user))
+        expect(page).to have_text('Usuário atualizado com sucesso. A conta foi confirmada e ele já pode acessar com ' \
+                                  'a senha definida.')
+
+        pending_user.reload
+        expect(pending_user.confirmed_at).to be_present
+        expect(pending_user.confirmation_token).to be_nil
+        expect(pending_user.valid_password?('NovaSenha1!')).to be(true)
+      end
+    end
+
+    scenario 'does not offer the password for a user that already confirmed the account' do
+      confirmed_user = create(:user, tenant:)
+
+      visit edit_user_path(confirmed_user)
+
+      expect(page).to have_field('Nome', with: confirmed_user.name)
+      expect(page).to have_no_field('Senha')
+      expect(page).to have_no_field('Confirme a senha')
+    end
+  end
+
+  context 'when an admin opens the new user screen' do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+
+    before { login_as(admin, scope: :user) }
+
+    scenario 'does not offer the password fields' do
+      visit new_user_path
+
+      expect(page).to have_field('Nome')
+      expect(page).to have_no_field('Senha')
+      expect(page).to have_no_field('Confirme a senha')
+    end
+  end
+
   context 'when managing the permissions of a user' do
     let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
     let!(:owner) { create(:user, tenant:, name: 'Arthur Dono', user_type: :owner) }

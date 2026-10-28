@@ -41,7 +41,7 @@ class UsersController < BaseController
     @user_form = UserForm.new(editor: current_user, **user_params)
 
     if @user_form.save
-      redirect_to users_path, notice: t('.success')
+      redirect_to users_path, notice: t(@user_form.password_defined? ? '.confirmed' : '.success')
     else
       flash.now[:alert] = @user_form.errors.full_messages.to_sentence
       render :new, status: :unprocessable_content
@@ -55,7 +55,7 @@ class UsersController < BaseController
     @user_form.assign_attributes(user_edit_params)
 
     if @user_form.save
-      redirect_to user_path(@user), notice: t('.success')
+      redirect_to user_path(@user), notice: t(@user_form.password_defined? ? '.confirmed' : '.success')
     else
       flash.now[:alert] = @user_form.errors.full_messages.to_sentence
       render :edit, status: :unprocessable_content
@@ -93,10 +93,12 @@ class UsersController < BaseController
   end
 
   def user_params
-    params.expect(user: [:name, :email, :phone, :user_type, { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
+    params.expect(user: [:name, :email, :phone, :user_type, :password, :password_confirmation,
+                         { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
   end
 
   def user_edit_params
-    params.expect(user: [:name, :phone, :user_type, { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
+    params.expect(user: [:name, :phone, :user_type, :password, :password_confirmation,
+                         { access_attributes: [Access::PERMITTED_ATTRIBUTES] }])
   end
 end

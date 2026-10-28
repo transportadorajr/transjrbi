@@ -68,6 +68,12 @@ module UsersHelper
     render 'users/permissions_fields', f: form, user_form:, resources:
   end
 
+  def user_password_fields(form, user_form)
+    return unless user_form.password_settable?
+
+    render 'users/password_fields', f: form
+  end
+
   def user_permissions_card(user, accesses)
     return if user.owner?
 

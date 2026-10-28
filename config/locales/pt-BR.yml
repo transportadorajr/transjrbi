@@ -449,6 +449,8 @@ pt-BR:
         email: E-mail
         phone: Telefone
         user_type: Perfil
+        password: Senha
+        password_confirmation: Confirme a senha
       resource_form:
         name: Nome
         slug: Identificador
@@ -794,11 +796,13 @@ pt-BR:
       back: Voltar para usuários
     create:
       success: Usuário cadastrado com sucesso. Enviamos um e-mail para que ele confirme a conta e defina a senha de acesso.
+      confirmed: Usuário cadastrado com sucesso. A conta já está confirmada e ele pode acessar com a senha definida.
     edit:
       title: Alterar Usuário
       back: Voltar para usuários
     update:
       success: Usuário atualizado com sucesso.
+      confirmed: Usuário atualizado com sucesso. A conta foi confirmada e ele já pode acessar com a senha definida.
     destroy:
       success: Usuário inativado com sucesso.
     activate:
@@ -807,6 +811,8 @@ pt-BR:
       user_data: Dados do Usuário
       user_data_text: Informe os dados principais e o perfil de acesso do usuário.
       phone_placeholder: (00) 00000-0000
+      password_title: Senha de Acesso
+      password_text: Defina a senha para confirmar a conta agora. Deixe em branco para enviar o e-mail de confirmação ao usuário.
     permissions:
       title: Permissões de Acesso
       text: Ative somente os níveis necessários para cada módulo disponível na plataforma.
