@@ -1,35 +1,10 @@
 <% content_for :title, t('.title') %>
 
-<div class="p-5 mb-4 bg-body rounded-3 border">
-  <h1 class="display-6 fw-semibold"><%= t('.title') %></h1>
-  <p class="lead text-body-secondary mb-0">
-    <%= t('.stack', rails: Rails.version, ruby: RUBY_VERSION) %>
-  </p>
-</div>
+<%= page_header_tag t('.welcome', name: current_user.name), subtitle: t('.subtitle') %>
 
-<div class="row g-4">
-  <div class="col-12 col-lg-6">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h5 card-title"><%= icon(:'lightning-charge', class: 'me-1') %><%= t('.stimulus.title') %></h2>
-        <p class="card-text text-body-secondary"><%= t('.stimulus.description') %></p>
-        <div data-controller="hello">
-          <div class="input-group">
-            <%= text_field_tag :name, nil, class: 'form-control', placeholder: t('.stimulus.placeholder'), data: { hello_target: 'name' } %>
-            <%= button_tag t('.stimulus.greet'), type: 'button', class: 'btn btn-primary', data: { action: 'hello#greet' } %>
-          </div>
-          <p class="mt-3 mb-0" data-hello-target="output"></p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12 col-lg-6">
-    <div class="card h-100">
-      <div class="card-body">
-        <h2 class="h5 card-title"><%= icon(:'person-check', class: 'me-1') %><%= t('.account.title') %></h2>
-        <p class="card-text mb-0"><%= t('.account.signed_in_as_html', email: current_user.email) %></p>
-      </div>
-    </div>
+<div class="card">
+  <div class="card-body p-4">
+    <h2 class="h5 card-title"><%= icon(:'graph-up-arrow', class: 'me-2') %><%= t('.intro.title') %></h2>
+    <p class="card-text text-body-secondary mb-0"><%= t('.intro.description') %></p>
   </div>
 </div>
