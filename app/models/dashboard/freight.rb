@@ -32,6 +32,8 @@ module Dashboard
       end
     end
 
+    IssuedFact = Data.define(:issued_on, :freight_cents, :net_cents)
+
     Row = Data.define(:label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :net, :gross_per_km, :net_per_km,
                       :share)
 
@@ -100,7 +102,7 @@ module Dashboard
     end
 
     def monthly_data
-      months = history_entries.group_by { |entry| entry.reference_on.beginning_of_month }
+      months = issued_facts(history_period).group_by { |fact| fact.issued_on.beginning_of_month }
       labels = history_months.index_with { |month| I18n.l(month, format: :chart_month).capitalize }
 
       [
@@ -113,8 +115,17 @@ module Dashboard
 
     attr_reader :documents, :manifests
 
-    def issued_documents
-      documents.active.not_canceled.by_period(period.first, period.last)
+    def issued_documents(range = period)
+      documents.active.not_canceled.by_period(range.first, range.last)
+    end
+
+    def issued_facts(range)
+      issued_documents(range)
+        .pluck(table[:issued_at], table[:freight_cents], Arel::Nodes::Grouping.new(freight_expenses_total.arel),
+               Arel::Nodes::Grouping.new(expenses_total.arel), Atua::TransportDocument.freight_toll)
+        .map do |issued_at, freight_cents, freight_expenses_cents, expenses_cents, toll_cents|
+          IssuedFact.new(issued_on: issued_at.to_date, freight_cents:, net_cents: freight_cents - freight_expenses_cents - expenses_cents - toll_cents)
+        end
     end
 
     def issued_freight_expenses_cents
@@ -131,10 +142,6 @@ module Dashboard
 
     def entries
       @entries ||= all_entries.select { |entry| period.cover?(entry.reference_on) }
-    end
-
-    def history_entries
-      all_entries.select { |entry| history_period.cover?(entry.reference_on) }
     end
 
     def all_entries
@@ -196,13 +203,9 @@ module Dashboard
         .left_joins(:taker)
         .joins(first_trip_join)
         .where(first_trips[:manifest_code].not_eq(nil).or(table[:document_kind].eq(COMPLEMENT_KIND)))
-        .where(Arel.sql(reference_on_sql).between(fetched_period))
+        .where(Arel.sql(reference_on_sql).between(period))
         .pluck(*fact_columns)
         .map { |values| Fact.new(*values) }
-    end
-
-    def fetched_period
-      [period.first, history_period.first].min..history_period.last
     end
 
     def fact_columns

@@ -152,6 +152,7 @@ RSpec.describe Dashboard::Freight do
         expect(dashboard.gross).to eq(Money.from_cents(4_740_000))
         expect(dashboard.linked_gross).to eq(Money.from_cents(3_040_000))
         expect(dashboard.total).to have_attributes(trips_count: 3, gross: Money.from_cents(2_607_332))
+        expect(dashboard.monthly_data.first[:data].values_at('Set/2026', 'Out/2026')).to eq([6_073.32, 47_400.0])
       end
     end
 
@@ -232,16 +233,16 @@ RSpec.describe Dashboard::Freight do
       )
     end
 
-    it 'plots the last six months by the trip date' do
+    it 'plots the last six months by the issue date of the documents, with or without a trip' do
       expect(dashboard.history_period).to eq(Date.new(2026, 5, 1)..Date.new(2026, 10, 31))
       expect(dashboard.monthly_data).to eq(
         [
           { name: 'Frete bruto',
-            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 7_000.0,
-                    'Out/2026' => 20_000.0 } },
+            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 0.0,
+                    'Out/2026' => 44_900.0 } },
           { name: 'Frete líquido',
-            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 7_000.0,
-                    'Out/2026' => 19_350.0 } },
+            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 0.0,
+                    'Out/2026' => 44_250.0 } },
         ],
       )
     end
@@ -390,7 +391,8 @@ RSpec.describe Dashboard::Freight do
       create(:excluded_issuer, tenant:, code: 6190)
       create(:atua_manifest, tenant:, code: 45_001, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 9, 14, 8))
       create(:atua_manifest, tenant:, code: 45_002, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 10, 6, 8))
-      create(:atua_transport_document, tenant:, number: '78001', issuer_code: 6001, freight_cents: 700_000, plate: 'RVR6G78')
+      create(:atua_transport_document, tenant:, number: '78001', issuer_code: 6001, freight_cents: 700_000, plate: 'RVR6G78',
+                                       issued_at: Time.zone.local(2026, 9, 13, 16))
       create(:atua_transport_document, tenant:, number: '78002', issuer_code: 6190, freight_cents: 900_000, plate: 'RVR6G78')
       create(:atua_transport_document, tenant:, number: '78003', issuer_code: 6001, freight_cents: 400_000, plate: 'RVR6G78')
       create(:atua_transport_document, tenant:, number: '4267', document_kind: 'ce', issuer_code: 6190, freight_cents: 1_657_920,
@@ -403,7 +405,7 @@ RSpec.describe Dashboard::Freight do
     end
 
     it 'leaves them out of the monthly evolution' do
-      expect(dashboard.gross).to eq(Money.from_cents(1_100_000))
+      expect(dashboard.gross).to eq(Money.from_cents(400_000))
       expect(dashboard.monthly_data).to eq(
         [
           { name: 'Frete bruto',

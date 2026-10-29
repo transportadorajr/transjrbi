@@ -1318,7 +1318,7 @@ pt-BR:
       ranking_title: Frete por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de saída da viagem (MDF-e)
       monthly_title: Evolução Mensal
-      monthly_subtitle: Frete bruto e líquido por mês de saída, de %{from} a %{to}
+      monthly_subtitle: Frete bruto e líquido por mês de emissão do CT-e, de %{from} a %{to}
       table_title: Detalhamento por %{dimension}
       table_subtitle: >-
         Cada viagem é um MDF-e: soma o frete e as despesas de todos os seus CT-es. Frete líquido = frete bruto − despesas

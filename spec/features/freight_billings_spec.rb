@@ -103,7 +103,7 @@ describe 'Freight billing' do
         )
         expect(page).to have_text('Frete por Conjunto')
         expect(page).to have_text('Evolução Mensal')
-        expect(page).to have_text('Frete bruto e líquido por mês de saída, de Mai/2026 a Out/2026')
+        expect(page).to have_text('Frete bruto e líquido por mês de emissão do CT-e, de Mai/2026 a Out/2026')
         expect(html_table_to_rows).to eq(
           [
             ['Conjunto', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas de frete', 'Despesas', 'Pedágio', 'Frete líquido',
