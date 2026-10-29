@@ -357,4 +357,42 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.total).to have_attributes(trips_count: 1, gross: Money.from_cents(300_000), loaded_km: BigDecimal('150'))
     end
   end
+
+  context 'with documents of excluded issuers' do
+    subject(:dashboard) do
+      described_class.new(tenant.atua_transport_documents.without_issuers(tenant.excluded_issuers.select(:code)),
+                          manifests: tenant.atua_manifests, dimension:, period: october)
+    end
+
+    before do
+      create(:excluded_issuer, tenant:, code: 6190)
+      create(:atua_manifest, tenant:, code: 45_001, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 9, 14, 8))
+      create(:atua_manifest, tenant:, code: 45_002, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 10, 6, 8))
+      create(:atua_transport_document, tenant:, number: '78001', issuer_code: 6001, freight_cents: 700_000, plate: 'RVR6G78')
+      create(:atua_transport_document, tenant:, number: '78002', issuer_code: 6190, freight_cents: 900_000, plate: 'RVR6G78')
+      create(:atua_transport_document, tenant:, number: '78003', issuer_code: 6001, freight_cents: 400_000, plate: 'RVR6G78')
+      create(:atua_transport_document, tenant:, number: '4267', document_kind: 'ce', issuer_code: 6190, freight_cents: 1_657_920,
+                                       issued_at: Time.zone.local(2026, 8, 25, 10), posted_on: Date.new(2026, 10, 2))
+      create(:atua_transport_document, tenant:, number: '4300', document_kind: 'ce', issuer_code: 6190, freight_cents: 500_000,
+                                       issued_at: Time.zone.local(2026, 9, 3, 10), posted_on: Date.new(2026, 9, 4))
+      create(:atua_manifest_document, tenant:, manifest_code: 45_001, transport_document_number: '78001', calculated_distance_km: 400)
+      create(:atua_manifest_document, tenant:, manifest_code: 45_001, transport_document_number: '78002', calculated_distance_km: 400)
+      create(:atua_manifest_document, tenant:, manifest_code: 45_002, transport_document_number: '78003', calculated_distance_km: 300)
+    end
+
+    it 'leaves them out of the monthly evolution' do
+      expect(dashboard.gross).to eq(Money.from_cents(400_000))
+      expect(dashboard.monthly_data).to eq(
+        [
+          { name: 'Frete bruto',
+            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 7_000.0,
+                    'Out/2026' => 4_000.0 } },
+          { name: 'Frete líquido',
+            data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 7_000.0,
+                    'Out/2026' => 4_000.0 } },
+        ],
+      )
+      expect(Atua::TransportDocument.count).to eq(5)
+    end
+  end
 end

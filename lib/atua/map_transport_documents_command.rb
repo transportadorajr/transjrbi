@@ -24,6 +24,8 @@ module Atua
       'nm_pessoa_matriz' => %i[headquarters_name string],
       'cd_agencia' => %i[agency_code integer],
       'nm_agencia' => %i[agency_name string],
+      'cd_pessoa_usuario' => %i[issuer_code integer],
+      'nm_pessoa_usuario' => %i[issuer_name string],
       'nm_cidade_origem' => %i[origin_city string],
       'ds_uf_origem' => %i[origin_state string],
       'cd_cidade_origem' => %i[origin_city_code integer],
@@ -92,7 +94,7 @@ module Atua
     }.freeze
     SPECIAL_COLUMNS = %w[id_sintegra id_cobrado id_pendente_emissao_nfse].freeze
     RAW_COLUMNS = %w[
-      nr_contrato nr_pedido nr_ordem_compra nr_liberacao_embarque dt_mes_emissao cd_pessoa_usuario nm_pessoa_usuario
+      nr_contrato nr_pedido nr_ordem_compra nr_liberacao_embarque dt_mes_emissao
       ds_endereco_remetente ds_uf_remetente nm_cidade_remetente ds_uf_consignatario nm_cidade_consignatario
       cd_pessoa_consignatario_embarque nm_pessoa_consignatario_embarque ds_endereco_destinatario ds_uf_destinatario
       nm_cidade_destinatario ds_uf_pagador nm_cidade_pagador nr_cnpj_cpf_proprietario_veiculo_doc

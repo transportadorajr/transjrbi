@@ -37,6 +37,10 @@ shared:
           url: /truck_groups
           controllers:
             - truck_groups
+        - name: excluded_issuers
+          url: /excluded_issuers
+          controllers:
+            - excluded_issuers
         - name: drivers
           url: /drivers
           controllers:

@@ -231,6 +231,72 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when some issuers of the Atua are excluded' do
+        let!(:maycon) { create(:excluded_issuer, tenant:, code: 6190, name: 'MAYCON DORALINO SANTOS LORENA') }
+        let!(:stranger_exclusion) { create(:excluded_issuer, tenant: other_tenant, code: 6001, name: 'EMISSAO CTE') }
+        let!(:abroad) do
+          create(:atua_transport_document, tenant:, number: '4267', document_kind: 'ce', issuer_code: 6190, freight_cents: 1_657_920,
+                                           issued_at: Time.zone.local(2026, 8, 25, 10), posted_on: Date.new(2026, 10, 2), plate: 'RVR8J90',
+                                           taker_code: 7100)
+        end
+        let!(:loose) do
+          create(:atua_transport_document, tenant:, number: '74899', issuer_code: 6190, freight_cents: 60_000,
+                                           posted_on: Date.new(2026, 10, 26))
+        end
+        let!(:boarded) do
+          create(:atua_transport_document, tenant:, number: '74004', issuer_code: 6190, freight_cents: 300_000, plate: 'RVR8J90',
+                                           taker_code: 7100)
+        end
+
+        before do
+          coil.update!(issuer_code: 6001)
+          create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74004', calculated_distance_km: 200)
+        end
+
+        scenario 'leaves the documents of the excluded issuers out of the gross and the net freight' do
+          visit freight_billing_path(october)
+
+          expect(Atua::TransportDocument.where(tenant:).count).to eq(7)
+          expect(all('.counter-card').map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 20.000,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 0,00',
+             'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
+             'KM rodado 720 km'],
+          )
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3, 7) }).to eq(
+            [
+              ['Conjunto', 'Viagens', 'Frete bruto', 'Frete líquido'],
+              ['RVR2C34 + RVR9C02', '1', 'R$ 15.000,00', 'R$ 14.100,00'],
+              ['RVR8J90', '1', 'R$ 5.000,00', 'R$ 5.000,00'],
+              ['Total', '2', 'R$ 20.000,00', 'R$ 19.100,00'],
+            ],
+          )
+        end
+
+        scenario 'leaves the documents of the excluded issuers out of the customer groups' do
+          visit freight_billing_path(october.merge(dimension: 'customer_group'))
+
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2, 3) }).to eq(
+            [
+              ['Grupo de clientes', 'Viagens', 'KM rodado', 'Frete bruto'],
+              ['USIMINAS', '1,7', '547 km', 'R$ 15.000,00'],
+              ['Sem grupo', '0,3', '173 km', 'R$ 5.000,00'],
+              ['Total', '2', '720 km', 'R$ 20.000,00'],
+            ],
+          )
+        end
+
+        scenario 'counts the documents of an issuer again once it is considered' do
+          maycon.destroy!
+
+          visit freight_billing_path(october)
+
+          expect(all('.counter-card').first(4).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 40.179,20', 'Frete bruto com MDF-e R$ 39.579,20', 'Frete bruto sem MDF-e R$ 600,00',
+             'Frete líquido R$ 38.679,20'],
+          )
+        end
+      end
+
       context 'when the trucks haul sets with different axle counts' do
         let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
         let!(:ls) { create(:truck_group, :ls, tenant:) }

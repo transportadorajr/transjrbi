@@ -24,7 +24,7 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
         issued_at: Time.zone.local(2026, 10, 1, 16, 45), posted_on: Date.new(2026, 10, 1), arrival_on: Date.new(2026, 10, 3),
         due_dates: [Date.new(2026, 10, 29)], canceled_at: nil, cancellation_reason: nil,
         branch_code: 8042, branch_name: 'EMPRESA 01', headquarters_code: 2, headquarters_name: 'EMPRESA 02',
-        agency_code: 2, agency_name: 'EMPRESA 02',
+        agency_code: 2, agency_name: 'EMPRESA 02', issuer_code: 6001, issuer_name: 'PESSOA 05080',
         origin_city: 'JOAO MONLEVADE', origin_state: 'MG', origin_city_code: 2017,
         destination_city: 'TRES LAGOAS', destination_state: 'MS', destination_city_code: 1605,
         sender_code: 7752, sender_name: 'PESSOA 00428', sender_document: '12.261.462/0066-97', sender_document_digits: '12261462006697',

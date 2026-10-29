@@ -125,6 +125,25 @@ RSpec.describe Atua::TransportDocument do
       end
     end
 
+    context 'with documents of different issuers' do
+      let!(:maycon) { create(:atua_transport_document, tenant:, document_kind: 'ce', issuer_code: 6190) }
+      let!(:jefferson) { create(:atua_transport_document, tenant:, document_kind: 'ce', issuer_code: 1951) }
+      let!(:robot) { create(:atua_transport_document, tenant:, issuer_code: 6001) }
+      let!(:unknown) { create(:atua_transport_document, tenant:, issuer_code: nil) }
+
+      it 'leaves out the documents of the given issuers keeping the ones without issuer' do
+        expect(described_class.without_issuers([6190, 1951])).to contain_exactly(robot, unknown)
+        expect(described_class.without_issuers([])).to contain_exactly(maycon, jefferson, robot, unknown)
+        expect(described_class.count).to eq(4)
+      end
+
+      it 'takes the codes from a subquery' do
+        create(:excluded_issuer, tenant:, code: 6190)
+
+        expect(described_class.without_issuers(ExcludedIssuer.select(:code))).to contain_exactly(jefferson, robot, unknown)
+      end
+    end
+
     context 'with documents of different periods, plates, customers and situations' do
       let!(:first) do
         create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 1, 0, 5), posted_on: Date.new(2026, 10, 1),
