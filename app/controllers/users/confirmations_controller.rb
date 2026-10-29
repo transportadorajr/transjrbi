@@ -13,6 +13,7 @@ module Users
 
       if @user_confirmation_form.save
         sign_in(@user_confirmation_form.user)
+        remember_me(@user_confirmation_form.user)
         redirect_to root_path, notice: t('.success')
       else
         set_minimum_password_length

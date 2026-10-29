@@ -61,6 +61,45 @@ describe 'User sign in' do
     end
   end
 
+  context 'when the user closes the browser after signing in' do
+    before do
+      sign_in_with(email: 'bruna@transjrbi.com.br', remember_me: false)
+      close_browser
+    end
+
+    scenario 'keeps the user signed in without the remember me option' do
+      visit root_path
+
+      expect(page).to have_current_path(root_path)
+      expect(page).to have_css('h1', text: 'Bem-vindo ao JR BI, João Silva!')
+      expect(user.reload.remember_created_at).to be_present
+    end
+
+    scenario 'keeps the user signed in a year after the last visit' do
+      travel_to 11.months.from_now do
+        visit root_path
+        close_browser
+      end
+
+      travel_to 22.months.from_now do
+        visit root_path
+
+        expect(page).to have_current_path(root_path)
+      end
+    end
+
+    scenario 'asks for the credentials again after the user signs out' do
+      visit root_path
+      sign_out
+      close_browser
+
+      visit root_path
+
+      expect(page).to have_current_path(new_user_session_path)
+      expect(user.reload.remember_created_at).to be_nil
+    end
+  end
+
   context 'when the freight billing is a resource of the system' do
     let!(:resource) { create(:resource, name: 'Faturamento de fretes', slug: 'freight_billing', writable: false) }
     let!(:admin) { create(:user, email: 'carlos@transjrbi.com.br', user_type: :admin) }

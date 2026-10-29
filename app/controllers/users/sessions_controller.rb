@@ -13,7 +13,10 @@ module Users
     end
 
     def create
-      super { |user| remember_email(user) }
+      super do |user|
+        remember_me(user)
+        remember_email(user)
+      end
     end
 
     private
