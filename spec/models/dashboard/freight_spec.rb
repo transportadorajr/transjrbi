@@ -119,17 +119,39 @@ RSpec.describe Dashboard::Freight do
 
     context 'with documents linked to no trip' do
       let!(:unlinked_in_november) do
-        create(:atua_transport_document, tenant:, number: '74008', freight_cents: 300_000, posted_on: Date.new(2026, 11, 1))
+        create(:atua_transport_document, tenant:, number: '74008', freight_cents: 300_000, issued_at: Time.zone.local(2026, 11, 1, 0, 10),
+                                         posted_on: Date.new(2026, 11, 1))
       end
       let!(:unlinked_canceled) do
         create(:atua_transport_document, tenant:, number: '74009', freight_cents: 200_000, canceled_at: Time.zone.local(2026, 10, 3))
       end
 
-      it 'adds the freight of the documents issued in the period without a trip to the gross freight of the trips' do
+      it 'sums the freight of every document issued in the period like the Atua report, with or without a trip' do
         expect(Atua::TransportDocument.where(tenant:).count).to eq(11)
+        expect(dashboard.gross).to eq(Money.from_cents(4_490_000))
         expect(dashboard.unlinked_gross).to eq(Money.from_cents(1_700_000))
+        expect(dashboard.linked_gross).to eq(Money.from_cents(2_790_000))
+        expect(dashboard.net).to eq(Money.from_cents(4_425_000))
         expect(dashboard.total.gross).to eq(Money.from_cents(2_000_000))
-        expect(dashboard.gross).to eq(Money.from_cents(3_700_000))
+      end
+    end
+
+    context 'with documents issued in one month and carried in the next' do
+      before do
+        create(:atua_manifest, tenant:, code: 41_010, plate: 'RHJ5A50', trip_started_at: Time.zone.local(2026, 10, 2, 9))
+        create(:atua_manifest, tenant:, code: 41_011, plate: 'RHJ5A50', trip_started_at: Time.zone.local(2026, 11, 1, 8))
+        create(:atua_transport_document, tenant:, number: '74103', freight_cents: 607_332, plate: 'RHJ5A50',
+                                         issued_at: Time.zone.local(2026, 9, 30, 18, 1), posted_on: Date.new(2026, 9, 30))
+        create(:atua_transport_document, tenant:, number: '74990', freight_cents: 250_000, plate: 'RHJ5A50',
+                                         issued_at: Time.zone.local(2026, 10, 31, 23, 50), posted_on: Date.new(2026, 10, 31))
+        create(:atua_manifest_document, tenant:, manifest_code: 41_010, transport_document_number: '74103', calculated_distance_km: 400)
+        create(:atua_manifest_document, tenant:, manifest_code: 41_011, transport_document_number: '74990', calculated_distance_km: 300)
+      end
+
+      it 'bills the freight in the month of the issue while the trip stays in the month it departed' do
+        expect(dashboard.gross).to eq(Money.from_cents(4_740_000))
+        expect(dashboard.linked_gross).to eq(Money.from_cents(3_040_000))
+        expect(dashboard.total).to have_attributes(trips_count: 3, gross: Money.from_cents(2_607_332))
       end
     end
 
@@ -381,7 +403,7 @@ RSpec.describe Dashboard::Freight do
     end
 
     it 'leaves them out of the monthly evolution' do
-      expect(dashboard.gross).to eq(Money.from_cents(400_000))
+      expect(dashboard.gross).to eq(Money.from_cents(1_100_000))
       expect(dashboard.monthly_data).to eq(
         [
           { name: 'Frete bruto',

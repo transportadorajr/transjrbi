@@ -57,18 +57,25 @@ module Dashboard
     end
 
     def gross
-      total.gross + unlinked_gross
+      @gross ||= Money.from_cents(issued_documents.sum(table[:freight_cents]))
+    end
+
+    def linked_gross
+      gross - unlinked_gross
     end
 
     def unlinked_gross
       @unlinked_gross ||= Money.from_cents(
-        documents.active.not_canceled
+        issued_documents
           .joins(first_trip_join)
           .where(first_trips[:manifest_code].eq(nil))
           .where(table[:document_kind].not_eq(COMPLEMENT_KIND))
-          .where(table[:posted_on].between(period))
           .sum(table[:freight_cents]),
       )
+    end
+
+    def net
+      @net ||= gross - Money.from_cents(issued_freight_expenses_cents + issued_expenses_cents + issued_toll_cents)
     end
 
     def rows
@@ -105,6 +112,22 @@ module Dashboard
     private
 
     attr_reader :documents, :manifests
+
+    def issued_documents
+      documents.active.not_canceled.by_period(period.first, period.last)
+    end
+
+    def issued_freight_expenses_cents
+      FreightExpense.where(transport_document_id: issued_documents.select(:id)).sum(:amount_cents)
+    end
+
+    def issued_expenses_cents
+      Atua::Expense.active.freight.where(cost_object_id: issued_documents.select(:id)).sum(:total_cents)
+    end
+
+    def issued_toll_cents
+      issued_documents.sum(Atua::TransportDocument.freight_toll)
+    end
 
     def entries
       @entries ||= all_entries.select { |entry| period.cover?(entry.reference_on) }

@@ -214,7 +214,10 @@ describe 'Freight billing' do
       context 'when there are documents linked to no trip' do
         let!(:pickup) { create(:atua_transport_document, tenant:, number: '74899', freight_cents: 60_000, posted_on: Date.new(2026, 10, 26)) }
         let!(:transfer) { create(:atua_transport_document, tenant:, number: '74903', freight_cents: 26_900, posted_on: Date.new(2026, 10, 26)) }
-        let!(:november) { create(:atua_transport_document, tenant:, number: '74950', freight_cents: 90_000, posted_on: Date.new(2026, 11, 2)) }
+        let!(:november) do
+          create(:atua_transport_document, tenant:, number: '74950', freight_cents: 90_000, issued_at: Time.zone.local(2026, 11, 2, 8),
+                                           posted_on: Date.new(2026, 11, 2))
+        end
         let!(:canceled) do
           create(:atua_transport_document, tenant:, number: '74951', freight_cents: 70_000, posted_on: Date.new(2026, 10, 26),
                                            canceled_at: Time.zone.local(2026, 10, 26, 18))
@@ -226,7 +229,37 @@ describe 'Freight billing' do
           expect(Atua::TransportDocument.where(tenant:).count).to eq(8)
           expect(all('.counter-card').first(4).map { |card| card.text.squish }).to eq(
             ['Frete bruto R$ 20.869,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 869,00',
-             'Frete líquido R$ 19.100,00'],
+             'Frete líquido R$ 19.969,00'],
+          )
+        end
+      end
+
+      context 'when a transport document is issued in the month before its trip departs' do
+        let!(:previous_month) do
+          create(:atua_transport_document, tenant:, number: '74103', freight_cents: 607_332, plate: 'RHJ5A50',
+                                           issued_at: Time.zone.local(2026, 9, 30, 18, 1), posted_on: Date.new(2026, 9, 30))
+        end
+
+        before do
+          create(:atua_manifest, tenant:, code: 41_010, plate: 'RHJ5A50', trip_started_at: Time.zone.local(2026, 10, 2, 9))
+          create(:atua_manifest_document, tenant:, manifest_code: 41_010, transport_document_number: '74103', calculated_distance_km: 400)
+        end
+
+        scenario 'bills its freight in the month of the issue like the Atua report and keeps the trip in the month it departed' do
+          visit freight_billing_path(october)
+
+          expect(Atua::TransportDocument.where(tenant:).count).to eq(5)
+          expect(all('.counter-card').first(5).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 20.000,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 0,00',
+             'Frete líquido R$ 19.100,00', 'Viagens 3'],
+          )
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3) }).to include(['RHJ5A50', '1', 'R$ 6.073,32'])
+
+          visit freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30')
+
+          expect(all('.counter-card').first(5).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 6.073,32', 'Frete bruto com MDF-e R$ 6.073,32', 'Frete bruto sem MDF-e R$ 0,00',
+             'Frete líquido R$ 6.073,32', 'Viagens 0'],
           )
         end
       end
@@ -236,7 +269,7 @@ describe 'Freight billing' do
         let!(:stranger_exclusion) { create(:excluded_issuer, tenant: other_tenant, code: 6001, name: 'EMISSAO CTE') }
         let!(:abroad) do
           create(:atua_transport_document, tenant:, number: '4267', document_kind: 'ce', issuer_code: 6190, freight_cents: 1_657_920,
-                                           issued_at: Time.zone.local(2026, 8, 25, 10), posted_on: Date.new(2026, 10, 2), plate: 'RVR8J90',
+                                           issued_at: Time.zone.local(2026, 10, 2, 10), posted_on: Date.new(2026, 10, 2), plate: 'RVR8J90',
                                            taker_code: 7100)
         end
         let!(:loose) do
@@ -292,7 +325,7 @@ describe 'Freight billing' do
 
           expect(all('.counter-card').first(4).map { |card| card.text.squish }).to eq(
             ['Frete bruto R$ 40.179,20', 'Frete bruto com MDF-e R$ 39.579,20', 'Frete bruto sem MDF-e R$ 600,00',
-             'Frete líquido R$ 38.679,20'],
+             'Frete líquido R$ 39.279,20'],
           )
         end
       end
