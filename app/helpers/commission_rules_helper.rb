@@ -25,6 +25,13 @@ module CommissionRulesHelper
     commission_rule.cities.join(', ')
   end
 
+  def commission_rule_recipient_terms(commission_rule)
+    return t('commission_rules.show.any_brazilian_state') if commission_rule.national?
+    return t('commission_rules.show.no_recipient_terms') if commission_rule.recipient_terms.empty?
+
+    commission_rule.recipient_terms.join(', ')
+  end
+
   def commission_rule_form_url(commission_rule_form)
     commission_rule_form.persisted? ? commission_rule_path(commission_rule_form.commission_rule) : commission_rules_path
   end

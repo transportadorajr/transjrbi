@@ -102,6 +102,7 @@ describe 'Commission rules' do
             'Grupo de clientes' => 'USIMINAS',
             'Destino' => 'Exterior (UF EX)',
             'Cidades de destino' => 'Buenos Aires, Puerto Iguazú, Rosario',
+            'Clientes de destino' => 'FERROSIDER, ACINDAR, SIAT, TERNIUM',
             'Base de cálculo' => 'Frete bruto',
             'Comissão' => '1,30%',
             'Status' => 'Ativa',
@@ -145,7 +146,7 @@ describe 'Commission rules' do
         expect(commission_rule.activated_at).to be_present
       end
 
-      scenario 'creates a foreign rule with its cities' do
+      scenario 'creates a foreign rule with its cities and recipient terms' do
         visit new_commission_rule_path
         select 'USIMINAS', from: 'Grupo de clientes'
         fill_in 'Nome', with: 'Paraguai'
@@ -153,11 +154,13 @@ describe 'Commission rules' do
         select 'Frete bruto', from: 'Base de cálculo'
         fill_in 'Comissão (%)', with: '1,5'
         fill_in 'Cidades de destino', with: "Asunción\nCiudad del Este"
+        fill_in 'Clientes de destino', with: "LACERIE\nGALLO"
 
         expect { click_on 'Cadastrar Regra' }.to change(CommissionRule, :count).by(1)
 
         expect(CommissionRule.last).to have_attributes(destination_type: 'foreign', base_type: 'freight', percentage: BigDecimal('1.5'),
-                                                       cities: ['Asunción', 'Ciudad del Este'])
+                                                       cities: ['Asunción', 'Ciudad del Este'], recipient_terms: %w[LACERIE GALLO])
+        expect(dl_to_hash('#commission_rule_data')).to include('Clientes de destino' => 'LACERIE, GALLO')
       end
 
       scenario 'shows the errors of the required fields' do

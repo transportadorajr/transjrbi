@@ -43,6 +43,27 @@ RSpec.describe CommissionRule do
     it 'finds no rule for a foreign city outside every list' do
       expect(described_class.for_destination(rules, 'EX', 'SANTIAGO')).to be_nil
     end
+
+    it 'uses the city of the recipient when the city of the CT-e is Exterior' do
+      expect(described_class.for_destination(rules, 'EX', 'EXTERIOR', recipient_city: 'Ciudad del Este')).to eq(paraguay)
+      expect(described_class.for_destination(rules, 'EX', nil, recipient_city: 'ROSARIO')).to eq(argentina)
+    end
+
+    it 'uses the name of the recipient when neither the CT-e nor the recipient has a city of the rules' do
+      paraguayan = described_class.for_destination(rules, 'EX', 'EXTERIOR', recipient_city: 'EXTERIOR', recipient_name: 'Comercial Gallo S.A.')
+
+      expect(paraguayan).to eq(paraguay)
+      expect(described_class.for_destination(rules, 'EX', 'EXTERIOR', recipient_name: 'FERROSIDER SA')).to eq(argentina)
+      expect(described_class.for_destination(rules, 'EX', 'EXTERIOR', recipient_name: 'ACME LTDA')).to be_nil
+    end
+
+    it 'prefers the city of the CT-e over the city and the name of the recipient' do
+      expect(described_class.for_destination(rules, 'EX', 'ROSARIO', recipient_city: 'ASUNCION', recipient_name: 'GALLO')).to eq(argentina)
+    end
+
+    it 'ignores the recipient for a brazilian state' do
+      expect(described_class.for_destination(rules, 'MG', 'IPATINGA', recipient_name: 'TERNIUM')).to eq(national)
+    end
   end
 
   describe '#amount_cents' do

@@ -18,6 +18,22 @@ RSpec.describe CommissionRuleForm do
       expect(rule.activated_at).to be_present
     end
 
+    it 'saves the recipient terms of a foreign rule one per line without duplicates' do
+      form = described_class.new(tenant:, customer_group_id: usiminas.id, name: 'Paraguai', destination_type: 'foreign',
+                                 base_type: 'freight', percentage: '1,5', cities: 'Asunción', recipient_terms: "Gallo\n lacerie \n\nGALLO")
+
+      expect { expect(form.save).to be(true) }.to change(CommissionRule, :count).by(1)
+      expect(CommissionRule.last.recipient_terms).to eq(%w[Gallo lacerie])
+    end
+
+    it 'ignores the recipient terms of a national rule' do
+      form = described_class.new(tenant:, customer_group_id: usiminas.id, name: 'Nacional', destination_type: 'national',
+                                 base_type: 'freight_without_icms', percentage: '2', recipient_terms: 'GALLO')
+
+      expect { expect(form.save).to be(true) }.to change(CommissionRule, :count).by(1)
+      expect(CommissionRule.last.recipient_terms).to eq([])
+    end
+
     it 'ignores the cities of a national rule' do
       form = described_class.new(tenant:, customer_group_id: usiminas.id, name: 'Nacional', destination_type: 'national',
                                  base_type: 'freight_without_icms', percentage: '2', cities: 'Ipatinga')
@@ -73,6 +89,14 @@ RSpec.describe CommissionRuleForm do
         expect(form.errors[:cities]).to eq(['PUERTO IGUAZU já estão em outra regra ativa deste grupo'])
       end
 
+      it 'rejects a recipient term that is already in another active foreign rule' do
+        form = described_class.new(tenant:, customer_group_id: usiminas.id, name: 'Paraguai', destination_type: 'foreign',
+                                   base_type: 'freight', percentage: '1,5', cities: 'Asunción', recipient_terms: "Gallo\nternium")
+
+        expect(form.save).to be_falsey
+        expect(form.errors[:recipient_terms]).to eq(['ternium já estão em outra regra ativa deste grupo'])
+      end
+
       it 'accepts the same national rule when the new one is inactive' do
         form = described_class.new(tenant:, customer_group_id: usiminas.id, name: 'Nacional antiga', destination_type: 'national',
                                    base_type: 'freight', percentage: '3', active: '0')
@@ -92,7 +116,8 @@ RSpec.describe CommissionRuleForm do
       it 'loads the rule formatted for the form' do
         form = described_class.for_commission_rule(argentina)
 
-        expect(form).to have_attributes(percentage: '1,3', cities: "Buenos Aires\nPuerto Iguazú\nRosario", active: true)
+        expect(form).to have_attributes(percentage: '1,3', cities: "Buenos Aires\nPuerto Iguazú\nRosario",
+                                        recipient_terms: "FERROSIDER\nACINDAR\nSIAT\nTERNIUM", active: true)
       end
     end
   end

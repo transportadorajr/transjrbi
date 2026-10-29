@@ -103,6 +103,7 @@ pt-BR:
         base_type: Base de cálculo
         percentage: Comissão
         cities: Cidades de destino
+        recipient_terms: Clientes de destino
         status: Status
         activated_at: Ativada em
         freight_expenses: CT-es com comissão
@@ -485,6 +486,7 @@ pt-BR:
         base_type: Base de cálculo
         percentage: Comissão (%)
         cities: Cidades de destino
+        recipient_terms: Clientes de destino
         active: Ativa
       tonnage_rate_form:
         customer_group_id: Grupo de clientes
@@ -545,6 +547,8 @@ pt-BR:
               national_taken: nacional já tem outra regra ativa neste grupo
             cities:
               taken: '%{cities} já estão em outra regra ativa deste grupo'
+            recipient_terms:
+              taken: '%{terms} já estão em outra regra ativa deste grupo'
         tonnage_rate_form:
           attributes:
             customer_group_id:
@@ -1066,6 +1070,7 @@ pt-BR:
       back: Voltar para regras de comissão
       commission_rule_data: Dados da regra
       any_brazilian_state: Qualquer UF brasileira
+      no_recipient_terms: Nenhum
       expenses_total: Total de comissões
       edit: Alterar
     new:
@@ -1089,6 +1094,9 @@ pt-BR:
       cities_hint: >-
         Só para destino no exterior: uma cidade por linha (acentos, espaços e hífen são ignorados). CT-e com UF EX e
         cidade fora das regras fica sem comissão e aparece em alerta nas despesas de frete.
+      recipient_terms_hint: >-
+        Só para destino no exterior: um termo por linha com o nome do destinatário. Usado quando a cidade do CT-e e a
+        do destinatário (ex.: "Exterior") não estão nas cidades das regras.
       active_hint: Desmarque para deixar de calcular a comissão desta regra. Toda alteração recalcula as comissões de todos os CT-es.
   macro_regions:
     coverage:

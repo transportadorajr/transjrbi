@@ -88,6 +88,45 @@ RSpec.describe FreightExpenses::CalculateCommissionsCommand do
     end
   end
 
+  context 'with a foreign transport document whose destination city is Exterior' do
+    let!(:paraguayan_recipient) { create(:atua_customer, tenant:, code: 601, name: 'LACERIE PY', city: 'Ciudad del Este', state: 'EX') }
+    let!(:argentine_recipient) { create(:atua_customer, tenant:, code: 602, name: 'TERNIUM ARGENTINA', city: 'EXTERIOR', state: 'EX') }
+    let!(:unknown_recipient) { create(:atua_customer, tenant:, code: 603, name: 'ACME CHILE', city: 'EXTERIOR', state: 'EX') }
+    let!(:to_recipient_city) do
+      create(:atua_transport_document, tenant:, number: '75001', taker_code: 501, recipient_code: 601, recipient_name: 'LACERIE PY',
+                                       destination_city: 'EXTERIOR', destination_state: 'EX', freight_cents: 1_000_000)
+    end
+    let!(:to_recipient_name) do
+      create(:atua_transport_document, tenant:, number: '75002', taker_code: 501, recipient_code: 602,
+                                       recipient_name: 'TERNIUM ARGENTINA S.A.', destination_city: 'EXTERIOR', destination_state: 'EX',
+                                       freight_cents: 2_000_000)
+    end
+    let!(:to_unknown) do
+      create(:atua_transport_document, tenant:, number: '75003', taker_code: 501, recipient_code: 603, recipient_name: 'ACME CHILE',
+                                       destination_city: 'EXTERIOR', destination_state: 'EX', freight_cents: 3_000_000)
+    end
+
+    it 'calculates the commission of a foreign CT-e whose destination city is Exterior from its recipient' do
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
+
+      expect(FreightExpense.count).to eq(2)
+      expect(FreightExpense.order(:transport_document_id).map { |expense| expense_values(expense) }).to eq(
+        [
+          ['75001', paraguay, 1_000_000, 0, BigDecimal('1.5'), 15_000],
+          ['75002', argentina, 2_000_000, 0, BigDecimal('1.3'), 26_000],
+        ],
+      )
+      expect(CommissionRule.unmatched_foreign_documents(tenant)).to contain_exactly(to_unknown)
+    end
+
+    it 'can run again without duplicating the commissions' do
+      described_class.call(tenant)
+
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 0, removed: 0))
+      expect(FreightExpense.count).to eq(2)
+    end
+  end
+
   context 'with a transport document whose taker is not in the group' do
     let!(:sender_only) do
       create(:atua_transport_document, tenant:, sender_code: 501, taker_code: 999, destination_state: 'MG', freight_cents: 1_000_000)
