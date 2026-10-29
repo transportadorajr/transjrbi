@@ -59,6 +59,18 @@ describe 'User password change' do
       expect(page).to have_current_path(users_path)
     end
 
+    scenario 'keeps the user signed in after closing the browser once the password is changed' do
+      sign_in_with(email: 'eduardo@transjrbi.com.br')
+      fill_in 'Nova senha', with: 'NovaSenha1!'
+      fill_in 'Confirme a nova senha', with: 'NovaSenha1!'
+      click_on 'Alterar senha'
+      close_browser
+
+      visit users_path
+
+      expect(page).to have_current_path(users_path)
+    end
+
     scenario 'rejects the password defined by the owner' do
       sign_in_with(email: 'eduardo@transjrbi.com.br')
       fill_in 'Nova senha', with: 'Senha123!'

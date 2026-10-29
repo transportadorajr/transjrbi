@@ -43,6 +43,11 @@ describe 'User account confirmation' do
       expect(user.confirmed_at).to be_present
       expect(user.confirmation_token).to be_nil
       expect(user.valid_password?('NovaSenha1!')).to be(true)
+
+      close_browser
+      visit root_path
+
+      expect(page).to have_current_path(root_path)
     end
   end
 

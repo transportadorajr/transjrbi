@@ -13,6 +13,7 @@ class PasswordChangesController < BaseController
 
     if @password_change_form.save
       bypass_sign_in(current_user)
+      remember_me(current_user)
       redirect_to root_path, notice: t('.success'), status: :see_other
     else
       render :edit, status: :unprocessable_content
