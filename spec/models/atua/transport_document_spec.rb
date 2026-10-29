@@ -125,6 +125,27 @@ RSpec.describe Atua::TransportDocument do
       end
     end
 
+    context 'with documents of different takers and drivers' do
+      let!(:first) { create(:atua_transport_document, tenant:, taker_code: 7100, driver_code: 10, driver_name: 'MARIA SOUZA') }
+      let!(:second) { create(:atua_transport_document, tenant:, taker_code: 7200, driver_code: 10, driver_name: 'MARIA SOUZA') }
+      let!(:third) { create(:atua_transport_document, tenant:, taker_code: 7100, driver_code: 20, driver_name: 'ANA LIMA') }
+
+      before do
+        create(:atua_transport_document, tenant:, driver_code: nil)
+        create(:atua_transport_document, tenant:, driver_code: 30, driver_name: 'JOAO REMOVIDO', removed_from_atua_at: Time.current)
+      end
+
+      it 'filters by the taker and by the driver' do
+        expect(described_class.count).to eq(5)
+        expect(described_class.by_taker(7100)).to contain_exactly(first, third)
+        expect(described_class.by_driver(10)).to contain_exactly(first, second)
+      end
+
+      it 'lists each driver of the active documents once, ordered by name' do
+        expect(described_class.drivers.map { |driver| [driver.driver_code, driver.driver_name] }).to eq([[20, 'ANA LIMA'], [10, 'MARIA SOUZA']])
+      end
+    end
+
     context 'with documents of different issuers' do
       let!(:maycon) { create(:atua_transport_document, tenant:, document_kind: 'ce', issuer_code: 6190) }
       let!(:jefferson) { create(:atua_transport_document, tenant:, document_kind: 'ce', issuer_code: 1951) }

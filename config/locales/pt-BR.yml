@@ -415,6 +415,8 @@ pt-BR:
         end_date: Saídas até
         dimension: Agrupar por
         plate: Placa
+        taker_code: Cliente
+        driver_code: Motorista
         customer_group_id: Grupo de clientes
         macro_region_id: Macro região de origem
         truck_group_id: Tipo de conjunto
@@ -783,6 +785,10 @@ pt-BR:
     clear_filters: Limpar Filtros
     close: Fechar
     filters: Filtros
+    select2:
+      clear: Limpar seleção
+      no_results: Nenhum resultado encontrado
+      search: Buscar...
     no_content:
       title: Nenhum registro encontrado
       message: Tente ajustar os filtros ou crie um novo registro.
@@ -1287,7 +1293,7 @@ pt-BR:
       truck_group_hint: Pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo
     dimensions:
-      vehicle: Conjunto
+      vehicle: Cavalo
       driver: Motorista
       customer_group: Grupo de clientes
       origin: Origem

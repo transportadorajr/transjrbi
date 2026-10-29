@@ -1,0 +1,28 @@
+<%= tag.div class: 'select2-wrapper', id:,
+            data: { controller: 'select2', select2_name: name, select2_placeholder_value: placeholder,
+                    select2_no_results_value: t('shared.select2.no_results'), select2_clearable_value: true } do %>
+  <%= hidden_field_tag name, selected, id: nil, data: { select2_target: 'hiddenInput' } %>
+
+  <%= tag.div class: 'select2-trigger form-select bg-light', role: 'combobox', aria: { labelledby: "#{id}_label", expanded: false },
+              data: { action: 'click->select2#toggleDropdown' } do %>
+    <%= tag.div class: 'select2-selected', data: { select2_target: 'selected' } %>
+    <%= button_tag icon(:'x-lg'), type: 'button', class: 'select2-clear-btn', title: t('shared.select2.clear'),
+                                  data: { action: 'click->select2#clearAll' } %>
+  <% end %>
+
+  <%= tag.div class: 'select2-dropdown', data: { select2_target: 'dropdown' } do %>
+    <div class="select2-search-box">
+      <%= search_field_tag nil, nil, id: nil, class: 'select2-search form-control form-control-sm', autocomplete: :off,
+                                     placeholder: t('shared.select2.search'), aria: { label: t('shared.select2.search') },
+                                     data: { select2_target: 'search', action: 'input->select2#search' } %>
+    </div>
+
+    <%= tag.ul class: 'select2-options', role: 'listbox' do %>
+      <% options.each do |label, value| %>
+        <%= tag.li label, class: 'select2-option', role: 'option',
+                          data: { select2_target: 'option', value:, label:, action: 'click->select2#selectOption' } %>
+      <% end %>
+      <%= tag.li t('shared.select2.no_results'), class: 'select2-no-results', hidden: true, data: { select2_no_results: true } %>
+    <% end %>
+  <% end %>
+<% end %>

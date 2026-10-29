@@ -156,10 +156,10 @@ RSpec.describe Dashboard::Freight do
       end
     end
 
-    it 'groups by the truck and trailer plates' do
+    it 'groups by the truck plate' do
       expect(dashboard.rows.map(&:to_h)).to eq(
         [
-          { label: 'RVR2C34 + RVR9C02', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
+          { label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
             freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0),
             net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
             share: BigDecimal('75') },
@@ -219,7 +219,7 @@ RSpec.describe Dashboard::Freight do
     context 'with an unknown dimension' do
       let(:dimension) { 'payer' }
 
-      it 'falls back to the truck and trailer plates' do
+      it 'falls back to the truck plate' do
         expect(dashboard.dimension).to eq('vehicle')
       end
     end
@@ -227,8 +227,8 @@ RSpec.describe Dashboard::Freight do
     it 'plots the ranking with the gross and the net freight' do
       expect(dashboard.ranking_data).to eq(
         [
-          { name: 'Frete bruto', data: { 'RVR2C34 + RVR9C02' => 15_000.0, 'RVR8J90' => 5_000.0 } },
-          { name: 'Frete líquido', data: { 'RVR2C34 + RVR9C02' => 14_350.0, 'RVR8J90' => 5_000.0 } },
+          { name: 'Frete bruto', data: { 'RVR2C34' => 15_000.0, 'RVR8J90' => 5_000.0 } },
+          { name: 'Frete líquido', data: { 'RVR2C34' => 14_350.0, 'RVR8J90' => 5_000.0 } },
         ],
       )
     end
@@ -417,6 +417,52 @@ RSpec.describe Dashboard::Freight do
         ],
       )
       expect(Atua::TransportDocument.count).to eq(5)
+    end
+  end
+
+  context 'with trips of one truck hauling different trailers and drivers with long names' do
+    let!(:grouped_taker) do
+      create(:atua_customer, tenant:, code: 7300,
+                             customer_group: create(:customer_group, tenant:, name: '100815-LARANJEIRAS DO SUL II GERACAO DISTRIBUIDA SPE LTDA'))
+    end
+
+    before do
+      create(:atua_manifest, tenant:, code: 46_001, plate: 'RVR7K11', trip_started_at: Time.zone.local(2026, 10, 3, 8))
+      create(:atua_manifest, tenant:, code: 46_002, plate: 'RVR7K11', trip_started_at: Time.zone.local(2026, 10, 13, 8))
+      create(:atua_manifest, tenant:, code: 46_003, plate: 'RVR7K22', trip_started_at: Time.zone.local(2026, 10, 14, 8))
+      create(:atua_transport_document, tenant:, number: '79001', freight_cents: 800_000, plate: 'RVR7K11', trailer_plate: 'RVR9A01',
+                                       driver_code: 40, driver_name: 'LUIS HENRIQUE DOS SANTOS COSTA', taker_code: 7300)
+      create(:atua_transport_document, tenant:, number: '79002', freight_cents: 600_000, plate: 'RVR7K11', trailer_plate: 'RVR9A02',
+                                       driver_code: 41, driver_name: 'LUIS HENRIQUE DA SILVA COSTA')
+      create(:atua_transport_document, tenant:, number: '79003', freight_cents: 300_000, plate: 'RVR7K22', driver_code: 42,
+                                       driver_name: 'EDISON LEITE GOMES')
+      create(:atua_manifest_document, tenant:, manifest_code: 46_001, transport_document_number: '79001', calculated_distance_km: 400)
+      create(:atua_manifest_document, tenant:, manifest_code: 46_002, transport_document_number: '79002', calculated_distance_km: 300)
+      create(:atua_manifest_document, tenant:, manifest_code: 46_003, transport_document_number: '79003', calculated_distance_km: 200)
+    end
+
+    it 'groups the trips by the truck plate whatever trailer it hauls' do
+      expect(Atua::TransportDocument.count).to eq(3)
+      expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] })
+        .to eq([['RVR7K11', 2, 1_400_000], ['RVR7K22', 1, 300_000]])
+    end
+
+    context 'when grouped by driver' do
+      let(:dimension) { 'driver' }
+
+      it 'abbreviates the middle names on the bars, keeping in full the names that would look alike, and the full names on the rows' do
+        expect(dashboard.rows.map(&:label)).to eq(['LUIS HENRIQUE DOS SANTOS COSTA', 'LUIS HENRIQUE DA SILVA COSTA', 'EDISON LEITE GOMES'])
+        expect(dashboard.ranking_data.first[:data])
+          .to eq('LUIS HENRIQUE DOS SANTOS COSTA' => 8_000.0, 'LUIS HENRIQUE DA SILVA COSTA' => 6_000.0, 'EDISON L. GOMES' => 3_000.0)
+      end
+    end
+
+    context 'when grouped by customer group' do
+      let(:dimension) { 'customer_group' }
+
+      it 'drops the code and the company suffixes from the bars' do
+        expect(dashboard.ranking_data.first[:data]).to eq('LARANJEIRAS S. I. G. DISTRIBUIDA' => 8_000.0, 'Sem grupo' => 9_000.0)
+      end
     end
   end
 end

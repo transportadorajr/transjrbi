@@ -13,6 +13,7 @@
         "chart.js": "^4.5.1",
         "chartjs-plugin-datalabels": "^2.2.0",
         "chartkick": "^5.0.1",
+        "hotwire-select2": "1.0.1",
         "imask": "7.6.1",
         "nodemon": "^3.1.14",
         "postcss": "^8.5.29",
@@ -149,6 +150,8 @@
     "happy-dom": ["happy-dom@20.14.5", "", { "dependencies": { "@types/node": ">=20.0.0", "@types/whatwg-mimetype": "^3.0.2", "@types/ws": "^8.18.1", "buffer-image-size": "^0.6.4", "entities": "^7.0.1", "whatwg-mimetype": "^3.0.0", "ws": "^8.21.0" } }, "sha512-x/RzkpWO40bTjIoT30iQtt64FLLmH/iRcUCN2X//bLx7H3ifkdfPXyqsro/OYtqzIAhiLMMA7mmiOR9C3NOKjQ=="],
 
     "has-flag": ["has-flag@3.0.0", "", {}, "sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw=="],
+
+    "hotwire-select2": ["hotwire-select2@1.0.1", "", { "peerDependencies": { "@hotwired/stimulus": "^3.0.0" } }, "sha512-CGEho4cMyoGrHY4uQL6Qw9Z4F3BzQeQ05eyGE1PtoKvHym0e1tn36VvXbiOOvuSSY2clpdX9y63OtgfnohRexw=="],
 
     "ignore-by-default": ["ignore-by-default@1.0.1", "", {}, "sha512-Ius2VYcGNk7T90CppJqcIkS5ooHUZyIQK+ClZfMfMNFEF9VSE73Fq+906u/CWu92x4gzZMWOwfFYckPObzdEbA=="],
 
