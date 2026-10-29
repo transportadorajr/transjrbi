@@ -86,7 +86,7 @@ gem 'roo'
 gem 'roo-xls'
 
 gem 'ostruct', '~> 0.6.3'
-gem 'chartkick', '~> 5.2'
+gem 'chartkick', '~> 5.3'
 gem 'groupdate', '~> 6.8'
 gem 'flipper'
 gem 'flipper-active_record'
