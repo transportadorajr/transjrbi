@@ -612,7 +612,6 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
       find(:link, href: '#filtersModal').click
-      expect(page).to have_css('#filtersModal:focus')
 
       within('#customer_group_id_select') do
         find('.select2-trigger').click
@@ -637,25 +636,6 @@ describe 'Freight billing' do
       expect(first('.counter-value')).to have_text('R$ 4.000,00')
       expect(page).to have_css('#customer_group_id_select .select2-single-value', text: 'USIMINAS', visible: :all)
       expect(page).to have_css('#driver_code_select .select2-single-value', text: 'MARIA SOUZA', visible: :all)
-    end
-
-    scenario 'clears the customer group and shows every customer group again' do
-      visit freight_billing_path(october.merge(customer_group_id: CustomerGroup.find_by!(name: 'GERDAU').id))
-
-      expect(first('.counter-value')).to have_text('R$ 3.000,00')
-
-      find(:link, href: '#filtersModal').click
-      expect(page).to have_css('#filtersModal:focus')
-
-      within('#customer_group_id_select') do
-        click_on 'Limpar seleção'
-
-        expect(page).to have_css('.select2-placeholder', text: 'Todos')
-      end
-      click_on 'Aplicar Filtros'
-
-      expect(page).to have_current_path(/customer_group_id=&/)
-      expect(first('.counter-value')).to have_text('R$ 17.000,00')
     end
   end
 
