@@ -73,7 +73,15 @@ pt-BR:
       truck_group:
         one: Grupo de caminhões
         other: Grupos de caminhões
+      excluded_issuer:
+        one: Emissor desconsiderado
+        other: Emissores desconsiderados
     attributes:
+      excluded_issuer:
+        name: Emissor
+        code: Código no Atua
+        documents_count: Documentos
+        freight: Frete bruto
       truck_group:
         name: Nome
         axles: Quantidades de eixos
@@ -494,6 +502,8 @@ pt-BR:
         state: UF
         cities: Cidades
         remaining_state: Abrange o restante do estado
+      excluded_issuer_form:
+        code: Emissor
       truck_group_form:
         name: Nome
         axles: Quantidades de eixos
@@ -556,6 +566,11 @@ pt-BR:
               taken: já está em outra macro região desta UF
             cities:
               taken: '%{cities} já estão em outra macro região desta UF'
+        excluded_issuer_form:
+          attributes:
+            code:
+              taken: já está desconsiderado
+              inclusion: não emitiu nenhum CT-e ou CE
         truck_group_form:
           attributes:
             name:
@@ -691,6 +706,8 @@ pt-BR:
       truck_group:
         create: Cadastrar Grupo
         update: Salvar Alterações
+      excluded_issuer:
+        create: Desconsiderar Emissor
       tonnage_rate:
         create: Cadastrar Custo
         update: Salvar Alterações
@@ -736,6 +753,8 @@ pt-BR:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
+      excluded_issuer:
+        destroy: Voltar a considerar
       atua/vehicle:
         show: Visualizar
       atua/expense:
@@ -887,6 +906,7 @@ pt-BR:
     freight_expenses: Despesas de frete
     macro_regions: Macro regiões
     truck_groups: Grupos de caminhões
+    excluded_issuers: Emissores desconsiderados
     company: Dados da empresa
     freight_billing: Faturamento de fretes
   tax:
@@ -1155,6 +1175,28 @@ pt-BR:
         Marque para incluir todas as quantidades de eixos que não estão em outro grupo ativo, inclusive CT-es sem eixos
         informados. Nesse caso as quantidades de eixos marcadas são ignoradas.
       active_hint: Desmarque para deixar de usar o grupo. Toda alteração recalcula o combustível de todos os CT-es.
+  excluded_issuers:
+    option: '%{name} (%{code})'
+    index:
+      title: Emissores desconsiderados
+      subtitle: >-
+        Os CT-es e CEs emitidos por estes usuários do Atua ficam fora do faturamento de fretes: frete bruto, frete
+        líquido, ranking e evolução mensal.
+      new_excluded_issuer: Desconsiderar Emissor
+      confirm_destroy: Os documentos deste emissor voltarão a entrar no faturamento de fretes. Deseja continuar?
+    filters:
+      name: Nome do emissor
+    new:
+      title: Desconsiderar Emissor
+      back: Voltar para emissores desconsiderados
+    create:
+      success: Emissor desconsiderado com sucesso.
+    destroy:
+      success: Os documentos do emissor voltaram a ser considerados.
+    form:
+      excluded_issuer_data: Emissor
+      excluded_issuer_data_text: >-
+        Escolha o usuário do Atua que emitiu os CT-es ou CEs. Só aparecem os usuários que já emitiram algum documento.
   tonnage_rates:
     label: '%{name} – %{origin}'
     origin_with_nickname: '%{origin} (%{nickname})'
@@ -1276,7 +1318,7 @@ pt-BR:
       ranking_title: Frete por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de saída da viagem (MDF-e)
       monthly_title: Evolução Mensal
-      monthly_subtitle: Frete bruto e líquido por mês de saída, de %{from} a %{to}
+      monthly_subtitle: Frete bruto e líquido por mês de emissão do CT-e, de %{from} a %{to}
       table_title: Detalhamento por %{dimension}
       table_subtitle: >-
         Cada viagem é um MDF-e: soma o frete e as despesas de todos os seus CT-es. Frete líquido = frete bruto − despesas
@@ -1458,6 +1500,7 @@ pt-BR:
     customer_groups: Grupos de clientes
     macro_regions: Macro regiões
     truck_groups: Grupos de caminhões
+    excluded_issuers: Emissores desconsiderados
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas

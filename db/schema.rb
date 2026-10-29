@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_28_200936) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_29_134512) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -457,6 +457,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200936) do
     t.datetime "updated_at", null: false
     t.date "due_dates", default: [], null: false, array: true
     t.bigint "origin_macro_region_id"
+    t.integer "issuer_code"
+    t.string "issuer_name"
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
     t.index ["origin_macro_region_id"], name: "index_atua_transport_documents_on_origin_macro_region_id"
@@ -464,6 +466,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200936) do
     t.index ["tenant_id", "consignee_code"], name: "index_atua_transport_documents_on_tenant_id_and_consignee_code"
     t.index ["tenant_id", "cte_status"], name: "index_atua_transport_documents_on_tenant_id_and_cte_status"
     t.index ["tenant_id", "issued_at"], name: "index_atua_transport_documents_on_tenant_id_and_issued_at"
+    t.index ["tenant_id", "issuer_code"], name: "index_atua_transport_documents_on_tenant_id_and_issuer_code"
     t.index ["tenant_id", "number", "series", "branch_name"], name: "idx_on_tenant_id_number_series_branch_name_82ba4806a5"
     t.index ["tenant_id", "payer_code"], name: "index_atua_transport_documents_on_tenant_id_and_payer_code"
     t.index ["tenant_id", "plate"], name: "index_atua_transport_documents_on_tenant_id_and_plate"
@@ -585,6 +588,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200936) do
     t.index ["tenant_id", "next_manifest_code"], name: "index_empty_legs_on_tenant_id_and_next_manifest_code", unique: true
     t.index ["tenant_id", "plate"], name: "index_empty_legs_on_tenant_id_and_plate"
     t.index ["tenant_id", "previous_manifest_code"], name: "index_empty_legs_on_tenant_id_and_previous_manifest_code"
+  end
+
+  create_table "excluded_issuers", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.integer "code", null: false
+    t.string "name", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "code"], name: "index_excluded_issuers_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id"], name: "index_excluded_issuers_on_tenant_id"
   end
 
   create_table "flipper_features", force: :cascade do |t|
@@ -913,6 +926,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_28_200936) do
   add_foreign_key "empty_legs", "locations", column: "origin_id"
   add_foreign_key "empty_legs", "road_routes"
   add_foreign_key "empty_legs", "tenants"
+  add_foreign_key "excluded_issuers", "tenants"
   add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
   add_foreign_key "freight_expenses", "commission_rules"
   add_foreign_key "freight_expenses", "insurance_rates"

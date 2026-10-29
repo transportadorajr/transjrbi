@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="fw-semibold text-break"><%= item.name %></td>
+  <td class="d-none d-md-table-cell"><%= item.code %></td>
+  <td class="d-none d-lg-table-cell text-end"><%= number_with_delimiter(item.documents_count) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(item.freight) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(excluded_issuers_menu(item)) %>
+  </td>
+</tr>

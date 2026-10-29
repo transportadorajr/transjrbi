@@ -1,0 +1,22 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('excluded_issuers.form.excluded_issuer_data') %></p>
+    <p class="form-card-subtitle"><%= t('excluded_issuers.form.excluded_issuer_data_text') %></p>
+  </div>
+  <%= simple_form_for(excluded_issuer_form, url: excluded_issuers_path) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :code, collection: excluded_issuer_form.issuer_options, required: true,
+                             include_blank: true, input_html: { class: 'form-select' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.excluded_issuer.create'),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), excluded_issuers_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

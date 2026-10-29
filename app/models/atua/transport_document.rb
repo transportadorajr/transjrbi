@@ -67,6 +67,7 @@ module Atua
       where(origin_macro_region_id: macro_region_id.to_s == MacroRegion::OTHERS ? nil : macro_region_id)
     }
     scope :not_canceled, -> { where(canceled_at: nil) }
+    scope :without_issuers, ->(codes) { where.not(issuer_code: codes).or(where(issuer_code: nil)) }
     scope :canceled, -> { where.not(canceled_at: nil) }
     scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
     scope :commissionable, -> {
@@ -191,6 +192,8 @@ end
 #  insurance_cents           :bigint
 #  issue_kind                :string
 #  issued_at                 :datetime
+#  issuer_code               :integer
+#  issuer_name               :string
 #  manifest_numbers          :string           default([]), not null, is an Array
 #  ncm                       :string
 #  nfse_pending_at           :datetime
@@ -250,6 +253,7 @@ end
 #  index_atua_transport_documents_on_tenant_id_and_consignee_code  (tenant_id,consignee_code)
 #  index_atua_transport_documents_on_tenant_id_and_cte_status      (tenant_id,cte_status)
 #  index_atua_transport_documents_on_tenant_id_and_issued_at       (tenant_id,issued_at)
+#  index_atua_transport_documents_on_tenant_id_and_issuer_code     (tenant_id,issuer_code)
 #  index_atua_transport_documents_on_tenant_id_and_payer_code      (tenant_id,payer_code)
 #  index_atua_transport_documents_on_tenant_id_and_plate           (tenant_id,plate)
 #  index_atua_transport_documents_on_tenant_id_and_posted_on       (tenant_id,posted_on)

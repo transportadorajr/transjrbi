@@ -20,9 +20,9 @@
 
   <div class="row g-2 g-md-3 mb-4 counter-grid-compact">
     <%= counter_card(:primary, t('.gross'), tax_money(@dashboard.gross), col_class: 'col-6 col-xl-3') %>
-    <%= counter_card(:primary, t('.trips_gross'), tax_money(@dashboard.total.gross), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.trips_gross'), tax_money(@dashboard.linked_gross), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:warning, t('.unlinked_gross'), tax_money(@dashboard.unlinked_gross), col_class: 'col-6 col-xl-3') %>
-    <%= counter_card(:success, t('.net'), tax_money(@dashboard.total.net), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:success, t('.net'), tax_money(@dashboard.net), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:dark, t('.trips'), freight_billing_trips(@dashboard.total.trips_count), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:primary, t('.gross_per_km'), tax_money(@dashboard.total.gross_per_km), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-6 col-xl-3') %>
