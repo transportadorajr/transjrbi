@@ -30,8 +30,8 @@ module FreightBillingsHelper
     "btn btn-sm #{variation}"
   end
 
-  def freight_billing_customer_options(customers)
-    customers.map { |customer| [customer.name, customer.code.to_s] }
+  def freight_billing_customer_group_options(customer_groups)
+    customer_groups.map { |customer_group| [customer_group.name, customer_group.id.to_s] }
   end
 
   def freight_billing_driver_options(drivers)

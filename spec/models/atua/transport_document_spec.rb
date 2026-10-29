@@ -125,19 +125,18 @@ RSpec.describe Atua::TransportDocument do
       end
     end
 
-    context 'with documents of different takers and drivers' do
-      let!(:first) { create(:atua_transport_document, tenant:, taker_code: 7100, driver_code: 10, driver_name: 'MARIA SOUZA') }
-      let!(:second) { create(:atua_transport_document, tenant:, taker_code: 7200, driver_code: 10, driver_name: 'MARIA SOUZA') }
-      let!(:third) { create(:atua_transport_document, tenant:, taker_code: 7100, driver_code: 20, driver_name: 'ANA LIMA') }
+    context 'with documents of different drivers' do
+      let!(:first) { create(:atua_transport_document, tenant:, driver_code: 10, driver_name: 'MARIA SOUZA') }
+      let!(:second) { create(:atua_transport_document, tenant:, driver_code: 10, driver_name: 'MARIA SOUZA') }
+      let!(:third) { create(:atua_transport_document, tenant:, driver_code: 20, driver_name: 'ANA LIMA') }
 
       before do
         create(:atua_transport_document, tenant:, driver_code: nil)
         create(:atua_transport_document, tenant:, driver_code: 30, driver_name: 'JOAO REMOVIDO', removed_from_atua_at: Time.current)
       end
 
-      it 'filters by the taker and by the driver' do
+      it 'filters by the driver' do
         expect(described_class.count).to eq(5)
-        expect(described_class.by_taker(7100)).to contain_exactly(first, third)
         expect(described_class.by_driver(10)).to contain_exactly(first, second)
       end
 

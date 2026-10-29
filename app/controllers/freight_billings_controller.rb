@@ -1,6 +1,5 @@
 class FreightBillingsController < BaseController
   has_scope :by_plate, as: :plate
-  has_scope :by_taker, as: :taker_code
   has_scope :by_driver, as: :driver_code
   has_scope :by_customer_group, as: :customer_group_id
   has_scope :by_origin_macro_region, as: :macro_region_id
@@ -11,7 +10,6 @@ class FreightBillingsController < BaseController
     @filter_form = FreightBillingFilterForm.new(filter_params)
     return redirect_to(freight_billing_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
-    @customers = current_tenant.atua_customers.where(code: current_tenant.atua_transport_documents.select(:taker_code)).order(:name)
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.order(:name)
     @macro_regions = current_tenant.macro_regions.order(:name)
@@ -38,6 +36,6 @@ class FreightBillingsController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, :plate, :taker_code, :driver_code, :customer_group_id, :macro_region_id, :truck_group_id)
+    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :customer_group_id, :macro_region_id, :truck_group_id)
   end
 end

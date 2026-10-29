@@ -22,23 +22,17 @@
       </div>
 
       <div class="col-12">
-        <%= f.label :taker_code, FreightBillingFilterForm.human_attribute_name(:taker_code), for: nil, id: 'taker_code_select_label', class: 'form-label fw-medium' %>
-        <%= render 'components/select2', id: 'taker_code_select', name: :taker_code, options: freight_billing_customer_options(@customers),
-                                         selected: @filter_form.taker_code, placeholder: t('shared.all') %>
+        <%= f.label :customer_group_id, FreightBillingFilterForm.human_attribute_name(:customer_group_id), for: nil, id: 'customer_group_id_select_label',
+                                                                                                           class: 'form-label fw-medium' %>
+        <%= render 'components/select2', id: 'customer_group_id_select', name: :customer_group_id,
+                                         options: freight_billing_customer_group_options(@customer_groups),
+                                         selected: @filter_form.customer_group_id, placeholder: t('shared.all') %>
       </div>
 
       <div class="col-12">
         <%= f.label :driver_code, FreightBillingFilterForm.human_attribute_name(:driver_code), for: nil, id: 'driver_code_select_label', class: 'form-label fw-medium' %>
         <%= render 'components/select2', id: 'driver_code_select', name: :driver_code, options: freight_billing_driver_options(@drivers),
                                          selected: @filter_form.driver_code, placeholder: t('shared.all') %>
-      </div>
-
-      <div class="col-12">
-        <%= f.label :customer_group_id, FreightBillingFilterForm.human_attribute_name(:customer_group_id), class: 'form-label fw-medium' %>
-        <%= f.select :customer_group_id,
-                     options_from_collection_for_select(@customer_groups, :id, :name, @filter_form.customer_group_id),
-                     { include_blank: t('shared.all') },
-                     { class: 'form-select bg-light' } %>
       </div>
 
       <div class="col-12">

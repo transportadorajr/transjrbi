@@ -415,7 +415,6 @@ pt-BR:
         end_date: Saídas até
         dimension: Agrupar por
         plate: Placa
-        taker_code: Cliente
         driver_code: Motorista
         customer_group_id: Grupo de clientes
         macro_region_id: Macro região de origem

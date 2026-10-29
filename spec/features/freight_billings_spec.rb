@@ -202,9 +202,8 @@ describe 'Freight billing' do
       end
 
       scenario 'filters by plate and customer group' do
-        visit freight_billing_path(october)
+        visit freight_billing_path(october.merge(customer_group_id: usiminas.id))
         fill_in 'Placa', with: 'rvr-8j90'
-        select 'USIMINAS', from: 'Grupo de clientes'
         click_on 'Aplicar Filtros'
 
         expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
@@ -558,14 +557,13 @@ describe 'Freight billing' do
     end
   end
 
-  context 'when filtering by customer and driver', :js do
+  context 'when filtering by customer group and driver', :js do
     let!(:admin) { create(:user, tenant:, user_type: :admin) }
 
     before do
-      create(:atua_customer, tenant:, code: 7100, name: 'USINAS SIDERURGICAS DE MINAS GERAIS S.A.')
-      create(:atua_customer, tenant:, code: 7200, name: 'GERDAU ACOS LONGOS S.A.')
-      create(:atua_customer, tenant:, code: 7300, name: 'CLIENTE SEM FRETE LTDA')
-      create(:atua_customer, tenant: other_tenant, code: 7400, name: 'CLIENTE DE OUTRA LTDA')
+      create(:atua_customer, tenant:, code: 7100, customer_group: create(:customer_group, tenant:, name: 'USIMINAS'))
+      create(:atua_customer, tenant:, code: 7200, customer_group: create(:customer_group, tenant:, name: 'GERDAU'))
+      create(:atua_customer, tenant: other_tenant, code: 7400, customer_group: create(:customer_group, tenant: other_tenant, name: 'GRUPO DE OUTRA'))
       create(:atua_manifest, tenant:, code: 41_001, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
       create(:atua_manifest, tenant:, code: 41_002, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 10, 7))
       create(:atua_manifest, tenant:, code: 41_003, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 20, 7))
@@ -583,17 +581,17 @@ describe 'Freight billing' do
       login_as(admin, scope: :user)
     end
 
-    scenario 'searches the customers and the drivers of the tenant and filters the freight by them on a phone' do
+    scenario 'searches the customer groups and the drivers of the tenant and filters the freight by them on a phone' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
       find(:link, href: '#filtersModal').click
 
-      within('#taker_code_select') do
+      within('#customer_group_id_select') do
         find('.select2-trigger').click
-        expect(all('.select2-option').map(&:text)).to eq(['GERDAU ACOS LONGOS S.A.', 'USINAS SIDERURGICAS DE MINAS GERAIS S.A.'])
+        expect(all('.select2-option').map(&:text)).to eq(%w[GERDAU USIMINAS])
 
-        find('.select2-search').fill_in(with: 'usinas')
-        find('.select2-option', text: 'USINAS SIDERURGICAS DE MINAS GERAIS S.A.').click
+        find('.select2-search').fill_in(with: 'usi')
+        find('.select2-option', text: 'USIMINAS').click
       end
 
       within('#driver_code_select') do
@@ -607,19 +605,19 @@ describe 'Freight billing' do
       click_on 'Aplicar Filtros'
 
       expect(Atua::TransportDocument.where(tenant:).count).to eq(3)
-      expect(page).to have_current_path(/taker_code=7100.*driver_code=20/)
+      expect(page).to have_current_path(/customer_group_id=\d+&driver_code=20/)
       expect(first('.counter-value')).to have_text('R$ 4.000,00')
-      expect(page).to have_css('#taker_code_select .select2-single-value', text: 'USINAS SIDERURGICAS DE MINAS GERAIS S.A.', visible: :all)
+      expect(page).to have_css('#customer_group_id_select .select2-single-value', text: 'USIMINAS', visible: :all)
       expect(page).to have_css('#driver_code_select .select2-single-value', text: 'MARIA SOUZA', visible: :all)
     end
 
-    scenario 'clears the customer and shows every customer again' do
-      visit freight_billing_path(october.merge(taker_code: 7200))
+    scenario 'clears the customer group and shows every customer group again' do
+      visit freight_billing_path(october.merge(customer_group_id: CustomerGroup.find_by!(name: 'GERDAU').id))
 
       expect(first('.counter-value')).to have_text('R$ 3.000,00')
 
       find(:link, href: '#filtersModal').click
-      within('#taker_code_select') { click_on 'Limpar seleção' }
+      within('#customer_group_id_select') { click_on 'Limpar seleção' }
       click_on 'Aplicar Filtros'
 
       expect(first('.counter-value')).to have_text('R$ 17.000,00')
