@@ -612,6 +612,7 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
       find(:link, href: '#filtersModal').click
+      expect(page).to have_css('#filtersModal:focus')
 
       within('#customer_group_id_select') do
         find('.select2-trigger').click
@@ -644,6 +645,8 @@ describe 'Freight billing' do
       expect(first('.counter-value')).to have_text('R$ 3.000,00')
 
       find(:link, href: '#filtersModal').click
+      expect(page).to have_css('#filtersModal:focus')
+
       within('#customer_group_id_select') do
         click_on 'Limpar seleção'
 
