@@ -6,6 +6,7 @@ class FreightBillingFilterForm < BaseForm
   attribute :end_date, :date
   attribute :dimension, :string
   attribute :plate, :string
+  attribute :driver_code, :integer
   attribute :customer_group_id, :integer
   attribute :macro_region_id, :string
   attribute :truck_group_id, :string

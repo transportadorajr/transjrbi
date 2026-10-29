@@ -18,3 +18,6 @@ application.register('clipboard', ClipboardController);
 
 import MaskController from './mask_controller';
 application.register('mask', MaskController);
+
+import Select2Controller from 'hotwire-select2';
+application.register('select2', Select2Controller);

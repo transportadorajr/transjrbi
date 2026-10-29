@@ -30,6 +30,14 @@ module FreightBillingsHelper
     "btn btn-sm #{variation}"
   end
 
+  def freight_billing_customer_group_options(customer_groups)
+    customer_groups.map { |customer_group| [customer_group.name, customer_group.id.to_s] }
+  end
+
+  def freight_billing_driver_options(drivers)
+    drivers.map { |driver| [driver.driver_name.presence || driver.driver_code.to_s, driver.driver_code.to_s] }
+  end
+
   def freight_billing_macro_region_options(macro_regions, selected)
     options = macro_regions.map { |macro_region| [macro_region.name, macro_region.id.to_s] }
 

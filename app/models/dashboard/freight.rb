@@ -5,12 +5,14 @@ module Dashboard
     HISTORY_MONTHS = 6
     RANKING_LIMIT = 15
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
+    ABBREVIATED_DIMENSIONS = %w[driver customer_group].freeze
+    NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
+    NAME_PARTICLES = %w[DA DAS DE DO DOS E].freeze
+    COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
-                 toll_cents plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state
-                 origin_macro_region_id].freeze
+                 toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
     ENTRY_ATTRIBUTES = %i[manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
-                          plate trailer_plate driver_code driver_name customer_group_id origin_city origin_state
-                          origin_macro_region_id].freeze
+                          plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -91,9 +93,11 @@ module Dashboard
     end
 
     def ranking_data
+      labels = ranking_labels
+
       [
-        { name: I18n.t('dashboards.freight.gross'), data: ranking_rows.to_h { |row| [row.label, row.gross.to_f] } },
-        { name: I18n.t('dashboards.freight.net'), data: ranking_rows.to_h { |row| [row.label, row.net.to_f] } },
+        { name: I18n.t('dashboards.freight.gross'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.gross.to_f] } },
+        { name: I18n.t('dashboards.freight.net'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.net.to_f] } },
       ]
     end
 
@@ -156,7 +160,7 @@ module Dashboard
     def complement_entry(fact)
       Entry.new(
         manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'), **money_of([fact]),
-        plate: fact.plate, trailer_plate: fact.trailer_plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
+        plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
         origin_city: fact.origin_city, origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id
       )
     end
@@ -169,8 +173,8 @@ module Dashboard
       slices_of(trip_facts).map do |slice, weight|
         Entry.new(
           manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
-          **money_of(slice), plate: trip.trip_plate, trailer_plate: trip_facts.filter_map { |fact| fact.trailer_plate.presence }.first,
-          driver_code: main.driver_code, driver_name: main.driver_name, customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
+          **money_of(slice), plate: trip.trip_plate, driver_code: main.driver_code, driver_name: main.driver_name,
+          customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
           origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id
         )
       end
@@ -221,7 +225,6 @@ module Dashboard
         Arel::Nodes::Grouping.new(expenses_total.arel),
         Atua::TransportDocument.freight_toll,
         table[:plate],
-        table[:trailer_plate],
         table[:driver_code],
         table[:driver_name],
         Atua::Customer.arel_table[:customer_group_id],
@@ -305,7 +308,7 @@ module Dashboard
 
     def key_for(entry)
       case dimension
-      when 'vehicle' then [entry.plate.presence, entry.trailer_plate.presence]
+      when 'vehicle' then entry.plate.presence
       when 'driver' then entry.driver_code
       when 'customer_group' then entry.customer_group_id
       when 'origin' then [entry.origin_city.presence, entry.origin_state.presence]
@@ -315,7 +318,7 @@ module Dashboard
 
     def label_for(key, grouped)
       label = case dimension
-              when 'vehicle' then key.compact.join(' + ')
+              when 'vehicle' then key
               when 'driver' then grouped.filter_map { |entry| entry.driver_name.presence }.first
               when 'customer_group' then customer_group_names[key]
               when 'origin' then origin_label(*key)
@@ -323,6 +326,26 @@ module Dashboard
               end
 
       label.presence || I18n.t(dimension, scope: 'dashboards.freight.none')
+    end
+
+    def ranking_labels
+      return ranking_rows.map(&:label) unless ABBREVIATED_DIMENSIONS.include?(dimension)
+
+      abbreviated = ranking_rows.map { |row| abbreviate(row.label) }
+      repeated = abbreviated.tally.select { |_, count| count > 1 }.keys
+
+      ranking_rows.zip(abbreviated).map { |row, label| repeated.include?(label) ? row.label : label }
+    end
+
+    def abbreviate(name)
+      words = name.sub(NAME_CODE_PREFIX, '').split.grep_v(COMPANY_SUFFIX)
+      return name if words.empty?
+      return words.join(' ') if words.size <= 2
+
+      initials = words[1...-1].reject { |word| NAME_PARTICLES.include?(word.upcase) }
+        .map { |word| word.match?(/\A[[:alpha:]]/) ? "#{word[0]}." : word }
+
+      [words.first, *initials, words.last].join(' ')
     end
 
     def origin_label(city, state)

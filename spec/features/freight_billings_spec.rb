@@ -115,11 +115,11 @@ describe 'Freight billing' do
           expect(page).to have_text('Saídas de 18/10/2026 a 24/10/2026')
           expect(page).to have_field('Saídas a partir de', with: '2026-10-18', visible: :all)
           expect(page).to have_field('Saídas até', with: '2026-10-24', visible: :all)
-          expect(page).to have_link('Conjunto', class: 'btn-primary')
+          expect(page).to have_link('Cavalo', class: 'btn-primary')
         end
       end
 
-      scenario 'shows the gross and net freight per truck and trailer discounting the toll inside the gross freight' do
+      scenario 'shows the gross and net freight per truck discounting the toll inside the gross freight' do
         visit freight_billing_path(october)
 
         expect(Atua::TransportDocument.count).to eq(5)
@@ -128,14 +128,14 @@ describe 'Freight billing' do
            'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
            'KM rodado 720 km'],
         )
-        expect(page).to have_text('Frete por Conjunto')
+        expect(page).to have_text('Frete por Cavalo')
         expect(page).to have_text('Evolução Mensal')
         expect(page).to have_text('Frete bruto e líquido por mês de emissão do CT-e, de Mai/2026 a Out/2026')
         expect(html_table_to_rows).to eq(
           [
-            ['Conjunto', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas de frete', 'Despesas', 'Pedágio', 'Frete líquido',
+            ['Cavalo', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas de frete', 'Despesas', 'Pedágio', 'Frete líquido',
              'Bruto/km', 'Líquido/km', 'Participação'],
-            ['RVR2C34 + RVR9C02', '1', '520 km', 'R$ 15.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 250,00', 'R$ 14.100,00',
+            ['RVR2C34', '1', '520 km', 'R$ 15.000,00', 'R$ 500,00', 'R$ 150,00', 'R$ 250,00', 'R$ 14.100,00',
              'R$ 28,85', 'R$ 27,12', '75,0%'],
             ['RVR8J90', '1', '200 km', 'R$ 5.000,00', 'R$ 0,00', 'R$ 0,00', 'R$ 0,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 20,00',
              '25,0%'],
@@ -213,7 +213,7 @@ describe 'Freight billing' do
           select 'GRANDE BH', from: 'Macro região de origem'
           click_on 'Aplicar Filtros'
 
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
           expect(page).to have_select('Macro região de origem', selected: 'GRANDE BH', visible: :all)
         end
@@ -223,18 +223,17 @@ describe 'Freight billing' do
           select 'Outras Regiões', from: 'Macro região de origem'
           click_on 'Aplicar Filtros'
 
-          expect(html_table_to_rows.map(&:first)).to eq(['Conjunto', 'RVR2C34 + RVR9C02', 'Total'])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
         end
       end
 
       scenario 'filters by plate and customer group' do
-        visit freight_billing_path(october)
+        visit freight_billing_path(october.merge(customer_group_id: usiminas.id))
         fill_in 'Placa', with: 'rvr-8j90'
-        select 'USIMINAS', from: 'Grupo de clientes'
         click_on 'Aplicar Filtros'
 
-        expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+        expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
         expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
       end
 
@@ -324,8 +323,8 @@ describe 'Freight billing' do
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3, 7) }).to eq(
             [
-              ['Conjunto', 'Viagens', 'Frete bruto', 'Frete líquido'],
-              ['RVR2C34 + RVR9C02', '1', 'R$ 15.000,00', 'R$ 14.100,00'],
+              ['Cavalo', 'Viagens', 'Frete bruto', 'Frete líquido'],
+              ['RVR2C34', '1', 'R$ 15.000,00', 'R$ 14.100,00'],
               ['RVR8J90', '1', 'R$ 5.000,00', 'R$ 5.000,00'],
               ['Total', '2', 'R$ 20.000,00', 'R$ 19.100,00'],
             ],
@@ -380,13 +379,13 @@ describe 'Freight billing' do
           click_on 'Aplicar Filtros'
 
           expect(page).to have_select('Tipo de conjunto', selected: 'Rodotrem')
-          expect(html_table_to_rows.map(&:first)).to eq(['Conjunto', 'RVR2C34 + RVR9C02', 'Total'])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
 
           select 'Sem grupo', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
 
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
           select 'LS', from: 'Tipo de conjunto'
@@ -423,7 +422,7 @@ describe 'Freight billing' do
             click_on 'Aplicar Filtros'
 
             expect(page).to have_select('Tipo de conjunto', selected: 'Outros')
-            expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
           end
         end
@@ -434,7 +433,7 @@ describe 'Freight billing' do
           scenario 'filters each transport document by its own axle count' do
             visit freight_billing_path(october.merge(truck_group_id: ls.id))
 
-            expect(html_table_to_rows.map(&:first)).to eq(['Conjunto', 'RVR2C34 + RVR9C02', 'Total'])
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
             visit freight_billing_path(october.merge(truck_group_id: rodotrem.id))
@@ -458,7 +457,7 @@ describe 'Freight billing' do
         click_on 'Aplicar Filtros'
 
         expect(page).to have_text('Saídas de 05/10/2026 a 31/10/2026')
-        expect(html_table_to_rows.map(&:first)).to eq(%w[Conjunto RVR8J90 Total])
+        expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
       end
 
       context 'when the trucks spent diesel and arla in the last twelve months' do
@@ -486,8 +485,8 @@ describe 'Freight billing' do
           expect(page).to have_no_text('Combustível')
           expect(html_table_to_rows.map { |row| row.values_at(0, 2, 3, 7) }).to eq(
             [
-              ['Conjunto', 'KM rodado', 'Frete bruto', 'Frete líquido'],
-              ['RVR2C34 + RVR9C02', '520 km', 'R$ 15.000,00', 'R$ 14.100,00'],
+              ['Cavalo', 'KM rodado', 'Frete bruto', 'Frete líquido'],
+              ['RVR2C34', '520 km', 'R$ 15.000,00', 'R$ 14.100,00'],
               ['RVR8J90', '200 km', 'R$ 5.000,00', 'R$ 5.000,00'],
               ['PUR1A81', '150 km', 'R$ 3.000,00', 'R$ 3.000,00'],
               ['Total', '870 km', 'R$ 23.000,00', 'R$ 22.100,00'],
@@ -582,6 +581,78 @@ describe 'Freight billing' do
       expect(option_tops.uniq.size).to eq(1)
       expect(filter_top).to be <= title_top
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+  end
+
+  context 'when filtering by customer group and driver', :js do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+
+    before do
+      create(:atua_customer, tenant:, code: 7100, customer_group: create(:customer_group, tenant:, name: 'USIMINAS'))
+      create(:atua_customer, tenant:, code: 7200, customer_group: create(:customer_group, tenant:, name: 'GERDAU'))
+      create(:atua_customer, tenant: other_tenant, code: 7400, customer_group: create(:customer_group, tenant: other_tenant, name: 'GRUPO DE OUTRA'))
+      create(:atua_manifest, tenant:, code: 41_001, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
+      create(:atua_manifest, tenant:, code: 41_002, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 10, 7))
+      create(:atua_manifest, tenant:, code: 41_003, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 20, 7))
+      create(:atua_transport_document, tenant:, number: '74001', freight_cents: 1_000_000, plate: 'RVR2C34', driver_code: 10,
+                                       driver_name: 'JOSE CARLOS DA SILVA', taker_code: 7100)
+      create(:atua_transport_document, tenant:, number: '74002', freight_cents: 400_000, plate: 'RVR8J90', driver_code: 20,
+                                       driver_name: 'MARIA SOUZA', taker_code: 7100)
+      create(:atua_transport_document, tenant:, number: '74003', freight_cents: 300_000, plate: 'RVR8J90', driver_code: 20,
+                                       driver_name: 'MARIA SOUZA', taker_code: 7200)
+      create(:atua_transport_document, tenant: other_tenant, number: '74004', freight_cents: 900_000, driver_code: 30,
+                                       driver_name: 'MOTORISTA DE OUTRA', taker_code: 7400)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74001', calculated_distance_km: 500)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74002', calculated_distance_km: 200)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_003, transport_document_number: '74003', calculated_distance_km: 100)
+      login_as(admin, scope: :user)
+    end
+
+    scenario 'searches the customer groups and the drivers of the tenant and filters the freight by them on a phone' do
+      use_mobile_screen(width: 360)
+      visit freight_billing_path(october)
+      find(:link, href: '#filtersModal').click
+
+      within('#customer_group_id_select') do
+        find('.select2-trigger').click
+        expect(all('.select2-option').map(&:text)).to eq(%w[GERDAU USIMINAS])
+
+        find('.select2-search').fill_in(with: 'usi')
+        find('.select2-option', text: 'USIMINAS').click
+      end
+
+      within('#driver_code_select') do
+        find('.select2-trigger').click
+        expect(all('.select2-option').map(&:text)).to eq(['JOSE CARLOS DA SILVA', 'MARIA SOUZA'])
+
+        find('.select2-option', text: 'MARIA SOUZA').click
+      end
+
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      click_on 'Aplicar Filtros'
+
+      expect(Atua::TransportDocument.where(tenant:).count).to eq(3)
+      expect(page).to have_current_path(/customer_group_id=\d+&driver_code=20/)
+      expect(first('.counter-value')).to have_text('R$ 4.000,00')
+      expect(page).to have_css('#customer_group_id_select .select2-single-value', text: 'USIMINAS', visible: :all)
+      expect(page).to have_css('#driver_code_select .select2-single-value', text: 'MARIA SOUZA', visible: :all)
+    end
+
+    scenario 'clears the customer group and shows every customer group again' do
+      visit freight_billing_path(october.merge(customer_group_id: CustomerGroup.find_by!(name: 'GERDAU').id))
+
+      expect(first('.counter-value')).to have_text('R$ 3.000,00')
+
+      find(:link, href: '#filtersModal').click
+      within('#customer_group_id_select') do
+        click_on 'Limpar seleção'
+
+        expect(page).to have_css('.select2-placeholder', text: 'Todos')
+      end
+      click_on 'Aplicar Filtros'
+
+      expect(page).to have_current_path(/customer_group_id=&/)
+      expect(first('.counter-value')).to have_text('R$ 17.000,00')
     end
   end
 
