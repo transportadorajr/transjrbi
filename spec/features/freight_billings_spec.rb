@@ -617,9 +617,14 @@ describe 'Freight billing' do
       expect(first('.counter-value')).to have_text('R$ 3.000,00')
 
       find(:link, href: '#filtersModal').click
-      within('#customer_group_id_select') { click_on 'Limpar seleção' }
+      within('#customer_group_id_select') do
+        click_on 'Limpar seleção'
+
+        expect(page).to have_css('.select2-placeholder', text: 'Todos')
+      end
       click_on 'Aplicar Filtros'
 
+      expect(page).to have_current_path(/customer_group_id=&/)
       expect(first('.counter-value')).to have_text('R$ 17.000,00')
     end
   end
