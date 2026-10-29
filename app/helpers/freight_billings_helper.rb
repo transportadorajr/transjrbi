@@ -47,6 +47,12 @@ module FreightBillingsHelper
     t('freight_billings.show.period', from: l(filter_form.start_date), to: l(filter_form.end_date))
   end
 
+  def freight_billing_last_sync_label(last_synced_at)
+    return t('freight_billings.show.never_synced') unless last_synced_at
+
+    t('freight_billings.show.last_sync', time: l(last_synced_at, format: :date_time))
+  end
+
   def freight_billing_ranking_title(dashboard)
     t('freight_billings.show.ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
   end

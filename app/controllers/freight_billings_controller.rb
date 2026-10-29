@@ -12,6 +12,7 @@ class FreightBillingsController < BaseController
     @customer_groups = current_tenant.customer_groups.order(:name)
     @macro_regions = current_tenant.macro_regions.order(:name)
     @truck_groups = current_tenant.truck_groups.activated.order(:name)
+    @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
     @dashboard = Dashboard::Freight.new(documents,
                                         manifests: current_tenant.atua_manifests,
                                         dimension: @filter_form.dimension,

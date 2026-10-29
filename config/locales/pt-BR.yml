@@ -1306,6 +1306,8 @@ pt-BR:
     show:
       title: Faturamento de Fretes
       period: Saídas de %{from} a %{to}
+      last_sync: 'Última sincronização com a Atua: %{time}'
+      never_synced: Nenhuma sincronização com a Atua até o momento
       group_by: Agrupar por
       gross: Frete bruto
       trips_gross: Frete bruto com MDF-e
