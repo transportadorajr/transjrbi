@@ -19,6 +19,33 @@ describe 'Freight billing' do
 
     before { login_as(admin, scope: :user) }
 
+    context 'when the Atua reports were never synced' do
+      let!(:failed_import) { create(:atua_import, tenant:, status_type: :failed, finished_at: Time.zone.local(2026, 10, 28, 9)) }
+
+      scenario 'warns that there was no sync with Atua yet' do
+        visit freight_billing_path(october)
+
+        expect(Atua::Import.count).to eq(1)
+        expect(page).to have_css('.page-header .page-note', text: 'Nenhuma sincronização com a Atua até o momento')
+      end
+    end
+
+    context 'when the Atua reports were synced' do
+      before do
+        create(:atua_import, tenant:, status_type: :succeeded, finished_at: Time.zone.local(2026, 10, 27, 8, 15))
+        create(:atua_import, tenant:, report_type: 'manifests', status_type: :succeeded, finished_at: Time.zone.local(2026, 10, 28, 14, 32))
+        create(:atua_import, tenant:, status_type: :failed, finished_at: Time.zone.local(2026, 10, 29, 7))
+        create(:atua_import, tenant: other_tenant, status_type: :succeeded, finished_at: Time.zone.local(2026, 10, 29, 10))
+      end
+
+      scenario 'shows the date of the last successful sync of the tenant' do
+        visit freight_billing_path(october)
+
+        expect(Atua::Import.count).to eq(4)
+        expect(find('.page-header .page-note').text).to eq('Última sincronização com a Atua: 28/10/2026 14:32')
+      end
+    end
+
     context 'when there are no trips in the period' do
       scenario 'shows the empty state with zeroed indicators' do
         visit freight_billing_path(october)

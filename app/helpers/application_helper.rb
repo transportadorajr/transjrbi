@@ -5,9 +5,9 @@ module ApplicationHelper
     tag.i(**options, class: ['bi', "bi-#{name}", options[:class]], aria: { hidden: true })
   end
 
-  def page_header_tag(title, subtitle: nil, back_path: nil, back_title: nil, wrapper_class: nil, &actions)
+  def page_header_tag(title, subtitle: nil, note: nil, back_path: nil, back_title: nil, wrapper_class: nil, &actions)
     content_tag :div, class: ['page-header', wrapper_class].compact.join(' ') do
-      concat(page_header_title_tag(title, subtitle:, back_path:, back_title:))
+      concat(page_header_title_tag(title, subtitle:, note:, back_path:, back_title:))
       concat(content_tag(:div, capture(&actions), class: 'page-actions')) if block_given?
     end
   end
@@ -83,12 +83,13 @@ module ApplicationHelper
     send("new_#{controller_name.singularize}_path")
   end
 
-  def page_header_title_tag(title, subtitle:, back_path:, back_title:)
+  def page_header_title_tag(title, subtitle:, note:, back_path:, back_title:)
     return page_header_title_with_back_tag(title, back_path, back_title) if back_path
 
     content_tag :div, class: 'page-header-title' do
       concat content_tag(:h1, title, class: 'page-title')
       concat content_tag(:p, subtitle, class: 'page-subtitle') if subtitle.present?
+      concat content_tag(:p, note, class: 'page-note') if note.present?
     end
   end
 
