@@ -45,6 +45,30 @@ describe 'Freight expenses' do
       end
     end
 
+    context 'when a foreign CT-e comes with Exterior as the destination city' do
+      let!(:recipient) { create(:atua_customer, tenant:, code: 701, name: 'FERROSIDER SA', city: 'EXTERIOR', state: 'EX') }
+      let!(:to_exterior) do
+        create(:atua_transport_document, tenant:, number: '76001', taker_code: 501, taker_name: 'USIMINAS CUBATAO',
+                                         recipient_code: 701, recipient_name: 'FERROSIDER SA', issued_at: Time.zone.local(2026, 10, 5, 8),
+                                         destination_city: 'EXTERIOR', destination_state: 'EX', freight_cents: 1_000_000)
+      end
+
+      before { FreightExpenses::CalculateCommissionsCommand.call(tenant) }
+
+      scenario 'calculates the commission with the rule of the recipient instead of warning about it' do
+        visit freight_expenses_path
+
+        expect(tenant.freight_expenses.count).to eq(1)
+        expect(html_table_to_rows).to eq(
+          [
+            ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
+            ['76001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Comissão', 'Argentina', 'R$ 10.000,00', '1,30%', 'R$ 130,00', ''],
+          ],
+        )
+        expect(page).to have_no_css('#unmatched_foreign_documents')
+      end
+    end
+
     context 'when the commissions were calculated' do
       let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
       let!(:commission_rules_resource) { create(:resource, name: 'Regras de comissão', slug: 'commission_rules') }

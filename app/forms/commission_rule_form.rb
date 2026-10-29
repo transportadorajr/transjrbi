@@ -5,6 +5,7 @@ class CommissionRuleForm < BaseForm
   attribute :base_type, :string
   attribute :percentage, :string
   attribute :cities, :string
+  attribute :recipient_terms, :string
   attribute :active, :boolean, default: true
 
   enum :destination_type, CommissionRule::DESTINATIONS
@@ -20,6 +21,7 @@ class CommissionRuleForm < BaseForm
   validate :foreign_rule_must_have_cities
   validate :national_rule_must_be_unique
   validate :cities_must_not_be_in_another_rule
+  validate :recipient_terms_must_not_be_in_another_rule
 
   attr_accessor :tenant
   attr_writer :commission_rule
@@ -32,6 +34,7 @@ class CommissionRuleForm < BaseForm
         customer_group_id: commission_rule.customer_group_id, name: commission_rule.name,
         destination_type: commission_rule.destination_type, base_type: commission_rule.base_type,
         percentage: format_percentage(commission_rule.percentage), cities: commission_rule.cities.join("\n"),
+        recipient_terms: commission_rule.recipient_terms.join("\n"),
         active: commission_rule.activated?, tenant: commission_rule.tenant
       )
       form.commission_rule = commission_rule
@@ -58,6 +61,12 @@ class CommissionRuleForm < BaseForm
     cities.to_s.lines.map(&:squish).compact_blank.uniq { |city| CustomerGroup.compact(city) }
   end
 
+  def recipient_term_list
+    return [] unless destination_type_foreign?
+
+    recipient_terms.to_s.lines.map(&:squish).compact_blank.uniq { |term| CustomerGroup.compact(term) }
+  end
+
   def percentage_value
     BigDecimal(percentage.to_s.strip.tr(',', '.'))
   rescue ArgumentError
@@ -67,7 +76,7 @@ class CommissionRuleForm < BaseForm
   def submit
     transaction do
       commission_rule.update!(customer_group_id:, name:, destination_type:, base_type:, percentage: percentage_value,
-                              cities: city_list, activated: active)
+                              cities: city_list, recipient_terms: recipient_term_list, activated: active)
     end
 
     FreightExpenses::CalculateJob.perform_later(tenant.id)
@@ -109,6 +118,14 @@ class CommissionRuleForm < BaseForm
 
     taken = city_list.select { |city| other_active_rules.foreign.any? { |rule| rule.serves_city?(city) } }
     errors.add(:cities, :taken, cities: taken.to_sentence) if taken.any?
+  end
+
+  def recipient_terms_must_not_be_in_another_rule
+    return unless active && destination_type_foreign?
+
+    taken_terms = other_active_rules.foreign.flat_map(&:compacted_recipient_terms)
+    taken = recipient_term_list.select { |term| taken_terms.include?(CustomerGroup.compact(term)) }
+    errors.add(:recipient_terms, :taken, terms: taken.to_sentence) if taken.any?
   end
 
   def other_active_rules

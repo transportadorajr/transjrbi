@@ -41,10 +41,13 @@ class CommissionRule < ApplicationRecord
       state.to_s.strip.upcase == FOREIGN_STATE
     end
 
-    def for_destination(rules, state, city)
+    def for_destination(rules, state, city, recipient_city: nil, recipient_name: nil)
       return rules.find(&:national?) unless foreign_destination?(state)
 
-      rules.select(&:foreign?).find { |rule| rule.serves_city?(city) }
+      foreign_rules = rules.select(&:foreign?)
+      foreign_rules.find { |rule| rule.serves_city?(city) } ||
+        foreign_rules.find { |rule| rule.serves_city?(recipient_city) } ||
+        foreign_rules.find { |rule| rule.serves_recipient?(recipient_name) }
     end
   end
 
@@ -52,6 +55,16 @@ class CommissionRule < ApplicationRecord
     compacted_city = CustomerGroup.compact(city)
 
     compacted_city.present? && cities.any? { |rule_city| CustomerGroup.compact(rule_city) == compacted_city }
+  end
+
+  def serves_recipient?(name)
+    compacted_name = CustomerGroup.compact(name)
+
+    compacted_name.present? && compacted_recipient_terms.any? { |term| compacted_name.include?(term) }
+  end
+
+  def compacted_recipient_terms
+    recipient_terms.map { |term| CustomerGroup.compact(term) }.compact_blank
   end
 
   def deducted_icms_cents(icms_cents)
@@ -74,6 +87,7 @@ end
 #  destination_type  :enum             not null
 #  name              :string           not null
 #  percentage        :decimal(7, 4)    not null
+#  recipient_terms   :string           default([]), not null, is an Array
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
 #  customer_group_id :bigint           not null

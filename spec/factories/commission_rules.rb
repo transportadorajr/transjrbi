@@ -15,6 +15,7 @@ FactoryBot.define do
       base_type { 'freight' }
       percentage { BigDecimal('1.3') }
       cities { ['Buenos Aires', 'Puerto Iguazú', 'Rosario'] }
+      recipient_terms { %w[FERROSIDER ACINDAR SIAT TERNIUM] }
     end
 
     trait :paraguay do
@@ -23,6 +24,7 @@ FactoryBot.define do
       base_type { 'freight' }
       percentage { BigDecimal('1.5') }
       cities { ['Asunción', 'Ciudad del Este'] }
+      recipient_terms { %w[LACERIE GALLO ACEROS FERROPAR CJX ELIN FATA WADRA MERCOFER MONICA PERFILADOS] }
     end
   end
 end

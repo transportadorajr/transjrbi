@@ -82,6 +82,6 @@ class CommissionRulesController < BaseController
   end
 
   def commission_rule_params
-    params.expect(commission_rule: %i[customer_group_id name destination_type base_type percentage cities active])
+    params.expect(commission_rule: %i[customer_group_id name destination_type base_type percentage cities recipient_terms active])
   end
 end

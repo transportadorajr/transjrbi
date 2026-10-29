@@ -40,15 +40,28 @@ module FreightExpenses
       rules = tenant.commission_rules.activated.to_a.group_by(&:customer_group_id)
       return {} if rules.empty?
 
-      documents.each_with_object({}) do |(document_id, freight_cents, icms_cents, state, city, group_id), expenses|
-        rule = CommissionRule.for_destination(rules.fetch(group_id, []), state, city)
+      documents.each_with_object({}) do |(document_id, freight_cents, icms_cents, state, city, group_id, recipient_name, recipient_city), expenses|
+        rule = CommissionRule.for_destination(rules.fetch(group_id, []), state, city, recipient_city:, recipient_name:)
         expenses[document_id] = expense_attributes(rule, freight_cents, icms_cents) if rule
       end
     end
 
     def documents
-      CommissionRule.covered_documents(tenant)
-        .pluck(:id, :freight_cents, :icms_cents, :destination_state, :destination_city, Atua::Customer.arel_table[:customer_group_id])
+      CommissionRule.covered_documents(tenant).joins(recipient_join)
+        .pluck(:id, :freight_cents, :icms_cents, :destination_state, :destination_city, Atua::Customer.arel_table[:customer_group_id],
+               :recipient_name, recipients[:city])
+    end
+
+    def recipient_join
+      documents_table = Atua::TransportDocument.arel_table
+
+      documents_table.join(recipients, Arel::Nodes::OuterJoin)
+        .on(recipients[:tenant_id].eq(documents_table[:tenant_id]).and(recipients[:code].eq(documents_table[:recipient_code])))
+        .join_sources
+    end
+
+    def recipients
+      @recipients ||= Atua::Customer.arel_table.alias('recipients')
     end
 
     def expense_attributes(rule, freight_cents, icms_cents)

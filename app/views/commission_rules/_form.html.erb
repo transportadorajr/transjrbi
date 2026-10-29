@@ -36,6 +36,13 @@
                       input_html: { class: 'form-control', rows: 4, autocomplete: 'off', spellcheck: false } %>
         </div>
         <div class="col-12">
+          <%= f.input :recipient_terms,
+                      as: :text,
+                      required: false,
+                      hint: t('commission_rules.form.recipient_terms_hint'),
+                      input_html: { class: 'form-control', rows: 4, autocomplete: 'off', spellcheck: false } %>
+        </div>
+        <div class="col-12">
           <%= f.input :active,
                       as: :boolean,
                       hint: t('commission_rules.form.active_hint'),
