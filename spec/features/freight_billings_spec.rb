@@ -5,6 +5,7 @@ describe 'Freight billing' do
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Faturamento de fretes', slug: 'freight_billing', writable: false) }
   let(:october) { { start_date: '2026-10-01', end_date: '2026-10-31' } }
+  let(:october_by_truck) { october.merge(dimension: 'vehicle') }
 
   context 'without a signed in user' do
     scenario 'redirects to the login screen' do
@@ -127,12 +128,18 @@ describe 'Freight billing' do
           expect(page).to have_text('Saídas de 18/10/2026 a 24/10/2026')
           expect(page).to have_field('Saídas a partir de', with: '2026-10-18', visible: :all)
           expect(page).to have_field('Saídas até', with: '2026-10-24', visible: :all)
-          expect(page).to have_link('Cavalo', class: 'btn-primary')
+          expect(page).to have_link('Grupo de clientes', class: 'btn-primary')
         end
       end
 
-      scenario 'shows the gross and net freight per truck discounting the toll inside the gross freight' do
+      scenario 'lists the groupings starting from the customer group' do
         visit freight_billing_path(october)
+
+        expect(all('.dashboard-segmented .btn').map(&:text)).to eq(['Grupo de clientes', 'Cavalo', 'Motorista', 'Origem', 'Macro região'])
+      end
+
+      scenario 'shows the gross and net freight per truck discounting the toll inside the gross freight' do
+        visit freight_billing_path(october_by_truck)
 
         expect(Atua::TransportDocument.count).to eq(5)
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
@@ -166,7 +173,7 @@ describe 'Freight billing' do
         end
 
         scenario 'writes the value inside the bars that hold it and beside the short ones in the color of the bar', :js do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
 
           expect(Atua::TransportDocument.count).to eq(6)
           expect(ranking_bar_labels).to contain_exactly(
@@ -189,7 +196,7 @@ describe 'Freight billing' do
           end
 
           scenario 'writes the net freight of every truck even when its value sits beside a short bar', :js do
-            visit freight_billing_path(october)
+            visit freight_billing_path(october_by_truck)
 
             expect(Atua::TransportDocument.count).to eq(18)
             expect(ranking_bar_labels.size).to eq(30)
@@ -262,7 +269,7 @@ describe 'Freight billing' do
         end
 
         scenario 'filters by a macro region of origin' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
           select 'GRANDE BH', from: 'Macro região de origem'
           click_on 'Aplicar Filtros'
 
@@ -272,7 +279,7 @@ describe 'Freight billing' do
         end
 
         scenario 'filters by the origins out of every macro region' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
           select 'Outras Regiões', from: 'Macro região de origem'
           click_on 'Aplicar Filtros'
 
@@ -282,7 +289,7 @@ describe 'Freight billing' do
       end
 
       scenario 'filters by plate and customer group' do
-        visit freight_billing_path(october.merge(customer_group_id: usiminas.id))
+        visit freight_billing_path(october_by_truck.merge(customer_group_id: usiminas.id))
         fill_in 'Placa', with: 'rvr-8j90'
         click_on 'Aplicar Filtros'
 
@@ -324,7 +331,7 @@ describe 'Freight billing' do
         end
 
         scenario 'bills its freight in the month of the issue like the Atua report and keeps the trip in the month it departed' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
 
           expect(Atua::TransportDocument.where(tenant:).count).to eq(5)
           expect(all('.counter-card').first(3).map { |card| card.text.squish }).to eq(
@@ -332,7 +339,7 @@ describe 'Freight billing' do
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3) }).to include(['RHJ5A50', '1', 'R$ 6.073,32'])
 
-          visit freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30')
+          visit freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30', dimension: 'vehicle')
 
           expect(all('.counter-card').first(3).map { |card| card.text.squish }).to eq(
             ['Frete bruto R$ 6.073,32', 'Frete líquido R$ 6.073,32', 'Viagens 0'],
@@ -363,7 +370,7 @@ describe 'Freight billing' do
         end
 
         scenario 'leaves the documents of the excluded issuers out of the gross and the net freight' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
 
           expect(Atua::TransportDocument.where(tenant:).count).to eq(7)
           expect(all('.counter-card').map { |card| card.text.squish }).to eq(
@@ -418,7 +425,7 @@ describe 'Freight billing' do
         end
 
         scenario 'filters by the active truck groups of the tenant' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
 
           expect(TruckGroup.count).to eq(5)
           expect(page).to have_select('Tipo de conjunto', options: ['Todos', 'LS', 'Quarto eixo', 'Rodotrem', 'Sem grupo'])
@@ -460,7 +467,7 @@ describe 'Freight billing' do
           let!(:others) { create(:truck_group, :others, tenant:) }
 
           scenario 'lists the group instead of the transport documents without group' do
-            visit freight_billing_path(october)
+            visit freight_billing_path(october_by_truck)
 
             expect(TruckGroup.count).to eq(6)
             expect(page).to have_select('Tipo de conjunto', options: ['Todos', 'LS', 'Outros', 'Quarto eixo', 'Rodotrem'])
@@ -479,12 +486,12 @@ describe 'Freight billing' do
           before { coil.update!(axles: 6) }
 
           scenario 'filters each transport document by its own axle count' do
-            visit freight_billing_path(october.merge(truck_group_id: ls.id))
+            visit freight_billing_path(october_by_truck.merge(truck_group_id: ls.id))
 
             expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
-            visit freight_billing_path(october.merge(truck_group_id: rodotrem.id))
+            visit freight_billing_path(october_by_truck.merge(truck_group_id: rodotrem.id))
 
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 10.000,00')
           end
@@ -499,7 +506,7 @@ describe 'Freight billing' do
       end
 
       scenario 'filters by another period' do
-        visit freight_billing_path(october)
+        visit freight_billing_path(october_by_truck)
         fill_in 'Saídas a partir de', with: '2026-10-05'
         fill_in 'Saídas até', with: '2026-10-31'
         click_on 'Aplicar Filtros'
@@ -586,7 +593,7 @@ describe 'Freight billing' do
         end
 
         scenario 'does not discount the fuel from the net freight' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
 
           expect(Atua::Expense.count).to eq(6)
           expect(find('table')).to have_no_text('Combustível')
@@ -672,6 +679,19 @@ describe 'Freight billing' do
       expect(page).to have_no_css('th', text: /\AKM rodado\z/i)
       expect(page).to have_no_css('th', text: /\APedágio\z/i)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    scenario 'shows the period shortcuts below the indicators and the groupings above them' do
+      use_mobile_screen(width: 360)
+      visit freight_billing_path(october)
+
+      grouping_bottom = page.evaluate_script("document.querySelector('.dashboard-filter-bar').getBoundingClientRect().bottom")
+      first_card_top = page.evaluate_script("document.querySelector('.counter-card').getBoundingClientRect().top")
+      last_card_bottom = page.evaluate_script("[...document.querySelectorAll('.counter-card')].pop().getBoundingClientRect().bottom")
+      shortcut_top = page.evaluate_script("[...document.querySelectorAll('a')].find((link) => link.textContent.trim() === 'Hoje').getBoundingClientRect().top")
+
+      expect(grouping_bottom).to be <= first_card_top
+      expect(shortcut_top).to be >= last_card_bottom
     end
 
     scenario 'lists what is discounted from the net freight above the indicators' do
