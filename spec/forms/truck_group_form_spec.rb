@@ -29,6 +29,31 @@ RSpec.describe TruckGroupForm do
       expect(FreightExpense.exists?(transport_document: document)).to be(false)
     end
 
+    it 'creates a group of plates normalizing them and calculates the fuel by the plate' do
+      truck = create(:atua_transport_document, tenant:, plate: 'BAV5A04', axles: 6, freight_cents: 1_000_000)
+      form = described_class.new(tenant:, name: 'Utinga', axles: [''], plates: "bav-5a04\nEVO8C24, BAV5A04", fuel_percentage: '28', active: '1')
+
+      expect { expect(form.save).to be(true) }.to change(TruckGroup, :count).by(1).and change(FreightExpense, :count).by(1)
+
+      truck_group = TruckGroup.last
+      expect(truck_group).to have_attributes(name: 'Utinga', axles: [], plates: %w[BAV5A04 EVO8C24], fuel_percentage: BigDecimal('28'))
+      expect(FreightExpense.last).to have_attributes(transport_document: truck, truck_group:, amount_cents: 280_000)
+    end
+
+    it 'rejects a plate with an invalid format' do
+      form = described_class.new(tenant:, name: 'Utinga', plates: "BAV5A04\nEVO", fuel_percentage: '28')
+
+      expect { expect(form.save).to be_falsey }.not_to change(TruckGroup, :count)
+      expect(form.errors.full_messages).to eq(['Placas EVO não são placas válidas'])
+    end
+
+    it 'ignores the plates of the group of the remaining axles' do
+      form = described_class.new(tenant:, name: 'Outros', plates: 'BAV5A04', remaining_axles: '1', fuel_percentage: '33')
+
+      expect(form.save).to be(true)
+      expect(TruckGroup.last.plates).to eq([])
+    end
+
     it 'rejects a group without the required fields' do
       form = described_class.new(tenant:, axles: [''], fuel_percentage: '')
 
@@ -81,6 +106,21 @@ RSpec.describe TruckGroupForm do
 
         expect(form.save).to be_falsey
         expect(form.errors.full_messages).to eq(['Quantidades de eixos 9 já estão em outro grupo ativo'])
+      end
+
+      it 'rejects a plate already in another active group' do
+        create(:truck_group, :utinga, tenant:)
+        form = described_class.new(tenant:, name: 'Santo Andre', plates: 'BAV5A04', fuel_percentage: '30')
+
+        expect(form.save).to be_falsey
+        expect(form.errors.full_messages).to eq(['Placas BAV5A04 já estão em outro grupo ativo'])
+      end
+
+      it 'loads the plates when editing a group of plates' do
+        form = described_class.for_truck_group(create(:truck_group, :utinga, tenant:))
+
+        expect(form.plates).to eq("BAV5A04\nEVO8C24")
+        expect(form).to be_valid
       end
 
       it 'accepts an axle count of an inactive group' do

@@ -25,6 +25,9 @@
         <dt class="col-12 col-md-4"><%= TruckGroup.human_attribute_name(:axles) %></dt>
         <dd class="col-12 col-md-8"><%= truck_group_axles(@truck_group) %></dd>
 
+        <dt class="col-12 col-md-4"><%= TruckGroup.human_attribute_name(:plates) %></dt>
+        <dd class="col-12 col-md-8 text-break"><%= truck_group_plates(@truck_group) %></dd>
+
         <dt class="col-12 col-md-4"><%= TruckGroup.human_attribute_name(:fuel_percentage) %></dt>
         <dd class="col-12 col-md-8"><%= truck_group_fuel_percentage(@truck_group.fuel_percentage) %></dd>
 

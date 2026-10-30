@@ -12,6 +12,13 @@ FactoryBot.define do
       fuel_percentage { BigDecimal('30') }
     end
 
+    trait :utinga do
+      name { 'Utinga' }
+      axles { [] }
+      plates { %w[BAV5A04 EVO8C24] }
+      fuel_percentage { BigDecimal('28') }
+    end
+
     trait :others do
       name { 'Outros' }
       axles { [] }

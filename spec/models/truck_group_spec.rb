@@ -19,6 +19,10 @@ RSpec.describe TruckGroup do
       expect(build(:truck_group, :others, tenant:)).to be_valid
     end
 
+    it 'accepts a group of plates without axle counts' do
+      expect(build(:truck_group, :utinga, tenant:)).to be_valid
+    end
+
     it 'accepts the same name in another tenant' do
       expect(build(:truck_group, name: 'Rodotrem')).to be_valid
     end
@@ -42,21 +46,28 @@ RSpec.describe TruckGroup do
     end
   end
 
-  describe '.for_axles' do
+  describe '.for_document' do
     let(:rodotrem) { build(:truck_group, axles: [9]) }
     let(:quarto_eixo) { build(:truck_group, name: 'Quarto eixo', axles: [7, 8]) }
 
     it 'finds the group that contains the axle count' do
-      expect(described_class.for_axles([rodotrem, quarto_eixo], 8)).to eq(quarto_eixo)
-      expect(described_class.for_axles([rodotrem, quarto_eixo], 6)).to be_nil
+      expect(described_class.for_document([rodotrem, quarto_eixo], plate: 'RVR2C34', axles: 8)).to eq(quarto_eixo)
+      expect(described_class.for_document([rodotrem, quarto_eixo], plate: 'RVR2C34', axles: 6)).to be_nil
     end
 
     it 'falls back to the group of the remaining axles' do
       others = build(:truck_group, :others)
 
-      expect(described_class.for_axles([others, rodotrem, quarto_eixo], 9)).to eq(rodotrem)
-      expect(described_class.for_axles([others, rodotrem, quarto_eixo], 4)).to eq(others)
-      expect(described_class.for_axles([others, rodotrem, quarto_eixo], nil)).to eq(others)
+      expect(described_class.for_document([others, rodotrem, quarto_eixo], plate: 'RVR2C34', axles: 9)).to eq(rodotrem)
+      expect(described_class.for_document([others, rodotrem, quarto_eixo], plate: 'RVR2C34', axles: 4)).to eq(others)
+      expect(described_class.for_document([others, rodotrem, quarto_eixo], plate: nil, axles: nil)).to eq(others)
+    end
+
+    it 'prefers the group of the plate over the group of the axle count' do
+      utinga = build(:truck_group, :utinga)
+
+      expect(described_class.for_document([rodotrem, utinga], plate: 'BAV5A04', axles: 9)).to eq(utinga)
+      expect(described_class.for_document([rodotrem, utinga], plate: 'RVR2C34', axles: 9)).to eq(rodotrem)
     end
   end
 

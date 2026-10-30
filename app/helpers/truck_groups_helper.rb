@@ -17,8 +17,13 @@ module TruckGroupsHelper
 
   def truck_group_axles(truck_group)
     return t('truck_groups.remaining_axles') if truck_group.remaining_axles?
+    return t('tax.blank') if truck_group.axles.empty?
 
     t('truck_groups.axles', count: truck_group.axles.max, axles: truck_group.axles.to_sentence)
+  end
+
+  def truck_group_plates(truck_group)
+    truck_group.plates.any? ? truck_group.plates.to_sentence : t('tax.blank')
   end
 
   def truck_group_fuel_percentage(percentage)
