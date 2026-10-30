@@ -26,6 +26,8 @@
     <% end %>
   </div>
 
+  <p class="net-freight-discounts small fst-italic fw-bold text-success mb-2"><%= t('.net_discounts') %></p>
+
   <div class="row g-2 g-md-3 mb-4 counter-grid-compact">
     <%= counter_card(:primary, t('.gross'), tax_money(@dashboard.gross), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:success, t('.net'), tax_money(@dashboard.net), col_class: 'col-6 col-xl-3') %>
