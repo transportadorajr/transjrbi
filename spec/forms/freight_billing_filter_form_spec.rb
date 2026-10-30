@@ -4,11 +4,11 @@ RSpec.describe FreightBillingFilterForm do
   context 'without filters' do
     around { |example| travel_to(Date.new(2026, 10, 19)) { example.run } }
 
-    it 'defaults to the current week from sunday to saturday grouped by vehicle' do
+    it 'defaults to the current week from sunday to saturday grouped by customer group' do
       form = described_class.new
 
       expect(form).to be_valid
-      expect(form).to have_attributes(dimension: 'vehicle', period: Date.new(2026, 10, 18)..Date.new(2026, 10, 24))
+      expect(form).to have_attributes(dimension: 'customer_group', period: Date.new(2026, 10, 18)..Date.new(2026, 10, 24))
     end
   end
 
