@@ -18,10 +18,12 @@ RSpec.describe GoodJob, '.configuration' do
     )
   end
 
-  it 'imports the movements every hour from 6h to 22h' do
-    runs = next_runs(:atua_movements, from: Time.zone.local(2026, 10, 14, 0), count: 18)
+  it 'imports the movements every hour from 6h to 2h of the next day' do
+    runs = next_runs(:atua_movements, from: Time.zone.local(2026, 10, 14, 3), count: 22)
 
-    expect(runs.map { |time| time.strftime('%d %H:%M') }).to eq([*(6..22).map { |hour| format('14 %02d:00', hour) }, '15 06:00'])
+    expect(runs.map { |time| time.strftime('%d %H:%M') }).to eq(
+      [*(6..23).map { |hour| format('14 %02d:00', hour) }, *(0..2).map { |hour| format('15 %02d:00', hour) }, '15 06:00'],
+    )
   end
 
   it 'imports the registries every day at 5h30' do
