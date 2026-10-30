@@ -10,8 +10,7 @@ module Dashboard
     NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
     NAME_PARTICLES = %w[DA DAS DE DO DOS E].freeze
     COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
-    CHART_EXCLUDED_PLATES = %w[INT6R00].freeze
-    CHART_EXCLUDED_DRIVERS = ['JECI FERREIRA DE SOUZA JUNIOR'].freeze
+    CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
@@ -89,7 +88,7 @@ module Dashboard
     end
 
     def ranking_rows
-      @ranking_rows ||= grouped_rows(entries.reject { |entry| chart_excluded?(entry) })
+      @ranking_rows ||= rows.reject { |row| chart_excluded?(row) }
         .first(RANKING_LIMIT)
         .map { |row| row.with(label: chart_label(row.label)) }
     end
@@ -165,8 +164,8 @@ module Dashboard
         .sort_by { |row| [-row.gross.cents, row.label] }
     end
 
-    def chart_excluded?(entry)
-      CHART_EXCLUDED_PLATES.include?(normalized(entry.plate)) || CHART_EXCLUDED_DRIVERS.include?(normalized(entry.driver_name))
+    def chart_excluded?(row)
+      CHART_EXCLUDED_LABELS.fetch(dimension, []).include?(normalized(row.label))
     end
 
     def chart_label(label)

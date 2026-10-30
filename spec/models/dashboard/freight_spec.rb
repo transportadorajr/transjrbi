@@ -508,7 +508,23 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.rows.map { |row| [row.label, row.gross.cents] })
         .to eq([['INT6R00', 900_000], ['RVR5D44', 700_000], ['RVR5D55', 500_000], ['RVR5D66', 300_000]])
       expect(dashboard.total.gross).to eq(Money.from_cents(2_400_000))
-      expect(dashboard.ranking_data.first[:data]).to eq('RVR5D55' => 5_000.0, 'RVR5D66' => 3_000.0)
+      expect(dashboard.ranking_data.first[:data]).to eq('RVR5D44' => 7_000.0, 'RVR5D55' => 5_000.0, 'RVR5D66' => 3_000.0)
+    end
+
+    context 'when grouped by customer group' do
+      let(:dimension) { 'customer_group' }
+
+      it 'plots the same values as the table, including the trips of the excluded truck and driver' do
+        row = dashboard.rows.first
+
+        expect(row.gross).to eq(Money.from_cents(2_400_000))
+        expect(dashboard.ranking_data).to eq(
+          [
+            { name: 'Frete bruto', data: { row.label => row.gross.to_f } },
+            { name: 'Frete líquido', data: { row.label => row.net.to_f } },
+          ],
+        )
+      end
     end
 
     context 'when grouped by driver' do
