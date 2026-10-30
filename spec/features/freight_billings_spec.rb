@@ -266,7 +266,7 @@ describe 'Freight billing' do
         end
 
         scenario 'shows every figure of the truck in a modal injected in the remote container' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
 
           expect(page).to have_css('.freight-billing-table')
           expect(page).to have_no_css('#freight_billing_detail_modal', visible: :all)
@@ -276,11 +276,11 @@ describe 'Freight billing' do
             'Líquido/km' => 'R$ 27,12', 'Participação' => '75,0%'
           )
           expect(page).to have_css('#remote-container #freight_billing_detail_modal')
-          expect(page).to have_current_path(freight_billing_path(october))
+          expect(page).to have_current_path(freight_billing_path(october_by_truck))
         end
 
         scenario 'keeps a single modal on the page when another row is opened' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
           row_detail('RVR2C34')
           close_detail
 
@@ -326,13 +326,13 @@ describe 'Freight billing' do
         end
 
         scenario 'respects the filters of the screen' do
-          visit freight_billing_path(october.merge(customer_group_id: usiminas.id))
+          visit freight_billing_path(october_by_truck.merge(customer_group_id: usiminas.id))
 
           expect(row_detail('RVR2C34')).to include('Frete bruto' => 'R$ 10.000,00')
         end
 
         scenario 'does not open the modal again when coming back to the screen' do
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
           row_detail('RVR2C34')
           close_detail
           click_on 'Motorista'
@@ -349,7 +349,7 @@ describe 'Freight billing' do
           create(:atua_manifest_document, tenant:, manifest_code: 41_020, transport_document_number: '74020', calculated_distance_km: 50)
 
           use_mobile_screen(width: 360)
-          visit freight_billing_path(october)
+          visit freight_billing_path(october_by_truck)
 
           eye_visible = "document.querySelector('.freight-billing-table tbody a[title=Visualizar]').getBoundingClientRect().right <= " \
                         "document.querySelector('.table-responsive').getBoundingClientRect().right"
@@ -623,13 +623,13 @@ describe 'Freight billing' do
           before { sheet.update!(axles: 9) }
 
           scenario 'counts each transport document only in the group of its plate' do
-            visit freight_billing_path(october.merge(truck_group_id: utinga.id))
+            visit freight_billing_path(october_by_truck.merge(truck_group_id: utinga.id))
 
             expect(TruckGroup.count).to eq(6)
             expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
-            visit freight_billing_path(october.merge(truck_group_id: rodotrem.id))
+            visit freight_billing_path(october_by_truck.merge(truck_group_id: rodotrem.id))
 
             expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
@@ -901,7 +901,7 @@ describe 'Freight billing' do
     end
 
     scenario 'lists ten rows per page and keeps the total of the whole report on every page' do
-      visit freight_billing_path(october)
+      visit freight_billing_path(october_by_truck)
 
       expect(Atua::TransportDocument.count).to eq(12)
       expect(listed_plates).to eq(%w[RVR4D00 RVR4D01 RVR4D02 RVR4D03 RVR4D04 RVR4D05 RVR4D06 RVR4D07 RVR4D08 RVR4D09 Total])
@@ -909,7 +909,7 @@ describe 'Freight billing' do
 
       within('.table-pagination') { click_on '2' }
 
-      expect(page).to have_current_path(freight_billing_path(october.merge(page: 2)))
+      expect(page).to have_current_path(freight_billing_path(october_by_truck.merge(page: 2)))
       expect(listed_plates).to eq(%w[RVR4D10 RVR4D11 Total])
       expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', '100,0%', ''])
     end
@@ -930,7 +930,7 @@ describe 'Freight billing' do
     end
 
     scenario 'opens the detail of a row of the second page', :js do
-      visit freight_billing_path(october.merge(page: 2))
+      visit freight_billing_path(october_by_truck.merge(page: 2))
       within('.freight-billing-table tr', text: 'RVR4D10') { find(:link, title: 'Visualizar').click }
 
       expect(page).to have_css('#freight_billing_detail_modal.show .modal-title', text: 'RVR4D10')
