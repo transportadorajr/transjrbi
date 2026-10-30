@@ -12,7 +12,7 @@ module FreightExpenses
       end
 
       def customer_group(tenant)
-        tenant.customer_groups.activated.find_by(name: GROUP_NAME)
+        tenant.customer_groups.activated.for_name(GROUP_NAME)
       end
     end
 

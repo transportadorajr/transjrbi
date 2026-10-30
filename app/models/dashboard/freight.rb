@@ -344,10 +344,22 @@ module Dashboard
     def ranking_labels
       return ranking_rows.map(&:label) unless ABBREVIATED_DIMENSIONS.include?(dimension)
 
-      abbreviated = ranking_rows.map { |row| abbreviate(row.label) }
+      abbreviated = ranking_rows.map { |row| ranking_label(row.label) }
       repeated = abbreviated.tally.select { |_, count| count > 1 }.keys
 
       ranking_rows.zip(abbreviated).map { |row, label| repeated.include?(label) ? row.label : label }
+    end
+
+    def ranking_label(name)
+      named_customer_group?(name) ? name : abbreviate(name)
+    end
+
+    def named_customer_group?(name)
+      dimension == 'customer_group' && named_customer_groups.include?(name)
+    end
+
+    def named_customer_groups
+      @named_customer_groups ||= CustomerGroup.with_terms.where(id: entries.filter_map(&:customer_group_id).uniq).pluck(:name)
     end
 
     def abbreviate(name)

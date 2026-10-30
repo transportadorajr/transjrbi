@@ -16,7 +16,7 @@ RSpec.describe FreightExpenses::CalculateTarpLiningCommand do
   end
 
   context 'with the Moinho Regio group' do
-    let!(:group) { create(:customer_group, tenant:, name: 'MOINHO REGIO', terms: ['MOINHO REGIO'], activated_at: Time.current) }
+    let!(:group) { create(:customer_group, tenant:, name: 'RÉGIO', terms: ['MOINHO REGIO'], activated_at: Time.current) }
     let!(:other_group) { create(:customer_group, tenant:, name: 'USIMINAS', terms: ['USIMINAS'], activated_at: Time.current) }
     let!(:moinho) { create(:atua_customer, tenant:, code: 601, name: 'MOINHO REGIO ALIMENTOS S/A', customer_group: group) }
     let!(:usiminas) { create(:atua_customer, tenant:, code: 602, name: 'USIMINAS CUBATAO', customer_group: other_group) }
