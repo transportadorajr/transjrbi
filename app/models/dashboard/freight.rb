@@ -67,20 +67,6 @@ module Dashboard
       @gross ||= Money.from_cents(issued_documents.sum(table[:freight_cents]))
     end
 
-    def linked_gross
-      gross - unlinked_gross
-    end
-
-    def unlinked_gross
-      @unlinked_gross ||= Money.from_cents(
-        issued_documents
-          .joins(first_trip_join)
-          .where(first_trips[:manifest_code].eq(nil))
-          .where(table[:document_kind].not_eq(COMPLEMENT_KIND))
-          .sum(table[:freight_cents]),
-      )
-    end
-
     def net
       @net ||= gross - Money.from_cents(issued_freight_expenses_cents + issued_expenses_cents + issued_toll_cents)
     end
@@ -123,7 +109,13 @@ module Dashboard
     attr_reader :documents, :manifests
 
     def issued_documents(range = period)
-      documents.active.not_canceled.by_period(range.first, range.last)
+      billable_documents.by_period(range.first, range.last)
+    end
+
+    def billable_documents
+      documents.active.not_canceled
+        .joins(first_trip_join)
+        .where(first_trips[:manifest_code].not_eq(nil).or(table[:document_kind].eq(COMPLEMENT_KIND)))
     end
 
     def issued_facts(range)
@@ -226,10 +218,8 @@ module Dashboard
     end
 
     def all_facts
-      documents.active.not_canceled
+      billable_documents
         .left_joins(:taker)
-        .joins(first_trip_join)
-        .where(first_trips[:manifest_code].not_eq(nil).or(table[:document_kind].eq(COMPLEMENT_KIND)))
         .where(Arel.sql(reference_on_sql).between(period))
         .pluck(*fact_columns)
         .map { |values| Fact.new(*values) }
