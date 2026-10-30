@@ -12,7 +12,7 @@
   </div>
 </div>
 
-<div class="card table-card">
+<div class="card table-card" id="freight_billing_table">
   <div class="table-card-header">
     <div class="table-card-heading">
       <p class="table-card-title"><%= freight_billing_table_title(dashboard) %></p>
@@ -20,6 +20,6 @@
     </div>
   </div>
   <div class="table-card-body">
-    <%= render 'table', dashboard: %>
+    <%= render 'table', dashboard:, rows: @rows %>
   </div>
 </div>

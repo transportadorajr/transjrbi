@@ -1,0 +1,16 @@
+<%# locals: (row:) %>
+
+<%= tag.div class: 'freight-billing-detail', data: { turbo_temporary: true } do %>
+  <%= render layout: 'components/new_modal',
+             locals: { id: FreightBillingsHelper::DETAIL_MODAL_ID, title: row.label, auto_show: true, show_footer: false } do %>
+    <% freight_billing_detail_sections(row).each do |section, fields| %>
+      <p class="freight-billing-detail-section"><%= t(section, scope: 'freight_billings.detail.sections') %></p>
+      <dl class="row detail-list mb-3">
+        <% fields.each do |field, value| %>
+          <dt class="col-7"><%= t(field, scope: 'freight_billings.columns') %></dt>
+          <dd class="col-5 text-end text-nowrap"><%= value %></dd>
+        <% end %>
+      </dl>
+    <% end %>
+  <% end %>
+<% end %>

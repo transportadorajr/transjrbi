@@ -84,6 +84,33 @@ RSpec.describe FreightExpenses::CalculateFuelCommand do
     end
   end
 
+  context 'with a group of plates' do
+    let!(:ls) { create(:truck_group, :ls, tenant:, fuel_percentage: BigDecimal('33')) }
+    let!(:utinga) { create(:truck_group, :utinga, tenant:) }
+    let!(:listed) { create(:atua_transport_document, tenant:, number: '80001', plate: 'BAV5A04', axles: 6, freight_cents: 1_000_000) }
+    let!(:five_axles) { create(:atua_transport_document, tenant:, number: '80002', plate: 'EVO8C24', axles: 5, freight_cents: 1_000_000) }
+    let!(:other_truck) { create(:atua_transport_document, tenant:, number: '80003', plate: 'RVR2C34', axles: 6, freight_cents: 1_000_000) }
+
+    before { create(:atua_transport_document, tenant:, number: '80004', plate: 'RVR2C34', axles: 5, freight_cents: 1_000_000) }
+
+    it 'prefers the plate over the axle count and leaves out the documents of no group' do
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 3, removed: 0))
+
+      expect(FreightExpense.count).to eq(3)
+      expect(FreightExpense.order(:transport_document_id).map { |expense| [expense.transport_document, expense.truck_group, expense.amount_cents] })
+        .to eq([[listed, utinga, 280_000], [five_axles, utinga, 280_000], [other_truck, ls, 330_000]])
+    end
+
+    it 'moves the documents back to the axle count group when the plate group is deactivated' do
+      described_class.call(tenant)
+      utinga.update!(activated_at: nil)
+
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 1, removed: 1))
+      expect(FreightExpense.find_by!(transport_document: listed)).to have_attributes(truck_group: ls, amount_cents: 330_000)
+      expect(FreightExpense.exists?(transport_document: five_axles)).to be(false)
+    end
+  end
+
   context 'with a group of the remaining axles' do
     let!(:others) { create(:truck_group, :others, tenant:) }
     let!(:rodotrem) { create(:truck_group, tenant:, axles: [9], fuel_percentage: BigDecimal('29')) }

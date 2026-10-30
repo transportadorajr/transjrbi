@@ -86,6 +86,12 @@ module Atua
     scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
     scope :by_axles, ->(axles) { where(axles:) }
     scope :without_axles, ->(axles) { where(arel_table[:axles].not_in(axles).or(arel_table[:axles].eq(nil))) }
+    scope :without_plates, ->(plates) { where(arel_table[:plate].not_in(plates).or(arel_table[:plate].eq(nil))) }
+    scope :by_truck_group, ->(truck_group, grouped_plates) {
+      outside_plates = arel_table[:plate].not_in(grouped_plates).or(arel_table[:plate].eq(nil))
+
+      where(arel_table[:plate].in(truck_group.plates).or(arel_table[:axles].in(truck_group.axles).and(outside_plates)))
+    }
 
     class << self
       def freight_toll

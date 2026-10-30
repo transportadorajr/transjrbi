@@ -1,27 +1,25 @@
-<%# locals: (dashboard:) %>
+<%# locals: (dashboard:, rows:) %>
 
 <div class="table-responsive">
   <table class="table app-table freight-billing-table align-middle mb-0">
     <thead>
       <tr>
         <th><%= freight_billing_dimension_label(dashboard.dimension) %></th>
-        <th class="text-end d-none d-md-table-cell"><%= t('freight_billings.columns.trips') %></th>
-        <th class="text-end d-none d-lg-table-cell"><%= t('freight_billings.columns.loaded_km') %></th>
         <th class="text-end"><%= t('freight_billings.columns.gross') %></th>
-        <th class="text-end d-none d-lg-table-cell"><%= t('freight_billings.columns.freight_expenses') %></th>
-        <th class="text-end d-none d-lg-table-cell"><%= t('freight_billings.columns.expenses') %></th>
-        <th class="text-end d-none d-lg-table-cell"><%= t('freight_billings.columns.toll') %></th>
         <th class="text-end"><%= t('freight_billings.columns.net') %></th>
-        <th class="text-end d-none d-md-table-cell"><%= t('freight_billings.columns.gross_per_km') %></th>
-        <th class="text-end d-none d-md-table-cell"><%= t('freight_billings.columns.net_per_km') %></th>
-        <th class="text-end d-none d-lg-table-cell"><%= t('freight_billings.columns.share') %></th>
+        <th class="text-end"><%= t('freight_billings.columns.share') %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'row', collection: dashboard.rows, as: :row %>
+      <%= render partial: 'row', collection: rows, as: :row %>
     </tbody>
     <tfoot>
       <%= render 'row', row: dashboard.total %>
     </tfoot>
   </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate rows, params: { anchor: 'freight_billing_table' } %>
 </div>

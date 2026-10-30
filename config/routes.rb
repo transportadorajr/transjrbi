@@ -66,7 +66,9 @@ Rails.application.routes.draw do
     resources :excluded_issuers, only: %i[index new create destroy]
     resources :tonnage_rates
     resource :insurance_rate, only: %i[show edit update]
-    resource :freight_billing, only: :show
+    resource :freight_billing, only: :show do
+      get :detail
+    end
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection
     end

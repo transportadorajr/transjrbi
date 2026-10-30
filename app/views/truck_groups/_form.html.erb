@@ -30,6 +30,13 @@
                       input_html: { class: 'form-check-input' } %>
         </div>
         <div class="col-12">
+          <%= f.input :plates,
+                      as: :text,
+                      required: false,
+                      hint: t('truck_groups.form.plates_hint'),
+                      input_html: { class: 'form-control text-uppercase', rows: 4, autocomplete: 'off', spellcheck: false } %>
+        </div>
+        <div class="col-12">
           <%= f.input :active,
                       as: :boolean,
                       hint: t('truck_groups.form.active_hint'),

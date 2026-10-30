@@ -85,6 +85,7 @@ pt-BR:
       truck_group:
         name: Nome
         axles: Quantidades de eixos
+        plates: Placas
         fuel_percentage: Combustível sobre o frete
         remaining_axles: Abrange os demais eixos
         status: Status
@@ -510,6 +511,7 @@ pt-BR:
       truck_group_form:
         name: Nome
         axles: Quantidades de eixos
+        plates: Placas
         fuel_percentage: Combustível sobre o frete (%)
         remaining_axles: Abrange os demais eixos
         active: Ativo
@@ -582,6 +584,9 @@ pt-BR:
               taken: já está em uso por outro grupo
             axles:
               taken: '%{axles} já estão em outro grupo ativo'
+            plates:
+              invalid: '%{plates} não são placas válidas'
+              taken: '%{plates} já estão em outro grupo ativo'
             remaining_axles:
               taken: já está em outro grupo ativo
         customer_group_form:
@@ -720,6 +725,8 @@ pt-BR:
         update: Salvar Alterações
     tooltips:
       admin/http_request:
+        show: Visualizar
+      dashboard/freight/row:
         show: Visualizar
       user:
         show: Visualizar
@@ -1148,10 +1155,12 @@ pt-BR:
       quarto_eixo: Quarto eixo
       ls: LS
       others: Outros
+      utinga: Utinga
+      five_axles: 5 eixos
     remaining_axles: Demais eixos
     index:
       title: Grupos de caminhões
-      subtitle: Agrupam os conjuntos pela quantidade de eixos e definem o percentual de combustível descontado do frete.
+      subtitle: Agrupam os conjuntos pela placa ou pela quantidade de eixos e definem o percentual de combustível descontado do frete.
       new_truck_group: Novo Grupo
       total: Total de grupos
       active_groups: Grupos ativos
@@ -1183,10 +1192,14 @@ pt-BR:
     form:
       truck_group_data: Dados do Grupo
       truck_group_data_text: >-
-        O grupo de cada CT-e vem da quantidade de eixos informada nele. O combustível é calculado sobre o frete dos CT-es
+        O grupo de cada CT-e vem da placa do cavalo ou, se ela não estiver em um grupo, da quantidade de eixos informada
+        nele. O combustível é calculado sobre o frete dos CT-es
         normais; CEs, complementos de valores e CT-es cancelados ficam de fora.
       fuel_percentage_hint: De 0 a 100, com até 4 casas decimais. Com 0 o combustível não é calculado.
-      axles_hint: Cada quantidade de eixos só pode estar em um grupo ativo.
+      axles_hint: Cada quantidade de eixos só pode estar em um grupo ativo. Opcional quando o grupo tem placas.
+      plates_hint: >-
+        Placas dos cavalos, uma por linha. Elas têm prioridade sobre a quantidade de eixos do CT-e e cada placa só pode
+        estar em um grupo ativo.
       remaining_axles_hint: >-
         Marque para incluir todas as quantidades de eixos que não estão em outro grupo ativo, inclusive CT-es sem eixos
         informados. Nesse caso as quantidades de eixos marcadas são ignoradas.
@@ -1300,8 +1313,14 @@ pt-BR:
         macro_region: Outras Regiões
   freight_billings:
     km: '%{distance} km'
+    detail:
+      row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
+      sections:
+        trip: Viagem
+        values: Valores
+        indicators: Indicadores
     filters:
-      truck_group_hint: Pela quantidade de eixos informada em cada CT-e.
+      truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo
     period_presets:
       week: Essa semana

@@ -727,15 +727,63 @@
   }
 }
 
+.freight-billing-detail-section {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.freight-billing-detail dl {
+  font-size: 0.875rem;
+
+  dt {
+    font-weight: 500;
+    color: #6c757d;
+  }
+
+  dd {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+}
+
 .freight-billing-table {
   thead tr th,
   tbody tr td,
   tfoot tr td {
-    padding-inline: 0.5rem;
+    padding-inline: 0.25rem;
+    font-size: 0.72rem;
 
     @media (min-width: 768px) {
       padding-inline: 0.75rem;
+      font-size: 0.875rem;
     }
+  }
+
+  thead tr th {
+    letter-spacing: 0;
+    font-size: 0.62rem;
+    text-transform: none;
+
+    @media (min-width: 768px) {
+      letter-spacing: 0.07em;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+  }
+
+  tr > :last-child {
+    position: sticky;
+    right: 0;
+    background-color: #fff;
+
+    @media (min-width: 768px) {
+      position: static;
+    }
+  }
+
+  thead tr > :last-child {
+    background-color: #fafafa;
   }
 
   tfoot td {

@@ -1,7 +1,11 @@
 class TruckGroupForm < BaseForm
+  PLATE_FORMAT = /\A[A-Z]{3}\d[A-Z0-9]\d{2}\z/
+  PLATE_SEPARATORS = /[\s,;]+/
+
   attribute :name, :string
   attribute :axles, default: -> { [] }
   attribute :fuel_percentage, :string
+  attribute :plates, :string
   attribute :remaining_axles, :boolean, default: false
   attribute :active, :boolean, default: true
 
@@ -11,6 +15,8 @@ class TruckGroupForm < BaseForm
   validate :name_must_be_unique
   validate :axles_must_be_valid
   validate :axles_must_not_be_in_another_group
+  validate :plates_must_be_valid
+  validate :plates_must_not_be_in_another_group
   validate :remaining_axles_must_be_unique
   validates :fuel_percentage, presence: true
   validates :fuel_percentage, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_blank: true
@@ -23,7 +29,7 @@ class TruckGroupForm < BaseForm
   class << self
     def for_truck_group(truck_group)
       form = new(name: truck_group.name, axles: truck_group.axles, fuel_percentage: format_percentage(truck_group.fuel_percentage),
-                 remaining_axles: truck_group.remaining_axles, active: truck_group.activated?, tenant: truck_group.tenant)
+                 plates: truck_group.plates.join("\n"), remaining_axles: truck_group.remaining_axles, active: truck_group.activated?, tenant: truck_group.tenant)
       form.truck_group = truck_group
       form
     end
@@ -44,8 +50,15 @@ class TruckGroupForm < BaseForm
     Array(axles).compact_blank.map(&:to_i).uniq.sort
   end
 
+  def plate_list
+    return [] if remaining_axles
+
+    plates.to_s.split(PLATE_SEPARATORS).compact_blank.map { |plate| Atua::TransportDocument.normalize_plate(plate) }.uniq.sort
+  end
+
   def submit
-    truck_group.update!(name:, axles: axle_list, remaining_axles:, fuel_percentage: BigDecimal(fuel_percentage), activated: active)
+    truck_group.update!(name:, axles: axle_list, plates: plate_list, remaining_axles:, fuel_percentage: BigDecimal(fuel_percentage),
+                        activated: active)
 
     FreightExpenses::CalculateFuelCommand.call(tenant)
   end
@@ -66,7 +79,7 @@ class TruckGroupForm < BaseForm
     return if remaining_axles
 
     if axle_list.empty?
-      errors.add(:axles, :blank)
+      errors.add(:axles, :blank) if plate_list.empty?
     elsif (axle_list - TruckGroup::AXLE_OPTIONS).any?
       errors.add(:axles, :inclusion)
     end
@@ -77,6 +90,19 @@ class TruckGroupForm < BaseForm
 
     taken = axle_list & other_groups.activated.pluck(:axles).flatten
     errors.add(:axles, :taken, axles: taken.to_sentence) if taken.any?
+  end
+
+  def plates_must_be_valid
+    invalid = plate_list.grep_v(PLATE_FORMAT)
+
+    errors.add(:plates, :invalid, plates: invalid.to_sentence) if invalid.any?
+  end
+
+  def plates_must_not_be_in_another_group
+    return unless active
+
+    taken = plate_list & other_groups.activated.pluck(:plates).flatten
+    errors.add(:plates, :taken, plates: taken.to_sentence) if taken.any?
   end
 
   def remaining_axles_must_be_unique
