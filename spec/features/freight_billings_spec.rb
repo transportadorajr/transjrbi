@@ -54,7 +54,7 @@ describe 'Freight billing' do
         expect(page).to have_text('Nenhum registro encontrado')
         expect(page).to have_no_table
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Frete bruto R$ 0,00', 'Frete bruto com MDF-e R$ 0,00', 'Frete bruto sem MDF-e R$ 0,00', 'Frete líquido R$ 0,00',
+          ['Frete bruto R$ 0,00', 'Frete líquido R$ 0,00',
            'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km'],
         )
       end
@@ -136,8 +136,7 @@ describe 'Freight billing' do
 
         expect(Atua::TransportDocument.count).to eq(5)
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Frete bruto R$ 20.000,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 0,00',
-           'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
+          ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
            'KM rodado 720 km'],
         )
         expect(page).to have_text('Frete por Cavalo')
@@ -303,13 +302,12 @@ describe 'Freight billing' do
                                            canceled_at: Time.zone.local(2026, 10, 26, 18))
         end
 
-        scenario 'adds the freight of the documents without a trip to the gross freight like the Atua report' do
+        scenario 'leaves the freight of the documents without a trip out of the gross and the net freight' do
           visit freight_billing_path(october)
 
           expect(Atua::TransportDocument.where(tenant:).count).to eq(8)
-          expect(all('.counter-card').first(4).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 20.869,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 869,00',
-             'Frete líquido R$ 19.969,00'],
+          expect(all('.counter-card').first(2).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00'],
           )
         end
       end
@@ -329,17 +327,15 @@ describe 'Freight billing' do
           visit freight_billing_path(october)
 
           expect(Atua::TransportDocument.where(tenant:).count).to eq(5)
-          expect(all('.counter-card').first(5).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 20.000,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 0,00',
-             'Frete líquido R$ 19.100,00', 'Viagens 3'],
+          expect(all('.counter-card').first(3).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 3'],
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3) }).to include(['RHJ5A50', '1', 'R$ 6.073,32'])
 
           visit freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30')
 
-          expect(all('.counter-card').first(5).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 6.073,32', 'Frete bruto com MDF-e R$ 6.073,32', 'Frete bruto sem MDF-e R$ 0,00',
-             'Frete líquido R$ 6.073,32', 'Viagens 0'],
+          expect(all('.counter-card').first(3).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 6.073,32', 'Frete líquido R$ 6.073,32', 'Viagens 0'],
           )
         end
       end
@@ -371,8 +367,7 @@ describe 'Freight billing' do
 
           expect(Atua::TransportDocument.where(tenant:).count).to eq(7)
           expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 20.000,00', 'Frete bruto com MDF-e R$ 20.000,00', 'Frete bruto sem MDF-e R$ 0,00',
-             'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
+            ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
              'KM rodado 720 km'],
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3, 7) }).to eq(
@@ -403,9 +398,8 @@ describe 'Freight billing' do
 
           visit freight_billing_path(october)
 
-          expect(all('.counter-card').first(4).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 40.179,20', 'Frete bruto com MDF-e R$ 39.579,20', 'Frete bruto sem MDF-e R$ 600,00',
-             'Frete líquido R$ 39.279,20'],
+          expect(all('.counter-card').first(2).map { |card| card.text.squish }).to eq(
+            ['Frete bruto R$ 39.579,20', 'Frete líquido R$ 38.679,20'],
           )
         end
       end
@@ -546,7 +540,7 @@ describe 'Freight billing' do
               ['Total', '870 km', 'R$ 23.000,00', 'R$ 22.100,00'],
             ],
           )
-          expect(all('.counter-card')[3].text.squish).to eq('Frete líquido R$ 22.100,00')
+          expect(all('.counter-card')[1].text.squish).to eq('Frete líquido R$ 22.100,00')
         end
       end
 
@@ -630,8 +624,8 @@ describe 'Freight billing' do
       title_top = page.evaluate_script("document.querySelector('.page-title').getBoundingClientRect().top")
       filter_top = page.evaluate_script("document.querySelector('.page-actions').getBoundingClientRect().top")
 
-      expect(card_tops.each_slice(2).map { |pair| pair.uniq.size }).to eq([1, 1, 1, 1])
-      expect(card_tops.uniq.size).to eq(4)
+      expect(card_tops.each_slice(2).map { |pair| pair.uniq.size }).to eq([1, 1, 1])
+      expect(card_tops.uniq.size).to eq(3)
       expect(option_tops.uniq.size).to eq(1)
       expect(filter_top).to be <= title_top
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)

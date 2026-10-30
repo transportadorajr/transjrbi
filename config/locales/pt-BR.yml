@@ -1324,8 +1324,6 @@ pt-BR:
       never_synced: Nenhuma sincronização com a Atua até o momento
       group_by: Agrupar por
       gross: Frete bruto
-      trips_gross: Frete bruto com MDF-e
-      unlinked_gross: Frete bruto sem MDF-e
       net: Frete líquido
       trips: Viagens
       gross_per_km: Frete bruto por km
