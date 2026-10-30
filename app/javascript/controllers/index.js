@@ -19,5 +19,8 @@ application.register('clipboard', ClipboardController);
 import MaskController from './mask_controller';
 application.register('mask', MaskController);
 
-import Select2Controller from 'hotwire-select2';
+import Select2Controller from './select2_controller';
 application.register('select2', Select2Controller);
+
+import DependentFrameController from './dependent_frame_controller';
+application.register('dependent-frame', DependentFrameController);

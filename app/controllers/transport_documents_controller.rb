@@ -1,6 +1,9 @@
 class TransportDocumentsController < BaseController
   has_scope :by_number, as: :number
   has_scope :by_plate, as: :plate
+  has_scope :by_driver, as: :driver_code
+  has_scope :by_customer_group, as: :customer_group_id
+  has_scope :by_taker, as: :customer_code
   has_scope :by_period_start, as: :start_date
   has_scope :by_period_end, as: :end_date
   has_scope :by_situation, as: :status
@@ -18,6 +21,18 @@ class TransportDocumentsController < BaseController
     @total_count = counted_transport_documents.count
     @valid_count = counted_transport_documents.not_canceled.count
     @canceled_count = counted_transport_documents.canceled.count
+    @drivers = current_tenant.atua_transport_documents.drivers
+    @customer_groups = current_tenant.customer_groups.order(:name)
+  end
+
+  def customer_options
+    authorize!(:read, :transport_documents)
+
+    customers = current_tenant.atua_customers.active.order(:name, :id)
+    customers = customers.by_customer_group(params[:customer_group_id]) if params[:customer_group_id].present?
+
+    @customers = customers.select(:code, :name, :document)
+    @selected_customer_code = params[:customer_code] if params[:customer_code].present? && customers.exists?(code: params[:customer_code])
   end
 
   def show

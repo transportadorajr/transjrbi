@@ -49,7 +49,9 @@ Rails.application.routes.draw do
         patch :confirm
       end
     end
-    resources :transport_documents, only: %i[index show]
+    resources :transport_documents, only: %i[index show] do
+      get :customer_options, on: :collection
+    end
     resources :manifests, only: %i[index show]
     resources :customers, only: %i[index show]
     resources :customer_groups do

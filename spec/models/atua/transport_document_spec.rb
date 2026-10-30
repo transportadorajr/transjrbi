@@ -119,6 +119,10 @@ RSpec.describe Atua::TransportDocument do
       let!(:grouped) { create(:atua_transport_document, tenant:, taker_code: grouped_taker.code) }
       let!(:other) { create(:atua_transport_document, tenant:, taker_code: other_taker.code) }
 
+      it 'filters by the taker' do
+        expect(described_class.by_taker(other_taker.code)).to eq([other])
+      end
+
       it 'filters by the customer group of the taker' do
         expect(described_class.by_customer_group(group.id)).to eq([grouped])
         expect(described_class.count).to eq(2)

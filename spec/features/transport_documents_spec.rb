@@ -128,6 +128,63 @@ describe 'Transport documents' do
       end
     end
 
+    context 'when transport documents have different drivers and customer groups' do
+      let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+      let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU') }
+      let!(:usiminas_customer) { create(:atua_customer, tenant:, code: 7100, customer_group: usiminas) }
+      let!(:gerdau_customer) { create(:atua_customer, tenant:, code: 7200, customer_group: gerdau) }
+      let!(:jose_trip) do
+        create(:atua_transport_document, tenant:, number: '75001', posted_on: Date.new(2026, 10, 3), plate: 'RVR2C34', freight_cents: 10_000,
+                                         driver_code: 10, driver_name: 'JOSE SILVA', taker_code: usiminas_customer.code)
+      end
+      let!(:maria_usiminas_trip) do
+        create(:atua_transport_document, tenant:, number: '75002', posted_on: Date.new(2026, 10, 2), plate: 'RVR8J90', freight_cents: 20_000,
+                                         driver_code: 20, driver_name: 'MARIA SOUZA', taker_code: usiminas_customer.code)
+      end
+      let!(:maria_gerdau_trip) do
+        create(:atua_transport_document, tenant:, number: '75003', posted_on: Date.new(2026, 10, 1), plate: 'RVR8J90', freight_cents: 30_000,
+                                         driver_code: 20, driver_name: 'MARIA SOUZA', taker_code: gerdau_customer.code)
+      end
+
+      let(:table_header) { ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Frete', 'Situação', 'Ações'] }
+      let(:jose_row) { ['75001 -', '03/10/2026', '- → -', 'RVR2C34', 'R$ 100,00', 'Válido', ''] }
+      let(:maria_usiminas_row) { ['75002 -', '02/10/2026', '- → -', 'RVR8J90', 'R$ 200,00', 'Válido', ''] }
+      let(:maria_gerdau_row) { ['75003 -', '01/10/2026', '- → -', 'RVR8J90', 'R$ 300,00', 'Válido', ''] }
+
+      scenario 'filters the transport documents by driver' do
+        visit transport_documents_path(driver_code: 20)
+
+        expect(Atua::TransportDocument.count).to eq(3)
+        expect(html_table_to_rows).to eq([table_header, maria_usiminas_row, maria_gerdau_row])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 2', 'Cancelados 0'])
+      end
+
+      scenario 'filters the transport documents by customer group' do
+        visit transport_documents_path(customer_group_id: usiminas.id)
+
+        expect(html_table_to_rows).to eq([table_header, jose_row, maria_usiminas_row])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 2', 'Cancelados 0'])
+      end
+
+      scenario 'combines the driver and the customer group filters' do
+        visit transport_documents_path(driver_code: 20, customer_group_id: usiminas.id)
+
+        expect(html_table_to_rows).to eq([table_header, maria_usiminas_row])
+      end
+
+      scenario 'filters the transport documents by customer' do
+        visit transport_documents_path(customer_code: gerdau_customer.code)
+
+        expect(html_table_to_rows).to eq([table_header, maria_gerdau_row])
+      end
+
+      scenario 'ignores the driver and the customer group filters left blank' do
+        visit transport_documents_path(driver_code: '', customer_group_id: '')
+
+        expect(html_table_to_rows).to eq([table_header, jose_row, maria_usiminas_row, maria_gerdau_row])
+      end
+    end
+
     context 'when transport documents were launched in a different order than they were issued' do
       let!(:issued_first_launched_last) do
         create(:atua_transport_document, tenant:, number: '74140', issued_at: Time.zone.local(2026, 10, 1, 9), posted_on: Date.new(2026, 10, 20))
@@ -554,6 +611,110 @@ describe 'Transport documents' do
     before do
       login_as(admin, scope: :user)
       use_mobile_screen
+    end
+
+    context 'when transport documents have different drivers and customer groups' do
+      let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+      let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU') }
+      let!(:other_group) { create(:customer_group, tenant: other_tenant, name: 'ARCELOR') }
+      let!(:usiminas_customer) { create(:atua_customer, tenant:, code: 7100, customer_group: usiminas) }
+      let!(:maria_trip) do
+        create(:atua_transport_document, tenant:, number: '75002', plate: 'RVR8J90', driver_code: 20, driver_name: 'MARIA SOUZA', taker_code: usiminas_customer.code)
+      end
+      let!(:jose_trip) { create(:atua_transport_document, tenant:, number: '75001', plate: 'RVR2C34', driver_code: 10, driver_name: 'JOSE SILVA', taker_code: 7200) }
+      let!(:stranger_trip) { create(:atua_transport_document, tenant: other_tenant, number: '75003', driver_code: 30, driver_name: 'PEDRO LIMA') }
+
+      scenario 'searches the drivers and the customer groups of the tenant and filters by them' do
+        visit transport_documents_path
+        find(:link, href: '#filtersModal').click
+
+        within('#driver_code_select') do
+          find('.select2-trigger').click
+          expect(all('.select2-option').map(&:text)).to eq(['JOSE SILVA', 'MARIA SOUZA'])
+
+          find('.select2-search').fill_in(with: 'mar')
+          find('.select2-option', text: 'MARIA SOUZA').click
+        end
+
+        within('#customer_group_id_select') do
+          find('.select2-trigger').click
+          expect(all('.select2-option').map(&:text)).to eq(%w[GERDAU USIMINAS])
+
+          find('.select2-option', text: 'USIMINAS').click
+        end
+
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+        click_on 'Aplicar Filtros'
+
+        expect(page).to have_current_path(/driver_code=20&customer_group_id=\d+/)
+        expect(page).to have_link(href: transport_document_path(maria_trip))
+        expect(page).to have_no_link(href: transport_document_path(jose_trip))
+        expect(page).to have_css('#driver_code_select .select2-single-value', text: 'MARIA SOUZA', visible: :all)
+        expect(page).to have_css('#customer_group_id_select .select2-single-value', text: 'USIMINAS', visible: :all)
+      end
+
+      context 'when the customers belong to different groups' do
+        let!(:usiminas_branch) { create(:atua_customer, tenant:, code: 7101, name: 'USIMINAS CUBATAO', document: '12.345.678/0001-90', customer_group: usiminas) }
+        let!(:gerdau_customer) { create(:atua_customer, tenant:, code: 7200, name: 'GERDAU OURO BRANCO', document: '98.765.432/0001-10', customer_group: gerdau) }
+        let!(:stranger_customer) { create(:atua_customer, tenant: other_tenant, code: 7300, name: 'CLIENTE DE OUTRA') }
+        let!(:branch_trip) { create(:atua_transport_document, tenant:, number: '75004', taker_code: usiminas_branch.code) }
+
+        scenario 'lists every customer of the tenant and searches them by name or digits of the document' do
+          visit transport_documents_path
+          find(:link, href: '#filtersModal').click
+
+          within('#customer_code_select') do
+            find('.select2-trigger').click
+            options = all('.select2-option').map(&:text)
+            expect(options).to include('GERDAU OURO BRANCO - 98.765.432/0001-10', 'USIMINAS CUBATAO - 12.345.678/0001-90')
+            expect(options.size).to eq(tenant.atua_customers.count)
+            expect(options).not_to include(a_string_matching('CLIENTE DE OUTRA'))
+
+            find('.select2-search').fill_in(with: '12345678')
+            expect(all('.select2-option').map(&:text)).to eq(['USIMINAS CUBATAO - 12.345.678/0001-90'])
+
+            find('.select2-search').fill_in(with: 'ouro branco')
+            expect(all('.select2-option').map(&:text)).to eq(['GERDAU OURO BRANCO - 98.765.432/0001-10'])
+            find('.select2-option', text: 'GERDAU OURO BRANCO').click
+          end
+
+          click_on 'Aplicar Filtros'
+
+          expect(page).to have_current_path(/customer_code=7200/)
+          expect(page).to have_no_link(href: transport_document_path(branch_trip))
+        end
+
+        scenario 'lists only the customers of the selected group and drops a customer outside of it' do
+          visit transport_documents_path(customer_code: gerdau_customer.code)
+          find(:link, href: '#filtersModal').click
+
+          expect(page).to have_css('#customer_code_select .select2-single-value', text: 'GERDAU OURO BRANCO', visible: :all)
+
+          within('#customer_group_id_select') do
+            find('.select2-trigger').click
+            find('.select2-option', text: 'USIMINAS').click
+          end
+
+          expect(page).to have_no_css('#customer_code_select .select2-single-value', visible: :all)
+
+          within('#customer_code_select') do
+            find('.select2-trigger').click
+            options = all('.select2-option').map(&:text)
+            expect(options).to include('USIMINAS CUBATAO - 12.345.678/0001-90')
+            expect(options.size).to eq(usiminas.customers.count)
+            expect(options).not_to include(a_string_matching('GERDAU'))
+          end
+        end
+
+        scenario 'filters by the selected group and customer' do
+          visit transport_documents_path(customer_group_id: usiminas.id, customer_code: usiminas_branch.code)
+          find(:link, href: '#filtersModal').click
+
+          expect(page).to have_css('#customer_code_select .select2-single-value', text: 'USIMINAS CUBATAO', visible: :all)
+          expect(page).to have_link(href: transport_document_path(branch_trip))
+          expect(page).to have_no_link(href: transport_document_path(maria_trip))
+        end
+      end
     end
 
     context 'when the transport document has expenses' do

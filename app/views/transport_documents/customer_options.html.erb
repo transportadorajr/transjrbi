@@ -1,0 +1,4 @@
+<%= turbo_frame_tag 'customer_options' do %>
+  <%= render 'components/select2', id: 'customer_code_select', name: :customer_code, options: transport_document_customer_options(@customers),
+                                   selected: @selected_customer_code, placeholder: t('shared.all') %>
+<% end %>
