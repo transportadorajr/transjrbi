@@ -208,6 +208,25 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when a customer group has a trip of the truck left out of the truck ranking' do
+        before do
+          create(:atua_manifest, tenant:, code: 41_020, plate: 'INT6R00', trip_started_at: Time.zone.local(2026, 10, 12, 7))
+          create(:atua_transport_document, tenant:, number: '74020', freight_cents: 600_000, plate: 'INT6R00', driver_code: 40,
+                                           driver_name: 'JECI FERREIRA DE SOUZA JUNIOR', taker_code: 7100)
+          create(:atua_manifest_document, tenant:, manifest_code: 41_020, transport_document_number: '74020', calculated_distance_km: 50)
+        end
+
+        scenario 'plots the same gross and net freight of the customer group as the table', :js do
+          visit freight_billing_path(october)
+
+          usiminas_row = html_table_to_rows.find { |row| row.first == 'USIMINAS' }
+
+          expect(Atua::TransportDocument.count).to eq(6)
+          expect(usiminas_row[1..2]).to eq(['R$ 21.000,00', 'R$ 20.100,00'])
+          expect(ranking_bar_labels.map(&:first)).to include('R$ 21.000,00', 'R$ 20.100,00')
+        end
+      end
+
       scenario 'groups the freight by driver keeping the period' do
         visit freight_billing_path(october)
         click_on 'Motorista'
