@@ -8,13 +8,6 @@
 
   <%= render 'filters' %>
 
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <% freight_billing_period_presets.each do |preset| %>
-      <%= link_to freight_billing_period_preset_label(preset), freight_billing_period_preset_path(preset),
-                  class: freight_billing_period_preset_link_class(preset, @filter_form) %>
-    <% end %>
-  </div>
-
   <div class="dashboard-filter-bar mb-4">
     <span class="dashboard-filter-label"><%= t('.group_by') %></span>
 
@@ -35,6 +28,13 @@
     <%= counter_card(:primary, t('.gross_per_km'), tax_money(@dashboard.total.gross_per_km), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:dark, t('.loaded_km'), freight_billing_km(@dashboard.total.loaded_km), col_class: 'col-6 col-xl-3') %>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <% freight_billing_period_presets.each do |preset| %>
+      <%= link_to freight_billing_period_preset_label(preset), freight_billing_period_preset_path(preset),
+                  class: freight_billing_period_preset_link_class(preset, @filter_form) %>
+    <% end %>
   </div>
 
   <%= render freight_billing_content_partial(@dashboard), dashboard: @dashboard %>

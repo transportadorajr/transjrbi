@@ -1,7 +1,7 @@
 module Dashboard
   class Freight
-    DIMENSIONS = %w[vehicle driver customer_group origin macro_region].freeze
-    DEFAULT_DIMENSION = 'vehicle'.freeze
+    DIMENSIONS = %w[customer_group vehicle driver origin macro_region].freeze
+    DEFAULT_DIMENSION = 'customer_group'.freeze
     HISTORY_MONTHS = 6
     RANKING_LIMIT = 15
     TOTAL_KEY = 'total'.freeze

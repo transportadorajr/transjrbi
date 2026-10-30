@@ -225,8 +225,8 @@ RSpec.describe Dashboard::Freight do
     context 'with an unknown dimension' do
       let(:dimension) { 'payer' }
 
-      it 'falls back to the truck plate' do
-        expect(dashboard.dimension).to eq('vehicle')
+      it 'falls back to the customer group' do
+        expect(dashboard.dimension).to eq('customer_group')
       end
     end
 
