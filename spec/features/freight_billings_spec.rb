@@ -422,12 +422,12 @@ describe 'Freight billing' do
                                            canceled_at: Time.zone.local(2026, 10, 26, 18))
         end
 
-        scenario 'leaves the freight of the documents without a trip out of the gross and the net freight' do
+        scenario 'adds the freight of the documents without a trip to the gross and the net freight like the Atua report' do
           visit freight_billing_path(october)
 
           expect(Atua::TransportDocument.where(tenant:).count).to eq(8)
           expect(all('.counter-card').first(2).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00'],
+            ['Frete bruto R$ 20.869,00', 'Frete líquido R$ 19.969,00'],
           )
         end
       end
@@ -519,7 +519,7 @@ describe 'Freight billing' do
           visit freight_billing_path(october)
 
           expect(all('.counter-card').first(2).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 39.579,20', 'Frete líquido R$ 38.679,20'],
+            ['Frete bruto R$ 40.179,20', 'Frete líquido R$ 39.279,20'],
           )
         end
       end

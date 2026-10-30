@@ -125,10 +125,10 @@ RSpec.describe Dashboard::Freight do
         create(:atua_transport_document, tenant:, number: '74009', freight_cents: 200_000, canceled_at: Time.zone.local(2026, 10, 3))
       end
 
-      it 'leaves the documents without a valid trip out of the gross and the net freight of the period' do
+      it 'adds the documents without a valid trip to the gross and the net freight of the period, keeping them out of the trips' do
         expect(Atua::TransportDocument.where(tenant:).count).to eq(11)
-        expect(dashboard.gross).to eq(Money.from_cents(2_790_000))
-        expect(dashboard.net).to eq(Money.from_cents(2_725_000))
+        expect(dashboard.gross).to eq(Money.from_cents(4_490_000))
+        expect(dashboard.net).to eq(Money.from_cents(4_425_000))
         expect(dashboard.total.gross).to eq(Money.from_cents(2_000_000))
       end
     end
@@ -146,9 +146,9 @@ RSpec.describe Dashboard::Freight do
       end
 
       it 'bills the freight in the month of the issue while the trip stays in the month it departed' do
-        expect(dashboard.gross).to eq(Money.from_cents(3_040_000))
+        expect(dashboard.gross).to eq(Money.from_cents(4_740_000))
         expect(dashboard.total).to have_attributes(trips_count: 3, gross: Money.from_cents(2_607_332))
-        expect(dashboard.monthly_data.first[:data].values_at('Set/2026', 'Out/2026')).to eq([6_073.32, 30_400.0])
+        expect(dashboard.monthly_data.first[:data].values_at('Set/2026', 'Out/2026')).to eq([6_073.32, 47_400.0])
       end
     end
 
@@ -239,16 +239,16 @@ RSpec.describe Dashboard::Freight do
       )
     end
 
-    it 'plots the last six months by the issue date of the documents, leaving out the ones without a valid trip' do
+    it 'plots the last six months by the issue date of the documents, with or without a valid trip' do
       expect(dashboard.history_period).to eq(Date.new(2026, 5, 1)..Date.new(2026, 10, 31))
       expect(dashboard.monthly_data).to eq(
         [
           { name: 'Frete bruto',
             data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 0.0,
-                    'Out/2026' => 27_900.0 } },
+                    'Out/2026' => 44_900.0 } },
           { name: 'Frete líquido',
             data: { 'Mai/2026' => 0.0, 'Jun/2026' => 0.0, 'Jul/2026' => 0.0, 'Ago/2026' => 0.0, 'Set/2026' => 0.0,
-                    'Out/2026' => 27_250.0 } },
+                    'Out/2026' => 44_250.0 } },
         ],
       )
     end
