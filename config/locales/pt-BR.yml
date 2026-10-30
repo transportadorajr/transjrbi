@@ -721,6 +721,8 @@ pt-BR:
     tooltips:
       admin/http_request:
         show: Visualizar
+      dashboard/freight/row:
+        show: Visualizar
       user:
         show: Visualizar
         edit: Alterar
@@ -1300,6 +1302,12 @@ pt-BR:
         macro_region: Outras Regiões
   freight_billings:
     km: '%{distance} km'
+    detail:
+      row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
+      sections:
+        trip: Viagem
+        values: Valores
+        indicators: Indicadores
     filters:
       truck_group_hint: Pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo

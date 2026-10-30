@@ -5,6 +5,7 @@ module FreightBillingsHelper
   CHART_GRID_COLOR = '#eef0f4'.freeze
   CHART_TEXT_COLOR = '#52514e'.freeze
   CHART_HEIGHT = '320px'.freeze
+  DETAIL_MODAL_ID = 'freight_billing_detail_modal'.freeze
   RANKING_BAR_HEIGHT = 44
   RANKING_MIN_HEIGHT = 320
   RANKING_BAR_LABELS = { display: true, anchor: 'end', clamp: true, padding: { top: 0, right: 4, bottom: 0, left: 4 },
@@ -23,7 +24,7 @@ module FreightBillingsHelper
   end
 
   def freight_billing_dimension_path(dimension)
-    freight_billing_path(**request.query_parameters.symbolize_keys, dimension:)
+    freight_billing_path(**request.query_parameters.symbolize_keys.except(:page), dimension:)
   end
 
   def freight_billing_dimension_link_class(dimension, dashboard)
@@ -43,7 +44,7 @@ module FreightBillingsHelper
   def freight_billing_period_preset_path(preset)
     period = FreightBillingFilterForm.preset_period(preset)
 
-    freight_billing_path(**request.query_parameters.symbolize_keys, start_date: period.first, end_date: period.last)
+    freight_billing_path(**request.query_parameters.symbolize_keys.except(:page), start_date: period.first, end_date: period.last)
   end
 
   def freight_billing_period_preset_link_class(preset, filter_form)
@@ -110,6 +111,23 @@ module FreightBillingsHelper
     number_to_percentage(share, precision: 1)
   end
 
+  def freight_billing_row_menu(row)
+    menus = []
+
+    menus << freight_billing_row_show_menu(row) if can?(:read, :freight_billing)
+
+    menus
+  end
+
+  def freight_billing_detail_sections(row)
+    {
+      trip: { trips: freight_billing_trips(row.trips_count), loaded_km: freight_billing_km(row.loaded_km) },
+      values: { gross: tax_money(row.gross), freight_expenses: tax_money(row.freight_expenses), expenses: tax_money(row.expenses),
+                toll: tax_money(row.toll), net: tax_money(row.net) },
+      indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km), share: freight_billing_share(row.share) },
+    }
+  end
+
   def freight_billing_ranking_chart(dashboard)
     bar_chart(freight_billing_series(dashboard.ranking_data),
               height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
@@ -127,6 +145,16 @@ module FreightBillingsHelper
   end
 
   private
+
+  def freight_billing_row_show_menu(row)
+    Menu.new(
+      name: :show,
+      record: row,
+      url: detail_freight_billing_path(**request.query_parameters.symbolize_keys, key: row.key),
+      icon: :eye,
+      data: { turbo_stream: true },
+    )
+  end
 
   def freight_billing_series(series)
     series.zip(SERIES_COLORS).map do |serie, color|

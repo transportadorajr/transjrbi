@@ -155,15 +155,25 @@ RSpec.describe Dashboard::Freight do
     it 'groups by the truck plate' do
       expect(dashboard.rows.map(&:to_h)).to eq(
         [
-          { label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
+          { key: 'RVR2C34', label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
             freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0),
             net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
             share: BigDecimal('75') },
-          { label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), gross: Money.from_cents(500_000),
+          { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), gross: Money.from_cents(500_000),
             freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), net: Money.from_cents(500_000),
             gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('25') },
         ],
       )
+    end
+
+    it 'finds a row by its key, the total included' do
+      expect(dashboard.row_for('RVR8J90')).to have_attributes(label: 'RVR8J90', gross: Money.from_cents(500_000))
+      expect(dashboard.row_for('total')).to eq(dashboard.total)
+    end
+
+    it 'finds no row for a key out of the report' do
+      expect(dashboard.row_for('OUT1A11')).to be_nil
+      expect(dashboard.row_for(nil)).to be_nil
     end
 
     context 'when grouped by driver' do
