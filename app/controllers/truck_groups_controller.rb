@@ -80,6 +80,6 @@ class TruckGroupsController < BaseController
   end
 
   def truck_group_params
-    params.expect(truck_group: [:name, :fuel_percentage, :remaining_axles, :active, { axles: [] }])
+    params.expect(truck_group: [:name, :fuel_percentage, :plates, :remaining_axles, :active, { axles: [] }])
   end
 end

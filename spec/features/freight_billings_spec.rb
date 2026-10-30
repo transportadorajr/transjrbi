@@ -584,7 +584,7 @@ describe 'Freight billing' do
 
             expect(TruckGroup.count).to eq(6)
             expect(page).to have_select('Tipo de conjunto', options: ['Todos', 'LS', 'Outros', 'Quarto eixo', 'Rodotrem'])
-            expect(page).to have_text('Pela quantidade de eixos informada em cada CT-e.')
+            expect(page).to have_text('Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.')
 
             select 'Outros', from: 'Tipo de conjunto'
             click_on 'Aplicar Filtros'
@@ -607,6 +607,29 @@ describe 'Freight billing' do
             visit freight_billing_path(october.merge(truck_group_id: rodotrem.id))
 
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 10.000,00')
+          end
+        end
+
+        context 'with a group of plates' do
+          let!(:utinga) { create(:truck_group, tenant:, name: 'Utinga', axles: [], plates: %w[RVR8J90], fuel_percentage: 28) }
+
+          before { sheet.update!(axles: 9) }
+
+          scenario 'counts each transport document only in the group of its plate' do
+            visit freight_billing_path(october.merge(truck_group_id: utinga.id))
+
+            expect(TruckGroup.count).to eq(6)
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
+            expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+
+            visit freight_billing_path(october.merge(truck_group_id: rodotrem.id))
+
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
+            expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+
+            visit freight_billing_path(october.merge(truck_group_id: 'none'))
+
+            expect(page).to have_text('Nenhum registro encontrado')
           end
         end
 

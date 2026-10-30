@@ -56,10 +56,10 @@ describe 'Truck groups' do
         )
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Quantidades de eixos', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['LS', '6 eixos', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
-            ['Quarto eixo', '7 e 8 eixos', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
-            ['Rodotrem', '9 eixos', '32,5%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
+            ['LS', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+            ['Quarto eixo', '7 e 8 eixos', '-', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['Rodotrem', '9 eixos', '-', '32,5%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
           ],
         )
         expect(page).to have_link('Novo Grupo', href: new_truck_group_path)
@@ -74,8 +74,8 @@ describe 'Truck groups' do
         expect(TruckGroup.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Quantidades de eixos', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['Quarto eixo', '7 e 8 eixos', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
+            ['Quarto eixo', '7 e 8 eixos', '-', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
           ],
         )
 
@@ -85,8 +85,8 @@ describe 'Truck groups' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Quantidades de eixos', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['LS', '6 eixos', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+            ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
+            ['LS', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
@@ -114,6 +114,7 @@ describe 'Truck groups' do
             expect(dl_to_hash('#truck_group_data')).to eq(
               'Nome' => rodotrem.name,
               'Quantidades de eixos' => '9 eixos',
+              'Placas' => '-',
               'Combustível sobre o frete' => '32,5%',
               'Status' => 'Ativo',
               'CT-es com combustível no mês' => '1',
@@ -178,7 +179,24 @@ describe 'Truck groups' do
 
         visit truck_groups_path
 
-        expect(html_table_to_rows).to include(['Outros', 'Demais eixos', '33%', 'Ativo', 'Opções Visualizar Alterar Excluir'])
+        expect(html_table_to_rows).to include(['Outros', 'Demais eixos', '-', '33%', 'Ativo', 'Opções Visualizar Alterar Excluir'])
+      end
+
+      scenario 'creates a group of plates and calculates the fuel by the plate' do
+        truck = create(:atua_transport_document, tenant:, number: '78003', plate: 'BAV5A04', axles: 6, freight_cents: 1_000_000)
+
+        visit new_truck_group_path
+        fill_in 'Nome', with: 'Utinga'
+        fill_in 'Placas', with: "bav5a04\nEVO8C24"
+        fill_in 'Combustível sobre o frete (%)', with: '28'
+
+        expect { click_on 'Cadastrar Grupo' }.to change(TruckGroup, :count).by(1).and change(FreightExpense, :count).by(1)
+
+        truck_group = TruckGroup.last
+        expect(page).to have_current_path(truck_group_path(truck_group))
+        expect(truck_group).to have_attributes(name: 'Utinga', axles: [], plates: %w[BAV5A04 EVO8C24], fuel_percentage: BigDecimal('28'))
+        expect(dl_to_hash('#truck_group_data')).to include('Quantidades de eixos' => '-', 'Placas' => 'BAV5A04 e EVO8C24')
+        expect(FreightExpense.fuel.sole).to have_attributes(transport_document: truck, truck_group:, amount_cents: 280_000)
       end
 
       scenario 'shows the errors of the required fields' do
@@ -292,8 +310,8 @@ describe 'Truck groups' do
         expect(TruckGroup.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Quantidades de eixos', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['Rodotrem', '9 eixos', '35%', 'Ativo', ''],
+            ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
+            ['Rodotrem', '9 eixos', '-', '35%', 'Ativo', ''],
           ],
         )
         expect(page).to have_no_link('Novo Grupo')

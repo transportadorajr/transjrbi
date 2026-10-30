@@ -39,9 +39,12 @@ class FreightBillingsController < BaseController
     documents = apply_scopes(current_tenant.atua_transport_documents).without_issuers(current_tenant.excluded_issuers.select(:code))
     truck_group_id = @filter_form.truck_group_id
     return documents if truck_group_id.blank?
-    return documents.without_axles(@truck_groups.flat_map(&:axles)) if remaining_axles?(truck_group_id)
 
-    documents.by_axles(@truck_groups.find_by(id: truck_group_id)&.axles.to_a)
+    grouped_plates = @truck_groups.flat_map(&:plates)
+    return documents.without_axles(@truck_groups.flat_map(&:axles)).without_plates(grouped_plates) if remaining_axles?(truck_group_id)
+
+    truck_group = @truck_groups.find_by(id: truck_group_id)
+    truck_group ? documents.by_truck_group(truck_group, grouped_plates) : documents.none
   end
 
   def remaining_axles?(truck_group_id)
