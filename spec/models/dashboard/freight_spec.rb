@@ -463,6 +463,17 @@ RSpec.describe Dashboard::Freight do
       it 'drops the code and the company suffixes from the bars' do
         expect(dashboard.ranking_data.first[:data]).to eq('LARANJEIRAS S. I. G. DISTRIBUIDA' => 8_000.0, 'Sem grupo' => 9_000.0)
       end
+
+      context 'with a group named by its terms' do
+        let!(:grouped_taker) do
+          create(:atua_customer, tenant:, code: 7300,
+                                 customer_group: create(:customer_group, tenant:, name: 'CASA DO TRIGO', terms: ['CASA DO TRIGO']))
+        end
+
+        it 'keeps the name of the group in full on the bars' do
+          expect(dashboard.ranking_data.first[:data]).to eq('CASA DO TRIGO' => 8_000.0, 'Sem grupo' => 9_000.0)
+        end
+      end
     end
   end
 
