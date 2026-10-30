@@ -589,7 +589,7 @@ describe 'Freight billing' do
           visit freight_billing_path(october)
 
           expect(Atua::Expense.count).to eq(6)
-          expect(page).to have_no_text('Combustível')
+          expect(find('table')).to have_no_text('Combustível')
           expect(html_table_to_rows.map { |row| row.values_at(0, 2, 3, 7) }).to eq(
             [
               ['Cavalo', 'KM rodado', 'Frete bruto', 'Frete líquido'],
@@ -671,6 +671,20 @@ describe 'Freight billing' do
       expect(page).to have_css('th', text: /\AFrete líquido\z/i)
       expect(page).to have_no_css('th', text: /\AKM rodado\z/i)
       expect(page).to have_no_css('th', text: /\APedágio\z/i)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    scenario 'lists what is discounted from the net freight above the indicators' do
+      use_mobile_screen(width: 360)
+      visit freight_billing_path(october)
+
+      discounts = 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Forro de Lona, Combustível, Descarga e Pedágio'
+      discounts_bottom = page.evaluate_script("document.querySelector('.net-freight-discounts').getBoundingClientRect().bottom")
+      first_card_top = page.evaluate_script("document.querySelector('.counter-card').getBoundingClientRect().top")
+
+      expect(page).to have_css('.net-freight-discounts.fst-italic.fw-bold.text-success', text: discounts)
+      expect(page).to have_no_css('.counter-card', text: discounts)
+      expect(discounts_bottom).to be <= first_card_top
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
 

@@ -1330,6 +1330,7 @@ pt-BR:
       group_by: Agrupar por
       gross: Frete bruto
       net: Frete líquido
+      net_discounts: 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Forro de Lona, Combustível, Descarga e Pedágio'
       trips: Viagens
       gross_per_km: Frete bruto por km
       net_per_km: Frete líquido por km
