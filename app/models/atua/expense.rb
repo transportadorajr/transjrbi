@@ -1,5 +1,7 @@
 module Atua
   class Expense < ApplicationRecord
+    include Sortable
+
     include Importable
 
     ALLOCATION_TYPES = {
@@ -10,6 +12,8 @@ module Atua
     UNLOADING_HISTORY_CODES = [72, 474].freeze
     FUEL_HISTORY_CODES = [11, 396, 482].freeze
     UNLOADING_DOCUMENT_NUMBER = /\A\s*(\d{3,7})(?:\.0)?\s*(?:-?\s*(?:chapa\s+guia|guia|chapa))?\s*\z/i
+
+    sortable :payee_name
 
     belongs_to :cost_object, polymorphic: true, optional: true
     belongs_to :vehicle, class_name: 'Atua::Vehicle', foreign_key: %i[tenant_id plate], primary_key: %i[tenant_id plate],

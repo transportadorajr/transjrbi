@@ -11,8 +11,8 @@ class ManifestsController < BaseController
     manifests = current_tenant.atua_manifests.active
     counted_manifests = apply_scopes(manifests, params.except(:status))
 
-    @manifests = apply_scopes(manifests)
-      .order(Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc)
+    @manifests = apply_sort(apply_scopes(manifests).with_freight_totals, Atua::Manifest.arel_table[:issued_on].desc.nulls_last,
+                            id: :desc, except: hidden_sort_columns)
       .page(params[:page])
     @total_count = counted_manifests.count
     @valid_count = counted_manifests.not_canceled.count
@@ -29,6 +29,10 @@ class ManifestsController < BaseController
   end
 
   private
+
+  def hidden_sort_columns
+    can?(:read, :freight_expenses) ? [] : %w[net]
+  end
 
   def load_net_freight
     transport_documents = @manifest.transport_documents.merge(Atua::ManifestDocument.active)

@@ -11,8 +11,7 @@ class ExpensesController < BaseController
 
     expenses = current_tenant.atua_expenses.active
 
-    @expenses = apply_scopes(expenses)
-      .order(Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc)
+    @expenses = apply_sort(apply_scopes(expenses), Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc)
       .page(params[:page])
     @histories = expenses.where.not(history_code: nil).distinct.order(:history_name, :history_code).pluck(:history_name, :history_code)
   end

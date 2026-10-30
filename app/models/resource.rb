@@ -1,5 +1,9 @@
 class Resource < ApplicationRecord
+  include Sortable
+
   SLUG_FORMAT = /\A[a-z][a-z0-9_]*\z/
+
+  sortable :name
 
   has_many :accesses, dependent: :restrict_with_error
 

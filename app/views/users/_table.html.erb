@@ -2,7 +2,7 @@
   <table class="table app-table align-middle mb-0">
     <thead>
       <tr>
-        <th><%= User.human_attribute_name(:name) %></th>
+        <%= sortable_header(User.human_attribute_name(:name), :name) %>
         <th class="d-none d-lg-table-cell"><%= User.human_attribute_name(:phone) %></th>
         <th class="d-none d-md-table-cell"><%= User.human_attribute_name(:user_type) %></th>
         <th><%= User.human_attribute_name(:status) %></th>

@@ -158,6 +158,9 @@ pt-BR:
         status_type: Situação
         calculated_at: Calculado em
       atua/transport_document:
+        customer_name: Cliente
+        gross: Frete bruto
+        net: Frete líquido
         number: Número
         series: Série
         document_kind: Tipo do documento
@@ -199,6 +202,10 @@ pt-BR:
         icms_base: Base do ICMS
         icms: ICMS
       atua/manifest:
+        customer_name: Cliente
+        driver_name: Motorista
+        gross: Frete bruto
+        net: Frete líquido
         number: Número
         series: Série
         model: Modelo
@@ -795,6 +802,7 @@ pt-BR:
     clear_filters: Limpar Filtros
     close: Fechar
     filters: Filtros
+    sort_by: Ordenar por
     select2:
       clear: Limpar seleção
       no_results: Nenhum resultado encontrado

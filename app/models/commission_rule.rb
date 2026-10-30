@@ -1,7 +1,11 @@
 class CommissionRule < ApplicationRecord
+  include Sortable
+
   FOREIGN_STATE = 'EX'.freeze
   DESTINATIONS = %i[national foreign].freeze
   BASES = %i[freight freight_without_icms].freeze
+
+  sortable :name
 
   belongs_to :tenant
   belongs_to :customer_group, inverse_of: :commission_rules

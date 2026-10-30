@@ -4,9 +4,12 @@
       <tr>
         <th><%= Atua::Manifest.human_attribute_name(:number) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::Manifest.human_attribute_name(:issued_on) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::Manifest.human_attribute_name(:departure_on) %></th>
+        <th class="d-none d-xl-table-cell"><%= Atua::Manifest.human_attribute_name(:departure_on) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::Manifest.human_attribute_name(:plate) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::Manifest.human_attribute_name(:goods_value) %></th>
+        <%= sortable_header(Atua::Manifest.human_attribute_name(:customer_name), :customer_name, class: 'd-none d-lg-table-cell') %>
+        <%= sortable_header(Atua::Manifest.human_attribute_name(:driver_name), :driver_name, class: 'd-none d-lg-table-cell') %>
+        <%= sortable_header(Atua::Manifest.human_attribute_name(:gross), :gross, first_direction: :desc, class: 'd-none d-md-table-cell') %>
+        <%= freight_net_header(Atua::Manifest, class: 'd-none d-md-table-cell') %>
         <th><%= Atua::Manifest.human_attribute_name(:situation) %></th>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>

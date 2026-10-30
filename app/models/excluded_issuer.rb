@@ -1,4 +1,8 @@
 class ExcludedIssuer < ApplicationRecord
+  include Sortable
+
+  sortable :name
+
   belongs_to :tenant
 
   validates :code, :name, presence: true

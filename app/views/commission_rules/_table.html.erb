@@ -2,7 +2,7 @@
   <table class="table app-table align-middle mb-0">
     <thead>
       <tr>
-        <th><%= CommissionRule.human_attribute_name(:name) %></th>
+        <%= sortable_header(CommissionRule.human_attribute_name(:name), :name) %>
         <th class="d-none d-md-table-cell"><%= CommissionRule.human_attribute_name(:customer_group) %></th>
         <th class="d-none d-lg-table-cell"><%= CommissionRule.human_attribute_name(:destination_type) %></th>
         <th class="d-none d-lg-table-cell"><%= CommissionRule.human_attribute_name(:base_type) %></th>

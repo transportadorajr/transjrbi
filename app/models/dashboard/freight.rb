@@ -49,6 +49,12 @@ module Dashboard
       end
     end
 
+    SORT_VALUES = {
+      'label' => ->(row) { I18n.transliterate(row.label).downcase },
+      'gross' => ->(row) { row.gross.cents },
+      'net' => ->(row) { row.net.cents },
+    }.freeze
+
     attr_reader :dimension, :period
 
     class << self
@@ -80,6 +86,14 @@ module Dashboard
 
     def rows
       @rows ||= grouped_rows(entries)
+    end
+
+    def sorted_rows(column, direction)
+      return rows unless SORT_VALUES.key?(column.to_s)
+
+      sorted = rows.sort_by { |row| [SORT_VALUES.fetch(column.to_s).call(row), row.key] }
+
+      direction.to_s == 'desc' ? sorted.reverse : sorted
     end
 
     def row_for(key)
@@ -127,8 +141,8 @@ module Dashboard
 
     def issued_facts(range)
       issued_documents(range)
-        .pluck(table[:issued_at], table[:freight_cents], Arel::Nodes::Grouping.new(freight_expenses_total.arel),
-               Arel::Nodes::Grouping.new(expenses_total.arel), Atua::TransportDocument.freight_toll)
+        .pluck(table[:issued_at], table[:freight_cents], Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
+               Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel), Atua::TransportDocument.freight_toll)
         .map do |issued_at, freight_cents, freight_expenses_cents, expenses_cents, toll_cents|
           IssuedFact.new(issued_on: issued_at.to_date, freight_cents:, net_cents: freight_cents - freight_expenses_cents - expenses_cents - toll_cents)
         end
@@ -243,8 +257,8 @@ module Dashboard
         table[:issued_at],
         Arel.sql('first_trips.loaded_km'),
         table[:freight_cents],
-        Arel::Nodes::Grouping.new(freight_expenses_total.arel),
-        Arel::Nodes::Grouping.new(expenses_total.arel),
+        Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
+        Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel),
         Atua::TransportDocument.freight_toll,
         table[:plate],
         table[:driver_code],
@@ -278,20 +292,6 @@ module Dashboard
           LIMIT 1
         ) first_trips ON TRUE
       SQL
-    end
-
-    def freight_expenses_total
-      FreightExpense.where(FreightExpense.arel_table[:transport_document_id].eq(table[:id]))
-        .select(sum_of(FreightExpense.arel_table[:amount_cents]))
-    end
-
-    def expenses_total
-      Atua::Expense.active.freight.where(Atua::Expense.arel_table[:cost_object_id].eq(table[:id]))
-        .select(sum_of(Atua::Expense.arel_table[:total_cents]))
-    end
-
-    def sum_of(column)
-      Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
     end
 
     def build_row(key, label, grouped)

@@ -259,6 +259,12 @@ end
 - Use other views in this pattern to development a new view.
 - Use this pattern for every screen that has options/actions in listing tables, because it keeps the UI responsive for both web and mobile.
 
+- Listing tables are sorted on the server through a link in the `<th>`, with the sort kept in the URL (`?sort=name&direction=asc`) and Kaminari paginating the sorted relation:
+  - Whitelist each column in the model with `include Sortable` and `sortable :name` (pass a lambda for a computed column). Text columns are compared accent and case insensitively.
+  - In the controller, replace `.order(...)` with `apply_sort(relation, ...)`, passing the default order, which must end in a unique column so pagination stays stable. Pass `except:` for a column the user may not see.
+  - Render the header with `sortable_header(label, :column)`, using `first_direction: :desc` for monetary columns. Filter forms keep the sort through `<%= sort_fields %>`, and a screen whose sortable columns are hidden on a phone adds `sort_menu(columns)` to the table card header.
+  - Listings sort by name, except the dashboard, CT-e and manifest screens, which also sort by customer/driver, gross and net.
+
 - The last column of every listing table (the actions column) must always be right-aligned. Set `class: "text-end"` on both the `<th>` and `<td>` of the actions column.
 
 - Whenever a listing screen requires filters, use a Bootstrap Modal. The modal is rendered via a `_filters.html.erb` partial. Add a filter button using the `link_to_filters` helper (which renders a funnel icon) with `btn-outline-secondary` style, positioned to the left of the insert/new button. The modal must contain a `form_with` that submits a GET request to the index action, passing the filter parameters. For status select fields in filters, always use `Model.statuses` to populate the options (e.g., `Passport.statuses`). All filter modals must follow the standardized layout:

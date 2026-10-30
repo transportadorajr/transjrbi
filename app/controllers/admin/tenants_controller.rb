@@ -5,7 +5,7 @@ module Admin
     before_action :set_tenant, only: %i[edit update]
 
     def index
-      @tenants = apply_scopes(Tenant.preload(:owner)).order(:name).page(params[:page])
+      @tenants = apply_sort(apply_scopes(Tenant.preload(:owner)), :name, :id).page(params[:page])
     end
 
     def new

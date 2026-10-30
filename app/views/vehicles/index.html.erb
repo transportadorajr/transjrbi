@@ -13,6 +13,7 @@
         <p class="table-card-title"><%= t('.title') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @vehicles.total_count) %></p>
       </div>
+      <%= sort_menu([[Atua::Vehicle.human_attribute_name(:plate), :plate], [Atua::Vehicle.human_attribute_name(:driver_name), :driver_name]]) %>
     </div>
     <div class="table-card-body">
       <% if @vehicles.any? %>

@@ -13,6 +13,7 @@
         <p class="table-card-title"><%= t('.title') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @expenses.total_count) %></p>
       </div>
+      <%= sort_menu([[Atua::Expense.human_attribute_name(:payee_name), :payee_name]]) %>
     </div>
     <div class="table-card-body">
       <% if @expenses.any? %>

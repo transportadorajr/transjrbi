@@ -2,7 +2,7 @@
   <table class="table app-table align-middle mb-0">
     <thead>
       <tr>
-        <th><%= Resource.human_attribute_name(:name) %></th>
+        <%= sortable_header(Resource.human_attribute_name(:name), :name) %>
         <th class="d-none d-md-table-cell"><%= Resource.human_attribute_name(:slug) %></th>
         <th><%= Resource.human_attribute_name(:writable) %></th>
         <th class="text-end"><%= t('shared.actions') %></th>

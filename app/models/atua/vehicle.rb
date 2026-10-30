@@ -1,5 +1,7 @@
 module Atua
   class Vehicle < ApplicationRecord
+    include Sortable
+
     include Importable
 
     DRIVER_COLUMNS = [
@@ -10,6 +12,9 @@ module Atua
       'COUNT(*) AS vehicles_count',
       "STRING_AGG(atua_vehicles.plate, ', ' ORDER BY atua_vehicles.plate) AS plates",
     ].freeze
+
+    sortable :plate
+    sortable :driver_name
 
     with_options primary_key: %i[tenant_id plate] do
       has_many :trailer_transport_documents, class_name: 'Atua::TransportDocument', foreign_key: %i[tenant_id trailer_plate],

@@ -1,6 +1,10 @@
 class TruckGroup < ApplicationRecord
+  include Sortable
+
   NONE = 'none'.freeze
   AXLE_OPTIONS = (2..9).to_a.freeze
+
+  sortable :name
 
   belongs_to :tenant
   has_many :freight_expenses, inverse_of: :truck_group, dependent: :restrict_with_error

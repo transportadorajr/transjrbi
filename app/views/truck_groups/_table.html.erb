@@ -2,7 +2,7 @@
   <table class="table app-table align-middle mb-0">
     <thead>
       <tr>
-        <th><%= TruckGroup.human_attribute_name(:name) %></th>
+        <%= sortable_header(TruckGroup.human_attribute_name(:name), :name) %>
         <th class="d-none d-md-table-cell"><%= TruckGroup.human_attribute_name(:axles) %></th>
         <th class="d-none d-lg-table-cell"><%= TruckGroup.human_attribute_name(:plates) %></th>
         <th class="d-none d-md-table-cell"><%= TruckGroup.human_attribute_name(:fuel_percentage) %></th>

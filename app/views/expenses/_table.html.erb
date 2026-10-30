@@ -4,7 +4,7 @@
       <tr>
         <th><%= Atua::Expense.human_attribute_name(:history_name) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::Expense.human_attribute_name(:posted_on) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::Expense.human_attribute_name(:payee_name) %></th>
+        <%= sortable_header(Atua::Expense.human_attribute_name(:payee_name), :payee_name, class: 'd-none d-lg-table-cell') %>
         <th class="d-none d-lg-table-cell"><%= Atua::Expense.human_attribute_name(:plate) %></th>
         <th class="d-none d-lg-table-cell"><%= Atua::Expense.human_attribute_name(:allocation) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::Expense.human_attribute_name(:total) %></th>
