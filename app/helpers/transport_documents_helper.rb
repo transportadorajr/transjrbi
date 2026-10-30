@@ -9,6 +9,12 @@ module TransportDocumentsHelper
     menus
   end
 
+  def transport_document_customer_options(customers)
+    customers.map do |customer|
+      [[customer.name, customer.document].compact_blank.join(' - ').presence || customer.code.to_s, customer.code.to_s]
+    end
+  end
+
   def transport_document_route(transport_document)
     t('transport_documents.route',
       origin: tax_city(transport_document.origin_city, transport_document.origin_state),

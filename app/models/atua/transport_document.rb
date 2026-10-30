@@ -59,6 +59,7 @@ module Atua
         .or(where(taker_code: code)).or(where(consignee_code: code))
     }
     scope :by_payer, ->(code) { where(payer_code: code) }
+    scope :by_taker, ->(code) { where(taker_code: code) }
     scope :by_driver, ->(code) { where(driver_code: code) }
     scope :drivers, -> {
       active.where.not(driver_code: nil).group(:driver_code).select(:driver_code, arel_table[:driver_name].maximum.as('driver_name')).order(arel_table[:driver_name].maximum)

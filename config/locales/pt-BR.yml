@@ -946,6 +946,9 @@ pt-BR:
     filters:
       number: Número do CT-e
       plate: Placa
+      driver_code: Motorista
+      customer_group_id: Grupo de clientes
+      customer_code: Cliente
       status: Situação
       start_date: Lançados a partir de
       end_date: Lançados até

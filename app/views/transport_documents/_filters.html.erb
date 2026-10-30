@@ -16,6 +16,29 @@
       </div>
 
       <div class="col-12">
+        <%= f.label :driver_code, t('transport_documents.filters.driver_code'), for: nil, id: 'driver_code_select_label', class: 'form-label fw-medium' %>
+        <%= render 'components/select2', id: 'driver_code_select', name: :driver_code, options: freight_billing_driver_options(@drivers),
+                                         selected: params[:driver_code], placeholder: t('shared.all') %>
+      </div>
+
+      <%= tag.div class: 'col-12', data: { controller: 'dependent-frame', dependent_frame_url_value: customer_options_transport_documents_path,
+                                           dependent_frame_param_value: 'customer_group_id', dependent_frame_selected_param_value: 'customer_code' } do %>
+        <%= f.label :customer_group_id, t('transport_documents.filters.customer_group_id'), for: nil, id: 'customer_group_id_select_label', class: 'form-label fw-medium' %>
+        <%= tag.div data: { action: 'change->dependent-frame#reload' }, class: 'mb-3' do %>
+          <%= render 'components/select2', id: 'customer_group_id_select', name: :customer_group_id,
+                                           options: freight_billing_customer_group_options(@customer_groups),
+                                           selected: params[:customer_group_id], placeholder: t('shared.all') %>
+        <% end %>
+
+        <%= f.label :customer_code, t('transport_documents.filters.customer_code'), for: nil, id: 'customer_code_select_label', class: 'form-label fw-medium' %>
+        <%= turbo_frame_tag 'customer_options', src: customer_options_transport_documents_path(params.permit(:customer_group_id, :customer_code)),
+                                                loading: :lazy, data: { dependent_frame_target: 'frame' } do %>
+          <%= hidden_field_tag :customer_code, params[:customer_code], id: nil %>
+          <%= tag.div t('shared.all'), class: 'form-select bg-light' %>
+        <% end %>
+      <% end %>
+
+      <div class="col-12">
         <%= f.label :status, t('transport_documents.filters.status'), class: 'form-label fw-medium' %>
         <%= f.select :status,
                      Atua::TransportDocument.statuses,
