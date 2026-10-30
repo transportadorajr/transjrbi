@@ -50,8 +50,8 @@ pt-BR:
         one: Rota
         other: Rotas
       empty_leg:
-        one: KM vazio
-        other: KMs vazios
+        one: KM vazio aproximado
+        other: KMs vazios aproximados
       customer_group:
         one: Grupo de clientes
         other: Grupos de clientes
@@ -153,7 +153,7 @@ pt-BR:
         arrival_point: Chegada (coleta)
         origin: Última entrega da viagem anterior
         destination: Primeira coleta desta viagem
-        distance_km: KM vazio
+        distance_km: KM vazio aproximado
         precision_type: Precisão
         status_type: Situação
         calculated_at: Calculado em
@@ -970,7 +970,7 @@ pt-BR:
       expenses: Despesas do frete
       no_expenses: Nenhuma despesa vinculada a este CT-e.
       freight_expenses: Despesas internas do frete
-      empty_legs: KM vazio para chegar à coleta
+      empty_legs: KM vazio aproximado para chegar à coleta
       no_empty_leg: Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.
   manifests:
     index:
@@ -990,7 +990,7 @@ pt-BR:
       back: Voltar para manifestos
       manifest_data: Dados do manifesto
       documents: CT-es do manifesto
-      empty_leg: KM vazio
+      empty_leg: KM vazio aproximado
       no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
       expenses: Despesas da viagem
       no_expenses: Nenhuma despesa vinculada aos CT-es deste manifesto.
@@ -1441,12 +1441,12 @@ pt-BR:
       back: Voltar para veículos
       vehicle_data: Dados do veículo
       ownership_data: Propriedade e motorista
-      empty_legs: Trechos rodados vazios
+      empty_legs: Trechos rodados vazios (KM aproximado)
       no_empty_legs: Nenhum trecho rodado vazio por esta placa.
       expenses: Despesas do veículo
       no_expenses: Nenhuma despesa vinculada a este veículo ou aos fretes dele.
     empty_legs:
-      total: Total de KM vazio
+      total: Total de KM vazio aproximado
     expenses:
       freight_origin: 'CT-e %{number}'
       totals:

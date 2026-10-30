@@ -339,7 +339,7 @@ describe 'Manifests' do
           'Viagem anterior' => '40700',
           'Última entrega da viagem anterior' => 'RUA DAS FLORES 10 - BETIM/MG',
           'Primeira coleta desta viagem' => 'CONTAGEM/MG',
-          'KM vazio' => '23,45 km',
+          'KM vazio aproximado' => '23,45 km',
           'Precisão' => 'Centro da cidade',
           'Calculado em' => '03/10/2026 09:15',
         )
@@ -360,7 +360,7 @@ describe 'Manifests' do
             'Viagem anterior' => '40700',
             'Última entrega da viagem anterior' => 'RUA DAS FLORES 10 - BETIM/MG',
             'Primeira coleta desta viagem' => '-',
-            'KM vazio' => 'Endereço não localizado',
+            'KM vazio aproximado' => 'Endereço não localizado',
             'Precisão' => '-',
             'Calculado em' => '03/10/2026 09:15',
           )
