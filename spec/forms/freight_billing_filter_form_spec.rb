@@ -23,6 +23,10 @@ RSpec.describe FreightBillingFilterForm do
       expect(described_class.preset_period(:month)).to eq(Date.new(2026, 10, 1)..Date.new(2026, 10, 31))
     end
 
+    it 'returns the whole previous month' do
+      expect(described_class.preset_period(:last_month)).to eq(Date.new(2026, 9, 1)..Date.new(2026, 9, 30))
+    end
+
     it 'returns only the current day' do
       expect(described_class.preset_period(:today)).to eq(Date.new(2026, 10, 19)..Date.new(2026, 10, 19))
     end

@@ -1303,6 +1303,7 @@ pt-BR:
     period_presets:
       week: Essa semana
       month: Esse mês
+      last_month: Mês passado
       today: Hoje
     dimensions:
       vehicle: Cavalo

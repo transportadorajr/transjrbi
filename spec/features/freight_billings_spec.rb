@@ -537,6 +537,12 @@ describe 'Freight billing' do
           expect(page).to have_link('Esse mês', class: 'btn-primary')
           expect(page).to have_link('Essa semana', class: 'btn-outline-secondary')
 
+          click_on 'Mês passado'
+
+          expect(page).to have_text('Saídas de 01/09/2026 a 30/09/2026')
+          expect(page).to have_link('Mês passado', class: 'btn-primary')
+          expect(page).to have_link('Esse mês', class: 'btn-outline-secondary')
+
           click_on 'Hoje'
 
           expect(page).to have_text('Saídas de 19/10/2026 a 19/10/2026')
@@ -553,7 +559,7 @@ describe 'Freight billing' do
         visit freight_billing_path(start_date: '2026-10-05', end_date: '2026-10-06')
 
         expect(page).to have_text('Saídas de 05/10/2026 a 06/10/2026')
-        expect(page).to have_no_css('a.btn-primary', text: /\A(Essa semana|Esse mês|Hoje)\z/)
+        expect(page).to have_no_css('a.btn-primary', text: /\A(Essa semana|Esse mês|Mês passado|Hoje)\z/)
       end
 
       scenario 'keeps the other filters and the grouping when choosing a shortcut' do
@@ -696,6 +702,7 @@ describe 'Freight billing' do
 
       expect(page).to have_link('Essa semana')
       expect(page).to have_link('Esse mês')
+      expect(page).to have_link('Mês passado')
       expect(page).to have_link('Hoje')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
