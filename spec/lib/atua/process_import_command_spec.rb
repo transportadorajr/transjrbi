@@ -40,8 +40,8 @@ RSpec.describe Atua::ProcessImportCommand do
     end
   end
 
-  it 'does not calculate the commissions after importing manifests' do
-    expect { described_class.call(import) }.not_to have_enqueued_job(FreightExpenses::CalculateJob)
+  it 'recalculates the freight expenses after importing manifests' do
+    expect { described_class.call(import) }.to have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
   end
 
   %w[customers transport_documents].each do |report_type|

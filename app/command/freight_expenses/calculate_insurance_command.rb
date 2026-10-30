@@ -46,7 +46,7 @@ module FreightExpenses
     end
 
     def documents
-      tenant.atua_transport_documents.commissionable
+      tenant.atua_transport_documents.commissionable.with_valid_manifest
         .pluck(:id, :goods_value_cents, :freight_cents, :destination_state)
     end
 

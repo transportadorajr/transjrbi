@@ -2,7 +2,7 @@ module Atua
   class ProcessImportCommand
     EMPTY_LEG_REPORTS = %w[manifests transport_documents].freeze
     EXPENSE_LINK_REPORTS = %w[expenses transport_documents vehicles].freeze
-    COMMISSION_REPORTS = %w[customers transport_documents].freeze
+    COMMISSION_REPORTS = %w[customers manifests transport_documents].freeze
 
     class << self
       def call(import)

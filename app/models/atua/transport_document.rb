@@ -78,6 +78,9 @@ module Atua
       active.not_canceled.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'])
         .where(arel_table[:issue_kind].is_distinct_from(VALUE_COMPLEMENT))
     }
+    scope :with_valid_manifest, -> {
+      where(id: joins(:manifests).merge(TransportDocumentManifest.active).merge(Manifest.active.not_canceled).select(:id))
+    }
     scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
     scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
     scope :by_axles, ->(axles) { where(axles:) }

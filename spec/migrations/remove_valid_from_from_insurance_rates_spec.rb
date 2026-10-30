@@ -16,6 +16,9 @@ RSpec.describe RemoveValidFromFromInsuranceRates do
     end
 
     before do
+      manifest = create(:atua_manifest, tenant:)
+      create(:atua_transport_document_manifest, tenant:, transport_document_code: document.code, manifest_number: manifest.number,
+                                                branch_name: manifest.branch_name)
       migration.down
       InsuranceRate.reset_column_information
     end
