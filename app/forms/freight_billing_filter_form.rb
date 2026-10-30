@@ -1,5 +1,6 @@
 class FreightBillingFilterForm < BaseForm
   WEEK_START = :sunday
+  PERIOD_PRESETS = %i[week month today].freeze
   TRUCK_GROUP_ID_FORMAT = /\A(\d+|#{TruckGroup::NONE})\z/
 
   attribute :start_date, :date
@@ -15,6 +16,18 @@ class FreightBillingFilterForm < BaseForm
   validates :dimension, inclusion: { in: Dashboard::Freight::DIMENSIONS }
   validates :truck_group_id, format: { with: TRUCK_GROUP_ID_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
+
+  class << self
+    def preset_period(preset)
+      today = Date.current
+
+      case preset
+      when :week then today.all_week(WEEK_START)
+      when :month then today.all_month
+      when :today then today..today
+      end
+    end
+  end
 
   def initialize(attributes = {})
     super
@@ -32,8 +45,9 @@ class FreightBillingFilterForm < BaseForm
     self.dimension = Dashboard::Freight::DEFAULT_DIMENSION if dimension.blank?
     return if start_date || end_date
 
-    self.start_date = Date.current.beginning_of_week(WEEK_START)
-    self.end_date = Date.current.end_of_week(WEEK_START)
+    week = self.class.preset_period(:week)
+    self.start_date = week.first
+    self.end_date = week.last
   end
 
   def end_date_must_not_precede_start_date

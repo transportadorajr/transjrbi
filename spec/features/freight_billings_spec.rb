@@ -514,6 +514,59 @@ describe 'Freight billing' do
         expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
       end
 
+      scenario 'keeps the period fields inside the filters modal and the shortcuts outside it' do
+        visit freight_billing_path(october)
+
+        expect(page).to have_css('#filtersModal input[type="date"]', count: 2, visible: :all)
+        expect(page).to have_link('Hoje')
+        expect(page).to have_no_css('#filtersModal a', text: 'Hoje', visible: :all)
+      end
+
+      scenario 'switches the period through the shortcuts highlighting the selected one' do
+        travel_to(Date.new(2026, 10, 19)) do
+          visit freight_billing_path
+
+          expect(page).to have_link('Essa semana', class: 'btn-primary')
+          expect(page).to have_link('Esse mês', class: 'btn-outline-secondary')
+
+          click_on 'Esse mês'
+
+          expect(page).to have_text('Saídas de 01/10/2026 a 31/10/2026')
+          expect(page).to have_field('Saídas a partir de', with: '2026-10-01')
+          expect(page).to have_field('Saídas até', with: '2026-10-31')
+          expect(page).to have_link('Esse mês', class: 'btn-primary')
+          expect(page).to have_link('Essa semana', class: 'btn-outline-secondary')
+
+          click_on 'Hoje'
+
+          expect(page).to have_text('Saídas de 19/10/2026 a 19/10/2026')
+          expect(page).to have_link('Hoje', class: 'btn-primary')
+
+          click_on 'Essa semana'
+
+          expect(page).to have_text('Saídas de 18/10/2026 a 24/10/2026')
+          expect(page).to have_link('Essa semana', class: 'btn-primary')
+        end
+      end
+
+      scenario 'highlights no shortcut on a custom period' do
+        visit freight_billing_path(start_date: '2026-10-05', end_date: '2026-10-06')
+
+        expect(page).to have_text('Saídas de 05/10/2026 a 06/10/2026')
+        expect(page).to have_no_css('a.btn-primary', text: /\A(Essa semana|Esse mês|Hoje)\z/)
+      end
+
+      scenario 'keeps the other filters and the grouping when choosing a shortcut' do
+        travel_to(Date.new(2026, 10, 19)) do
+          visit freight_billing_path(october.merge(dimension: 'driver', plate: 'RVR8J90'))
+          click_on 'Hoje'
+
+          expect(page).to have_text('Saídas de 19/10/2026 a 19/10/2026')
+          expect(Rack::Utils.parse_query(URI(page.current_url).query)).to eq('dimension' => 'driver', 'plate' => 'RVR8J90',
+                                                                             'start_date' => '2026-10-19', 'end_date' => '2026-10-19')
+        end
+      end
+
       context 'when the trucks spent diesel and arla in the last twelve months' do
         let!(:rented_trip) do
           create(:atua_manifest, tenant:, code: 41_003, plate: 'PUR1A81', trip_started_at: Time.zone.local(2026, 10, 12, 8))
@@ -634,6 +687,16 @@ describe 'Freight billing' do
       expect(card_tops.uniq.size).to eq(4)
       expect(option_tops.uniq.size).to eq(1)
       expect(filter_top).to be <= title_top
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    scenario 'shows the period shortcuts without opening the modal or scrolling sideways' do
+      use_mobile_screen(width: 360)
+      visit freight_billing_path(october)
+
+      expect(page).to have_link('Essa semana')
+      expect(page).to have_link('Esse mês')
+      expect(page).to have_link('Hoje')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end

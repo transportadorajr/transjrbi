@@ -8,6 +8,13 @@
 
   <%= render 'filters' %>
 
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <% freight_billing_period_presets.each do |preset| %>
+      <%= link_to freight_billing_period_preset_label(preset), freight_billing_period_preset_path(preset),
+                  class: freight_billing_period_preset_link_class(preset, @filter_form) %>
+    <% end %>
+  </div>
+
   <div class="dashboard-filter-bar mb-4">
     <span class="dashboard-filter-label"><%= t('.group_by') %></span>
 

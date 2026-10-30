@@ -1300,6 +1300,10 @@ pt-BR:
     filters:
       truck_group_hint: Pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo
+    period_presets:
+      week: Essa semana
+      month: Esse mês
+      today: Hoje
     dimensions:
       vehicle: Cavalo
       driver: Motorista

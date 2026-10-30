@@ -32,6 +32,26 @@ module FreightBillingsHelper
     "btn btn-sm #{variation}"
   end
 
+  def freight_billing_period_presets
+    FreightBillingFilterForm::PERIOD_PRESETS
+  end
+
+  def freight_billing_period_preset_label(preset)
+    t(preset, scope: 'freight_billings.period_presets')
+  end
+
+  def freight_billing_period_preset_path(preset)
+    period = FreightBillingFilterForm.preset_period(preset)
+
+    freight_billing_path(**request.query_parameters.symbolize_keys, start_date: period.first, end_date: period.last)
+  end
+
+  def freight_billing_period_preset_link_class(preset, filter_form)
+    variation = FreightBillingFilterForm.preset_period(preset) == filter_form.period ? 'btn-primary' : 'btn-outline-secondary'
+
+    "btn btn-sm btn-round #{variation}"
+  end
+
   def freight_billing_customer_group_options(customer_groups)
     customer_groups.map { |customer_group| [customer_group.name, customer_group.id.to_s] }
   end
