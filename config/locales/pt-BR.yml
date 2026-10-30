@@ -1288,6 +1288,7 @@ pt-BR:
       total: Total
       gross: Frete bruto
       net: Frete líquido
+      without_admission: Sem Admissão
       none:
         vehicle: Sem placa
         driver: Sem motorista

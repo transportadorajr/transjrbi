@@ -9,6 +9,9 @@ module Dashboard
     NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
     NAME_PARTICLES = %w[DA DAS DE DO DOS E].freeze
     COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
+    CHART_EXCLUDED_PLATES = %w[INT6R00].freeze
+    CHART_EXCLUDED_DRIVERS = ['JECI FERREIRA DE SOUZA JUNIOR'].freeze
+    CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
     ENTRY_ATTRIBUTES = %i[manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
@@ -83,13 +86,13 @@ module Dashboard
     end
 
     def rows
-      @rows ||= entries.group_by { |entry| key_for(entry) }
-        .map { |key, grouped| build_row(label_for(key, grouped), grouped) }
-        .sort_by { |row| [-row.gross.cents, row.label] }
+      @rows ||= grouped_rows(entries)
     end
 
     def ranking_rows
-      rows.first(RANKING_LIMIT)
+      @ranking_rows ||= grouped_rows(entries.reject { |entry| chart_excluded?(entry) })
+        .first(RANKING_LIMIT)
+        .map { |row| row.with(label: chart_label(row.label)) }
     end
 
     def ranking_data
@@ -155,6 +158,26 @@ module Dashboard
         complements.map { |fact| complement_entry(fact) } +
           trips.group_by(&:manifest_code).values.flat_map { |trip_facts| trip_entries(trip_facts) }
       end
+    end
+
+    def grouped_rows(grouped_entries)
+      grouped_entries.group_by { |entry| key_for(entry) }
+        .map { |key, grouped| build_row(label_for(key, grouped), grouped) }
+        .sort_by { |row| [-row.gross.cents, row.label] }
+    end
+
+    def chart_excluded?(entry)
+      CHART_EXCLUDED_PLATES.include?(normalized(entry.plate)) || CHART_EXCLUDED_DRIVERS.include?(normalized(entry.driver_name))
+    end
+
+    def chart_label(label)
+      renamed = CHART_RENAMED_DRIVERS[normalized(label)] if dimension == 'driver'
+
+      renamed ? I18n.t(renamed) : label
+    end
+
+    def normalized(value)
+      value.to_s.squish.upcase
     end
 
     def complement_entry(fact)

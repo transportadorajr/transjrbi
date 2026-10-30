@@ -61,6 +61,18 @@ describe 'Freight billing' do
     end
 
     context 'when there are trips and complements' do
+      def ranking_bar_labels
+        expect(page).to have_css('.chart-card canvas', count: 2)
+
+        page.document.synchronize do
+          page.evaluate_script(
+            '(Object.values(Chartkick.charts)[0].getChartObject().$datalabels?._labels || [])' \
+            '.filter((label) => label.$layout?._visible)' \
+            '.map((label) => [label._model.lines.join(" "), label._model.color])',
+          ).presence || raise(Capybara::ExpectationNotMet)
+        end
+      end
+
       let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
       let!(:grouped_taker) { create(:atua_customer, tenant:, code: 7100, customer_group: usiminas) }
       let!(:loose_taker) { create(:atua_customer, tenant:, code: 7200) }
@@ -144,6 +156,48 @@ describe 'Freight billing' do
           ],
         )
         expect(page).to have_no_text('OUT1A11')
+      end
+
+      context 'when a truck billed too little to hold its value inside the bar' do
+        before do
+          create(:atua_manifest, tenant:, code: 41_010, plate: 'RVR1A11', trip_started_at: Time.zone.local(2026, 10, 12, 7))
+          create(:atua_transport_document, tenant:, number: '74010', freight_cents: 30_000, plate: 'RVR1A11', driver_code: 30,
+                                           driver_name: 'PAULO DIAS')
+          create(:atua_manifest_document, tenant:, manifest_code: 41_010, transport_document_number: '74010', calculated_distance_km: 50)
+        end
+
+        scenario 'writes the value inside the bars that hold it and beside the short ones in the color of the bar', :js do
+          visit freight_billing_path(october)
+
+          expect(Atua::TransportDocument.count).to eq(6)
+          expect(ranking_bar_labels).to contain_exactly(
+            ['R$ 15.000,00', '#ffffff'], ['R$ 5.000,00', '#ffffff'], ['R$ 300,00', '#2563eb'],
+            ['R$ 14.100,00', '#ffffff'], ['R$ 5.000,00', '#ffffff'], ['R$ 300,00', '#eb6834']
+          )
+        end
+
+        context 'when the ranking lists fifteen trucks' do
+          before do
+            12.times do |index|
+              plate = "RVR3B#{index.to_s.rjust(2, '0')}"
+              number = (75_000 + index).to_s
+              create(:atua_manifest, tenant:, code: 42_000 + index, plate:, trip_started_at: Time.zone.local(2026, 10, 12, 7))
+              document = create(:atua_transport_document, tenant:, number:, freight_cents: 250_000 - (index * 10_000), plate:)
+              create(:freight_expense, tenant:, transport_document: document, amount_cents: 200_000 - (index * 10_000))
+              create(:atua_manifest_document, tenant:, manifest_code: 42_000 + index, transport_document_number: number,
+                                              calculated_distance_km: 50)
+            end
+          end
+
+          scenario 'writes the net freight of every truck even when its value sits beside a short bar', :js do
+            visit freight_billing_path(october)
+
+            expect(Atua::TransportDocument.count).to eq(18)
+            expect(ranking_bar_labels.size).to eq(30)
+            expect(ranking_bar_labels).to include(['R$ 14.100,00', '#ffffff'], ['R$ 2.500,00', '#ffffff'])
+            expect(ranking_bar_labels.count(['R$ 500,00', '#eb6834'])).to eq(12)
+          end
+        end
       end
 
       scenario 'groups the freight by driver keeping the period' do
