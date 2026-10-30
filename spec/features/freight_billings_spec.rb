@@ -63,7 +63,7 @@ describe 'Freight billing' do
       end
 
       scenario 'sorts by the label, the gross and the net keeping the filters' do
-        visit freight_billing_path(october)
+        visit freight_billing_path(october_by_truck)
         rows = -> { html_table_to_rows(table: find('.freight-billing-table')).drop(1).map(&:first) }
 
         expect(Atua::TransportDocument.count).to eq(2)
