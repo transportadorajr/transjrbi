@@ -24,11 +24,13 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
     end
 
     before do
-      create(:atua_transport_document, tenant:, number: '76003', document_kind: 'ce', goods_value_cents: 100_000)
-      create(:atua_transport_document, tenant:, number: '76004', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT,
-                                       goods_value_cents: 100_000)
-      create(:atua_transport_document, tenant:, number: '76005', canceled_at: Time.current, goods_value_cents: 100_000)
-      create(:atua_transport_document, tenant: create(:tenant), number: '76006', goods_value_cents: 100_000)
+      link_to_manifest(national)
+      link_to_manifest(international)
+      link_to_manifest(create(:atua_transport_document, tenant:, number: '76003', document_kind: 'ce', goods_value_cents: 100_000))
+      link_to_manifest(create(:atua_transport_document, tenant:, number: '76004', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT,
+                                                        goods_value_cents: 100_000))
+      link_to_manifest(create(:atua_transport_document, tenant:, number: '76005', canceled_at: Time.current, goods_value_cents: 100_000))
+      link_to_manifest(create(:atua_transport_document, tenant: create(:tenant), number: '76006', goods_value_cents: 100_000))
     end
 
     it 'records the insurance of each transport document adding the IOF on the international ones' do
@@ -77,6 +79,62 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 0, removed: 1))
       expect(FreightExpense.exists?(transport_document: international)).to be(false)
     end
+
+    context 'with a transport document without a manifest' do
+      let!(:without_manifest) { create(:atua_transport_document, tenant:, number: '76007', goods_value_cents: 100_000) }
+
+      it 'does not record the insurance' do
+        expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
+        expect(FreightExpense.exists?(transport_document: without_manifest)).to be(false)
+      end
+
+      it 'records the insurance once the transport document is linked to a manifest' do
+        described_class.call(tenant)
+        link_to_manifest(without_manifest)
+
+        expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 1, removed: 0))
+        expect(FreightExpense.exists?(transport_document: without_manifest)).to be(true)
+      end
+    end
+
+    context 'with a transport document linked only to a canceled manifest' do
+      let!(:on_canceled_manifest) { create(:atua_transport_document, tenant:, number: '76008', goods_value_cents: 100_000) }
+
+      before { link_to_manifest(on_canceled_manifest, status: Atua::Manifest::CANCELED_STATUS) }
+
+      it 'does not record the insurance' do
+        described_class.call(tenant)
+
+        expect(FreightExpense.exists?(transport_document: on_canceled_manifest)).to be(false)
+      end
+    end
+
+    context 'with a transport document linked to a manifest removed from Atua' do
+      let!(:on_removed_manifest) { create(:atua_transport_document, tenant:, number: '76009', goods_value_cents: 100_000) }
+
+      before { link_to_manifest(on_removed_manifest, removed_from_atua_at: Time.current) }
+
+      it 'does not record the insurance' do
+        described_class.call(tenant)
+
+        expect(FreightExpense.exists?(transport_document: on_removed_manifest)).to be(false)
+      end
+    end
+
+    it 'removes the insurance of a transport document whose manifest is canceled afterwards' do
+      manifest = link_to_manifest(create(:atua_transport_document, tenant:, number: '76010', goods_value_cents: 100_000))
+      described_class.call(tenant)
+      manifest.update!(status: Atua::Manifest::CANCELED_STATUS)
+
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 0, removed: 1))
+    end
+  end
+
+  def link_to_manifest(document, **manifest_attributes)
+    manifest = create(:atua_manifest, tenant: document.tenant, **manifest_attributes)
+    create(:atua_transport_document_manifest, tenant: document.tenant, transport_document_code: document.code,
+                                              manifest_number: manifest.number, branch_name: manifest.branch_name)
+    manifest
   end
 
   def expense_values(expense)

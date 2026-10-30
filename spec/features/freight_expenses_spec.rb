@@ -254,6 +254,11 @@ describe 'Freight expenses' do
     end
 
     before do
+      [to_minas, to_rosario].each do |document|
+        manifest = create(:atua_manifest, tenant:)
+        create(:atua_transport_document_manifest, tenant:, transport_document_code: document.code, manifest_number: manifest.number,
+                                                  branch_name: manifest.branch_name)
+      end
       FreightExpenses::CalculateInsuranceCommand.call(tenant)
       login_as(admin, scope: :user)
     end

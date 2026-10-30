@@ -8,6 +8,12 @@ RSpec.describe InsuranceRates::BackfillCommand do
       create(:atua_transport_document, tenant:, goods_value_cents: 838_998, freight_cents: 55_504, issued_at: Time.zone.local(2026, 9, 3, 8))
     end
 
+    before do
+      manifest = create(:atua_manifest, tenant:)
+      create(:atua_transport_document_manifest, tenant:, transport_document_code: document.code, manifest_number: manifest.number,
+                                                branch_name: manifest.branch_name)
+    end
+
     it 'creates the default rate and calculates the insurance' do
       expect { described_class.call(tenant) }.to change(InsuranceRate, :count).by(1)
 

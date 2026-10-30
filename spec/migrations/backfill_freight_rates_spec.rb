@@ -35,6 +35,9 @@ RSpec.describe BackfillFreightRates do
     end
 
     it 'recalculates the freight expenses of the transport document' do
+      manifest = create(:atua_manifest, tenant:)
+      create(:atua_transport_document_manifest, tenant:, transport_document_code: document.code, manifest_number: manifest.number,
+                                                branch_name: manifest.branch_name)
       migration.up
 
       expenses = tenant.freight_expenses.where(transport_document: document).index_by(&:kind_type)
