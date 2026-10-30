@@ -4,6 +4,7 @@ module Dashboard
     DEFAULT_DIMENSION = 'vehicle'.freeze
     HISTORY_MONTHS = 6
     RANKING_LIMIT = 15
+    TOTAL_KEY = 'total'.freeze
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
     ABBREVIATED_DIMENSIONS = %w[driver customer_group].freeze
     NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
@@ -39,8 +40,14 @@ module Dashboard
 
     IssuedFact = Data.define(:issued_on, :freight_cents, :net_cents)
 
-    Row = Data.define(:label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :net, :gross_per_km, :net_per_km,
-                      :share)
+    Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :net, :gross_per_km, :net_per_km,
+                      :share) do
+      extend ActiveModel::Naming
+
+      def confirmation_name
+        label
+      end
+    end
 
     attr_reader :dimension, :period
 
@@ -60,7 +67,7 @@ module Dashboard
     delegate :empty?, to: :entries
 
     def total
-      @total ||= build_row(I18n.t('dashboards.freight.total'), entries)
+      @total ||= build_row(TOTAL_KEY, I18n.t('dashboards.freight.total'), entries)
     end
 
     def gross
@@ -73,6 +80,12 @@ module Dashboard
 
     def rows
       @rows ||= grouped_rows(entries)
+    end
+
+    def row_for(key)
+      return total if key == TOTAL_KEY
+
+      rows.find { |row| row.key == key.to_s }
     end
 
     def ranking_rows
@@ -154,7 +167,7 @@ module Dashboard
 
     def grouped_rows(grouped_entries)
       grouped_entries.group_by { |entry| key_for(entry) }
-        .map { |key, grouped| build_row(label_for(key, grouped), grouped) }
+        .map { |key, grouped| build_row(Array(key).join('|'), label_for(key, grouped), grouped) }
         .sort_by { |row| [-row.gross.cents, row.label] }
     end
 
@@ -285,7 +298,7 @@ module Dashboard
       Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
     end
 
-    def build_row(label, grouped)
+    def build_row(key, label, grouped)
       measured = grouped.select(&:measured?)
       measured_km = measured.sum(BigDecimal('0'), &:loaded_km)
       gross_cents = grouped.sum(&:freight_cents)
@@ -294,6 +307,7 @@ module Dashboard
       toll_cents = grouped.sum(&:toll_cents)
 
       Row.new(
+        key:,
         label:,
         trips_count: grouped.sum(BigDecimal('0'), &:weight).round(2),
         loaded_km: grouped.sum(BigDecimal('0'), &:loaded_km).round(2),

@@ -4,24 +4,36 @@ class FreightBillingsController < BaseController
   has_scope :by_customer_group, as: :customer_group_id
   has_scope :by_origin_macro_region, as: :macro_region_id
 
+  before_action :load_dashboard
+
   def show
+    @drivers = current_tenant.atua_transport_documents.drivers
+    @customer_groups = current_tenant.customer_groups.order(:name)
+    @macro_regions = current_tenant.macro_regions.order(:name)
+    @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
+    @rows = Kaminari.paginate_array(@dashboard.rows).page(params[:page])
+  end
+
+  def detail
+    @row = @dashboard.row_for(params[:key])
+
+    redirect_to(freight_billing_path(filter_params), alert: t('.row_not_found')) unless @row
+  end
+
+  private
+
+  def load_dashboard
     authorize!(:read, :freight_billing)
 
     @filter_form = FreightBillingFilterForm.new(filter_params)
     return redirect_to(freight_billing_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
-    @drivers = current_tenant.atua_transport_documents.drivers
-    @customer_groups = current_tenant.customer_groups.order(:name)
-    @macro_regions = current_tenant.macro_regions.order(:name)
     @truck_groups = current_tenant.truck_groups.activated.order(:name)
-    @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
     @dashboard = Dashboard::Freight.new(documents,
                                         manifests: current_tenant.atua_manifests,
                                         dimension: @filter_form.dimension,
                                         period: @filter_form.period)
   end
-
-  private
 
   def documents
     documents = apply_scopes(current_tenant.atua_transport_documents).without_issuers(current_tenant.excluded_issuers.select(:code))
