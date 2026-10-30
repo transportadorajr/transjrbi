@@ -91,6 +91,34 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
       end
     end
 
+    context 'with documents issued from Juiz de Fora' do
+      let(:spreadsheet) do
+        fixture = read_atua_fixture(:transport_documents)
+        juiz_de_fora = { 'nm_cidade_origem' => 'JUIZ DE FORA', 'ds_uf_origem' => 'MG', 'cd_cidade_origem' => 1234 }
+        rows = [
+          [80_842, 'CE', 'ARCELORMITTAL BRASIL S.A.'],
+          [80_848, 'CTRC', 'ARCELORMITTAL BRASIL S.A.'],
+          [80_909, 'CE', 'USIMINAS'],
+        ].map do |code, kind, taker|
+          fixture.rows.find { |row| row['cd_ctrc'].to_i == code }.merge(juiz_de_fora, 'id_sintegra' => kind, 'nm_pessoa_tomador' => taker)
+        end
+        atua_spreadsheet(headers: fixture.headers, rows:)
+      end
+
+      it 'moves the origin of an Arcelor CE to Foz do Iguacu and keeps the issued one in raw_data' do
+        expect(document(80_842)).to include(origin_city: 'FOZ DO IGUACU', origin_state: 'PR', origin_city_code: 2946)
+        expect(document(80_842)[:raw_data]).to include('nm_cidade_origem' => 'JUIZ DE FORA')
+      end
+
+      it 'keeps the origin of an Arcelor CT-e' do
+        expect(document(80_848)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234)
+      end
+
+      it 'keeps the origin of a CE from another customer' do
+        expect(document(80_909)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234)
+      end
+    end
+
     context 'when a required column is missing' do
       let(:spreadsheet) do
         fixture = read_atua_fixture(:transport_documents)

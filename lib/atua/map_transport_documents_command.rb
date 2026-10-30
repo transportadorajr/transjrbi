@@ -3,6 +3,9 @@ module Atua
     REPORT = 'rel_ctrc_detalhado'.freeze
     DOCUMENT_KINDS = { 'CTRC' => 'cte', 'CE' => 'ce' }.freeze
     NOT_CHARGED = 'nao cobrado'.freeze
+    BILLING_ORIGIN_TAKER = 'ARCELOR'.freeze
+    BILLING_ORIGIN = { origin_city: 'JUIZ DE FORA', origin_state: 'MG' }.freeze
+    REAL_ORIGIN = { origin_city: 'FOZ DO IGUACU', origin_state: 'PR', origin_city_code: 2946 }.freeze
     COLUMNS = {
       'cd_ctrc' => %i[code integer],
       'nr_ctrc' => %i[number integer],
@@ -124,7 +127,16 @@ module Atua
     private
 
     def map(rows)
-      rows.map { |row| map_row(row) }
+      rows.map { |row| with_real_origin(map_row(row)) }
+    end
+
+    def with_real_origin(record)
+      billing_only?(record) ? record.merge(REAL_ORIGIN) : record
+    end
+
+    def billing_only?(record)
+      record[:document_kind] == DOCUMENT_KINDS['CE'] && record.slice(*BILLING_ORIGIN.keys) == BILLING_ORIGIN &&
+        record[:taker_name].to_s.upcase.include?(BILLING_ORIGIN_TAKER)
     end
 
     def map_row(row)
