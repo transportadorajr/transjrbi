@@ -465,4 +465,43 @@ RSpec.describe Dashboard::Freight do
       end
     end
   end
+
+  context 'with trips of the truck and the driver left out of the charts' do
+    before do
+      create(:atua_manifest, tenant:, code: 47_001, plate: 'INT6R00', trip_started_at: Time.zone.local(2026, 10, 4, 8))
+      create(:atua_manifest, tenant:, code: 47_002, plate: 'RVR5D44', trip_started_at: Time.zone.local(2026, 10, 6, 8))
+      create(:atua_manifest, tenant:, code: 47_003, plate: 'RVR5D55', trip_started_at: Time.zone.local(2026, 10, 8, 8))
+      create(:atua_manifest, tenant:, code: 47_004, plate: 'RVR5D66', trip_started_at: Time.zone.local(2026, 10, 9, 8))
+      create(:atua_transport_document, tenant:, number: '80001', freight_cents: 900_000, plate: 'INT6R00', driver_code: 3,
+                                       driver_name: 'JECI FERREIRA DE SOUZA JUNIOR')
+      create(:atua_transport_document, tenant:, number: '80002', freight_cents: 700_000, plate: 'RVR5D44', driver_code: 3,
+                                       driver_name: 'JECI FERREIRA DE SOUZA JUNIOR')
+      create(:atua_transport_document, tenant:, number: '80003', freight_cents: 500_000, plate: 'RVR5D55', driver_code: 95,
+                                       driver_name: 'JECI FERREIRA DE SOUZA')
+      create(:atua_transport_document, tenant:, number: '80004', freight_cents: 300_000, plate: 'RVR5D66', driver_code: 50,
+                                       driver_name: 'ANA LIMA')
+      create(:atua_manifest_document, tenant:, manifest_code: 47_001, transport_document_number: '80001', calculated_distance_km: 400)
+      create(:atua_manifest_document, tenant:, manifest_code: 47_002, transport_document_number: '80002', calculated_distance_km: 300)
+      create(:atua_manifest_document, tenant:, manifest_code: 47_003, transport_document_number: '80003', calculated_distance_km: 200)
+      create(:atua_manifest_document, tenant:, manifest_code: 47_004, transport_document_number: '80004', calculated_distance_km: 100)
+    end
+
+    it 'keeps the truck and the driver in the billing and leaves them out of the ranking chart' do
+      expect(Atua::TransportDocument.count).to eq(4)
+      expect(dashboard.rows.map { |row| [row.label, row.gross.cents] })
+        .to eq([['INT6R00', 900_000], ['RVR5D44', 700_000], ['RVR5D55', 500_000], ['RVR5D66', 300_000]])
+      expect(dashboard.total.gross).to eq(Money.from_cents(2_400_000))
+      expect(dashboard.ranking_data.first[:data]).to eq('RVR5D55' => 5_000.0, 'RVR5D66' => 3_000.0)
+    end
+
+    context 'when grouped by driver' do
+      let(:dimension) { 'driver' }
+
+      it 'leaves the driver out of the ranking chart and labels the driver without admission on the bars only' do
+        expect(dashboard.rows.map { |row| [row.label, row.gross.cents] })
+          .to eq([['JECI FERREIRA DE SOUZA JUNIOR', 1_600_000], ['JECI FERREIRA DE SOUZA', 500_000], ['ANA LIMA', 300_000]])
+        expect(dashboard.ranking_data.first[:data]).to eq('Sem Admissão' => 5_000.0, 'ANA LIMA' => 3_000.0)
+      end
+    end
+  end
 end

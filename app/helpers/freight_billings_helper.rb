@@ -7,6 +7,8 @@ module FreightBillingsHelper
   CHART_HEIGHT = '320px'.freeze
   RANKING_BAR_HEIGHT = 44
   RANKING_MIN_HEIGHT = 320
+  RANKING_BAR_LABELS = { display: true, anchor: 'end', clamp: true, padding: { top: 0, right: 4, bottom: 0, left: 4 },
+                         font: { size: 11, weight: 600 } }.freeze
 
   def freight_billing_content_partial(dashboard)
     dashboard.empty? ? 'shared/no_content' : 'freight_billings/report'
@@ -93,7 +95,7 @@ module FreightBillingsHelper
               height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
               legend: 'bottom',
               **freight_billing_money_options,
-              library: freight_billing_bar_library(:y))
+              library: freight_billing_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
   end
 
   def freight_billing_monthly_chart(dashboard)
