@@ -261,39 +261,24 @@ describe 'Table sorting' do
 
     before do
       add_document(large, '9001', taker_name: 'MENOR', driver_name: 'AUXILIAR', freight_cents: 100_000)
-      main = add_document(large, '9002', taker_name: 'ZETA', driver_name: 'ANA', freight_cents: 500_000)
+      add_document(large, '9002', taker_name: 'ZETA', driver_name: 'ANA', freight_cents: 500_000)
       add_document(small, '9003', taker_name: 'ÁGUA', driver_name: 'ZECA', freight_cents: 200_000)
       add_document(small, '9004', taker_name: 'MAIOR CANCELADO', driver_name: 'OUTRO', freight_cents: 900_000, canceled_at: Time.current)
-      create(:freight_expense, tenant:, transport_document: main, amount_cents: 550_000)
     end
 
-    scenario 'takes the customer and the driver from the valid transport document with the highest freight' do
+    scenario 'sorts by the total freight of the valid transport documents' do
       visit manifests_path(sort: 'gross', direction: 'desc')
 
       expect(Atua::Manifest.count).to eq(3)
       expect(numbers).to eq(%w[501 502 503])
-      expect(column('Cliente')).to eq(['ZETA', 'ÁGUA', '-'])
-      expect(column('Motorista')).to eq(['ANA', 'ZECA', '-'])
-      expect(column('Frete bruto')).to eq(['R$ 6.000,00', 'R$ 2.000,00', 'R$ 0,00'])
+      expect(column('Valor total do frete')).to eq(['R$ 6.000,00', 'R$ 2.000,00', 'R$ 0,00'])
     end
 
-    scenario 'sorts by customer and by driver with the manifests without documents last' do
-      visit manifests_path(sort: 'customer_name', direction: 'desc')
-      expect(numbers).to eq(%w[501 502 503])
+    scenario 'ignores the columns that left the listing' do
+      visit manifests_path(sort: 'net', direction: 'desc')
 
-      visit manifests_path(sort: 'driver_name', direction: 'desc')
-      expect(numbers).to eq(%w[502 501 503])
-    end
-
-    context 'with access to the freight expenses' do
-      let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
-
-      scenario 'sorts by the same net freight of the manifest details' do
-        visit manifests_path(sort: 'net', direction: 'desc')
-
-        expect(numbers).to eq(%w[502 501 503])
-        expect(column('Frete líquido')).to eq(['R$ 2.000,00', 'R$ 500,00', 'R$ 0,00'])
-      end
+      expect(numbers).to match_array(%w[501 502 503])
+      expect(page).to have_no_css('th', text: 'Frete líquido')
     end
   end
 

@@ -263,7 +263,7 @@ end
   - Whitelist each column in the model with `include Sortable` and `sortable :name` (pass a lambda for a computed column). Text columns are compared accent and case insensitively.
   - In the controller, replace `.order(...)` with `apply_sort(relation, ...)`, passing the default order, which must end in a unique column so pagination stays stable. Pass `except:` for a column the user may not see.
   - Render the header with `sortable_header(label, :column)`, using `first_direction: :desc` for monetary columns. Filter forms keep the sort through `<%= sort_fields %>`, and a screen whose sortable columns are hidden on a phone adds `sort_menu(columns)` to the table card header.
-  - Listings sort by name, except the dashboard, CT-e and manifest screens, which also sort by customer/driver, gross and net.
+  - Listings sort by name, except the dashboard and CT-e screens, which also sort by customer/driver, gross and net, and the manifest screen, which sorts by total freight.
 
 - The last column of every listing table (the actions column) must always be right-aligned. Set `class: "text-end"` on both the `<th>` and `<td>` of the actions column.
 

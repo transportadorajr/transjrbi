@@ -10,6 +10,9 @@ module Atua
 
     has_many :documents, class_name: 'Atua::ManifestDocument', foreign_key: %i[tenant_id manifest_code],
                          primary_key: %i[tenant_id code], inverse_of: :manifest
+    has_many :route_documents, -> { active.without_internal_taker.order(:id) }, class_name: 'Atua::ManifestDocument',
+                                                                                foreign_key: %i[tenant_id manifest_code],
+                                                                                primary_key: %i[tenant_id code], inverse_of: :manifest
     has_many :transport_documents, through: :documents
     has_many :transport_document_manifests, class_name: 'Atua::TransportDocumentManifest',
                                             foreign_key: %i[tenant_id manifest_number branch_name],
@@ -19,10 +22,7 @@ module Atua
 
     monetize :goods_value_cents, allow_nil: true
 
-    sortable :customer_name, -> { Arel.sql('customer_name') }
-    sortable :driver_name, -> { Arel.sql('driver_name') }
     sortable :gross, -> { Arel.sql('gross_cents') }
-    sortable :net, -> { Arel.sql('net_cents') }
 
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
     validates :number, presence: true
@@ -36,16 +36,12 @@ module Atua
     scope :by_status, ->(status) { where(status:) }
     scope :not_canceled, -> { where.not(status: CANCELED_STATUS).or(where(status: nil)) }
     scope :canceled, -> { where(status: CANCELED_STATUS) }
-    scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
     scope :trips, -> { active.not_canceled.where.not(plate: [nil, '']) }
 
     scope :with_freight_totals, -> {
       select(
         arel_table[Arel.star],
-        sort_text(Arel::Nodes::Grouping.new(main_document_column(:taker_name).arel)).as('customer_name'),
-        sort_text(Arel::Nodes::Grouping.new(main_document_column(:driver_name).arel)).as('driver_name'),
         Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel).as('gross_cents'),
-        Arel::Nodes::Grouping.new(trip_documents.select(trip_documents_net).arel).as('net_cents'),
       )
     }
 
@@ -56,18 +52,6 @@ module Atua
         TransportDocument.active.not_canceled.joins(:manifest_documents).merge(ManifestDocument.active)
           .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
           .where(documents[:manifest_code].eq(arel_table[:code]))
-      end
-
-      def trip_documents_net
-        net = Arel::Nodes::NamedFunction.new('SUM', [TransportDocument.net_freight_of_document])
-
-        Arel::Nodes::NamedFunction.new('COALESCE', [net, Arel::Nodes.build_quoted(0)])
-      end
-
-      def main_document_column(column)
-        table = TransportDocument.arel_table
-
-        trip_documents.order(table[:freight_cents].desc.nulls_last, table[:id].asc).limit(1).select(table[column])
       end
 
       def trip_at
@@ -87,13 +71,6 @@ module Atua
           WHERE distances.tenant_id = atua_manifests.tenant_id AND distances.manifest_code = atua_manifests.code
             AND distances.removed_from_atua_at IS NULL
         SQL
-      end
-
-      def statuses
-        {
-          I18n.t('tax.situations.valid') => :valid,
-          I18n.t('tax.situations.canceled') => :canceled,
-        }
       end
     end
 
@@ -117,10 +94,25 @@ module Atua
       self.class.trips.where(tenant_id:, plate:).where(before).order(trip_at.desc, code: :desc).first
     end
 
+    def origins
+      route_cities(:origin_city, :origin_state)
+    end
+
+    def destinations
+      route_cities(:destination_city, :destination_state)
+    end
+
     def ordered_documents
       documents.active.preload(transport_document: %i[sender recipient]).to_a
         .reject { |document| document.transport_document&.canceled_at }
         .sort_by { |document| [document.transport_document&.issued_at.to_i, document.id] }
+    end
+
+    private
+
+    def route_cities(city, state)
+      route_documents.select(&:on_route?).map { |document| [document[city], document[state]] }
+        .select { |(name, _)| name.present? }.uniq
     end
   end
 end
