@@ -4,6 +4,7 @@
   <td class="fw-semibold freight-billing-label"><%= freight_billing_row_label(row, dashboard) %></td>
   <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
   <td class="text-end text-nowrap"><%= tax_money(row.net) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(row.toll_total) %></td>
   <td class="text-end text-nowrap"><%= freight_billing_share(row.share) %></td>
   <td class="text-end"><%= responsive_actions_menu(freight_billing_row_menu(row)) %></td>
 </tr>

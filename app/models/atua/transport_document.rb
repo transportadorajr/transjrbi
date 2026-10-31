@@ -116,7 +116,7 @@ module Atua
 
       def net_freight_of_document
         zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) -
-          Arel::Nodes::Grouping.new(expenses_total.arel) - Arel::Nodes::Grouping.new(toll_vouchers_total.arel)
+          Arel::Nodes::Grouping.new(expenses_total.arel) - discounted_toll
       end
 
       def freight_expenses_total
@@ -131,6 +131,18 @@ module Atua
 
       def sum_or_zero(column)
         Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
+      end
+
+      def discounted_toll
+        vouchers = Arel::Nodes::NamedFunction.new('NULLIF', [Arel::Nodes::Grouping.new(toll_vouchers_total.arel), Arel::Nodes.build_quoted(0)])
+
+        Arel::Nodes::Case.new
+          .when(toll_outside_freight).then(0)
+          .else(Arel::Nodes::NamedFunction.new('COALESCE', [vouchers, zero_if_null(:toll_cents)]))
+      end
+
+      def undiscounted_toll
+        Arel::Nodes::Case.new.when(toll_outside_freight).then(arel_table[:toll_cents]).else(0)
       end
 
       def toll_vouchers_total
@@ -156,6 +168,14 @@ module Atua
       end
 
       private
+
+      def toll_outside_freight
+        columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }
+        parts = columns.drop(1).sum(columns.first)
+        difference = Arel::Nodes::NamedFunction.new('ABS', [Arel::Nodes::Grouping.new(zero_if_null(:freight_cents) - parts)])
+
+        zero_if_null(:toll_cents).gt(0).and(difference.gt(TOLL_TOLERANCE_CENTS))
+      end
 
       def zero_if_null(column)
         Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[column], Arel::Nodes.build_quoted(0)])

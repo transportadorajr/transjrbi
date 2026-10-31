@@ -362,7 +362,7 @@ describe 'Transport documents' do
                                                  iof_percentage: BigDecimal('7.38'), iof_cents: 23, amount_cents: 330)
           end
 
-          scenario 'shows the net freight without discounting the toll of a transport document without voucher' do
+          scenario 'shows the net freight without discounting a toll that is outside the gross freight' do
             visit transport_document_path(transport_document)
 
             expect(FreightExpense.count).to eq(3)
@@ -374,7 +374,7 @@ describe 'Transport documents' do
               '(−) Forro de lona' => 'R$ 0,00',
               '(−) Combustível' => 'R$ 0,00',
               '(−) Despesas do frete na Atua' => 'R$ 350,00',
-              '(−) Vale-pedágio' => 'R$ 0,00',
+              '(−) Pedágio' => 'R$ 0,00',
               '(=) Frete líquido' => 'R$ 4.690,88',
             )
           end
@@ -501,7 +501,7 @@ describe 'Transport documents' do
           '(−) Forro de lona' => 'R$ 0,00',
           '(−) Combustível' => 'R$ 0,00',
           '(−) Despesas do frete na Atua' => 'R$ 0,00',
-          '(−) Vale-pedágio' => 'R$ 300,00',
+          '(−) Pedágio' => 'R$ 300,00',
           '(=) Frete líquido' => 'R$ 9.700,00',
         )
       end

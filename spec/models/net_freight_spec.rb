@@ -35,7 +35,7 @@ RSpec.describe NetFreight do
     create(:atua_toll_voucher, tenant:, transport_document_number: document.number, branch_code: 2, toll_cents: 7_000, canceled_on: Date.new(2026, 10, 2))
   end
 
-  it 'subtracts the commissions, the tonnage costs, the cargo insurance, the tarp lining, the fuel, the Atua expenses and the toll vouchers from the valid transport documents' do
+  it 'subtracts the commissions, the tonnage costs, the cargo insurance, the tarp lining, the fuel, the Atua expenses and the discounted toll from the valid transport documents' do
     net_freight = described_class.for(tenant.atua_transport_documents)
 
     expect(net_freight.freight).to eq(Money.from_cents(1_200_000))

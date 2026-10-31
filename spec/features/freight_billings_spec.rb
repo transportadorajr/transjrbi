@@ -207,10 +207,10 @@ describe 'Freight billing' do
         expect(page).to have_text('Frete bruto e líquido por mês de emissão do CT-e, de Mai/2026 a Out/2026')
         expect(html_table_to_rows).to eq(
           [
-            ['Cavalo', 'Frete bruto', 'Frete líquido', 'Participação', 'Ações'],
-            ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00', '75,0%', ''],
-            ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', '25,0%', ''],
-            ['Total', 'R$ 20.000,00', 'R$ 19.100,00', '100,0%', ''],
+            ['Cavalo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
+            ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00', 'R$ 250,00', '75,0%', ''],
+            ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', 'R$ 0,00', '25,0%', ''],
+            ['Total', 'R$ 20.000,00', 'R$ 19.100,00', 'R$ 250,00', '100,0%', ''],
           ],
         )
         expect(page).to have_no_text('OUT1A11')
@@ -363,7 +363,7 @@ describe 'Freight billing' do
       scenario 'groups the freight by origin' do
         visit freight_billing_path(october.merge(dimension: 'origin'))
 
-        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3) }).to eq(
+        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
           [
             ['Origem', 'Frete bruto', 'Participação'],
             ['IPATINGA/MG', 'R$ 15.000,00', '75,0%'],
@@ -395,7 +395,7 @@ describe 'Freight billing' do
           expect(page).to have_no_css('#freight_billing_detail_modal', visible: :all)
           expect(row_detail('RVR2C34')).to eq(
             'Viagens' => '1', 'KM rodado' => '520 km', 'Frete bruto' => 'R$ 15.000,00', 'Despesas de frete' => 'R$ 500,00',
-            'Despesas' => 'R$ 150,00', 'Vale-pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 14.100,00', 'Bruto/km' => 'R$ 28,85',
+            'Despesas' => 'R$ 150,00', 'Pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 14.100,00', 'Bruto/km' => 'R$ 28,85',
             'Líquido/km' => 'R$ 27,12', 'Participação' => '75,0%'
           )
           expect(page).to have_css('#remote-container #freight_billing_detail_modal')
@@ -417,9 +417,33 @@ describe 'Freight billing' do
 
           expect(row_detail('Total')).to eq(
             'Viagens' => '2', 'KM rodado' => '720 km', 'Frete bruto' => 'R$ 20.000,00', 'Despesas de frete' => 'R$ 500,00',
-            'Despesas' => 'R$ 150,00', 'Vale-pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 19.100,00', 'Bruto/km' => 'R$ 26,39',
+            'Despesas' => 'R$ 150,00', 'Pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 19.100,00', 'Bruto/km' => 'R$ 26,39',
             'Líquido/km' => 'R$ 25,14', 'Participação' => '100,0%'
           )
+        end
+
+        context 'with a toll charged apart from the gross freight' do
+          before do
+            create(:atua_transport_document, tenant:, number: '74009', freight_cents: 600_000, weight_freight_cents: 600_000, toll_cents: 40_000,
+                                             icms_cents: 0, plate: 'RVR8J90', driver_code: 20, driver_name: 'MARIA SOUZA')
+            create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74009')
+          end
+
+          scenario 'shows the toll of the row without discounting it from the net freight' do
+            visit freight_billing_path(october_by_truck)
+
+            detail = row_detail('RVR8J90')
+
+            expect(detail).to include('Pedágio (Não descontado)' => 'R$ 400,00', 'Frete bruto' => 'R$ 11.000,00', 'Frete líquido' => 'R$ 11.000,00')
+            expect(detail).not_to have_key('Pedágio')
+            expect(html_table_to_rows.find { |row| row.first == 'RVR8J90' }).to include('R$ 400,00')
+          end
+
+          scenario 'shows both tolls when the row mixes a discounted toll and one that is not' do
+            visit freight_billing_path(october_by_truck)
+
+            expect(row_detail('Total')).to include('Pedágio' => 'R$ 250,00', 'Pedágio (Não descontado)' => 'R$ 400,00')
+          end
         end
 
         scenario 'opens the detail of a driver' do
@@ -646,7 +670,7 @@ describe 'Freight billing' do
           click_on 'Macro região'
 
           expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'macro_region')))
-          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 3) }).to eq(
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
             [
               ['Macro região', 'Frete bruto', 'Participação'],
               ['Outras Regiões', 'R$ 15.000,00', '75,0%'],
@@ -1117,7 +1141,7 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      discounts = 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Combustível, Descarga e Vale-pedágio'
+      discounts = 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Combustível, Descarga e Pedágio'
       discounts_bottom = page.evaluate_script("document.querySelector('.net-freight-discounts').getBoundingClientRect().bottom")
       first_card_top = page.evaluate_script("document.querySelector('.counter-card').getBoundingClientRect().top")
 
@@ -1190,13 +1214,13 @@ describe 'Freight billing' do
 
       expect(Atua::TransportDocument.count).to eq(12)
       expect(listed_plates).to eq(%w[RVR4D00 RVR4D01 RVR4D02 RVR4D03 RVR4D04 RVR4D05 RVR4D06 RVR4D07 RVR4D08 RVR4D09 Total])
-      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', '100,0%', ''])
+      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', 'R$ 0,00', '100,0%', ''])
 
       within('.table-pagination') { click_on '2' }
 
       expect(page).to have_current_path(freight_billing_path(october_by_truck.merge(page: 2)))
       expect(listed_plates).to eq(%w[RVR4D10 RVR4D11 Total])
-      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', '100,0%', ''])
+      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', 'R$ 0,00', '100,0%', ''])
     end
 
     scenario 'goes back to the first page when the grouping changes' do

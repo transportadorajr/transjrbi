@@ -138,7 +138,7 @@ module FreightBillingsHelper
     {
       trip: { trips: freight_billing_trips(row.trips_count), loaded_km: freight_billing_km(row.loaded_km) },
       values: { gross: tax_money(row.gross), freight_expenses: tax_money(row.freight_expenses), expenses: tax_money(row.expenses),
-                toll: tax_money(row.toll), net: tax_money(row.net) },
+                **freight_billing_detail_tolls(row), net: tax_money(row.net) },
       indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km), share: freight_billing_share(row.share) },
     }
   end
@@ -164,6 +164,13 @@ module FreightBillingsHelper
   end
 
   private
+
+  def freight_billing_detail_tolls(row)
+    return { toll: tax_money(row.toll) } unless row.undiscounted_toll.positive?
+
+    tolls = { undiscounted_toll: tax_money(row.undiscounted_toll) }
+    row.toll.positive? ? { toll: tax_money(row.toll), **tolls } : tolls
+  end
 
   def freight_billing_freights_path(row)
     freights_freight_billing_path(**request.query_parameters.symbolize_keys, key: row.key)

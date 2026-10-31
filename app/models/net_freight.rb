@@ -14,7 +14,7 @@ class NetFreight
         tarp_lining: Money.from_cents(FreightExpense.tarp_lining.where(transport_document_id: document_ids).sum(:amount_cents)),
         fuel: Money.from_cents(FreightExpense.fuel.where(transport_document_id: document_ids).sum(:amount_cents)),
         expenses: Money.from_cents(Atua::Expense.active.freight.where(cost_object_id: document_ids).sum(:total_cents)),
-        toll: Money.from_cents(documents.sum(Arel::Nodes::Grouping.new(Atua::TransportDocument.toll_vouchers_total.arel))),
+        toll: Money.from_cents(documents.sum(Atua::TransportDocument.discounted_toll)),
       )
     end
   end

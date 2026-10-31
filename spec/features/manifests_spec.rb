@@ -221,7 +221,7 @@ describe 'Manifests' do
             '(−) Forro de lona' => 'R$ 0,00',
             '(−) Combustível' => 'R$ 0,00',
             '(−) Despesas do frete na Atua' => 'R$ 350,00',
-            '(−) Vale-pedágio' => 'R$ 150,00',
+            '(−) Pedágio' => 'R$ 150,00',
             '(=) Frete líquido' => 'R$ 2.473,30',
           )
         end

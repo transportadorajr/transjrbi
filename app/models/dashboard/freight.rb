@@ -15,9 +15,9 @@ module Dashboard
     CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
-                 toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
+                 toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
     ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
-                          plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
+                          undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -42,9 +42,13 @@ module Dashboard
     IssuedFact = Data.define(:issued_on, :freight_cents, :net_cents)
     MonthRow = Data.define(:month, :label, :gross, :net)
 
-    Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :net, :gross_per_km, :net_per_km,
-                      :share) do
+    Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :undiscounted_toll, :net, :gross_per_km,
+                      :net_per_km, :share) do
       extend ActiveModel::Naming
+
+      def toll_total
+        toll + undiscounted_toll
+      end
 
       def confirmation_name
         label
@@ -182,7 +186,7 @@ module Dashboard
       issued_documents(range)
         .pluck(table[:issued_at], table[:freight_cents], Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
                Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel),
-               Arel::Nodes::Grouping.new(Atua::TransportDocument.toll_vouchers_total.arel))
+               Atua::TransportDocument.discounted_toll)
         .map do |issued_at, freight_cents, freight_expenses_cents, expenses_cents, toll_cents|
           IssuedFact.new(issued_on: issued_at.to_date, freight_cents:, net_cents: freight_cents - freight_expenses_cents - expenses_cents - toll_cents)
         end
@@ -197,7 +201,7 @@ module Dashboard
     end
 
     def issued_toll_cents
-      issued_documents.sum(Arel::Nodes::Grouping.new(Atua::TransportDocument.toll_vouchers_total.arel))
+      issued_documents.sum(Atua::TransportDocument.discounted_toll)
     end
 
     def entries
@@ -275,6 +279,7 @@ module Dashboard
         freight_expenses_cents: facts.sum { |fact| fact.freight_expenses_cents.to_i },
         expenses_cents: facts.sum { |fact| fact.expenses_cents.to_i },
         toll_cents: facts.sum { |fact| fact.toll_cents.to_i },
+        undiscounted_toll_cents: facts.sum { |fact| fact.undiscounted_toll_cents.to_i },
       }
     end
 
@@ -303,7 +308,8 @@ module Dashboard
         table[:freight_cents],
         Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
         Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel),
-        Arel::Nodes::Grouping.new(Atua::TransportDocument.toll_vouchers_total.arel),
+        Atua::TransportDocument.discounted_toll,
+        Atua::TransportDocument.undiscounted_toll,
         table[:plate],
         table[:driver_code],
         table[:driver_name],
@@ -355,6 +361,7 @@ module Dashboard
         freight_expenses: Money.from_cents(freight_expenses_cents),
         expenses: Money.from_cents(expenses_cents),
         toll: Money.from_cents(toll_cents),
+        undiscounted_toll: Money.from_cents(grouped.sum(&:undiscounted_toll_cents)),
         net: Money.from_cents(gross_cents - freight_expenses_cents - expenses_cents - toll_cents),
         gross_per_km: per_km(measured.sum(&:freight_cents), measured_km),
         net_per_km: per_km(measured.sum(&:net_cents), measured_km),
