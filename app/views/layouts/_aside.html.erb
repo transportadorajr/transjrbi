@@ -5,7 +5,7 @@
 
   <div class="offcanvas-header sidebar-logo">
     <%= link_to root_path, id: 'sidebarOffcanvasLabel', class: 'sidebar-logo-link' do %>
-      <%= content_tag :span, t('layouts.aside.brand'), class: 'sidebar-logo-full' %>
+      <%= image_tag 'brand/mark-light.svg', alt: t('layouts.aside.brand'), class: 'sidebar-logo-image' %>
     <% end %>
     <%= button_tag type: 'button',
                    class: 'btn-close d-md-none ms-auto',
@@ -27,8 +27,7 @@
      data-sidebar-target="desktop">
   <div class="sidebar-logo">
     <%= link_to root_path, class: 'sidebar-logo-link' do %>
-      <%= content_tag :span, t('layouts.aside.brand'), class: 'sidebar-logo-full' %>
-      <%= content_tag :span, t('layouts.aside.brand_short'), class: 'sidebar-logo-iso' %>
+      <%= image_tag 'brand/mark-light.svg', alt: t('layouts.aside.brand'), class: 'sidebar-logo-image' %>
     <% end %>
   </div>
 

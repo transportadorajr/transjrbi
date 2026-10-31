@@ -15,6 +15,7 @@ describe 'Home' do
       expect(page).to have_text('A inteligência do seu negócio em um só lugar.')
       expect(page).to have_css('h2', text: 'Decisões guiadas por dados')
       expect(page).to have_no_button('Cumprimentar')
+      expect(page).to have_css('#sidebar .sidebar-logo img[alt="Transportadora JR"][src*="brand/mark-light"]')
     end
 
     scenario 'welcomes the user on a phone screen', :js do

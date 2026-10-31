@@ -32,60 +32,23 @@
   position: relative;
   overflow: hidden;
   flex: 0 0 auto;
-  padding: calc(2rem + env(safe-area-inset-top)) 1.5rem 4rem;
+  height: 17rem;
   color: #fff;
-  background:
-    radial-gradient(120% 90% at 100% 0%, rgba(95, 224, 189, 0.45) 0%, transparent 55%),
-    linear-gradient(150deg, var(--auth-blue-900) 0%, var(--auth-blue-500) 55%, var(--auth-green-500) 130%);
+  background: #020617;
+}
 
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
-  }
-
-  &::before {
-    width: 260px;
-    height: 260px;
-    right: -90px;
-    bottom: -120px;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  &::after {
-    width: 140px;
-    height: 140px;
-    left: -50px;
-    top: -60px;
-    border: 28px solid rgba(255, 255, 255, 0.06);
-  }
+.auth-hero-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 2rem);
+  object-fit: cover;
+  transform: scale(1.7);
 }
 
 .auth-hero-content {
-  position: relative;
-  z-index: 1;
-}
-
-.auth-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: -0.01em;
-}
-
-.auth-brand-mark {
-  display: inline-grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(6px);
-  font-size: 1.2rem;
+  display: none;
 }
 
 .auth-hero-title {
@@ -287,12 +250,8 @@
 }
 
 @include media-breakpoint-up(md) {
-  .auth-hero {
-    padding: 3rem 3rem 5rem;
-  }
-
-  .auth-hero-title {
-    font-size: 2.25rem;
+  .auth-hero-image {
+    transform: none;
   }
 
   .auth-sheet {
@@ -309,36 +268,30 @@
     flex: 1 1 55%;
     display: flex;
     align-items: flex-end;
+    height: auto;
     padding: 3.5rem 4rem 5rem;
 
-    &::before {
-      width: 520px;
-      height: 520px;
-      right: -160px;
-      bottom: -200px;
-    }
-
     &::after {
-      width: 260px;
-      height: 260px;
-      left: -80px;
-      top: -90px;
-      border-width: 48px;
+      content: "";
+      position: absolute;
+      inset: 68% 0 0;
+      background: linear-gradient(to bottom, transparent, rgba(2, 6, 23, 0.9));
+      pointer-events: none;
     }
   }
 
-  .auth-hero-content {
-    display: flex;
-    flex-direction: column;
+  .auth-hero-image {
     height: 100%;
   }
 
-  .auth-brand {
-    font-size: 1.35rem;
+  .auth-hero-content {
+    position: relative;
+    z-index: 1;
+    display: block;
   }
 
   .auth-hero-title {
-    margin-top: auto;
+    margin-top: 0;
     font-size: 3rem;
   }
 

@@ -1520,16 +1520,15 @@ pt-BR:
         submitting: Entrando...
   layouts:
     bare:
-      brand: TransJRBI
+      brand: Transportadora JR
       hero_title: Sua operação com mais inteligência.
       hero_text: Fretes, viagens e resultados da sua transportadora em um só lugar.
     aside:
-      brand: TransJRBI
-      brand_short: TJ
+      brand: Transportadora JR
       close: Fechar
     admin_aside:
-      brand: TransJRBI Admin
-      brand_short: TA
+      brand: Transportadora JR
+      label: Admin
     main:
       toggle_navigation: Abrir navegação
       toggle_sidebar: Recolher menu lateral

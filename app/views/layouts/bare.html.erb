@@ -20,12 +20,9 @@
   <body class="auth-body">
     <div class="auth">
       <section class="auth-hero">
-        <div class="auth-hero-content">
-          <span class="auth-brand">
-            <span class="auth-brand-mark"><%= icon(:'truck-front-fill') %></span>
-            <%= t('.brand') %>
-          </span>
+        <%= image_tag 'brand/hero.webp', alt: t('.brand'), class: 'auth-hero-image' %>
 
+        <div class="auth-hero-content">
           <h1 class="auth-hero-title"><%= t('.hero_title') %></h1>
           <p class="auth-hero-text"><%= t('.hero_text') %></p>
         </div>

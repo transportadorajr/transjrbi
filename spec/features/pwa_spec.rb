@@ -27,6 +27,7 @@ describe 'Progressive web app' do
         'scope' => '/',
         'display' => 'standalone',
         'theme_color' => '#0b3fae',
+        'background_color' => '#000000',
       )
       expect(manifest['icons']).to contain_exactly(
         { 'src' => '/icon-192.png', 'type' => 'image/png', 'sizes' => '192x192' },

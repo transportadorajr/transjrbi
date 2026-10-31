@@ -45,10 +45,6 @@ $sidebar-shadow: 2px 0 20px 0 rgba(0, 0, 0, 0.06);
       display: none;
     }
 
-    .sidebar-logo-iso {
-      display: block;
-    }
-
     .sidebar-logo {
       justify-content: center;
       padding-left: 0;
@@ -353,7 +349,7 @@ $navbar-action-hover-color: $primary;
 .sidebar-logo {
   display: flex;
   align-items: center;
-  padding: 18px 20px 16px;
+  padding: 10px 20px;
   border-bottom: 1px solid $sidebar-logo-border;
   gap: 10px;
   min-height: 64px;
@@ -366,24 +362,18 @@ $navbar-action-hover-color: $primary;
   text-decoration: none;
 }
 
-.sidebar-logo-full,
-.sidebar-logo-iso {
+.sidebar-logo-image {
+  display: block;
+  width: auto;
+  height: 44px;
+}
+
+.sidebar-logo-label {
+  margin-left: 10px;
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
-  color: $primary;
-  line-height: 36px;
-  white-space: nowrap;
-}
-
-.sidebar-logo-full {
-  display: block;
-  font-size: 1.35rem;
-  letter-spacing: -0.5px;
-}
-
-.sidebar-logo-iso {
-  display: none;
   font-size: 1.1rem;
+  color: $primary;
 }
 
 // ─── Sidebar wrapper & nav ───────────────────────────────────────────────────

@@ -15,6 +15,12 @@ describe 'User sign in' do
     page.driver.submit :delete, destroy_user_session_path, {}
   end
 
+  scenario 'shows the JR visual identity on the login screen' do
+    visit new_user_session_path
+
+    expect(page).to have_css('.auth-hero img[alt="Transportadora JR"][src*="brand/hero"]')
+  end
+
   context 'when the user signs in with remember me' do
     before do
       sign_in_with(email: 'bruna@transjrbi.com.br', remember_me: true)
