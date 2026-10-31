@@ -10,6 +10,7 @@ RSpec.describe CustomerGroups::RecalculateCommand do
 
   before do
     create(:atua_transport_document, tenant:, taker_code: 6260, taker_name: 'USINAS SIDERURGICAS DE MINAS GERAIS S/A - USIMINAS')
+    create(:atua_transport_document, tenant:, taker_code: 7000, taker_name: 'DISTRIBUIDORA BH LTDA', issued_at: 1.month.ago)
   end
 
   it 'assigns the ungrouped customers and regroups every group with terms' do

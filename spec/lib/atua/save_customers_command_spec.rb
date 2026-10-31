@@ -31,6 +31,18 @@ RSpec.describe Atua::SaveCustomersCommand do
     end
   end
 
+  context 'when the report brings back a customer without recent transport documents' do
+    before do
+      create(:atua_transport_document, tenant:, taker_code: code, sender_code: nil, recipient_code: nil, payer_code: nil, consignee_code: nil, issued_at: 1.month.ago)
+    end
+
+    it 'keeps only the customer with a recent transport document' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_customers.pluck(:code)).to eq([code])
+    end
+  end
+
   it 'is the save command of the customers report' do
     expect(Atua::SaveReportCommand.for(:customers)).to eq(described_class)
   end

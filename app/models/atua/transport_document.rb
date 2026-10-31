@@ -2,6 +2,7 @@ module Atua
   class TransportDocument < ApplicationRecord
     include Importable
 
+    INACTIVITY_PERIOD = 12.months
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
     TOLL_TOLERANCE_CENTS = 1
     FREIGHT_PARTS = %i[weight_freight_cents ad_valorem_cents other_charges_cents toll_cents icms_cents].freeze
@@ -68,6 +69,7 @@ module Atua
       where(taker_code: Customer.where(customer_group_id:).select(:code))
     }
     scope :by_branch, ->(code) { where(branch_code: code) }
+    scope :recently_issued, -> { where(issued_at: INACTIVITY_PERIOD.ago..) }
     scope :by_origin_macro_region, ->(macro_region_id) {
       where(origin_macro_region_id: macro_region_id.to_s == MacroRegion::OTHERS ? nil : macro_region_id)
     }

@@ -18,6 +18,17 @@ RSpec.describe Atua::SaveVehiclesCommand do
     end
   end
 
+  context 'when the report brings back a driver without recent transport documents' do
+    before { create(:atua_transport_document, tenant:, driver_code: nil, issued_at: 1.month.ago) }
+
+    it 'saves the vehicles without the driver' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_vehicles.count).to be_positive
+      expect(tenant.atua_vehicles.where.not(driver_code: nil).count).to eq(0)
+    end
+  end
+
   it 'is the save command of the vehicles report' do
     expect(Atua::SaveReportCommand.for(:vehicles)).to eq(described_class)
   end

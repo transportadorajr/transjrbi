@@ -12,7 +12,7 @@ module CustomerGroups
     end
 
     def call
-      ungrouped_customers.group_by { |customer| group_for(customer) }.sum do |group, customers|
+      ungrouped_customers.group_by { |customer| group_for(customer) }.except(nil).sum do |group, customers|
         tenant.atua_customers.where(id: customers.map(&:id)).update_all(customer_group_id: group.id)
       end
     end
@@ -28,12 +28,26 @@ module CustomerGroups
     def group_for(customer)
       names = [customer.name, customer.trade_name, *taker_names.fetch(customer.code, [])]
 
-      term_groups.find { |group| group.match?(*names) } || own_group(customer)
+      term_groups.find { |group| group.match?(*names) } || (own_group(customer) if own_group?(customer))
     end
 
     def taker_names
       @taker_names ||= tenant.atua_transport_documents.where(taker_code: tenant.atua_customers.without_customer_group.select(:code))
         .taker_names_by_code
+    end
+
+    def own_group?(customer)
+      recent_taker_codes.include?(customer.code) || !documents_loaded?
+    end
+
+    def documents_loaded?
+      return @documents_loaded if defined?(@documents_loaded)
+
+      @documents_loaded = tenant.atua_transport_documents.exists?
+    end
+
+    def recent_taker_codes
+      @recent_taker_codes ||= tenant.atua_transport_documents.active.recently_issued.distinct.pluck(:taker_code).to_set
     end
 
     def term_groups
