@@ -140,6 +140,9 @@
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:toll) %></dt>
             <dd class="col-12 col-md-7"><%= transport_document_toll(@transport_document) %></dd>
 
+            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:toll_voucher_paid) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_money(@transport_document.toll_voucher_paid) %></dd>
+
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:atua_toll_kind) %></dt>
             <dd class="col-12 col-md-7"><%= tax_value(@transport_document.atua_toll_kind) %></dd>
 

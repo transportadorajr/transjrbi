@@ -108,6 +108,7 @@ RSpec.describe Atua::ConvertValueCommand do
 
     it 'converts a text date' do
       expect(convert('29/10/2026', :date)).to eq(Date.new(2026, 10, 29))
+      expect(convert('29/10/26', :date)).to eq(Date.new(2026, 10, 29))
       expect(convert('2026-10-01 09:18:04.633085', :date)).to eq(Date.new(2026, 10, 1))
       expect(convert(nil, :date)).to be_nil
     end

@@ -197,6 +197,7 @@ pt-BR:
         toll: Pedágio
         atua_toll_kind: Pedágio na Atua
         toll_voucher_issuer: Emissão do vale pedágio
+        toll_voucher_paid: Vale-pedágio pago
         other_charges: Outras cobranças
         goods_value: Valor da mercadoria
         icms_base: Base do ICMS
@@ -669,6 +670,7 @@ pt-BR:
         transport_documents: Conhecimentos de transporte
         manifests: Manifestos
         expenses: Despesas
+        toll_vouchers: Vale-pedágio
         customers: Clientes
         vehicles: Veículos
       status_type:
@@ -1367,6 +1369,8 @@ pt-BR:
       freight_expenses: Despesas de frete
       expenses: Despesas
       toll: Pedágio
+      undiscounted_toll: Pedágio (Não descontado)
+      toll_total: Pedágio
       net: Frete líquido
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
@@ -1380,7 +1384,7 @@ pt-BR:
       group_by: Agrupar por
       gross: Frete bruto
       net: Frete líquido
-      net_discounts: 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Forro de Lona, Combustível, Descarga e Pedágio'
+      net_discounts: 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Combustível, Descarga e Pedágio'
       trips: Viagens
       gross_per_km: Frete bruto por km
       net_per_km: Frete líquido por km
@@ -1392,7 +1396,7 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
       table_subtitle: >-
         Cada viagem é um MDF-e: soma o frete e as despesas de todos os seus CT-es. Frete líquido = frete bruto − despesas
-        de frete (comissão, custo por tonelada, seguro, forro de lona e combustível) − despesas lançadas nos CT-es − pedágio somado ao frete do CT-e. O frete
+        de frete (comissão, custo por tonelada, seguro, forro de lona e combustível) − despesas lançadas nos CT-es − pedágio descontado (o vale-pedágio quando existir). O pedágio cobrado fora do frete aparece na coluna Pedágio, mas não é descontado. O frete
         por km divide pelo KM rodado da viagem e considera só as viagens com KM rodado. Uma viagem com clientes de grupos
         diferentes é rateada pela participação de cada grupo no frete.
   freight_expenses:
@@ -1440,9 +1444,8 @@ pt-BR:
       tarp_lining: (−) Forro de lona
       fuel: (−) Combustível
       expenses: (−) Despesas do frete na Atua
-      toll: (−) Pedágio incluso no frete
+      toll: (−) Pedágio
       net: (=) Frete líquido
-      toll_outside_freight: Pedágio fora do frete (não descontado)
   drivers:
     code: 'Código %{code}'
     index:

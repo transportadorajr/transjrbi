@@ -23,12 +23,15 @@ RSpec.describe Atua::InitialLoadCommand do
         [tenant.id, 'transport_documents', Date.new(2026, 8, 15), Date.new(2026, 8, 31), now + 10.minutes],
         [tenant.id, 'manifests', Date.new(2026, 8, 15), Date.new(2026, 8, 31), now + 10.minutes],
         [tenant.id, 'expenses', Date.new(2026, 8, 15), Date.new(2026, 8, 31), now + 10.minutes],
+        [tenant.id, 'toll_vouchers', Date.new(2026, 8, 15), Date.new(2026, 8, 31), now + 10.minutes],
         [tenant.id, 'transport_documents', Date.new(2026, 9, 1), Date.new(2026, 9, 30), now + 20.minutes],
         [tenant.id, 'manifests', Date.new(2026, 9, 1), Date.new(2026, 9, 30), now + 20.minutes],
         [tenant.id, 'expenses', Date.new(2026, 9, 1), Date.new(2026, 9, 30), now + 20.minutes],
+        [tenant.id, 'toll_vouchers', Date.new(2026, 9, 1), Date.new(2026, 9, 30), now + 20.minutes],
         [tenant.id, 'transport_documents', Date.new(2026, 10, 1), Date.new(2026, 10, 14), now + 30.minutes],
         [tenant.id, 'manifests', Date.new(2026, 10, 1), Date.new(2026, 10, 14), now + 30.minutes],
         [tenant.id, 'expenses', Date.new(2026, 10, 1), Date.new(2026, 10, 14), now + 30.minutes],
+        [tenant.id, 'toll_vouchers', Date.new(2026, 10, 1), Date.new(2026, 10, 14), now + 30.minutes],
       ],
     )
   end
@@ -43,16 +46,18 @@ RSpec.describe Atua::InitialLoadCommand do
         ['transport_documents', Date.new(2026, 8, 1), Date.new(2026, 8, 31)],
         ['manifests', Date.new(2026, 8, 1), Date.new(2026, 8, 31)],
         ['expenses', Date.new(2026, 8, 1), Date.new(2026, 8, 31)],
+        ['toll_vouchers', Date.new(2026, 8, 1), Date.new(2026, 8, 31)],
         ['transport_documents', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
         ['manifests', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
         ['expenses', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
+        ['toll_vouchers', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
       ],
     )
   end
 
   context 'when some months were already imported' do
     before do
-      %w[transport_documents manifests expenses].each do |report_type|
+      %w[transport_documents manifests expenses toll_vouchers].each do |report_type|
         create(:atua_import, tenant:, report_type:, status_type: 'succeeded', start_date: Date.new(2026, 8, 15), end_date: Date.new(2026, 8, 31))
       end
       create(:atua_import, tenant:, report_type: 'manifests', status_type: 'succeeded', start_date: Date.new(2026, 9, 1), end_date: Date.new(2026, 9, 30))
@@ -68,9 +73,11 @@ RSpec.describe Atua::InitialLoadCommand do
           ['vehicles', nil, nil],
           ['transport_documents', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
           ['expenses', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
+          ['toll_vouchers', Date.new(2026, 9, 1), Date.new(2026, 9, 30)],
           ['transport_documents', Date.new(2026, 10, 1), Date.new(2026, 10, 14)],
           ['manifests', Date.new(2026, 10, 1), Date.new(2026, 10, 14)],
           ['expenses', Date.new(2026, 10, 1), Date.new(2026, 10, 14)],
+          ['toll_vouchers', Date.new(2026, 10, 1), Date.new(2026, 10, 14)],
         ],
       )
       expect(enqueued_imports.map(&:last).uniq).to eq([nil, now + 10.minutes, now + 20.minutes])

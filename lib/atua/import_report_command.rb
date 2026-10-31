@@ -37,11 +37,11 @@ module Atua
       )
       import.file.attach(file ? uploaded_file : downloaded_file(import, period_start, period_end))
 
-      ProcessImportCommand.call(import)
+      ProcessImportCommand.call(import, raise_errors:)
     rescue StandardError => e
       raise unless import&.persisted?
 
-      FailImportCommand.call(import, e)
+      FailImportCommand.call(import, e) unless import.failed?
       raise if raise_errors
 
       import

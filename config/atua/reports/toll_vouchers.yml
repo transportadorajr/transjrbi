@@ -1,0 +1,36 @@
+---
+endpoint: rel_ctrc_vale_pedagio.php
+submitted_field: f__submitted
+submit_button: submete041006
+period:
+  start_field: f_dt_emissao_ctrc_inicio
+  end_field: f_dt_emissao_ctrc_final
+computed: {}
+params:
+  f_dt_pedido_inicio: ''
+  f_dt_pedido_final: ''
+  f_dt_emissao_ctrc_inicio: ''
+  f_dt_emissao_ctrc_final: ''
+  f_dt_emissao_inicio: ''
+  f_dt_emissao_final: ''
+  f_dt_lancamento_caixa_financeiro_inicio: ''
+  f_dt_lancamento_caixa_financeiro_final: ''
+  f_cd_pessoa_usuario: ''
+  f_nm_pessoa_usuario: ''
+  f_cd_agencia: ''
+  f_nm_agencia: ''
+  f_cd_pessoa_matriz: ''
+  f_cd_pessoa_filial: ''
+  f_id_tipo_documento: ''
+  f_id_cancelado: ''
+  f_cd_pessoa_vale_pedagio: ''
+  f_id_proprietario_veiculo_doc: ''
+  f_cd_pessoa_adm_pgto_eletronico: ''
+  f_nr_cartao_vale_pedagio: ''
+  f_nr_pedido: ''
+  f_id_listar: ''
+  f_id_caixa_financeiro_lancamento: ''
+  f_id_status_fatura: ''
+  f_id_quebra: '1'
+  f_id_subtotal: '1'
+  f_id_formato: '2'

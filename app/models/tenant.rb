@@ -18,6 +18,7 @@ class Tenant < ApplicationRecord
   has_many :atua_manifests, class_name: 'Atua::Manifest', dependent: :delete_all
   has_many :atua_manifest_documents, class_name: 'Atua::ManifestDocument', dependent: :delete_all
   has_many :atua_expenses, class_name: 'Atua::Expense', dependent: :delete_all
+  has_many :atua_toll_vouchers, class_name: 'Atua::TollVoucher', dependent: :delete_all
   has_many :atua_customers, class_name: 'Atua::Customer', dependent: :delete_all
   has_many :atua_vehicles, class_name: 'Atua::Vehicle', dependent: :delete_all
   has_many :empty_legs, dependent: :delete_all

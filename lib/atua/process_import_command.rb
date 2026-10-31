@@ -5,13 +5,14 @@ module Atua
     COMMISSION_REPORTS = %w[customers manifests transport_documents].freeze
 
     class << self
-      def call(import)
-        new(import).call
+      def call(import, raise_errors: false)
+        new(import, raise_errors:).call
       end
     end
 
-    def initialize(import)
+    def initialize(import, raise_errors: false)
       @import = import
+      @raise_errors = raise_errors
     end
 
     def call
@@ -29,11 +30,14 @@ module Atua
       import
     rescue StandardError => e
       FailImportCommand.call(import, e)
+      raise if raise_errors
+
+      import
     end
 
     private
 
-    attr_reader :import
+    attr_reader :import, :raise_errors
 
     def calculate_empty_legs
       return unless EMPTY_LEG_REPORTS.include?(import.report_type)

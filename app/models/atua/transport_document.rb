@@ -36,6 +36,8 @@ module Atua
                                              inverse_of: :transport_document
     has_many :empty_legs, through: :empty_leg_transport_documents
     has_many :freight_expenses, dependent: :delete_all, inverse_of: :transport_document
+    has_many :toll_vouchers, class_name: 'Atua::TollVoucher', foreign_key: %i[tenant_id transport_document_number branch_code],
+                             primary_key: %i[tenant_id number branch_code], inverse_of: :transport_document
 
     monetize :goods_value_cents, :freight_cents, :weight_freight_cents, :value_freight_cents, :ad_valorem_cents,
              :other_charges_cents, :toll_cents, :icms_base_cents, :icms_cents, :icms_st_cents, :federal_tax_cents,
@@ -96,8 +98,6 @@ module Atua
     scope :with_valid_manifest, -> {
       where(id: joins(:manifests).merge(TransportDocumentManifest.active).merge(Manifest.active.not_canceled).select(:id))
     }
-    scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
-    scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
     scope :by_axles, ->(axles) { where(axles:) }
     scope :without_axles, ->(axles) { where(arel_table[:axles].not_in(axles).or(arel_table[:axles].eq(nil))) }
     scope :without_plates, ->(plates) { where(arel_table[:plate].not_in(plates).or(arel_table[:plate].eq(nil))) }
@@ -116,7 +116,7 @@ module Atua
 
       def net_freight_of_document
         zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) -
-          Arel::Nodes::Grouping.new(expenses_total.arel) - freight_toll
+          Arel::Nodes::Grouping.new(expenses_total.arel) - discounted_toll
       end
 
       def freight_expenses_total
@@ -133,14 +133,26 @@ module Atua
         Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
       end
 
-      def freight_toll
-        columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }
-        parts = columns.drop(1).sum(columns.first)
-        difference = Arel::Nodes::NamedFunction.new('ABS', [Arel::Nodes::Grouping.new(zero_if_null(:freight_cents) - parts)])
+      def discounted_toll
+        vouchers = Arel::Nodes::NamedFunction.new('NULLIF', [Arel::Nodes::Grouping.new(toll_vouchers_total.arel), Arel::Nodes.build_quoted(0)])
 
         Arel::Nodes::Case.new
-          .when(zero_if_null(:toll_cents).gt(0).and(difference.lteq(TOLL_TOLERANCE_CENTS))).then(arel_table[:toll_cents])
-          .else(0)
+          .when(toll_outside_freight).then(0)
+          .else(Arel::Nodes::NamedFunction.new('COALESCE', [vouchers, zero_if_null(:toll_cents)]))
+      end
+
+      def undiscounted_toll
+        Arel::Nodes::Case.new.when(toll_outside_freight).then(arel_table[:toll_cents]).else(0)
+      end
+
+      def toll_vouchers_total
+        vouchers = TollVoucher.arel_table
+
+        TollVoucher.active.not_canceled
+          .where(vouchers[:tenant_id].eq(arel_table[:tenant_id]))
+          .where(vouchers[:transport_document_number].eq(arel_table[:number]))
+          .where(vouchers[:branch_code].eq(arel_table[:branch_code]))
+          .select(sum_or_zero(vouchers[:toll_cents]))
       end
 
       def taker_names_by_code
@@ -157,6 +169,14 @@ module Atua
 
       private
 
+      def toll_outside_freight
+        columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }
+        parts = columns.drop(1).sum(columns.first)
+        difference = Arel::Nodes::NamedFunction.new('ABS', [Arel::Nodes::Grouping.new(zero_if_null(:freight_cents) - parts)])
+
+        zero_if_null(:toll_cents).gt(0).and(difference.gt(TOLL_TOLERANCE_CENTS))
+      end
+
       def zero_if_null(column)
         Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[column], Arel::Nodes.build_quoted(0)])
       end
@@ -170,6 +190,10 @@ module Atua
       return :none unless toll_cents.to_i.positive?
 
       toll_in_freight? ? :in_freight : :outside_freight
+    end
+
+    def toll_voucher_paid
+      Money.from_cents(toll_vouchers.active.not_canceled.sum(:toll_cents))
     end
 
     def atua_toll_kind

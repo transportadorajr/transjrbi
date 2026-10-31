@@ -8,7 +8,7 @@ module Atua
     THOUSANDS = /\A-?\d{1,3}(\.\d{3})+\z/
     SHORT_DATE_TIME = %r{\A(\d{2})/(\d{2})/(\d{2}|\d{4}) (\d{2}):(\d{2})(?::(\d{2}))?\z}
     ISO_DATE_TIME = /\A(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2})(\.\d+)?)?\z/
-    SHORT_DATE = %r{\A(\d{2})/(\d{2})/(\d{4})\z}
+    SHORT_DATE = %r{\A(\d{2})/(\d{2})/(\d{2}|\d{4})\z}
     ISO_DATE = /\A(\d{4})-(\d{2})-(\d{2})/
     TIME = /\A(\d{1,2}):(\d{2})(?::(\d{2}))?\z/
     NUMBER_SEPARATOR = %r{\s*/\s*}
@@ -208,7 +208,9 @@ module Atua
 
     def parse_date(text)
       if (match = SHORT_DATE.match(text))
-        Date.new(match[3].to_i, match[2].to_i, match[1].to_i)
+        year = match[3].to_i
+        year += 2000 if match[3].size == 2
+        Date.new(year, match[2].to_i, match[1].to_i)
       elsif (match = ISO_DATE.match(text))
         Date.new(match[1].to_i, match[2].to_i, match[3].to_i)
       else

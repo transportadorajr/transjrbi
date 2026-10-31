@@ -6,6 +6,7 @@ module Atua
     SESSION_LABEL = 'atua-session'.freeze
     RETRY_WAIT = 30.minutes
     RETRY_ATTEMPTS = 3
+    ACTION_REQUIRED_ERRORS = [AuthenticationError, ConfigurationError, LayoutError].freeze
 
     queue_as :atua
 
@@ -15,8 +16,8 @@ module Atua
     good_job_concurrency_rule(label: -> { report_label }, perform_limit: 1)
     good_job_concurrency_rule(label: SESSION_LABEL, perform_limit: 1)
 
-    discard_on AuthenticationError, ConfigurationError
-    retry_on UnavailableError, wait: RETRY_WAIT, attempts: RETRY_ATTEMPTS
+    discard_on(*ACTION_REQUIRED_ERRORS)
+    retry_on RetryableError, wait: RETRY_WAIT, attempts: RETRY_ATTEMPTS
 
     class << self
       def report_label(tenant_id = nil, report_type = nil)
@@ -26,10 +27,10 @@ module Atua
 
     def perform(tenant_id, report_type, start_date = nil, end_date = nil, **)
       ImportReportCommand.call(Tenant.find(tenant_id), report_type, start_date:, end_date:, raise_errors: true)
-    rescue SessionError, DownloadError => e
-      raise unless e.server_unavailable?
-
-      raise UnavailableError.new(e.message, status: e.status, headers: e.headers, body_excerpt: e.body_excerpt)
+    rescue *ACTION_REQUIRED_ERRORS
+      raise
+    rescue StandardError => e
+      raise RetryableError, e.message
     end
 
     private

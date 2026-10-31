@@ -318,6 +318,36 @@ RSpec.describe Atua::ImportReportCommand do
       end
     end
 
+    context 'when processing the downloaded file fails' do
+      let(:client) { instance_double(Atua::Client, source_type: :mock) }
+      let(:download) do
+        Atua::Download.new(
+          report_type: 'manifests', **period, content: atua_fixture_path(:manifests).binread,
+          content_type: 'application/vnd.ms-excel', filename: 'manifests.xls'
+        )
+      end
+
+      before do
+        allow(client).to receive(:download).and_return([download])
+        allow(Atua::ManifestDocument).to receive(:insert_all).and_raise(ActiveRecord::StatementInvalid, 'PG::Error: connection lost')
+        allow(Atua::FailImportCommand).to receive(:call).and_call_original
+      end
+
+      it 'raises the error when asked to, recording the failure only once' do
+        expect { described_class.call(tenant, :manifests, **period, client:, raise_errors: true) }
+          .to raise_error(ActiveRecord::StatementInvalid, 'PG::Error: connection lost')
+
+        expect(tenant.atua_imports.sole).to have_attributes(status_type: 'failed', error_type: 'unexpected')
+        expect(Atua::FailImportCommand).to have_received(:call).once
+      end
+
+      it 'returns the failed import when not asked to raise' do
+        import = described_class.call(tenant, :manifests, **period, client:).sole
+
+        expect(import).to have_attributes(status_type: 'failed', error_type: 'unexpected')
+      end
+    end
+
     context 'when the download fails' do
       let(:client) { instance_double(Atua::Client) }
 
