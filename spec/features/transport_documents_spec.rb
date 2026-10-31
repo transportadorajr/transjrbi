@@ -256,25 +256,17 @@ describe 'Transport documents' do
         expect(page).to have_css('h1.page-title', text: 'CT-e 74130')
         expect(dl_to_hash('#document_data')).to eq(
           'Número' => '74130',
-          'Série' => '1',
           'Tipo do documento' => 'CT-e',
-          'Chave de acesso' => transport_document.access_key,
           'Emitido em' => '01/10/2026 16:45',
-          'Lançado em' => '02/10/2026',
           'Situação' => 'Válido',
           'Situação na SEFAZ' => 'Autorizado',
-          'Cancelado em' => '-',
-          'Motivo do cancelamento' => '-',
-          'Tipo de emissão' => 'Normal',
           'Tipo do serviço' => 'Normal',
-          'CFOP' => '6352',
           'Filial' => 'JR TRANSPORTES',
         )
         expect(dl_to_hash('#parties')).to eq(
           'Remetente' => 'USIMINAS 60.894.730/0001-05',
           'Destinatário' => 'FIAT 16.701.716/0001-56',
           'Pagador' => 'USIMINAS 60.894.730/0001-05',
-          'Tomador' => 'USIMINAS',
           'Consignatário' => '-',
         )
         expect(dl_to_hash('#transport')).to eq(

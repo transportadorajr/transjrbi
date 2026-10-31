@@ -23,20 +23,11 @@
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:number) %></dt>
             <dd class="col-12 col-md-7"><%= @transport_document.number %></dd>
 
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:series) %></dt>
-            <dd class="col-12 col-md-7"><%= tax_value(@transport_document.series) %></dd>
-
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:document_kind) %></dt>
             <dd class="col-12 col-md-7"><%= transport_document_kind(@transport_document) %></dd>
 
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:access_key) %></dt>
-            <dd class="col-12 col-md-7 text-break"><%= tax_value(@transport_document.access_key) %></dd>
-
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></dt>
             <dd class="col-12 col-md-7"><%= tax_time(@transport_document.issued_at) %></dd>
-
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:posted_on) %></dt>
-            <dd class="col-12 col-md-7"><%= tax_date(@transport_document.posted_on) %></dd>
 
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:situation) %></dt>
             <dd class="col-12 col-md-7"><%= tax_situation_badge(@transport_document) %></dd>
@@ -44,20 +35,8 @@
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:cte_status) %></dt>
             <dd class="col-12 col-md-7"><%= tax_value(@transport_document.cte_status) %></dd>
 
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:canceled_at) %></dt>
-            <dd class="col-12 col-md-7"><%= tax_time(@transport_document.canceled_at) %></dd>
-
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:cancellation_reason) %></dt>
-            <dd class="col-12 col-md-7 text-break"><%= tax_value(@transport_document.cancellation_reason) %></dd>
-
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:issue_kind) %></dt>
-            <dd class="col-12 col-md-7"><%= tax_value(@transport_document.issue_kind) %></dd>
-
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:service_kind) %></dt>
             <dd class="col-12 col-md-7"><%= tax_value(@transport_document.service_kind) %></dd>
-
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:cfop) %></dt>
-            <dd class="col-12 col-md-7"><%= tax_value(@transport_document.cfop) %></dd>
 
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:branch_name) %></dt>
             <dd class="col-12 col-md-7"><%= tax_value(@transport_document.branch_name) %></dd>
@@ -87,9 +66,6 @@
             <dd class="col-12 col-md-7 text-break">
               <%= transport_document_party(@transport_document.payer_name, @transport_document.payer_document) %>
             </dd>
-
-            <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:taker) %></dt>
-            <dd class="col-12 col-md-7 text-break"><%= transport_document_party(@transport_document.taker_name, nil) %></dd>
 
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:consignee) %></dt>
             <dd class="col-12 col-md-7 text-break">
