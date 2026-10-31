@@ -190,7 +190,7 @@ describe 'Freight billing' do
       scenario 'lists the groupings starting from the customer group' do
         visit freight_billing_path(october)
 
-        expect(all('.dashboard-segmented .btn').map(&:text)).to eq(['Grupo de clientes', 'Cavalo', 'Motorista', 'Origem', 'Macro região'])
+        expect(all('.dashboard-segmented[aria-label="Agrupar por"] .btn').map(&:text)).to eq(['Grupo de clientes', 'Cavalo', 'Motorista', 'Origem', 'Macro região'])
       end
 
       scenario 'shows the gross and net freight per truck discounting the toll inside the gross freight' do
@@ -1103,9 +1103,9 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      grouping_bottom = page.evaluate_script("document.querySelector('.dashboard-segmented').getBoundingClientRect().bottom")
+      grouping_bottom = page.evaluate_script("document.querySelector('.dashboard-segmented[aria-label=\"Agrupar por\"]').getBoundingClientRect().bottom")
       first_card_top = page.evaluate_script("document.querySelector('.counter-card').getBoundingClientRect().top")
-      grouping_top = page.evaluate_script("document.querySelector('.dashboard-segmented').getBoundingClientRect().top")
+      grouping_top = page.evaluate_script("document.querySelector('.dashboard-segmented[aria-label=\"Agrupar por\"]').getBoundingClientRect().top")
       shortcut_bottom = page.evaluate_script("[...document.querySelectorAll('a')].find((link) => link.textContent.trim() === 'Hoje').getBoundingClientRect().bottom")
 
       expect(grouping_bottom).to be <= first_card_top
@@ -1131,7 +1131,7 @@ describe 'Freight billing' do
       visit freight_billing_path(october)
 
       card_tops = page.evaluate_script("[...document.querySelectorAll('.counter-card')].map((card) => card.getBoundingClientRect().top)")
-      option_tops = page.evaluate_script("[...document.querySelectorAll('.dashboard-segmented .btn')].map((option) => option.getBoundingClientRect().top)")
+      option_tops = page.evaluate_script("[...document.querySelectorAll('.dashboard-segmented[aria-label=\"Agrupar por\"] .btn')].map((option) => option.getBoundingClientRect().top)")
       title_top = page.evaluate_script("document.querySelector('.page-title').getBoundingClientRect().top")
       filter_top = page.evaluate_script("document.querySelector('.page-actions').getBoundingClientRect().top")
 
@@ -1153,6 +1153,16 @@ describe 'Freight billing' do
       expect(page).to have_link('Mês passado')
       expect(page).to have_link('Hoje')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    scenario 'shows the period shortcuts in a single swipeable line like the groupings' do
+      use_mobile_screen(width: 360)
+      visit freight_billing_path(october)
+
+      shortcut_tops = page.evaluate_script("[...document.querySelectorAll('.dashboard-segmented[aria-label=\"Data\"] .btn')].map((option) => option.getBoundingClientRect().top)")
+
+      expect(shortcut_tops.size).to eq(5)
+      expect(shortcut_tops.uniq.size).to eq(1)
     end
   end
 
