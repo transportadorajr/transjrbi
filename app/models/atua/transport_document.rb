@@ -6,6 +6,7 @@ module Atua
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
     TOLL_TOLERANCE_CENTS = 1
     FREIGHT_PARTS = %i[weight_freight_cents ad_valorem_cents other_charges_cents toll_cents icms_cents].freeze
+    INTERNAL_TAKER_DOCUMENTS = %w[10212838000100 10212838000283 10212838000364 51628145000172 27676883000100 39622838000152].freeze
 
     with_options class_name: 'Atua::Customer', primary_key: %i[tenant_id code], optional: true, inverse_of: false do
       belongs_to :sender, foreign_key: %i[tenant_id sender_code]
@@ -66,6 +67,11 @@ module Atua
     }
     scope :by_payer, ->(code) { where(payer_code: code) }
     scope :by_taker, ->(code) { where(taker_code: code) }
+    scope :with_internal_taker, -> {
+      customers = Customer.arel_table
+
+      where(taker_code: Customer.where(document_digits: INTERNAL_TAKER_DOCUMENTS).where(customers[:tenant_id].eq(arel_table[:tenant_id])).select(:code))
+    }
     scope :by_driver, ->(code) { where(driver_code: code) }
     scope :drivers, -> {
       active.where.not(driver_code: nil).group(:driver_code).select(:driver_code, arel_table[:driver_name].maximum.as('driver_name')).order(arel_table[:driver_name].maximum)
