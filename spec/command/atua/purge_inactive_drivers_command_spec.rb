@@ -26,7 +26,7 @@ RSpec.describe Atua::PurgeInactiveDriversCommand do
       expect(described_class.call(tenant)).to eq(1)
 
       inactive_vehicle.reload
-      expect(inactive_vehicle.attributes.values_at(*described_class::DRIVER_COLUMNS.map(&:to_s)).compact).to eq([])
+      expect(inactive_vehicle.attributes.values_at('driver_code', 'driver_name', 'driver_document', 'driver_document_digits', 'driver_license', 'driver_whatsapp_at').compact).to eq([])
       expect(inactive_vehicle.raw_data).to eq('ds_placa' => 'AAA1234')
       expect(active_vehicle.reload.driver_code).to eq(2)
       expect(tenant.atua_vehicles.drivers.map(&:driver_code)).to eq([2])
