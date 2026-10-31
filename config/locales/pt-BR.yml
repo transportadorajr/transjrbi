@@ -1361,6 +1361,7 @@ pt-BR:
       period: Saídas de %{from} a %{to}
       last_sync: 'Última sincronização com a Atua: %{time}'
       never_synced: Nenhuma sincronização com a Atua até o momento
+      period_label: Data
       group_by: Agrupar por
       gross: Frete bruto
       net: Frete líquido

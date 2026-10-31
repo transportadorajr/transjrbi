@@ -1030,9 +1030,9 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      grouping_bottom = page.evaluate_script("document.querySelector('.dashboard-filter-bar').getBoundingClientRect().bottom")
+      grouping_bottom = page.evaluate_script("document.querySelector('.dashboard-segmented').getBoundingClientRect().bottom")
       first_card_top = page.evaluate_script("document.querySelector('.counter-card').getBoundingClientRect().top")
-      grouping_top = page.evaluate_script("document.querySelector('.dashboard-filter-bar').getBoundingClientRect().top")
+      grouping_top = page.evaluate_script("document.querySelector('.dashboard-segmented').getBoundingClientRect().top")
       shortcut_bottom = page.evaluate_script("[...document.querySelectorAll('a')].find((link) => link.textContent.trim() === 'Hoje').getBoundingClientRect().bottom")
 
       expect(grouping_bottom).to be <= first_card_top
@@ -1073,6 +1073,7 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
+      expect(all('.dashboard-filter-label').map(&:text)).to eq(['DATA', 'AGRUPAR POR'])
       expect(page).to have_link('Sem. atual')
       expect(page).to have_link('Sem. passada')
       expect(page).to have_link('Mês', exact: true)
