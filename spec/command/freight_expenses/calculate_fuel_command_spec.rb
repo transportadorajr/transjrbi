@@ -59,12 +59,40 @@ RSpec.describe FreightExpenses::CalculateFuelCommand do
       expect(steel.freight_expenses.pluck(:kind_type)).to contain_exactly('commission', 'fuel')
     end
 
-    it 'recalculates every transport document of the group when its percentage changes' do
+    it 'recalculates the transport documents issued from the month the new percentage is valid' do
       described_class.call(tenant)
-      rodotrem.update!(fuel_percentage: BigDecimal('40'))
+      rodotrem.change_fuel_percentage(BigDecimal('40'), steel.issued_at.to_date.beginning_of_month)
 
       expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 1, removed: 0))
       expect(FreightExpense.find_by!(transport_document: steel)).to have_attributes(percentage: BigDecimal('40'), amount_cents: 400_000)
+    end
+
+    it 'keeps the percentage of the transport documents issued before the new percentage is valid' do
+      described_class.call(tenant)
+      rodotrem.change_fuel_percentage(BigDecimal('40'), steel.issued_at.to_date.next_month.beginning_of_month)
+
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 0, removed: 0))
+      expect(FreightExpense.find_by!(transport_document: steel)).to have_attributes(percentage: BigDecimal('35'), amount_cents: 350_000)
+    end
+
+    it 'applies each percentage to the month of issue of the transport document' do
+      september = create(:atua_transport_document, tenant:, axles: 9, freight_cents: 1_000_000, issued_at: Time.zone.local(2026, 9, 30, 23))
+      rodotrem.fuel_rates.delete_all
+      rodotrem.fuel_rates.create!(valid_month: Date.new(2026, 9, 1), percentage: BigDecimal('30'))
+      rodotrem.fuel_rates.create!(valid_month: Date.new(2026, 10, 1), percentage: BigDecimal('35'))
+
+      described_class.call(tenant)
+
+      expect(FreightExpense.find_by!(transport_document: september).percentage).to eq(BigDecimal('30'))
+      expect(FreightExpense.find_by!(transport_document: steel).percentage).to eq(BigDecimal('35'))
+    end
+
+    it 'uses the current percentage for a transport document without an issue date' do
+      undated = create(:atua_transport_document, tenant:, axles: 9, freight_cents: 1_000_000, issued_at: nil)
+
+      described_class.call(tenant)
+
+      expect(FreightExpense.find_by!(transport_document: undated).percentage).to eq(BigDecimal('35'))
     end
 
     it 'removes the fuel of a transport document canceled afterwards' do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_31_192342) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_31_203731) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -885,6 +885,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_31_192342) do
     t.index ["tenant_id"], name: "index_tonnage_rates_on_tenant_id"
   end
 
+  create_table "truck_group_fuel_rates", force: :cascade do |t|
+    t.bigint "truck_group_id", null: false
+    t.date "valid_month", null: false
+    t.decimal "percentage", precision: 7, scale: 4, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["truck_group_id", "valid_month"], name: "index_truck_group_fuel_rates_on_truck_group_id_and_valid_month", unique: true
+  end
+
   create_table "truck_groups", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.string "name", null: false
@@ -980,6 +989,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_31_192342) do
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "tonnage_rates", "customer_groups"
   add_foreign_key "tonnage_rates", "tenants"
+  add_foreign_key "truck_group_fuel_rates", "truck_groups", on_delete: :cascade
   add_foreign_key "truck_groups", "tenants"
   add_foreign_key "users", "tenants"
 end

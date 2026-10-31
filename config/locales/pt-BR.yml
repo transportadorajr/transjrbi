@@ -521,6 +521,7 @@ pt-BR:
         axles: Quantidades de eixos
         plates: Placas
         fuel_percentage: Combustível sobre o frete (%)
+        fuel_valid_month: Vigência do percentual
         remaining_axles: Abrange os demais eixos
         active: Ativo
     errors:
@@ -588,6 +589,9 @@ pt-BR:
               inclusion: não emitiu nenhum CT-e ou CE
         truck_group_form:
           attributes:
+            fuel_valid_month:
+              invalid: não é um mês válido
+              future: não pode ser um mês futuro
             name:
               taken: já está em uso por outro grupo
             axles:
@@ -1186,6 +1190,9 @@ pt-BR:
       truck_group_data: Dados do grupo
       month_fuels_count: CT-es com combustível no mês
       month_fuels_amount: Combustível do mês
+      fuel_rates: Histórico do percentual de combustível
+      fuel_rate_valid_month: Vigência
+      fuel_rate_percentage: Percentual
       edit: Alterar
     new:
       title: Novo Grupo de Caminhões
@@ -1206,6 +1213,9 @@ pt-BR:
         nele. O combustível é calculado sobre o frete dos CT-es
         normais; CEs, complementos de valores e CT-es cancelados ficam de fora.
       fuel_percentage_hint: De 0 a 100, com até 4 casas decimais. Com 0 o combustível não é calculado.
+      fuel_valid_month_hint: >-
+        Mês de emissão dos CT-es a partir do qual o novo percentual vale, até a vigência seguinte. Os meses anteriores
+        mantêm o percentual que já tinham.
       axles_hint: Cada quantidade de eixos só pode estar em um grupo ativo. Opcional quando o grupo tem placas.
       plates_hint: >-
         Placas dos cavalos, uma por linha. Elas têm prioridade sobre a quantidade de eixos do CT-e e cada placa só pode
@@ -1213,7 +1223,9 @@ pt-BR:
       remaining_axles_hint: >-
         Marque para incluir todas as quantidades de eixos que não estão em outro grupo ativo, inclusive CT-es sem eixos
         informados. Nesse caso as quantidades de eixos marcadas são ignoradas.
-      active_hint: Desmarque para deixar de usar o grupo. Toda alteração recalcula o combustível de todos os CT-es.
+      active_hint: >-
+        Desmarque para deixar de usar o grupo. Alterar placas, eixos ou o status recalcula o combustível de todos os
+        CT-es, inclusive dos meses anteriores.
   excluded_issuers:
     option: '%{name} (%{code})'
     index:

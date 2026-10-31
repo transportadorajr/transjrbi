@@ -30,6 +30,15 @@ module TruckGroupsHelper
     number_to_percentage(percentage, precision: 4, strip_insignificant_zeros: true)
   end
 
+  def truck_group_fuel_valid_month_input(form)
+    return unless form.object.persisted?
+
+    content_tag(:div, class: 'col-12 col-lg-4') do
+      form.input :fuel_valid_month, as: :string, required: true, hint: t('truck_groups.form.fuel_valid_month_hint'),
+                                    input_html: { class: 'form-control', type: :month }
+    end
+  end
+
   def truck_group_axle_options
     TruckGroup::AXLE_OPTIONS.map { |axles| [t('truck_groups.axles', count: axles, axles:), axles] }
   end

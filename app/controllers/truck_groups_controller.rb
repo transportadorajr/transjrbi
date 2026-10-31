@@ -22,6 +22,7 @@ class TruckGroupsController < BaseController
     month_fuels = @truck_group.freight_expenses.by_period(Date.current.beginning_of_month, Date.current.end_of_month)
     @month_fuels_count = month_fuels.count
     @month_fuels_amount = Money.from_cents(month_fuels.sum(:amount_cents))
+    @fuel_rates = @truck_group.fuel_rates.order(valid_month: :desc)
   end
 
   def new
@@ -80,6 +81,6 @@ class TruckGroupsController < BaseController
   end
 
   def truck_group_params
-    params.expect(truck_group: [:name, :fuel_percentage, :plates, :remaining_axles, :active, { axles: [] }])
+    params.expect(truck_group: [:name, :fuel_percentage, :fuel_valid_month, :plates, :remaining_axles, :active, { axles: [] }])
   end
 end
