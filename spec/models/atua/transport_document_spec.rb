@@ -286,6 +286,40 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.with_missing_toll' do
+    context 'with zero tolls on routes charged and not charged before' do
+      let(:route) { { taker_code: 7100, origin_city: 'CORBELIA', origin_state: 'PR', destination_city: 'RIO DE JANEIRO', destination_state: 'RJ' } }
+      let!(:charged) { create(:atua_transport_document, tenant:, toll_cents: 100_000, **route) }
+      let!(:missing) { create(:atua_transport_document, tenant:, toll_cents: 0, **route) }
+      let!(:missing_without_value) { create(:atua_transport_document, tenant:, toll_cents: nil, **route) }
+      let!(:canceled) { create(:atua_transport_document, tenant:, toll_cents: 0, canceled_at: Time.zone.local(2026, 10, 3), **route) }
+      let!(:complement) { create(:atua_transport_document, tenant:, toll_cents: 0, document_kind: 'ce', **route) }
+      let!(:value_complement) { create(:atua_transport_document, tenant:, toll_cents: 0, issue_kind: 'Complemento de Valores', **route) }
+      let!(:other_taker) { create(:atua_transport_document, tenant:, toll_cents: 0, **route, taker_code: 7200) }
+      let!(:other_destination) { create(:atua_transport_document, tenant:, toll_cents: 0, **route, destination_city: 'NITEROI') }
+      let!(:other_tenant_document) { create(:atua_transport_document, tenant: create(:tenant), toll_cents: 0, **route) }
+
+      it 'keeps only the valid CT-es with no toll on a route the same taker already paid' do
+        expect(described_class.count).to eq(9)
+        expect(described_class.with_missing_toll).to contain_exactly(missing, missing_without_value)
+      end
+    end
+
+    context 'when the only toll of the route is on a canceled document' do
+      let(:route) { { taker_code: 7100, origin_city: 'CORBELIA', origin_state: 'PR', destination_city: 'RIO DE JANEIRO', destination_state: 'RJ' } }
+
+      before do
+        create(:atua_transport_document, tenant:, toll_cents: 100_000, canceled_at: Time.zone.local(2026, 10, 3), **route)
+        create(:atua_transport_document, tenant:, toll_cents: 0, **route)
+      end
+
+      it 'does not raise the alert' do
+        expect(described_class.count).to eq(2)
+        expect(described_class.with_missing_toll).to be_empty
+      end
+    end
+  end
+
   describe '.toll_in_freight' do
     context 'with tolls inside and outside the gross freight' do
       let!(:included) do

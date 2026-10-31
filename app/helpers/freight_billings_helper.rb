@@ -137,10 +137,16 @@ module FreightBillingsHelper
   def freight_billing_detail_sections(row)
     {
       trip: { trips: freight_billing_trips(row.trips_count), loaded_km: freight_billing_km(row.loaded_km) },
-      values: { gross: tax_money(row.gross), freight_expenses: tax_money(row.freight_expenses), expenses: tax_money(row.expenses),
-                toll: tax_money(row.toll), net: tax_money(row.net) },
+      values: freight_billing_detail_values(row),
       indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km), share: freight_billing_share(row.share) },
     }
+  end
+
+  def freight_billing_missing_toll_alert(dashboard)
+    return if dashboard.missing_toll_count.zero?
+
+    render 'freight_billings/missing_toll_alert', count: dashboard.missing_toll_count,
+                                                  path: missing_tolls_freight_billing_path(**request.query_parameters.symbolize_keys)
   end
 
   def freight_billing_ranking_chart(dashboard)
@@ -164,6 +170,13 @@ module FreightBillingsHelper
   end
 
   private
+
+  def freight_billing_detail_values(row)
+    values = { gross: tax_money(row.gross), freight_expenses: tax_money(row.freight_expenses), expenses: tax_money(row.expenses), toll: tax_money(row.toll) }
+    values[:toll_outside_freight] = tax_money(row.toll_outside_freight) if row.toll_outside_freight.positive?
+
+    values.merge(net: tax_money(row.net))
+  end
 
   def freight_billing_freights_path(row)
     freights_freight_billing_path(**request.query_parameters.symbolize_keys, key: row.key)

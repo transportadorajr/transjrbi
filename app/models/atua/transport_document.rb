@@ -98,6 +98,9 @@ module Atua
     }
     scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
     scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
+    scope :with_missing_toll, -> {
+      commissionable.where(arel_table[:toll_cents].eq(0).or(arel_table[:toll_cents].eq(nil))).where(charged_route)
+    }
     scope :by_axles, ->(axles) { where(axles:) }
     scope :without_axles, ->(axles) { where(arel_table[:axles].not_in(axles).or(arel_table[:axles].eq(nil))) }
     scope :without_plates, ->(plates) { where(arel_table[:plate].not_in(plates).or(arel_table[:plate].eq(nil))) }
@@ -141,6 +144,22 @@ module Atua
         Arel::Nodes::Case.new
           .when(zero_if_null(:toll_cents).gt(0).and(difference.lteq(TOLL_TOLERANCE_CENTS))).then(arel_table[:toll_cents])
           .else(0)
+      end
+
+      def outside_freight_toll
+        zero_if_null(:toll_cents) - freight_toll
+      end
+
+      def charged_route
+        charged = Arel::Table.new(table_name, as: 'charged_documents')
+        same_route = %i[tenant_id taker_code origin_city origin_state destination_city destination_state].map { |column| charged[column].eq(arel_table[column]) }
+
+        charged.project(Arel.sql('1'))
+          .where(same_route.reduce(:and))
+          .where(charged[:toll_cents].gt(0))
+          .where(charged[:canceled_at].eq(nil))
+          .where(charged[:removed_from_atua_at].eq(nil))
+          .exists
       end
 
       def taker_names_by_code

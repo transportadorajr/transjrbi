@@ -1333,6 +1333,15 @@ pt-BR:
     month:
       month_not_found: Este mês não está mais disponível. Confira os dados atualizados.
       period: CT-es emitidos em %{month}
+    missing_tolls:
+      title: CT-es com pedágio zerado
+      not_found: Nenhum CT-e com pedágio zerado neste período. Confira os dados atualizados.
+    missing_toll_alert:
+      title:
+        one: 1 CT-e com pedágio zerado em rota que já teve pedágio
+        other: '%{count} CT-es com pedágio zerado em rota que já teve pedágio'
+      text: O mesmo tomador já teve pedágio nessa origem e nesse destino. Confira se o pedágio do trajeto está cadastrado na Atua.
+      link: Ver CT-es
     filters:
       truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo
@@ -1355,6 +1364,7 @@ pt-BR:
       freight_expenses: Despesas de frete
       expenses: Despesas
       toll: Pedágio
+      toll_outside_freight: Pedágio fora do frete (não descontado)
       net: Frete líquido
       gross_per_km: Bruto/km
       net_per_km: Líquido/km

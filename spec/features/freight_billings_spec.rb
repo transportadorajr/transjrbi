@@ -26,6 +26,47 @@ describe 'Freight billing' do
 
     before { login_as(admin, scope: :user) }
 
+    context 'with a CT-e without toll on a route the customer already paid' do
+      let(:route) { { taker_code: 7100, origin_city: 'CORBELIA', origin_state: 'PR', destination_city: 'RIO DE JANEIRO', destination_state: 'RJ' } }
+      let!(:charged) do
+        create(:atua_transport_document, tenant:, number: '76001', freight_cents: 800_000, toll_cents: 100_000, issued_at: Time.zone.local(2026, 10, 2, 8), **route)
+      end
+      let!(:missing) do
+        create(:atua_transport_document, tenant:, number: '76002', freight_cents: 500_000, toll_cents: 0, taker_name: 'ALFLEN E ALFLEN LTDA',
+                                         issued_at: Time.zone.local(2026, 10, 5, 8), **route)
+      end
+
+      scenario 'warns about the CT-e and opens it in a modal', :js do
+        visit freight_billing_path(october)
+
+        within('#missing_toll_documents') do
+          expect(page).to have_text('1 CT-e com pedágio zerado em rota que já teve pedágio')
+          click_on 'Ver CT-es'
+        end
+
+        expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: 'CT-es com pedágio zerado')
+        within('#freight_billing_freights_modal') do
+          expect(page).to have_text('76002')
+          expect(page).to have_text('ALFLEN E ALFLEN LTDA')
+          expect(page).to have_no_text('76001')
+        end
+      end
+
+      scenario 'shows no warning on a period without such CT-es' do
+        visit freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30')
+
+        expect(Atua::TransportDocument.count).to eq(2)
+        expect(page).to have_no_css('#missing_toll_documents')
+      end
+
+      scenario 'redirects back when the period has nothing to list' do
+        visit missing_tolls_freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30')
+
+        expect(page).to have_current_path(freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30'))
+        expect(page).to have_text('Nenhum CT-e com pedágio zerado neste período')
+      end
+    end
+
     context 'when the transport documents are readable too' do
       let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
 
@@ -419,6 +460,21 @@ describe 'Freight billing' do
             'Despesas' => 'R$ 150,00', 'Pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 19.100,00', 'Bruto/km' => 'R$ 26,39',
             'Líquido/km' => 'R$ 25,14', 'Participação' => '100,0%'
           )
+        end
+
+        context 'with a toll paid apart from the gross freight' do
+          before do
+            create(:atua_transport_document, tenant:, number: '74009', freight_cents: 600_000, weight_freight_cents: 600_000, toll_cents: 40_000,
+                                             icms_cents: 0, plate: 'RVR8J90', driver_code: 20, driver_name: 'MARIA SOUZA')
+            create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74009')
+          end
+
+          scenario 'shows the toll of the row without discounting it from the net freight' do
+            visit freight_billing_path(october_by_truck)
+
+            expect(row_detail('RVR8J90')).to include('Pedágio' => 'R$ 0,00', 'Pedágio fora do frete (não descontado)' => 'R$ 400,00',
+                                                     'Frete bruto' => 'R$ 11.000,00', 'Frete líquido' => 'R$ 11.000,00')
+          end
         end
 
         scenario 'opens the detail of a driver' do

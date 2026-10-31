@@ -34,6 +34,13 @@ class FreightBillingsController < BaseController
     @transport_documents = @dashboard.month_freights(@row.month)
   end
 
+  def missing_tolls
+    return redirect_to(freight_billing_path(filter_params), alert: t('.not_found')) if @dashboard.missing_toll_count.zero?
+
+    @row = @dashboard.missing_toll_row
+    @transport_documents = @dashboard.missing_toll_documents
+  end
+
   private
 
   def load_dashboard

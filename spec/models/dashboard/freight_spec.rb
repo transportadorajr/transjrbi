@@ -187,11 +187,11 @@ RSpec.describe Dashboard::Freight do
         [
           { key: 'RVR2C34', label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
             freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0),
-            net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
+            toll_outside_freight: Money.from_cents(0), net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
             share: BigDecimal('75') },
           { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), gross: Money.from_cents(500_000),
-            freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), net: Money.from_cents(500_000),
-            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('25') },
+            freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), toll_outside_freight: Money.from_cents(0),
+            net: Money.from_cents(500_000), gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('25') },
         ],
       )
     end
@@ -406,6 +406,27 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.total).to have_attributes(gross: Money.from_cents(1_560_000), toll: Money.from_cents(35_000),
                                                  net: Money.from_cents(1_525_000), net_per_km: Money.from_cents(2_262))
       expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(15_250.0)
+    end
+
+    it 'keeps apart the toll outside the gross freight without discounting it' do
+      expect(dashboard.rows.map { |row| [row.label, row.toll_outside_freight.cents] }).to eq([['RVR4E56', 0], ['RVR5F67', 40_000]])
+      expect(dashboard.total).to have_attributes(toll_outside_freight: Money.from_cents(40_000), net: Money.from_cents(1_525_000))
+    end
+  end
+
+  context 'with a route charged before and CT-es without toll' do
+    let(:route) { { taker_code: 7100, origin_city: 'CORBELIA', origin_state: 'PR', destination_city: 'RIO DE JANEIRO', destination_state: 'RJ' } }
+    let!(:charged) { create(:atua_transport_document, tenant:, number: '79001', freight_cents: 800_000, toll_cents: 100_000, **route) }
+    let!(:missing) { create(:atua_transport_document, tenant:, number: '79002', freight_cents: 500_000, toll_cents: 0, **route) }
+    let!(:out_of_period) do
+      create(:atua_transport_document, tenant:, number: '79003', freight_cents: 400_000, toll_cents: 0, issued_at: Time.zone.local(2026, 9, 1, 8), **route)
+    end
+
+    it 'lists only the CT-es issued in the period' do
+      expect(Atua::TransportDocument.count).to eq(3)
+      expect(dashboard.missing_toll_count).to eq(1)
+      expect(dashboard.missing_toll_documents).to eq([missing])
+      expect(dashboard.missing_toll_row).to have_attributes(label: 'CT-es com pedágio zerado', gross: Money.from_cents(500_000), net: Money.from_cents(500_000))
     end
   end
 

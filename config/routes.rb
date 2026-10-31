@@ -70,6 +70,7 @@ Rails.application.routes.draw do
       get :detail
       get :freights
       get :month
+      get :missing_tolls
     end
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection

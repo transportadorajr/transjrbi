@@ -15,9 +15,9 @@ module Dashboard
     CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
-                 toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
+                 toll_cents toll_outside_freight_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
     ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
-                          plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
+                          toll_outside_freight_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -41,9 +41,10 @@ module Dashboard
 
     IssuedFact = Data.define(:issued_on, :freight_cents, :net_cents)
     MonthRow = Data.define(:month, :label, :gross, :net)
+    MissingTollRow = Data.define(:label, :gross, :net)
 
-    Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :net, :gross_per_km, :net_per_km,
-                      :share) do
+    Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :toll_outside_freight, :net, :gross_per_km,
+                      :net_per_km, :share) do
       extend ActiveModel::Naming
 
       def confirmation_name
@@ -162,6 +163,22 @@ module Dashboard
         .order(table[:issued_at].desc.nulls_last, id: :desc)
     end
 
+    def missing_toll_count
+      @missing_toll_count ||= issued_documents.with_missing_toll.count
+    end
+
+    def missing_toll_documents
+      @missing_toll_documents ||= issued_documents.with_missing_toll
+        .with_freight_totals
+        .order(table[:issued_at].desc.nulls_last, id: :desc)
+    end
+
+    def missing_toll_row
+      MissingTollRow.new(label: I18n.t('freight_billings.missing_tolls.title'),
+                         gross: Money.from_cents(missing_toll_documents.sum { |document| document.freight_cents.to_i }),
+                         net: Money.from_cents(missing_toll_documents.sum { |document| document.net_cents.to_i }))
+    end
+
     private
 
     attr_reader :documents, :manifests
@@ -274,6 +291,7 @@ module Dashboard
         freight_expenses_cents: facts.sum { |fact| fact.freight_expenses_cents.to_i },
         expenses_cents: facts.sum { |fact| fact.expenses_cents.to_i },
         toll_cents: facts.sum { |fact| fact.toll_cents.to_i },
+        toll_outside_freight_cents: facts.sum { |fact| fact.toll_outside_freight_cents.to_i },
       }
     end
 
@@ -303,6 +321,7 @@ module Dashboard
         Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
         Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel),
         Atua::TransportDocument.freight_toll,
+        Atua::TransportDocument.outside_freight_toll,
         table[:plate],
         table[:driver_code],
         table[:driver_name],
@@ -354,6 +373,7 @@ module Dashboard
         freight_expenses: Money.from_cents(freight_expenses_cents),
         expenses: Money.from_cents(expenses_cents),
         toll: Money.from_cents(toll_cents),
+        toll_outside_freight: Money.from_cents(grouped.sum(&:toll_outside_freight_cents)),
         net: Money.from_cents(gross_cents - freight_expenses_cents - expenses_cents - toll_cents),
         gross_per_km: per_km(measured.sum(&:freight_cents), measured_km),
         net_per_km: per_km(measured.sum(&:net_cents), measured_km),
