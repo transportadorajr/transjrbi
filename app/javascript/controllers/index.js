@@ -24,3 +24,6 @@ application.register('select2', Select2Controller);
 
 import DependentFrameController from './dependent_frame_controller';
 application.register('dependent-frame', DependentFrameController);
+
+import RankingChartController from './ranking_chart_controller';
+application.register('ranking-chart', RankingChartController);

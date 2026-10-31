@@ -478,6 +478,53 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when clicking on the ranking chart', :js do
+        def click_ranking(label, on:)
+          expect(page).to have_css('.chart-card canvas', count: 2)
+          expect(page).to have_css('[data-controller="ranking-chart"] canvas')
+
+          page.execute_script(<<~JS, label, on.to_s)
+            const [label, on] = arguments;
+            const chart = Object.values(Chartkick.charts)[0].getChartObject();
+            const rect = chart.canvas.getBoundingClientRect();
+            const y = chart.scales.y.getPixelForValue(chart.data.labels.indexOf(label));
+            const x = on === 'name' ? chart.chartArea.left - 10 : chart.chartArea.left + 10;
+            chart.canvas.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: rect.left + x, clientY: rect.top + y }));
+          JS
+          expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: label)
+          within('#freight_billing_freights_modal') { html_table_to_rows[1..-2].map { |row| row.first.split.first } }
+        end
+
+        scenario 'opens the freights of the truck from its bar' do
+          visit freight_billing_path(october_by_truck)
+
+          expect(click_ranking('RVR2C34', on: :bar)).to contain_exactly('74001', '74002')
+          expect(page).to have_current_path(freight_billing_path(october_by_truck))
+        end
+
+        scenario 'opens the freights of the truck from its name on the chart' do
+          visit freight_billing_path(october_by_truck)
+
+          expect(click_ranking('RVR8J90', on: :name)).to contain_exactly('74003', '3547')
+        end
+
+        scenario 'opens the freights of the driver from the chart' do
+          visit freight_billing_path(october.merge(dimension: 'driver'))
+
+          expect(click_ranking('JOSE SILVA', on: :bar)).to contain_exactly('74001', '74002')
+          expect(page).to have_css('#freight_billing_freights_modal', count: 1)
+        end
+      end
+
+      scenario 'makes only the ranking of the trucks and the drivers clickable' do
+        visit freight_billing_path(october_by_truck)
+        expect(page).to have_css('[data-controller="ranking-chart"]')
+
+        visit freight_billing_path(october)
+        expect(page).to have_css('.chart-card')
+        expect(page).to have_no_css('[data-controller="ranking-chart"]')
+      end
+
       scenario 'links only the trucks and the drivers to their freights' do
         visit freight_billing_path(october_by_truck)
         expect(page).to have_css('.freight-billing-table tbody .freight-billing-label a', text: 'RVR2C34')
