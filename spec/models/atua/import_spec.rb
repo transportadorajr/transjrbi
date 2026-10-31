@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Atua::Import do
   describe 'enums' do
     it 'accepts every Atua report as report type' do
-      expect(described_class.report_types.keys).to eq(%w[transport_documents manifests expenses customers vehicles])
+      expect(described_class.report_types.keys).to eq(%w[transport_documents manifests expenses toll_vouchers customers vehicles])
     end
 
     it 'lists the import statuses' do

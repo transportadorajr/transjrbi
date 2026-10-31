@@ -1,6 +1,6 @@
 module Atua
   class Report
-    MOVEMENT_TYPES = %i[transport_documents manifests expenses].freeze
+    MOVEMENT_TYPES = %i[transport_documents manifests expenses toll_vouchers].freeze
     REGISTRY_TYPES = %i[customers vehicles].freeze
     TYPES = (MOVEMENT_TYPES + REGISTRY_TYPES).freeze
     DIRECTORY = Rails.root.join('config/atua/reports')

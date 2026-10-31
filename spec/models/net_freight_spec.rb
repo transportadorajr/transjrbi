@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe NetFreight do
   let(:tenant) { create(:tenant) }
   let!(:document) do
-    create(:atua_transport_document, tenant:, freight_cents: 1_000_000, weight_freight_cents: 850_000, toll_cents: 30_000,
+    create(:atua_transport_document, tenant:, branch_code: 2, freight_cents: 1_000_000, weight_freight_cents: 850_000, toll_cents: 30_000,
                                      icms_cents: 120_000)
   end
   let!(:voucher_document) do
@@ -30,7 +30,12 @@ RSpec.describe NetFreight do
     create(:atua_expense, tenant:, cost_object: document, total_cents: 10_000, removed_from_atua_at: Time.current)
   end
 
-  it 'subtracts the commissions, the tonnage costs, the cargo insurance, the tarp lining, the fuel, the Atua expenses and the toll inside the freight from the valid transport documents' do
+  let!(:toll_voucher) { create(:atua_toll_voucher, tenant:, transport_document_number: document.number, branch_code: 2, toll_cents: 58_500) }
+  let!(:canceled_toll_voucher) do
+    create(:atua_toll_voucher, tenant:, transport_document_number: document.number, branch_code: 2, toll_cents: 7_000, canceled_on: Date.new(2026, 10, 2))
+  end
+
+  it 'subtracts the commissions, the tonnage costs, the cargo insurance, the tarp lining, the fuel, the Atua expenses and the discounted toll from the valid transport documents' do
     net_freight = described_class.for(tenant.atua_transport_documents)
 
     expect(net_freight.freight).to eq(Money.from_cents(1_200_000))
@@ -40,8 +45,7 @@ RSpec.describe NetFreight do
     expect(net_freight.tarp_lining).to eq(Money.from_cents(5_500))
     expect(net_freight.fuel).to eq(Money.from_cents(300_000))
     expect(net_freight.expenses).to eq(Money.from_cents(45_000))
-    expect(net_freight.toll).to eq(Money.from_cents(30_000))
-    expect(net_freight.toll_outside_freight).to eq(Money.from_cents(15_000))
-    expect(net_freight.net).to eq(Money.from_cents(758_325))
+    expect(net_freight.toll).to eq(Money.from_cents(58_500))
+    expect(net_freight.net).to eq(Money.from_cents(729_825))
   end
 end

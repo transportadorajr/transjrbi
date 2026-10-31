@@ -192,13 +192,14 @@ describe 'Manifests' do
       context 'with access to the freight expenses' do
         let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
         let!(:other_transport_document) do
-          create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_name: 'JR TRANSPORTES', freight_cents: 300_000,
+          create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_code: 2, branch_name: 'JR TRANSPORTES', freight_cents: 300_000,
                                            weight_freight_cents: 260_000, toll_cents: 15_000, icms_cents: 25_000)
         end
 
         before do
           create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74131', transport_document_series: 1,
                                           branch_name: 'JR TRANSPORTES')
+          create(:atua_toll_voucher, tenant:, transport_document_number: '74131', branch_code: 2, toll_cents: 15_000)
           create(:freight_expense, tenant:, transport_document:, amount_cents: 11_101)
           create(:freight_expense, :insurance, tenant:, transport_document:)
           create(:freight_expense, tenant:, transport_document: other_transport_document, amount_cents: 6_000)
@@ -208,7 +209,7 @@ describe 'Manifests' do
           create(:freight_expense, tenant:, transport_document: outside, amount_cents: 99_999)
         end
 
-        scenario 'shows the net freight of the trip discounting only the toll inside the gross freight' do
+        scenario 'shows the net freight of the trip discounting the toll vouchers' do
           visit manifest_path(manifest)
 
           expect(FreightExpense.count).to eq(5)
@@ -220,9 +221,8 @@ describe 'Manifests' do
             '(−) Forro de lona' => 'R$ 0,00',
             '(−) Combustível' => 'R$ 0,00',
             '(−) Despesas do frete na Atua' => 'R$ 350,00',
-            '(−) Pedágio incluso no frete' => 'R$ 150,00',
+            '(−) Pedágio' => 'R$ 150,00',
             '(=) Frete líquido' => 'R$ 2.473,30',
-            'Pedágio fora do frete (não descontado)' => 'R$ 200,00',
           )
         end
 

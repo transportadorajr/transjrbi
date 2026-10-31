@@ -7,6 +7,7 @@
         <%= sortable_header(freight_billing_dimension_label(dashboard.dimension), :label, anchor: 'freight_billing_table') %>
         <%= sortable_header(t('freight_billings.columns.gross'), :gross, first_direction: :desc, anchor: 'freight_billing_table', class: 'text-end') %>
         <%= sortable_header(t('freight_billings.columns.net'), :net, first_direction: :desc, anchor: 'freight_billing_table', class: 'text-end') %>
+        <th class="d-none d-lg-table-cell text-end"><%= t('freight_billings.columns.toll_total') %></th>
         <th class="text-end"><%= t('freight_billings.columns.share') %></th>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>

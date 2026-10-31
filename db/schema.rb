@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_31_134859) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_31_192342) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -19,7 +19,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_31_134859) do
   create_enum "admin_http_request_integration_type", ["atua", "tomtom"]
   create_enum "atua_device_registration_status_type", ["code_sent", "confirmed", "failed"]
   create_enum "atua_import_error_type", ["configuration", "authentication", "device_verification", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
-  create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles"]
+  create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles", "toll_vouchers"]
   create_enum "atua_import_source_type", ["mock", "production", "upload"]
   create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
@@ -338,6 +338,43 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_31_134859) do
     t.index ["tenant_id", "number", "branch_name"], name: "index_atua_manifests_on_tenant_id_and_number_and_branch_name"
     t.index ["tenant_id", "plate"], name: "index_atua_manifests_on_tenant_id_and_plate"
     t.index ["tenant_id", "status"], name: "index_atua_manifests_on_tenant_id_and_status"
+  end
+
+  create_table "atua_toll_vouchers", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "atua_import_id"
+    t.string "code", null: false
+    t.string "transport_document_number", null: false
+    t.string "document_kind"
+    t.string "order_number"
+    t.date "ordered_on"
+    t.date "issued_on"
+    t.datetime "posted_at"
+    t.date "canceled_on"
+    t.string "plate"
+    t.bigint "branch_code"
+    t.string "branch_name"
+    t.bigint "issuer_code"
+    t.string "issuer_name"
+    t.string "driver_name"
+    t.string "payer_name"
+    t.string "payer_document"
+    t.string "payer_document_digits"
+    t.integer "axles"
+    t.bigint "toll_cents"
+    t.bigint "charged_toll_cents"
+    t.bigint "advance_cents"
+    t.bigint "admin_fee_cents"
+    t.bigint "total_cents"
+    t.jsonb "raw_data", default: {}, null: false
+    t.datetime "imported_at", null: false
+    t.datetime "removed_from_atua_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["atua_import_id"], name: "index_atua_toll_vouchers_on_atua_import_id"
+    t.index ["tenant_id", "code"], name: "index_atua_toll_vouchers_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id", "issued_on"], name: "index_atua_toll_vouchers_on_tenant_id_and_issued_on"
+    t.index ["tenant_id", "transport_document_number", "branch_code"], name: "idx_on_tenant_id_transport_document_number_branch_c_7fe7b70ba2"
   end
 
   create_table "atua_transport_document_manifests", force: :cascade do |t|
@@ -912,6 +949,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_31_134859) do
   add_foreign_key "atua_manifest_documents", "tenants"
   add_foreign_key "atua_manifests", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_manifests", "tenants"
+  add_foreign_key "atua_toll_vouchers", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_toll_vouchers", "tenants"
   add_foreign_key "atua_transport_document_manifests", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_transport_document_manifests", "tenants"
   add_foreign_key "atua_transport_documents", "atua_imports", on_delete: :nullify

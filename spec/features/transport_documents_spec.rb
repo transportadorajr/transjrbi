@@ -286,6 +286,7 @@ describe 'Transport documents' do
           'Frete valor' => 'R$ 300,00',
           'Ad valorem' => 'R$ 50,40',
           'Pedágio' => 'R$ 200,00 Fora do frete',
+          'Vale-pedágio pago' => 'R$ 0,00',
           'Pedágio na Atua' => 'Cobrar + Pedágio',
           'Emissão do vale pedágio' => 'VPO CLIENTE - TARGET',
           'Outras cobranças' => '-',
@@ -373,9 +374,8 @@ describe 'Transport documents' do
               '(−) Forro de lona' => 'R$ 0,00',
               '(−) Combustível' => 'R$ 0,00',
               '(−) Despesas do frete na Atua' => 'R$ 350,00',
-              '(−) Pedágio incluso no frete' => 'R$ 0,00',
+              '(−) Pedágio' => 'R$ 0,00',
               '(=) Frete líquido' => 'R$ 4.690,88',
-              'Pedágio fora do frete (não descontado)' => 'R$ 200,00',
             )
           end
 
@@ -467,14 +467,15 @@ describe 'Transport documents' do
     context 'when transport documents carry tolls inside the freight and none at all' do
       let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
       let!(:included) do
-        create(:atua_transport_document, tenant:, number: '74140', freight_cents: 1_000_000, weight_freight_cents: 850_000, toll_cents: 30_000,
+        create(:atua_transport_document, tenant:, number: '74140', branch_code: 2, freight_cents: 1_000_000, weight_freight_cents: 850_000, toll_cents: 30_000,
                                          icms_cents: 120_000, raw_data: { 'id_pedagio_ctrc' => 'Incluso', 'nm_emissao_vale_pedagio' => 'SEM VALE PEDÁGIO' })
       end
+      let!(:toll_voucher) { create(:atua_toll_voucher, tenant:, transport_document_number: '74140', branch_code: 2, toll_cents: 30_000) }
       let!(:without_toll) do
         create(:atua_transport_document, tenant:, number: '74141', freight_cents: 300_000, weight_freight_cents: 300_000, toll_cents: 0)
       end
 
-      scenario 'highlights the toll included in the freight and discounts it from the net freight' do
+      scenario 'highlights the toll included in the freight and discounts its voucher from the net freight' do
         visit transport_document_path(included)
 
         expect(Atua::TransportDocument.count).to eq(2)
@@ -484,6 +485,7 @@ describe 'Transport documents' do
           'Frete valor' => '-',
           'Ad valorem' => '-',
           'Pedágio' => 'R$ 300,00 Incluso no frete',
+          'Vale-pedágio pago' => 'R$ 300,00',
           'Pedágio na Atua' => 'Incluso',
           'Emissão do vale pedágio' => 'SEM VALE PEDÁGIO',
           'Outras cobranças' => '-',
@@ -499,7 +501,7 @@ describe 'Transport documents' do
           '(−) Forro de lona' => 'R$ 0,00',
           '(−) Combustível' => 'R$ 0,00',
           '(−) Despesas do frete na Atua' => 'R$ 0,00',
-          '(−) Pedágio incluso no frete' => 'R$ 300,00',
+          '(−) Pedágio' => 'R$ 300,00',
           '(=) Frete líquido' => 'R$ 9.700,00',
         )
       end
@@ -513,6 +515,7 @@ describe 'Transport documents' do
           'Frete valor' => '-',
           'Ad valorem' => '-',
           'Pedágio' => 'R$ 0,00 Sem pedágio',
+          'Vale-pedágio pago' => 'R$ 0,00',
           'Pedágio na Atua' => '-',
           'Emissão do vale pedágio' => '-',
           'Outras cobranças' => '-',
@@ -520,7 +523,6 @@ describe 'Transport documents' do
           'Base do ICMS' => '-',
           'ICMS' => '-',
         )
-        expect(page).to have_no_text('Pedágio fora do frete')
       end
     end
   end

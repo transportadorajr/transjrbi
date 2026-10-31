@@ -186,11 +186,11 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.rows.map(&:to_h)).to eq(
         [
           { key: 'RVR2C34', label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
-            freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0),
+            freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0),
             net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
             share: BigDecimal('75') },
           { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), gross: Money.from_cents(500_000),
-            freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), net: Money.from_cents(500_000),
+            freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0), net: Money.from_cents(500_000),
             gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('25') },
         ],
       )
@@ -385,27 +385,40 @@ RSpec.describe Dashboard::Freight do
     end
   end
 
-  context 'with trips carrying tolls inside and outside the gross freight' do
-    before do
-      create(:atua_manifest, tenant:, code: 44_001, plate: 'RVR4E56', trip_started_at: Time.zone.local(2026, 10, 9, 8))
-      create(:atua_manifest, tenant:, code: 44_002, plate: 'RVR5F67', trip_started_at: Time.zone.local(2026, 10, 12, 8))
-      create(:atua_transport_document, tenant:, number: '77001', freight_cents: 1_000_000, weight_freight_cents: 850_000,
-                                       toll_cents: 30_000, icms_cents: 120_000, plate: 'RVR4E56')
-      create(:atua_transport_document, tenant:, number: '77002', freight_cents: 500_000, weight_freight_cents: 500_000,
-                                       toll_cents: 40_000, icms_cents: 0, plate: 'RVR5F67')
-      create(:atua_transport_document, tenant:, number: '77003', document_kind: 'ce', freight_cents: 60_000, weight_freight_cents: 55_000,
-                                       toll_cents: 5_000, icms_cents: 0, posted_on: Date.new(2026, 10, 20), plate: 'RVR4E56')
-      create(:atua_manifest_document, tenant:, manifest_code: 44_001, transport_document_number: '77001', calculated_distance_km: 400)
-      create(:atua_manifest_document, tenant:, manifest_code: 44_002, transport_document_number: '77002', calculated_distance_km: 250)
+  context 'with tolls inside and outside the gross freight, with and without vouchers' do
+    def trip(code, plate, number, **attributes)
+      create(:atua_manifest, tenant:, code:, plate:, trip_started_at: Time.zone.local(2026, 10, 9, 8))
+      create(:atua_transport_document, tenant:, number:, branch_code: 2, plate:, icms_cents: 0, **attributes)
+      create(:atua_manifest_document, tenant:, manifest_code: code, transport_document_number: number, calculated_distance_km: 400)
     end
 
-    it 'discounts only the toll already carried by the gross freight of the documents' do
-      expect(Atua::TransportDocument.count).to eq(3)
-      expect(dashboard.rows.map { |row| [row.label, row.gross.cents, row.toll.cents, row.net.cents] })
-        .to eq([['RVR4E56', 1_060_000, 35_000, 1_025_000], ['RVR5F67', 500_000, 0, 500_000]])
-      expect(dashboard.total).to have_attributes(gross: Money.from_cents(1_560_000), toll: Money.from_cents(35_000),
-                                                 net: Money.from_cents(1_525_000), net_per_km: Money.from_cents(2_262))
-      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(15_250.0)
+    def voucher(number, toll_cents, **attributes)
+      create(:atua_toll_voucher, tenant:, transport_document_number: number, branch_code: 2, toll_cents:, **attributes)
+    end
+
+    before do
+      trip(44_001, 'RVR1A11', '77001', freight_cents: 1_000_000, weight_freight_cents: 970_000, toll_cents: 30_000)
+      trip(44_002, 'RVR2B22', '77002', freight_cents: 800_000, weight_freight_cents: 770_000, toll_cents: 30_000)
+      trip(44_003, 'RVR3C33', '77003', freight_cents: 600_000, weight_freight_cents: 600_000, toll_cents: 40_000)
+      trip(44_004, 'RVR4D44', '77004', freight_cents: 400_000, weight_freight_cents: 400_000, toll_cents: 0)
+      voucher('77001', 58_500)
+      voucher('77001', 10_000, canceled_on: Date.new(2026, 10, 10))
+      voucher('77001', 20_000, removed_from_atua_at: Time.current)
+      voucher('77003', 40_000)
+      voucher('77004', 12_000)
+    end
+
+    it 'discounts the voucher, or the toll inside the freight without a voucher, and nothing of a toll outside the freight' do
+      expect(Atua::TransportDocument.count).to eq(4)
+      expect(Atua::TollVoucher.count).to eq(5)
+      expect(dashboard.rows.map { |row| [row.label, row.toll.cents, row.net.cents] }).to eq(
+        [['RVR1A11', 58_500, 941_500], ['RVR2B22', 30_000, 770_000], ['RVR3C33', 0, 600_000], ['RVR4D44', 12_000, 388_000]],
+      )
+      expect(dashboard.rows.map { |row| row.undiscounted_toll.cents }).to eq([0, 0, 40_000, 0])
+      expect(dashboard.total.toll_total).to eq(Money.from_cents(140_500))
+      expect(dashboard.total).to have_attributes(gross: Money.from_cents(2_800_000), toll: Money.from_cents(100_500), net: Money.from_cents(2_699_500))
+      expect(dashboard.net).to eq(Money.from_cents(2_699_500))
+      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(26_995.0)
     end
   end
 
