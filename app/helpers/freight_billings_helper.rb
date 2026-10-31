@@ -2,6 +2,9 @@ module FreightBillingsHelper
   BRAND_BLUE = '#2563eb'.freeze
   BRAND_ORANGE = '#eb6834'.freeze
   SERIES_COLORS = [BRAND_BLUE, BRAND_ORANGE].freeze
+  DANGER_RED = '#dc3545'.freeze
+  SUCCESS_GREEN = '#198754'.freeze
+  MONTHLY_SERIES_COLORS = [DANGER_RED, SUCCESS_GREEN].freeze
   CHART_GRID_COLOR = '#eef0f4'.freeze
   CHART_TEXT_COLOR = '#52514e'.freeze
   CHART_HEIGHT = '320px'.freeze
@@ -100,6 +103,10 @@ module FreightBillingsHelper
                                                 to: l(history.last, format: :chart_month).capitalize)
   end
 
+  def freight_billing_month_period_label(row)
+    t('freight_billings.month.period', month: row.label)
+  end
+
   def freight_billing_km(distance)
     t('freight_billings.km', distance: number_with_delimiter(distance.round))
   end
@@ -147,11 +154,13 @@ module FreightBillingsHelper
   end
 
   def freight_billing_monthly_chart(dashboard)
-    column_chart(freight_billing_series(dashboard.monthly_data),
-                 height: CHART_HEIGHT,
-                 legend: 'bottom',
-                 **freight_billing_money_options,
-                 library: freight_billing_bar_library(:x))
+    tag.div(data: freight_billing_monthly_chart_data(dashboard)) do
+      bar_chart(freight_billing_series(dashboard.monthly_data, MONTHLY_SERIES_COLORS),
+                height: CHART_HEIGHT,
+                legend: 'bottom',
+                **freight_billing_money_options,
+                library: freight_billing_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS, tooltip: { enabled: false } }))
+    end
   end
 
   private
@@ -167,6 +176,17 @@ module FreightBillingsHelper
       action: 'click->ranking-chart#open mousemove->ranking-chart#hover' }
   end
 
+  def freight_billing_monthly_chart_data(dashboard)
+    { controller: 'ranking-chart', ranking_chart_urls_value: freight_billing_month_urls(dashboard),
+      action: 'click->ranking-chart#open mousemove->ranking-chart#hover' }
+  end
+
+  def freight_billing_month_urls(dashboard)
+    dashboard.billed_months.map do |month, billed|
+      month_freight_billing_path(**request.query_parameters.symbolize_keys, month: month.strftime(Dashboard::Freight::MONTH_FORMAT)) if billed
+    end
+  end
+
   def freight_billing_row_show_menu(row)
     Menu.new(
       name: :show,
@@ -177,8 +197,8 @@ module FreightBillingsHelper
     )
   end
 
-  def freight_billing_series(series)
-    series.zip(SERIES_COLORS).map do |serie, color|
+  def freight_billing_series(series, colors = SERIES_COLORS)
+    series.zip(colors).map do |serie, color|
       serie.merge(color:, dataset: { backgroundColor: color, borderWidth: 0, borderRadius: 4, maxBarThickness: 28 })
     end
   end

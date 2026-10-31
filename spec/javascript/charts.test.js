@@ -22,6 +22,10 @@ describe('formatBarLabel', () => {
   it('formats the value like the tooltip', () => {
     expect(formatBarLabel(15000, contextWith(15000, 200))).toBe('R$ 15000.00');
   });
+
+  it('leaves a bar without value unlabeled', () => {
+    expect(formatBarLabel(0, contextWith(0, 0))).toBeNull();
+  });
 });
 
 describe('fitsInsideBar', () => {

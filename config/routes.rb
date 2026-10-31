@@ -69,6 +69,7 @@ Rails.application.routes.draw do
     resource :freight_billing, only: :show do
       get :detail
       get :freights
+      get :month
     end
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection

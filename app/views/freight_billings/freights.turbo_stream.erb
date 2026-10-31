@@ -1,2 +1,3 @@
 <%= turbo_stream.update 'remote-container', partial: 'freight_billings/freights_modal',
-                                            locals: { row: @row, transport_documents: @transport_documents, filter_form: @filter_form } %>
+                                            locals: { row: @row, transport_documents: @transport_documents,
+                                                      period_label: freight_billing_period_label(@filter_form) } %>

@@ -117,6 +117,18 @@ describe 'Freight billing' do
         end
       end
 
+      def monthly_bar_labels
+        expect(page).to have_css('.chart-card canvas', count: 2)
+
+        page.document.synchronize do
+          page.evaluate_script(
+            '(Object.values(Chartkick.charts)[1].getChartObject().$datalabels?._labels || [])' \
+            '.filter((label) => label.$layout?._visible)' \
+            '.map((label) => [label._model.lines.join(" "), label._model.color])',
+          ).presence || raise(Capybara::ExpectationNotMet)
+        end
+      end
+
       let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
       let!(:grouped_taker) { create(:atua_customer, tenant:, code: 7100, customer_group: usiminas) }
       let!(:loose_taker) { create(:atua_customer, tenant:, code: 7200) }
@@ -219,6 +231,60 @@ describe 'Freight billing' do
             ['R$ 15.000,00', '#ffffff'], ['R$ 5.000,00', '#ffffff'], ['R$ 300,00', '#2563eb'],
             ['R$ 14.100,00', '#ffffff'], ['R$ 5.000,00', '#ffffff'], ['R$ 300,00', '#eb6834']
           )
+        end
+
+        scenario 'writes the monthly values on horizontal bars in their own colors', :js do
+          visit freight_billing_path(october_by_truck)
+
+          expect(Atua::TransportDocument.count).to eq(6)
+          expect(monthly_bar_labels).to contain_exactly(['R$ 20.300,00', '#ffffff'], ['R$ 19.400,00', '#ffffff'])
+          expect(page.evaluate_script('Object.values(Chartkick.charts)[1].getChartObject().options.indexAxis')).to eq('y')
+          expect(page.evaluate_script('Object.values(Chartkick.charts)[1].getChartObject().data.datasets.map((dataset) => dataset.backgroundColor)')).to eq(
+            %w[#dc3545 #198754],
+          )
+        end
+
+        context 'when clicking on a month of the monthly chart', :js do
+          def click_month(label)
+            expect(page).to have_css('[data-controller="ranking-chart"] canvas', count: 2)
+
+            page.execute_script(<<~JS, label)
+              const [label] = arguments;
+              const chart = Object.values(Chartkick.charts)[1].getChartObject();
+              const rect = chart.canvas.getBoundingClientRect();
+              const y = chart.scales.y.getPixelForValue(chart.data.labels.indexOf(label));
+              chart.canvas.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: rect.left + chart.chartArea.left + 10, clientY: rect.top + y }));
+            JS
+          end
+
+          scenario 'opens the freights issued in that month with the totals of its bars' do
+            visit freight_billing_path(october_by_truck)
+            click_month('Out/2026')
+
+            expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: 'Out/2026')
+            within('#freight_billing_freights_modal') do
+              expect(page).to have_text('CT-es emitidos em Out/2026')
+              rows = html_table_to_rows
+              expect(rows[1..-2].size).to eq(Atua::TransportDocument.where(tenant:).count)
+              expect(rows.last).to include('R$ 20.300,00', 'R$ 19.400,00')
+            end
+            expect(page).to have_current_path(freight_billing_path(october_by_truck))
+          end
+
+          scenario 'opens nothing from a month without freights' do
+            visit freight_billing_path(october_by_truck)
+            click_month('Mai/2026')
+
+            expect(page).to have_no_css('#freight_billing_freights_modal')
+          end
+
+          scenario 'shows no tooltip on the monthly chart' do
+            visit freight_billing_path(october_by_truck)
+            expect(page).to have_css('[data-controller="ranking-chart"] canvas', count: 2)
+
+            expect(page.evaluate_script('Object.values(Chartkick.charts)[1].getChartObject().options.plugins.tooltip.enabled')).to be(false)
+            expect(monthly_bar_labels).to include(['R$ 20.300,00', '#ffffff'])
+          end
         end
 
         context 'when the ranking lists fifteen trucks' do
@@ -528,13 +594,20 @@ describe 'Freight billing' do
         end
       end
 
+      scenario 'redirects a month out of the monthly chart back to the report' do
+        visit month_freight_billing_path(october_by_truck.merge(month: '2020-01'))
+
+        expect(page).to have_current_path(freight_billing_path(october_by_truck))
+        expect(page).to have_text('Este mês não está mais disponível. Confira os dados atualizados.')
+      end
+
       scenario 'makes only the ranking of the trucks and the drivers clickable' do
         visit freight_billing_path(october_by_truck)
-        expect(page).to have_css('[data-controller="ranking-chart"]')
+        expect(page).to have_css('[data-controller="ranking-chart"]', count: 2)
 
         visit freight_billing_path(october)
         expect(page).to have_css('.chart-card')
-        expect(page).to have_no_css('[data-controller="ranking-chart"]')
+        expect(page).to have_css('[data-controller="ranking-chart"]', count: 1)
       end
 
       scenario 'links only the trucks and the drivers to their freights' do

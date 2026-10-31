@@ -8,6 +8,8 @@ const INSIDE_LABEL_COLOR = '#ffffff';
 const valueAxisOf = chart => (chart.options.indexAxis === 'y' ? 'x' : 'y');
 
 export function formatBarLabel(value, { chart }) {
+  if (!value) return null;
+
   const format = chart.options.plugins.tooltip?.callbacks?.label;
 
   return format ? format({ dataset: {}, parsed: { [valueAxisOf(chart)]: value } }) : String(value);
