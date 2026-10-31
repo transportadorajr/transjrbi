@@ -1,4 +1,8 @@
 class CustomerGroup < ApplicationRecord
+  include Sortable
+
+  sortable :name
+
   belongs_to :tenant
 
   has_many :customers, class_name: 'Atua::Customer', inverse_of: :customer_group, dependent: :restrict_with_error

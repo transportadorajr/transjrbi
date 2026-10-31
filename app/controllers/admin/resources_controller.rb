@@ -6,7 +6,7 @@ module Admin
     before_action :set_resource, only: %i[edit update destroy]
 
     def index
-      @resources = apply_scopes(Resource.all).order(:name).page(params[:page])
+      @resources = apply_sort(apply_scopes(Resource.all), :name, :id).page(params[:page])
     end
 
     def new

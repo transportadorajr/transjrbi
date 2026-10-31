@@ -22,6 +22,7 @@
         <p class="table-card-title"><%= t('.title') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @freight_expenses.total_count) %></p>
       </div>
+      <%= sort_menu([[Atua::TransportDocument.human_attribute_name(:taker), :customer_name]]) %>
     </div>
     <div class="table-card-body">
       <% if @freight_expenses.any? %>

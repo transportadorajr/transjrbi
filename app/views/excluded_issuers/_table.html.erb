@@ -2,7 +2,7 @@
   <table class="table app-table align-middle mb-0">
     <thead>
       <tr>
-        <th><%= ExcludedIssuer.human_attribute_name(:name) %></th>
+        <%= sortable_header(ExcludedIssuer.human_attribute_name(:name), :name) %>
         <th class="d-none d-md-table-cell"><%= ExcludedIssuer.human_attribute_name(:code) %></th>
         <th class="d-none d-lg-table-cell text-end"><%= ExcludedIssuer.human_attribute_name(:documents_count) %></th>
         <th class="d-none d-lg-table-cell text-end"><%= ExcludedIssuer.human_attribute_name(:freight) %></th>

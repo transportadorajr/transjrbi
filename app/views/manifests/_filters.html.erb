@@ -2,6 +2,7 @@
            locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
                      dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
   <%= form_with url: manifests_path, method: :get do |f| %>
+    <%= sort_fields %>
     <div class="row g-3">
       <div class="col-12">
         <%= f.label :number, t('manifests.filters.number'), class: 'form-label fw-medium' %>

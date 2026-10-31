@@ -42,6 +42,18 @@ RSpec.describe Atua::PurgeInactiveCustomersCommand do
     end
   end
 
+  context 'when a customer without recent transport documents has an internal document' do
+    let!(:internal) { create(:atua_customer, tenant:, code: 2, document_digits: '10212838000364') }
+
+    before { create(:atua_transport_document, tenant:, taker_code: 2, issued_at: 13.months.ago) }
+
+    it 'keeps that customer so its transport documents stay discarded' do
+      described_class.call(tenant)
+
+      expect(tenant.atua_customers.pluck(:id)).to eq([internal.id])
+    end
+  end
+
   context 'when another customer still belongs to the group' do
     before do
       create(:atua_customer, tenant:, code: 2, customer_group: group)

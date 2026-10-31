@@ -7,6 +7,7 @@ module Atua
     def call
       super.tap do
         CustomerGroups::AssignCommand.call(tenant)
+        DiscardInternalTakerDocumentsCommand.call(tenant)
         PurgeInactiveCustomersCommand.call(tenant)
         CustomerGroups::PurgeUnusedCommand.call(tenant)
       end

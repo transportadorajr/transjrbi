@@ -1,4 +1,9 @@
 class Tenant < ApplicationRecord
+  include Sortable
+
+  sortable :name
+  sortable :trade_name
+
   has_many :users, dependent: :restrict_with_error
   has_one :owner, -> { owner }, class_name: 'User', inverse_of: false, dependent: nil
   has_many :accesses, dependent: :restrict_with_error

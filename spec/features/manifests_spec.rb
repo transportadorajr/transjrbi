@@ -59,9 +59,9 @@ describe 'Manifests' do
         expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Saída', 'Placa', 'Valor da mercadoria', 'Situação', 'Ações'],
-            ['40780 TRANSJR SABARA', '06/10/2026', '-', 'EXU0F72', '-', 'Cancelado', ''],
-            ['40772 JR TRANSPORTES', '01/10/2026', '02/10/2026', 'RHJ4E07', 'R$ 112.596,72', 'Válido', ''],
+            ['Número', 'Emitido em', 'Saída', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
+            ['40780 TRANSJR SABARA', '06/10/2026', '-', 'EXU0F72', '-', '-', 'R$ 0,00', 'Cancelado', ''],
+            ['40772 JR TRANSPORTES', '01/10/2026', '02/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', 'Válido', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 1', 'Cancelados 1'])
@@ -78,8 +78,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Saída', 'Placa', 'Valor da mercadoria', 'Situação', 'Ações'],
-            ['40772 JR TRANSPORTES', '01/10/2026', '02/10/2026', 'RHJ4E07', 'R$ 112.596,72', 'Válido', ''],
+            ['Número', 'Emitido em', 'Saída', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
+            ['40772 JR TRANSPORTES', '01/10/2026', '02/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', 'Válido', ''],
           ],
         )
       end
@@ -94,8 +94,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Saída', 'Placa', 'Valor da mercadoria', 'Situação', 'Ações'],
-            ['40780 TRANSJR SABARA', '06/10/2026', '-', 'EXU0F72', '-', 'Cancelado', ''],
+            ['Número', 'Emitido em', 'Saída', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
+            ['40780 TRANSJR SABARA', '06/10/2026', '-', 'EXU0F72', '-', '-', 'R$ 0,00', 'Cancelado', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 1', 'Válidos 0', 'Cancelados 1'])

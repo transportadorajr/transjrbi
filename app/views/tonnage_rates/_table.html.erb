@@ -3,7 +3,7 @@
     <thead>
       <tr>
         <th><%= TonnageRate.human_attribute_name(:origin) %></th>
-        <th class="d-none d-md-table-cell"><%= TonnageRate.human_attribute_name(:name) %></th>
+        <%= sortable_header(TonnageRate.human_attribute_name(:name), :name, class: 'd-none d-md-table-cell') %>
         <th class="d-none d-lg-table-cell"><%= TonnageRate.human_attribute_name(:customer_group) %></th>
         <th class="d-none d-md-table-cell"><%= TonnageRate.human_attribute_name(:valid_month) %></th>
         <th class="d-none d-lg-table-cell"><%= TonnageRate.human_attribute_name(:reference_month) %></th>

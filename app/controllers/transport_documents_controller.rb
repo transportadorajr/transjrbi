@@ -14,9 +14,10 @@ class TransportDocumentsController < BaseController
     transport_documents = current_tenant.atua_transport_documents.active
     counted_transport_documents = apply_scopes(transport_documents, params.except(:status))
 
-    @transport_documents = apply_scopes(transport_documents)
-      .order(Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
-             Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, id: :desc)
+    @transport_documents = apply_sort(apply_scopes(transport_documents).with_freight_totals,
+                                      Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
+                                      Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
+                                      id: :desc, except: hidden_sort_columns)
       .page(params[:page])
     @total_count = counted_transport_documents.count
     @valid_count = counted_transport_documents.not_canceled.count
@@ -46,6 +47,10 @@ class TransportDocumentsController < BaseController
   end
 
   private
+
+  def hidden_sort_columns
+    can?(:read, :freight_expenses) ? [] : %w[net]
+  end
 
   def load_net_freight
     return if @transport_document.canceled?

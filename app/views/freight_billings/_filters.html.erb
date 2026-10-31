@@ -2,6 +2,7 @@
            locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
                      dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
   <%= form_with url: freight_billing_path, method: :get do |f| %>
+    <%= sort_fields %>
     <%= f.hidden_field :dimension, value: @filter_form.dimension %>
 
     <div class="row g-3">

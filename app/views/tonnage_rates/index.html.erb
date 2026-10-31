@@ -20,6 +20,7 @@
         <p class="table-card-title"><%= t('.title') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @tonnage_rates.total_count) %></p>
       </div>
+      <%= sort_menu([[TonnageRate.human_attribute_name(:name), :name]]) %>
     </div>
     <div class="table-card-body">
       <% if @tonnage_rates.any? %>

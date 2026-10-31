@@ -1,11 +1,13 @@
 module Atua
   class TransportDocument < ApplicationRecord
     include Importable
+    include Sortable
 
     INACTIVITY_PERIOD = 12.months
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
     TOLL_TOLERANCE_CENTS = 1
     FREIGHT_PARTS = %i[weight_freight_cents ad_valorem_cents other_charges_cents toll_cents icms_cents].freeze
+    INTERNAL_TAKER_DOCUMENTS = %w[10212838000100 10212838000283 10212838000364 51628145000172 27676883000100 39622838000152].freeze
 
     with_options class_name: 'Atua::Customer', primary_key: %i[tenant_id code], optional: true, inverse_of: false do
       belongs_to :sender, foreign_key: %i[tenant_id sender_code]
@@ -40,6 +42,11 @@ module Atua
              :ibs_cents, :cbs_cents, :result_cents, :driver_freight_cents, :advance_cents, :commission_cents,
              :insurance_cents, :cost_cents, allow_nil: true
 
+    sortable :customer_name, -> { sort_text(arel_table[:taker_name]) }
+    sortable :driver_name
+    sortable :gross, -> { arel_table[:freight_cents] }
+    sortable :net, -> { Arel.sql('net_cents') }
+
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
     validates :number, presence: true
 
@@ -61,6 +68,11 @@ module Atua
     }
     scope :by_payer, ->(code) { where(payer_code: code) }
     scope :by_taker, ->(code) { where(taker_code: code) }
+    scope :with_internal_taker, -> {
+      customers = Customer.arel_table
+
+      where(taker_code: Customer.where(document_digits: INTERNAL_TAKER_DOCUMENTS).where(customers[:tenant_id].eq(arel_table[:tenant_id])).select(:code))
+    }
     scope :by_driver, ->(code) { where(driver_code: code) }
     scope :drivers, -> {
       active.where.not(driver_code: nil).group(:driver_code).select(:driver_code, arel_table[:driver_name].maximum.as('driver_name')).order(arel_table[:driver_name].maximum)
@@ -95,7 +107,32 @@ module Atua
       where(arel_table[:plate].in(truck_group.plates).or(arel_table[:axles].in(truck_group.axles).and(outside_plates)))
     }
 
+    scope :with_freight_totals, -> { select(arel_table[Arel.star], net_freight.as('net_cents')) }
+
     class << self
+      def net_freight
+        Arel::Nodes::Case.new.when(arel_table[:canceled_at].eq(nil)).then(net_freight_of_document)
+      end
+
+      def net_freight_of_document
+        zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) -
+          Arel::Nodes::Grouping.new(expenses_total.arel) - freight_toll
+      end
+
+      def freight_expenses_total
+        FreightExpense.where(FreightExpense.arel_table[:transport_document_id].eq(arel_table[:id]))
+          .select(sum_or_zero(FreightExpense.arel_table[:amount_cents]))
+      end
+
+      def expenses_total
+        Atua::Expense.active.freight.where(Atua::Expense.arel_table[:cost_object_id].eq(arel_table[:id]))
+          .select(sum_or_zero(Atua::Expense.arel_table[:total_cents]))
+      end
+
+      def sum_or_zero(column)
+        Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
+      end
+
       def freight_toll
         columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }
         parts = columns.drop(1).sum(columns.first)

@@ -2,8 +2,8 @@
   <table class="table app-table align-middle mb-0">
     <thead>
       <tr>
-        <th><%= Tenant.human_attribute_name(:trade_name) %></th>
-        <th class="d-none d-md-table-cell"><%= Tenant.human_attribute_name(:name) %></th>
+        <%= sortable_header(Tenant.human_attribute_name(:trade_name), :trade_name) %>
+        <%= sortable_header(Tenant.human_attribute_name(:name), :name, class: 'd-none d-md-table-cell') %>
         <th class="d-none d-md-table-cell"><%= Tenant.human_attribute_name(:legal_id) %></th>
         <th class="d-none d-lg-table-cell"><%= Tenant.human_attribute_name(:owner) %></th>
         <th class="text-end"><%= t('shared.actions') %></th>

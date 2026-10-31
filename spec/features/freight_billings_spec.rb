@@ -53,6 +53,31 @@ describe 'Freight billing' do
       end
     end
 
+    context 'when sorting the table' do
+      before do
+        create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 2),
+                                         issued_at: Time.zone.local(2026, 10, 2), plate: 'BBB2B22', freight_cents: 300_000)
+        expensive = create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 3),
+                                                     issued_at: Time.zone.local(2026, 10, 3), plate: 'AAA1A11', freight_cents: 500_000)
+        create(:freight_expense, tenant:, transport_document: expensive, amount_cents: 450_000)
+      end
+
+      scenario 'sorts by the label, the gross and the net keeping the filters' do
+        visit freight_billing_path(october_by_truck)
+        rows = -> { html_table_to_rows(table: find('.freight-billing-table')).drop(1).map(&:first) }
+
+        expect(Atua::TransportDocument.count).to eq(2)
+        expect(rows.call.first(2)).to eq(%w[AAA1A11 BBB2B22])
+
+        within('.freight-billing-table thead') { click_on 'Frete líquido' }
+        expect(rows.call.first(2)).to eq(%w[BBB2B22 AAA1A11])
+        expect(page).to have_current_path(/start_date=2026-10-01/)
+
+        within('.freight-billing-table thead') { click_on 'Cavalo' }
+        expect(rows.call.first(2)).to eq(%w[AAA1A11 BBB2B22])
+      end
+    end
+
     context 'when there are no trips in the period' do
       scenario 'shows the empty state with zeroed indicators' do
         visit freight_billing_path(october)

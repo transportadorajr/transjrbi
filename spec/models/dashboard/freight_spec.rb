@@ -10,6 +10,36 @@ RSpec.describe Dashboard::Freight do
   let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 31) }
   let(:dimension) { 'vehicle' }
 
+  describe '#sorted_rows' do
+    before do
+      create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 2), issued_at: Time.zone.local(2026, 10, 2),
+                                       plate: 'BBB2B22', freight_cents: 300_000)
+      expensive = create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 3),
+                                                   issued_at: Time.zone.local(2026, 10, 3), plate: 'AAA1A11', freight_cents: 500_000)
+      create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 4), issued_at: Time.zone.local(2026, 10, 4),
+                                       plate: 'CCC3C33', freight_cents: 100_000)
+      create(:freight_expense, tenant:, transport_document: expensive, amount_cents: 450_000)
+    end
+
+    it 'sorts by the label, the gross and the net in both directions' do
+      expect(dashboard.sorted_rows('label', 'asc').map(&:label)).to eq(%w[AAA1A11 BBB2B22 CCC3C33])
+      expect(dashboard.sorted_rows('label', 'desc').map(&:label)).to eq(%w[CCC3C33 BBB2B22 AAA1A11])
+      expect(dashboard.sorted_rows('gross', 'desc').map(&:label)).to eq(%w[AAA1A11 BBB2B22 CCC3C33])
+      expect(dashboard.sorted_rows('net', 'desc').map(&:label)).to eq(%w[BBB2B22 CCC3C33 AAA1A11])
+    end
+
+    it 'keeps the default order for an unknown column' do
+      expect(dashboard.sorted_rows('plate', 'asc')).to eq(dashboard.rows)
+      expect(dashboard.sorted_rows(nil, nil)).to eq(dashboard.rows)
+    end
+
+    it 'does not change the ranking' do
+      dashboard.sorted_rows('net', 'desc')
+
+      expect(dashboard.ranking_rows.map(&:label)).to eq(%w[AAA1A11 BBB2B22 CCC3C33])
+    end
+  end
+
   context 'without documents in the period' do
     it 'is empty' do
       expect(dashboard).to be_empty

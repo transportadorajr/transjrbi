@@ -6,9 +6,12 @@
     </div>
   </td>
   <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(item.issued_on) %></td>
-  <td class="d-none d-lg-table-cell text-nowrap"><%= tax_date(item.departure_on) %></td>
+  <td class="d-none d-xl-table-cell text-nowrap"><%= tax_date(item.departure_on) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.plate) %></td>
-  <td class="d-none d-lg-table-cell text-nowrap"><%= tax_money(item.goods_value) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.customer_name) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.driver_name) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= freight_money(item.gross_cents) %></td>
+  <%= freight_net_cell(item, class: 'd-none d-md-table-cell text-nowrap') %>
   <td><%= tax_situation_badge(item) %></td>
   <td class="text-end text-nowrap">
     <%= responsive_actions_menu(manifests_menu(item)) %>

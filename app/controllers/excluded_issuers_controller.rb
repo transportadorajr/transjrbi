@@ -4,7 +4,7 @@ class ExcludedIssuersController < BaseController
   def index
     authorize!(:read, :excluded_issuers)
 
-    @excluded_issuers = apply_scopes(current_tenant.excluded_issuers).with_document_totals.order(:name, :id).page(params[:page])
+    @excluded_issuers = apply_sort(apply_scopes(current_tenant.excluded_issuers).with_document_totals, :name, :id).page(params[:page])
   end
 
   def new

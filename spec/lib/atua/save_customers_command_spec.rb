@@ -43,6 +43,22 @@ RSpec.describe Atua::SaveCustomersCommand do
     end
   end
 
+  context 'when a customer of a document turns out to be a Transjr CNPJ' do
+    let!(:document) { create(:atua_transport_document, tenant:, taker_code: code) }
+
+    before do
+      allow(Atua::MapCustomersCommand).to receive(:call).and_wrap_original do |original, *args, **options|
+        original.call(*args, **options).map { |attributes| attributes[:code] == code ? attributes.merge(document_digits: '10212838000364') : attributes }
+      end
+    end
+
+    it 'removes the document' do
+      described_class.call(import, spreadsheet)
+
+      expect(document.reload.removed_from_atua_at).to be_present
+    end
+  end
+
   it 'is the save command of the customers report' do
     expect(Atua::SaveReportCommand.for(:customers)).to eq(described_class)
   end

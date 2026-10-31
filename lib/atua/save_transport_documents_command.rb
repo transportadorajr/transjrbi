@@ -6,7 +6,10 @@ module Atua
     MANIFEST_COLUMN = 'nr_mdfe'.freeze
 
     def call
-      super.tap { MacroRegions::AssignCommand.call(tenant) }
+      super.tap do
+        DiscardInternalTakerDocumentsCommand.call(tenant)
+        MacroRegions::AssignCommand.call(tenant)
+      end
     end
 
     private

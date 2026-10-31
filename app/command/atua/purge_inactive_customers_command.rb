@@ -16,7 +16,7 @@ module Atua
       return 0 unless tenant.atua_transport_documents.exists?
 
       Customer.transaction do
-        customers = tenant.atua_customers.where.not(code: active_codes)
+        customers = tenant.atua_customers.where.not(code: active_codes).where.not(id: internal_customers)
         group_ids = customers.where.not(customer_group_id: nil).distinct.pluck(:customer_group_id)
         removed = customers.delete_all
         empty_groups(group_ids).delete_all
@@ -33,6 +33,10 @@ module Atua
       documents = tenant.atua_transport_documents.active.recently_issued
 
       PARTY_COLUMNS.flat_map { |column| documents.distinct.pluck(column) }.compact.uniq
+    end
+
+    def internal_customers
+      tenant.atua_customers.where(document_digits: TransportDocument::INTERNAL_TAKER_DOCUMENTS).select(:id)
     end
 
     def empty_groups(group_ids)

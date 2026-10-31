@@ -7,7 +7,7 @@ class DriversController < BaseController
   def index
     authorize!(:read, :drivers)
 
-    @drivers = apply_scopes(current_tenant.atua_vehicles.drivers).order(:driver_name, :driver_code).page(params[:page])
+    @drivers = apply_sort(apply_scopes(current_tenant.atua_vehicles.drivers), :driver_name, :driver_code).page(params[:page])
   end
 
   def show

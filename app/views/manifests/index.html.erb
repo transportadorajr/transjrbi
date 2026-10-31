@@ -19,6 +19,7 @@
         <p class="table-card-title"><%= t('.title') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @manifests.total_count) %></p>
       </div>
+      <%= sort_menu(freight_sort_columns(Atua::Manifest)) %>
     </div>
     <div class="table-card-body">
       <% if @manifests.any? %>
