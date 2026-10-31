@@ -11,6 +11,19 @@ describe 'Admin authentication', :admin do
       expect(page).to have_text('Faça login para acessar o painel administrativo.')
     end
 
+    scenario 'shows the JR visual identity on the login screen' do
+      visit admin_login_path
+
+      expect(page).to have_css('.auth-hero img[alt="Transportadora JR"][src*="brand/hero"]')
+    end
+
+    scenario 'shows the JR logo in the sidebar after signing in' do
+      sign_in_admin(admin_user)
+
+      expect(page).to have_css('#sidebar .sidebar-logo img[alt="Transportadora JR"][src*="brand/mark-light"]')
+      expect(page).to have_css('#sidebar .sidebar-logo-label', text: 'Admin')
+    end
+
     scenario 'signs in with the right password' do
       expect { sign_in_admin(admin_user) }.to change(Admin::Session, :count).by(1)
 

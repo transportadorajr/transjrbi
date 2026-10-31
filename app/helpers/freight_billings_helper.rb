@@ -54,7 +54,7 @@ module FreightBillingsHelper
   def freight_billing_period_preset_link_class(preset, filter_form)
     variation = FreightBillingFilterForm.preset_period(preset) == filter_form.period ? 'btn-primary' : 'btn-outline-secondary'
 
-    "btn btn-sm btn-round #{variation}"
+    "btn btn-sm #{variation}"
   end
 
   def freight_billing_customer_group_options(customer_groups)

@@ -11,7 +11,7 @@
   <div class="dashboard-filter-bar mb-4">
     <span class="dashboard-filter-label"><%= t('.period_label') %></span>
 
-    <%= tag.div class: 'd-flex flex-wrap gap-2 w-100', role: 'group', aria: { label: t('.period_label') } do %>
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.period_label') } do %>
       <% freight_billing_period_presets.each do |preset| %>
         <%= link_to freight_billing_period_preset_label(preset), freight_billing_period_preset_path(preset),
                     class: freight_billing_period_preset_link_class(preset, @filter_form) %>
