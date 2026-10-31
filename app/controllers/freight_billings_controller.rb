@@ -27,6 +27,13 @@ class FreightBillingsController < BaseController
     @transport_documents = @dashboard.freights_for(@row.key)
   end
 
+  def month
+    @row = @dashboard.month_row(params[:month])
+    return redirect_to(freight_billing_path(filter_params), alert: t('.month_not_found')) unless @row
+
+    @transport_documents = @dashboard.month_freights(@row.month)
+  end
+
   private
 
   def load_dashboard

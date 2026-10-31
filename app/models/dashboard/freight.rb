@@ -4,6 +4,7 @@ module Dashboard
     DEFAULT_DIMENSION = 'customer_group'.freeze
     FREIGHT_LIST_DIMENSIONS = %w[vehicle driver].freeze
     HISTORY_MONTHS = 6
+    MONTH_FORMAT = '%Y-%m'.freeze
     RANKING_LIMIT = 15
     TOTAL_KEY = 'total'.freeze
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
@@ -39,6 +40,7 @@ module Dashboard
     end
 
     IssuedFact = Data.define(:issued_on, :freight_cents, :net_cents)
+    MonthRow = Data.define(:month, :label, :gross, :net)
 
     Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :net, :gross_per_km, :net_per_km,
                       :share) do
@@ -133,7 +135,7 @@ module Dashboard
 
     def monthly_data
       months = issued_facts(history_period).group_by { |fact| fact.issued_on.beginning_of_month }
-      labels = history_months.index_with { |month| I18n.l(month, format: :chart_month).capitalize }
+      labels = history_months.index_with { |month| month_label(month) }
 
       [
         { name: I18n.t('dashboards.freight.gross'), data: monthly_values(labels, months, &:freight_cents) },
@@ -141,9 +143,36 @@ module Dashboard
       ]
     end
 
+    def billed_months
+      history_months.index_with { |month| issued_months.include?(month) }
+    end
+
+    def month_row(value)
+      month = history_months.find { |candidate| candidate.strftime(MONTH_FORMAT) == value.to_s }
+      return unless month && issued_months.include?(month)
+
+      facts = issued_facts(month..month.end_of_month)
+
+      MonthRow.new(month:, label: month_label(month), gross: Money.from_cents(facts.sum(&:freight_cents)), net: Money.from_cents(facts.sum(&:net_cents)))
+    end
+
+    def month_freights(month)
+      issued_documents(month..month.end_of_month)
+        .with_freight_totals
+        .order(table[:issued_at].desc.nulls_last, id: :desc)
+    end
+
     private
 
     attr_reader :documents, :manifests
+
+    def issued_months
+      @issued_months ||= issued_facts(history_period).map { |fact| fact.issued_on.beginning_of_month }.uniq
+    end
+
+    def month_label(month)
+      I18n.l(month, format: :chart_month).capitalize
+    end
 
     def issued_documents(range = period)
       documents.active.not_canceled.by_period(range.first, range.last)

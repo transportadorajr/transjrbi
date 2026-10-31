@@ -1,10 +1,10 @@
-<%# locals: (row:, transport_documents:, filter_form:) %>
+<%# locals: (row:, transport_documents:, period_label:) %>
 
 <%= tag.div data: { turbo_temporary: true }, class: 'freight-billing-freights' do %>
   <%= render layout: 'components/new_modal',
              locals: { id: FreightBillingsHelper::FREIGHTS_MODAL_ID, title: row.label, auto_show: true, show_footer: false,
                        dialog_class: 'modal-xl modal-dialog-scrollable' } do %>
-    <p class="text-muted text-small"><%= freight_billing_period_label(filter_form) %></p>
+    <p class="text-muted text-small"><%= period_label %></p>
     <div class="table-responsive">
       <table class="table app-table align-middle mb-0">
         <thead>
