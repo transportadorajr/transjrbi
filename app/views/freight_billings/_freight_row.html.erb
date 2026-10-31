@@ -1,0 +1,16 @@
+<%# locals: (transport_document:) %>
+
+<tr id="<%= dom_id(transport_document) %>">
+  <td>
+    <div class="table-identity">
+      <%= driver_transport_document_number(transport_document) %>
+      <span class="text-muted text-small d-block text-break"><%= tax_value(transport_document.taker_name) %></span>
+    </div>
+  </td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_time(transport_document.issued_at) %></td>
+  <td class="d-none d-lg-table-cell"><%= transport_document_route(transport_document) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(transport_document.plate) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(transport_document.driver_name) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(transport_document.freight) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= freight_money(transport_document.net_cents) %></td>
+</tr>

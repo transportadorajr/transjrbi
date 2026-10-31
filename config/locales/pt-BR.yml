@@ -1327,6 +1327,9 @@ pt-BR:
         trip: Viagem
         values: Valores
         indicators: Indicadores
+    freights:
+      row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
+      total: Total
     filters:
       truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo

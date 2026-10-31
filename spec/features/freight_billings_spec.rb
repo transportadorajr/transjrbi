@@ -404,6 +404,97 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when opening the freights of a row', :js do
+        def open_freights(label)
+          within('.freight-billing-table tbody') { click_link label }
+          expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: label)
+        end
+
+        def modal_numbers
+          within('#freight_billing_freights_modal') { html_table_to_rows[1..-2].map { |row| row.first.split.first } }
+        end
+
+        def close_freights
+          page.document.synchronize do
+            within('#freight_billing_freights_modal') { find('.btn-close').click }
+            raise Capybara::ExpectationNotMet if page.has_css?('.modal.show', wait: 0.5)
+          end
+        end
+
+        def modal_total
+          within('#freight_billing_freights_modal') { html_table_to_rows.last }
+        end
+
+        scenario 'lists the freights of the truck in a modal injected in the remote container' do
+          visit freight_billing_path(october_by_truck)
+
+          expect(page).to have_css('.freight-billing-table')
+          expect(page).to have_no_css('#freight_billing_freights_modal', visible: :all)
+          open_freights('RVR2C34')
+
+          expect(page).to have_css('#remote-container #freight_billing_freights_modal')
+          expect(modal_numbers).to contain_exactly('74001', '74002')
+          expect(modal_total).to eq(['Total', '', '', '', '', 'R$ 15.000,00', 'R$ 14.100,00'])
+          expect(page).to have_current_path(freight_billing_path(october_by_truck))
+        end
+
+        scenario 'lists the freights of the driver, the complement included' do
+          visit freight_billing_path(october.merge(dimension: 'driver'))
+          open_freights('MARIA SOUZA')
+
+          expect(modal_numbers).to contain_exactly('74003', '3547')
+          expect(modal_total).to eq(['Total', '', '', '', '', 'R$ 5.000,00', 'R$ 5.000,00'])
+        end
+
+        scenario 'keeps a single modal on the page when another row is opened' do
+          visit freight_billing_path(october_by_truck)
+          open_freights('RVR2C34')
+          close_freights
+          open_freights('RVR8J90')
+
+          expect(page).to have_css('#freight_billing_freights_modal', count: 1)
+          expect(modal_numbers).to contain_exactly('74003', '3547')
+        end
+
+        context 'when the transport documents are readable' do
+          let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
+
+          scenario 'opens the transport document from the modal' do
+            visit freight_billing_path(october_by_truck)
+            open_freights('RVR2C34')
+            within('#freight_billing_freights_modal') { click_link '74001' }
+
+            expect(page).to have_current_path(transport_document_path(steel))
+            expect(page).to have_no_css('.modal-backdrop')
+          end
+        end
+
+        scenario 'fits a phone screen' do
+          use_mobile_screen
+          visit freight_billing_path(october_by_truck)
+          open_freights('RVR2C34')
+
+          expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+        end
+      end
+
+      scenario 'links only the trucks and the drivers to their freights' do
+        visit freight_billing_path(october_by_truck)
+        expect(page).to have_css('.freight-billing-table tbody .freight-billing-label a', text: 'RVR2C34')
+        expect(page).to have_no_css('.freight-billing-table tfoot .freight-billing-label a')
+
+        visit freight_billing_path(october)
+        expect(page).to have_css('.freight-billing-table')
+        expect(page).to have_no_css('.freight-billing-table .freight-billing-label a')
+      end
+
+      scenario 'goes back to the report with an alert when the freights are asked for a row out of the list' do
+        visit freights_freight_billing_path(october)
+
+        expect(page).to have_current_path(freight_billing_path(october))
+        expect(page).to have_text('Esta linha não está mais disponível. Confira os dados atualizados.')
+      end
+
       scenario 'goes back to the report with an alert when the row is no longer in it' do
         visit detail_freight_billing_path(october.merge(key: 'OUT1A11'))
 

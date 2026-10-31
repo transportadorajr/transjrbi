@@ -12,10 +12,10 @@
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'row', collection: rows, as: :row %>
+      <%= render partial: 'row', collection: rows, as: :row, locals: { dashboard: } %>
     </tbody>
     <tfoot>
-      <%= render 'row', row: dashboard.total %>
+      <%= render 'row', row: dashboard.total, dashboard: %>
     </tfoot>
   </table>
 </div>

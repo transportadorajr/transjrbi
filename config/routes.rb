@@ -68,6 +68,7 @@ Rails.application.routes.draw do
     resource :insurance_rate, only: %i[show edit update]
     resource :freight_billing, only: :show do
       get :detail
+      get :freights
     end
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection

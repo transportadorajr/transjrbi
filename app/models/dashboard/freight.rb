@@ -2,6 +2,7 @@ module Dashboard
   class Freight
     DIMENSIONS = %w[customer_group vehicle driver origin macro_region].freeze
     DEFAULT_DIMENSION = 'customer_group'.freeze
+    FREIGHT_LIST_DIMENSIONS = %w[vehicle driver].freeze
     HISTORY_MONTHS = 6
     RANKING_LIMIT = 15
     TOTAL_KEY = 'total'.freeze
@@ -14,7 +15,7 @@ module Dashboard
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
-    ENTRY_ATTRIBUTES = %i[manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
+    ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
                           plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
 
     Fact = Data.define(*COLUMNS) do
@@ -101,6 +102,16 @@ module Dashboard
       rows.find { |row| row.key == key.to_s }
     end
 
+    def lists_freights?(key)
+      FREIGHT_LIST_DIMENSIONS.include?(dimension) && key != TOTAL_KEY
+    end
+
+    def freights_for(key)
+      documents.where(id: entries.select { |entry| row_key(key_for(entry)) == key.to_s }.flat_map(&:document_ids))
+        .with_freight_totals
+        .order(table[:issued_at].desc.nulls_last, id: :desc)
+    end
+
     def ranking_rows
       @ranking_rows ||= rows.reject { |row| chart_excluded?(row) }
         .first(RANKING_LIMIT)
@@ -174,8 +185,12 @@ module Dashboard
 
     def grouped_rows(grouped_entries)
       grouped_entries.group_by { |entry| key_for(entry) }
-        .map { |key, grouped| build_row(Array(key).join('|'), label_for(key, grouped), grouped) }
+        .map { |key, grouped| build_row(row_key(key), label_for(key, grouped), grouped) }
         .sort_by { |row| [-row.gross.cents, row.label] }
+    end
+
+    def row_key(key)
+      Array(key).join('|')
     end
 
     def chart_excluded?(row)
@@ -194,7 +209,7 @@ module Dashboard
 
     def complement_entry(fact)
       Entry.new(
-        manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'), **money_of([fact]),
+        document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'), **money_of([fact]),
         plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
         origin_city: fact.origin_city, origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id
       )
@@ -207,7 +222,7 @@ module Dashboard
 
       slices_of(trip_facts).map do |slice, weight|
         Entry.new(
-          manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
+          document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
           **money_of(slice), plate: trip.trip_plate, driver_code: main.driver_code, driver_name: main.driver_name,
           customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
           origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id

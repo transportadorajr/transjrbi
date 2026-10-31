@@ -6,6 +6,7 @@ module FreightBillingsHelper
   CHART_TEXT_COLOR = '#52514e'.freeze
   CHART_HEIGHT = '320px'.freeze
   DETAIL_MODAL_ID = 'freight_billing_detail_modal'.freeze
+  FREIGHTS_MODAL_ID = 'freight_billing_freights_modal'.freeze
   RANKING_BAR_HEIGHT = 44
   RANKING_MIN_HEIGHT = 320
   RANKING_BAR_LABELS = { display: true, anchor: 'end', clamp: true, padding: { top: 0, right: 4, bottom: 0, left: 4 },
@@ -117,6 +118,13 @@ module FreightBillingsHelper
     menus << freight_billing_row_show_menu(row) if can?(:read, :freight_billing)
 
     menus
+  end
+
+  def freight_billing_row_label(row, dashboard)
+    return row.label unless dashboard.lists_freights?(row.key)
+
+    link_to row.label, freights_freight_billing_path(**request.query_parameters.symbolize_keys, key: row.key),
+            class: 'fw-semibold text-decoration-none', data: { turbo_stream: true }
   end
 
   def freight_billing_detail_sections(row)
