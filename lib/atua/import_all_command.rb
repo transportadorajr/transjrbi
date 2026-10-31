@@ -1,6 +1,6 @@
 module Atua
   class ImportAllCommand
-    REPORT_TYPES = %i[customers vehicles manifests transport_documents expenses].freeze
+    REPORT_TYPES = %i[customers vehicles manifests transport_documents expenses toll_vouchers].freeze
 
     class << self
       def call(tenant, start_date:, end_date:)

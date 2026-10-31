@@ -197,6 +197,7 @@ pt-BR:
         toll: Pedágio
         atua_toll_kind: Pedágio na Atua
         toll_voucher_issuer: Emissão do vale pedágio
+        toll_voucher_paid: Vale-pedágio pago
         other_charges: Outras cobranças
         goods_value: Valor da mercadoria
         icms_base: Base do ICMS
@@ -665,6 +666,7 @@ pt-BR:
         transport_documents: Conhecimentos de transporte
         manifests: Manifestos
         expenses: Despesas
+        toll_vouchers: Vale-pedágio
         customers: Clientes
         vehicles: Veículos
       status_type:

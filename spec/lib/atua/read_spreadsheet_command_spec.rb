@@ -24,11 +24,11 @@ RSpec.describe Atua::ReadSpreadsheetCommand do
 
     context 'with every fixture' do
       it 'reads all the data rows and matches the totals row' do
-        counts = %i[transport_documents manifests expenses customers vehicles].index_with do |name|
+        counts = %i[transport_documents manifests expenses toll_vouchers customers vehicles].index_with do |name|
           described_class.call(tenant, atua_fixture_path(name)).rows.size
         end
 
-        expect(counts).to eq(transport_documents: 420, manifests: 390, expenses: 1218, customers: 4833, vehicles: 1391)
+        expect(counts).to eq(transport_documents: 420, manifests: 390, expenses: 1218, toll_vouchers: 3, customers: 4833, vehicles: 1391)
       end
     end
 

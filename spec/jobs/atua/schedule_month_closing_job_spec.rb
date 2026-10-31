@@ -10,11 +10,11 @@ RSpec.describe Atua::ScheduleMonthClosingJob do
     it 'enqueues the whole previous month of movements only for the enabled tenant' do
       described_class.perform_now
 
-      %w[transport_documents manifests expenses].each do |report_type|
+      %w[transport_documents manifests expenses toll_vouchers].each do |report_type|
         expect(Atua::ImportReportJob).to have_been_enqueued
           .with(enabled_tenant.id, report_type, Date.new(2026, 10, 1), Date.new(2026, 10, 31))
       end
-      expect(Atua::ImportReportJob).to have_been_enqueued.exactly(3).times
+      expect(Atua::ImportReportJob).to have_been_enqueued.exactly(4).times
     end
   end
 

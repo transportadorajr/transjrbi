@@ -12,6 +12,7 @@ RSpec.describe Atua::ImportAllCommand do
       manifests: 'rel_manifesto_detalhado.php',
       transport_documents: 'rel_ctrc_detalhado.php',
       expenses: 'rel_caixa_detalhado.php',
+      toll_vouchers: 'rel_ctrc_vale_pedagio.php',
     }
   end
   let(:login_form) do
@@ -45,12 +46,12 @@ RSpec.describe Atua::ImportAllCommand do
     it 'imports every report in order reusing the same session' do
       imports = described_class.call(tenant, start_date: Date.new(2026, 10, 1), end_date: Date.new(2026, 10, 13))
 
-      expect(imports.map(&:report_type)).to eq(%w[customers vehicles manifests transport_documents expenses])
+      expect(imports.map(&:report_type)).to eq(%w[customers vehicles manifests transport_documents expenses toll_vouchers])
       expect(imports.map(&:status_type)).to all(eq('succeeded'))
       expect(imports.map { |import| [import.start_date, import.end_date] }).to eq(
-        [[nil, nil], [nil, nil]] + ([[Date.new(2026, 10, 1), Date.new(2026, 10, 13)]] * 3),
+        [[nil, nil], [nil, nil]] + ([[Date.new(2026, 10, 1), Date.new(2026, 10, 13)]] * 4),
       )
-      expect(imports.map(&:inserted_count)).to eq([4833, 1391, 217, 420, 1217])
+      expect(imports.map(&:inserted_count)).to eq([4833, 1391, 217, 420, 1217, 3])
       expect(a_request(:post, "#{base_url}/login.php")).to have_been_made.once
       expect(tenant.atua_transport_documents.find_by!(code: 80_842).sender).to be_present
     end

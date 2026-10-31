@@ -35,12 +35,13 @@ RSpec.describe Atua::ImportOverview do
         transport_documents: [now - 2.hours, false],
         manifests: [now - 4.hours, true],
         expenses: [nil, true],
+        toll_vouchers: [nil, true],
         customers: [now - 1.day, false],
         vehicles: [now - 3.days, true],
       )
       expect(disabled).to have_attributes(tenant: disabled_tenant, enabled?: false)
       expect(report_statuses(disabled)).to eq(
-        transport_documents: [nil, false], manifests: [nil, false], expenses: [nil, false], customers: [now - 10.days, false],
+        transport_documents: [nil, false], manifests: [nil, false], expenses: [nil, false], toll_vouchers: [nil, false], customers: [now - 10.days, false],
         vehicles: [nil, false]
       )
     end

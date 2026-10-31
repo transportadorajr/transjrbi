@@ -36,6 +36,8 @@ module Atua
                                              inverse_of: :transport_document
     has_many :empty_legs, through: :empty_leg_transport_documents
     has_many :freight_expenses, dependent: :delete_all, inverse_of: :transport_document
+    has_many :toll_vouchers, class_name: 'Atua::TollVoucher', foreign_key: %i[tenant_id transport_document_number branch_code],
+                             primary_key: %i[tenant_id number branch_code], inverse_of: :transport_document
 
     monetize :goods_value_cents, :freight_cents, :weight_freight_cents, :value_freight_cents, :ad_valorem_cents,
              :other_charges_cents, :toll_cents, :icms_base_cents, :icms_cents, :icms_st_cents, :federal_tax_cents,
@@ -170,6 +172,10 @@ module Atua
       return :none unless toll_cents.to_i.positive?
 
       toll_in_freight? ? :in_freight : :outside_freight
+    end
+
+    def toll_voucher_paid
+      Money.from_cents(toll_vouchers.active.not_canceled.sum(:toll_cents))
     end
 
     def atua_toll_kind

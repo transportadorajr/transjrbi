@@ -79,12 +79,12 @@ describe 'Admin Atua imports', :admin do
         expect(page).to have_text('Importação ligada')
         expect(dl_to_hash).to eq(
           'Conhecimentos de transporte' => '14 de outubro, 11:02',
-          'Manifestos' => 'Nunca',
+          'Manifestos' => 'Nunca', 'Vale-pedágio' => 'Nunca',
           'Despesas' => 'Nunca',
           'Clientes' => 'Nunca',
-          'Veículos' => '11 de outubro, 12:00',
+          'Veículos' => '11 de outubro, 12:00'
         )
-        expect(all('dt.report-freshness-late').map(&:text)).to eq(%w[Manifestos Despesas Clientes Veículos])
+        expect(all('dt.report-freshness-late').map(&:text)).to eq(%w[Manifestos Despesas Vale-pedágio Clientes Veículos])
       end
       within("#atua_status_tenant_#{other_tenant.id}") do
         expect(page).to have_text('Importação desligada')
