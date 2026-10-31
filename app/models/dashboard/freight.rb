@@ -181,7 +181,8 @@ module Dashboard
     def issued_facts(range)
       issued_documents(range)
         .pluck(table[:issued_at], table[:freight_cents], Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
-               Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel), Atua::TransportDocument.freight_toll)
+               Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel),
+               Arel::Nodes::Grouping.new(Atua::TransportDocument.toll_vouchers_total.arel))
         .map do |issued_at, freight_cents, freight_expenses_cents, expenses_cents, toll_cents|
           IssuedFact.new(issued_on: issued_at.to_date, freight_cents:, net_cents: freight_cents - freight_expenses_cents - expenses_cents - toll_cents)
         end
@@ -196,7 +197,7 @@ module Dashboard
     end
 
     def issued_toll_cents
-      issued_documents.sum(Atua::TransportDocument.freight_toll)
+      issued_documents.sum(Arel::Nodes::Grouping.new(Atua::TransportDocument.toll_vouchers_total.arel))
     end
 
     def entries
@@ -302,7 +303,7 @@ module Dashboard
         table[:freight_cents],
         Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
         Arel::Nodes::Grouping.new(Atua::TransportDocument.expenses_total.arel),
-        Atua::TransportDocument.freight_toll,
+        Arel::Nodes::Grouping.new(Atua::TransportDocument.toll_vouchers_total.arel),
         table[:plate],
         table[:driver_code],
         table[:driver_name],

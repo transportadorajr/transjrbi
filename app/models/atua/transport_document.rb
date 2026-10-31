@@ -98,8 +98,6 @@ module Atua
     scope :with_valid_manifest, -> {
       where(id: joins(:manifests).merge(TransportDocumentManifest.active).merge(Manifest.active.not_canceled).select(:id))
     }
-    scope :toll_in_freight, -> { where(freight_toll.gt(0)) }
-    scope :toll_outside_freight, -> { where(arel_table[:toll_cents].gt(0)).where(freight_toll.eq(0)) }
     scope :by_axles, ->(axles) { where(axles:) }
     scope :without_axles, ->(axles) { where(arel_table[:axles].not_in(axles).or(arel_table[:axles].eq(nil))) }
     scope :without_plates, ->(plates) { where(arel_table[:plate].not_in(plates).or(arel_table[:plate].eq(nil))) }
@@ -118,7 +116,7 @@ module Atua
 
       def net_freight_of_document
         zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) -
-          Arel::Nodes::Grouping.new(expenses_total.arel) - freight_toll
+          Arel::Nodes::Grouping.new(expenses_total.arel) - Arel::Nodes::Grouping.new(toll_vouchers_total.arel)
       end
 
       def freight_expenses_total
@@ -135,14 +133,14 @@ module Atua
         Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
       end
 
-      def freight_toll
-        columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }
-        parts = columns.drop(1).sum(columns.first)
-        difference = Arel::Nodes::NamedFunction.new('ABS', [Arel::Nodes::Grouping.new(zero_if_null(:freight_cents) - parts)])
+      def toll_vouchers_total
+        vouchers = TollVoucher.arel_table
 
-        Arel::Nodes::Case.new
-          .when(zero_if_null(:toll_cents).gt(0).and(difference.lteq(TOLL_TOLERANCE_CENTS))).then(arel_table[:toll_cents])
-          .else(0)
+        TollVoucher.active.not_canceled
+          .where(vouchers[:tenant_id].eq(arel_table[:tenant_id]))
+          .where(vouchers[:transport_document_number].eq(arel_table[:number]))
+          .where(vouchers[:branch_code].eq(arel_table[:branch_code]))
+          .select(sum_or_zero(vouchers[:toll_cents]))
       end
 
       def taker_names_by_code

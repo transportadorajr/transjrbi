@@ -286,7 +286,7 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
-  describe '.toll_in_freight' do
+  describe '#toll_placement' do
     context 'with tolls inside and outside the gross freight' do
       let!(:included) do
         create(:atua_transport_document, tenant:, freight_cents: 1_992_609, weight_freight_cents: 1_761_810, toll_cents: 98_190,
@@ -300,16 +300,6 @@ RSpec.describe Atua::TransportDocument do
       end
       let!(:without_toll) do
         create(:atua_transport_document, tenant:, freight_cents: 892_267, weight_freight_cents: 785_195, toll_cents: 0, icms_cents: 107_072)
-      end
-
-      it 'keeps only the documents whose gross freight already carries the toll' do
-        expect(described_class.count).to eq(4)
-        expect(described_class.toll_in_freight).to contain_exactly(included, rounded)
-        expect(described_class.toll_in_freight.sum(:toll_cents)).to eq(119_050)
-      end
-
-      it 'keeps apart the documents whose toll is outside the gross freight' do
-        expect(described_class.toll_outside_freight).to eq([voucher])
       end
 
       it 'tells where the toll of each document is' do

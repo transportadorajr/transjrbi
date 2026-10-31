@@ -135,10 +135,11 @@ describe 'Freight billing' do
       let!(:first_trip) { create(:atua_manifest, tenant:, code: 41_001, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8)) }
       let!(:second_trip) { create(:atua_manifest, tenant:, code: 41_002, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 10, 7)) }
       let!(:steel) do
-        create(:atua_transport_document, tenant:, number: '74001', freight_cents: 1_000_000, weight_freight_cents: 900_000,
+        create(:atua_transport_document, tenant:, number: '74001', branch_code: 2, freight_cents: 1_000_000, weight_freight_cents: 900_000,
                                          toll_cents: 25_000, icms_cents: 75_000, plate: 'RVR2C34', trailer_plate: 'RVR9C02', driver_code: 10, driver_name: 'JOSE SILVA', taker_code: 7100, origin_city: 'IPATINGA',
                                          origin_state: 'MG')
       end
+      let!(:steel_toll_voucher) { create(:atua_toll_voucher, tenant:, transport_document_number: '74001', branch_code: 2, toll_cents: 25_000) }
       let!(:coil) do
         create(:atua_transport_document, tenant:, number: '74002', freight_cents: 500_000, plate: 'RVR2C34', trailer_plate: 'RVR9C02',
                                          driver_code: 10, driver_name: 'JOSE SILVA', taker_code: 7200, origin_city: 'IPATINGA',
@@ -193,7 +194,7 @@ describe 'Freight billing' do
         expect(all('.dashboard-segmented[aria-label="Agrupar por"] .btn').map(&:text)).to eq(['Grupo de clientes', 'Cavalo', 'Motorista', 'Origem', 'Macro região'])
       end
 
-      scenario 'shows the gross and net freight per truck discounting the toll inside the gross freight' do
+      scenario 'shows the gross and net freight per truck discounting the toll vouchers of the transport documents' do
         visit freight_billing_path(october_by_truck)
 
         expect(Atua::TransportDocument.count).to eq(5)
@@ -394,7 +395,7 @@ describe 'Freight billing' do
           expect(page).to have_no_css('#freight_billing_detail_modal', visible: :all)
           expect(row_detail('RVR2C34')).to eq(
             'Viagens' => '1', 'KM rodado' => '520 km', 'Frete bruto' => 'R$ 15.000,00', 'Despesas de frete' => 'R$ 500,00',
-            'Despesas' => 'R$ 150,00', 'Pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 14.100,00', 'Bruto/km' => 'R$ 28,85',
+            'Despesas' => 'R$ 150,00', 'Vale-pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 14.100,00', 'Bruto/km' => 'R$ 28,85',
             'Líquido/km' => 'R$ 27,12', 'Participação' => '75,0%'
           )
           expect(page).to have_css('#remote-container #freight_billing_detail_modal')
@@ -416,7 +417,7 @@ describe 'Freight billing' do
 
           expect(row_detail('Total')).to eq(
             'Viagens' => '2', 'KM rodado' => '720 km', 'Frete bruto' => 'R$ 20.000,00', 'Despesas de frete' => 'R$ 500,00',
-            'Despesas' => 'R$ 150,00', 'Pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 19.100,00', 'Bruto/km' => 'R$ 26,39',
+            'Despesas' => 'R$ 150,00', 'Vale-pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 19.100,00', 'Bruto/km' => 'R$ 26,39',
             'Líquido/km' => 'R$ 25,14', 'Participação' => '100,0%'
           )
         end
@@ -1116,7 +1117,7 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      discounts = 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Forro de Lona, Combustível, Descarga e Pedágio'
+      discounts = 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Combustível, Descarga e Vale-pedágio'
       discounts_bottom = page.evaluate_script("document.querySelector('.net-freight-discounts').getBoundingClientRect().bottom")
       first_card_top = page.evaluate_script("document.querySelector('.counter-card').getBoundingClientRect().top")
 

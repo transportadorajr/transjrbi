@@ -120,15 +120,6 @@ module FreightExpensesHelper
     render 'freight_expenses/net_freight', net_freight:, id:
   end
 
-  def net_freight_toll_outside_freight(net_freight)
-    return unless net_freight.toll_outside_freight.positive?
-
-    safe_join([
-                content_tag(:dt, t('freight_expenses.net_freight.toll_outside_freight'), class: 'col-12 col-md-6 text-body-secondary'),
-                content_tag(:dd, tax_money(net_freight.toll_outside_freight), class: 'col-12 col-md-6 text-md-end text-body-secondary'),
-              ])
-  end
-
   private
 
   def freight_expense_transport_document_menu(freight_expense)
