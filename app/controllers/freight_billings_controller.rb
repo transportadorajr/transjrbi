@@ -20,6 +20,13 @@ class FreightBillingsController < BaseController
     redirect_to(freight_billing_path(filter_params), alert: t('.row_not_found')) unless @row
   end
 
+  def freights
+    @row = @dashboard.row_for(params[:key]) if @dashboard.lists_freights?(params[:key])
+    return redirect_to(freight_billing_path(filter_params), alert: t('.row_not_found')) unless @row
+
+    @transport_documents = @dashboard.freights_for(@row.key)
+  end
+
   private
 
   def load_dashboard

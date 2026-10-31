@@ -206,6 +206,19 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.row_for(nil)).to be_nil
     end
 
+    it 'lists the freights of a truck, adding up to the gross of its row' do
+      freights = dashboard.freights_for('RVR2C34')
+
+      expect(freights.sum(&:freight_cents)).to eq(dashboard.row_for('RVR2C34').gross.cents)
+      expect(freights).to all(have_attributes(plate: 'RVR2C34'))
+      expect(dashboard.freights_for('OUT1A11')).to be_empty
+    end
+
+    it 'lists the freights of the trucks but not of the total' do
+      expect(dashboard.lists_freights?('RVR2C34')).to be(true)
+      expect(dashboard.lists_freights?('total')).to be(false)
+    end
+
     context 'when grouped by driver' do
       let(:dimension) { 'driver' }
 
@@ -213,10 +226,21 @@ RSpec.describe Dashboard::Freight do
         expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] })
           .to eq([['JOSE SILVA', 1, 1_500_000], ['MARIA SOUZA', 1, 500_000]])
       end
+
+      it 'lists the freights of the driver' do
+        key = dashboard.rows.find { |row| row.label == 'JOSE SILVA' }.key
+
+        expect(dashboard.lists_freights?(key)).to be(true)
+        expect(dashboard.freights_for(key).sum(&:freight_cents)).to eq(1_500_000)
+      end
     end
 
     context 'when grouped by customer group' do
       let(:dimension) { 'customer_group' }
+
+      it 'does not list the freights of its rows' do
+        expect(dashboard.lists_freights?(usiminas.id.to_s)).to be(false)
+      end
 
       it 'splits a shared trip between the groups by their share of its freight' do
         expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.gross.cents] }).to eq(

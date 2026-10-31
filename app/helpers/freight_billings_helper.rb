@@ -6,6 +6,7 @@ module FreightBillingsHelper
   CHART_TEXT_COLOR = '#52514e'.freeze
   CHART_HEIGHT = '320px'.freeze
   DETAIL_MODAL_ID = 'freight_billing_detail_modal'.freeze
+  FREIGHTS_MODAL_ID = 'freight_billing_freights_modal'.freeze
   RANKING_BAR_HEIGHT = 44
   RANKING_MIN_HEIGHT = 320
   RANKING_BAR_LABELS = { display: true, anchor: 'end', clamp: true, padding: { top: 0, right: 4, bottom: 0, left: 4 },
@@ -119,6 +120,13 @@ module FreightBillingsHelper
     menus
   end
 
+  def freight_billing_row_label(row, dashboard)
+    return row.label unless dashboard.lists_freights?(row.key)
+
+    link_to row.label, freight_billing_freights_path(row),
+            class: 'fw-semibold text-decoration-none', data: { turbo_stream: true }
+  end
+
   def freight_billing_detail_sections(row)
     {
       trip: { trips: freight_billing_trips(row.trips_count), loaded_km: freight_billing_km(row.loaded_km) },
@@ -129,11 +137,13 @@ module FreightBillingsHelper
   end
 
   def freight_billing_ranking_chart(dashboard)
-    bar_chart(freight_billing_series(dashboard.ranking_data),
-              height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
-              legend: 'bottom',
-              **freight_billing_money_options,
-              library: freight_billing_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
+    tag.div(data: freight_billing_ranking_chart_data(dashboard)) do
+      bar_chart(freight_billing_series(dashboard.ranking_data),
+                height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
+                legend: 'bottom',
+                **freight_billing_money_options,
+                library: freight_billing_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
+    end
   end
 
   def freight_billing_monthly_chart(dashboard)
@@ -145,6 +155,17 @@ module FreightBillingsHelper
   end
 
   private
+
+  def freight_billing_freights_path(row)
+    freights_freight_billing_path(**request.query_parameters.symbolize_keys, key: row.key)
+  end
+
+  def freight_billing_ranking_chart_data(dashboard)
+    return {} unless dashboard.ranking_rows.all? { |row| dashboard.lists_freights?(row.key) }
+
+    { controller: 'ranking-chart', ranking_chart_urls_value: dashboard.ranking_rows.map { |row| freight_billing_freights_path(row) },
+      action: 'click->ranking-chart#open mousemove->ranking-chart#hover' }
+  end
 
   def freight_billing_row_show_menu(row)
     Menu.new(

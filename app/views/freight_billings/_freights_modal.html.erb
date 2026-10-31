@@ -1,0 +1,38 @@
+<%# locals: (row:, transport_documents:, filter_form:) %>
+
+<%= tag.div data: { turbo_temporary: true }, class: 'freight-billing-freights' do %>
+  <%= render layout: 'components/new_modal',
+             locals: { id: FreightBillingsHelper::FREIGHTS_MODAL_ID, title: row.label, auto_show: true, show_footer: false,
+                       dialog_class: 'modal-xl modal-dialog-scrollable' } do %>
+    <p class="text-muted text-small"><%= freight_billing_period_label(filter_form) %></p>
+    <div class="table-responsive">
+      <table class="table app-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th><%= Atua::TransportDocument.human_attribute_name(:number) %></th>
+            <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></th>
+            <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:route) %></th>
+            <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:plate) %></th>
+            <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:driver_name) %></th>
+            <th class="text-end"><%= Atua::TransportDocument.human_attribute_name(:gross) %></th>
+            <th class="d-none d-md-table-cell text-end"><%= Atua::TransportDocument.human_attribute_name(:net) %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <%= render partial: 'freight_billings/freight_row', collection: transport_documents, as: :transport_document %>
+        </tbody>
+        <tfoot>
+          <tr class="fw-bold">
+            <td><%= t('freight_billings.freights.total') %></td>
+            <td class="d-none d-md-table-cell"></td>
+            <td class="d-none d-lg-table-cell"></td>
+            <td class="d-none d-md-table-cell"></td>
+            <td class="d-none d-lg-table-cell"></td>
+            <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
+            <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.net) %></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  <% end %>
+<% end %>
