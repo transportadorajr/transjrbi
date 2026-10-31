@@ -1,6 +1,6 @@
 class FreightBillingFilterForm < BaseForm
   WEEK_START = :sunday
-  PERIOD_PRESETS = %i[week month last_month today].freeze
+  PERIOD_PRESETS = %i[week last_week month last_month today].freeze
   TRUCK_GROUP_ID_FORMAT = /\A(\d+|#{TruckGroup::NONE})\z/
 
   attribute :start_date, :date
@@ -23,6 +23,7 @@ class FreightBillingFilterForm < BaseForm
 
       case preset
       when :week then today.all_week(WEEK_START)
+      when :last_week then today.weeks_ago(1).all_week(WEEK_START)
       when :month then today.all_month
       when :last_month then today.prev_month.all_month
       when :today then today..today

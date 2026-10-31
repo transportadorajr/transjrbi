@@ -1334,8 +1334,9 @@ pt-BR:
       truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.
       without_truck_group: Sem grupo
     period_presets:
-      week: Essa semana
-      month: Esse mês
+      week: Sem. atual
+      last_week: Sem. passada
+      month: Mês
       last_month: Mês passado
       today: Hoje
     dimensions:
@@ -1360,6 +1361,7 @@ pt-BR:
       period: Saídas de %{from} a %{to}
       last_sync: 'Última sincronização com a Atua: %{time}'
       never_synced: Nenhuma sincronização com a Atua até o momento
+      period_label: Data
       group_by: Agrupar por
       gross: Frete bruto
       net: Frete líquido
