@@ -32,10 +32,23 @@ RSpec.describe Atua::ImportReportJob do
 
   describe 'error handling' do
     let(:now) { Time.zone.local(2026, 10, 14, 10) }
+    let(:client) { instance_double(Atua::Client, source_type: :mock) }
+    let(:download) do
+      Atua::Download.new(
+        report_type: 'manifests', start_date:, end_date:, content: atua_fixture_path(:manifests).binread,
+        content_type: 'application/vnd.ms-excel', filename: 'manifests.xls'
+      )
+    end
+
+    before do
+      allow(client).to receive(:download).and_return([download])
+      allow(Atua::Configuration).to receive(:for).and_return(instance_double(Atua::Configuration))
+      allow(Atua::ManifestDocument).to receive(:insert_all).and_raise(ActiveRecord::StatementInvalid, 'PG::Error: connection lost')
+    end
 
     around { |example| travel_to(now) { example.run } }
 
-    [Atua::AuthenticationError, Atua::ConfigurationError].each do |error_class|
+    [Atua::AuthenticationError, Atua::DeviceVerificationError, Atua::ConfigurationError, Atua::LayoutError].each do |error_class|
       it "discards the job without retrying on #{error_class.name.demodulize}" do
         allow(Atua::ImportReportCommand).to receive(:call).and_raise(error_class, 'Login recusado')
 
@@ -47,6 +60,10 @@ RSpec.describe Atua::ImportReportJob do
     {
       'a server error' => Atua::DownloadError.new('HTTP 503', status: 503),
       'a network failure' => Atua::SessionError.new('Timeout::Error'),
+      'an answer that is not a spreadsheet' => Atua::DownloadError.new('Não veio em Excel', status: 200),
+      'a spreadsheet that cannot be read' => Atua::SpreadsheetError.new('Arquivo corrompido'),
+      'a value that cannot be converted' => Atua::ConversionError.new('Valor inválido'),
+      'an unexpected failure' => ActiveRecord::StatementInvalid.new('PG::Error: connection lost'),
     }.each do |description, error|
       it "retries #{description} after a long wait" do
         allow(Atua::ImportReportCommand).to receive(:call).and_raise(error)
@@ -62,18 +79,20 @@ RSpec.describe Atua::ImportReportJob do
     it 'gives up after three attempts' do
       allow(Atua::ImportReportCommand).to receive(:call).and_raise(Atua::DownloadError.new('HTTP 502', status: 502))
       job = described_class.new(tenant.id, 'manifests', start_date, end_date)
-      job.exception_executions = { '[Atua::UnavailableError]' => 2 }
+      job.exception_executions = { '[Atua::RetryableError]' => 2 }
 
-      expect { job.perform_now }.to raise_error(Atua::UnavailableError, 'HTTP 502')
+      expect { job.perform_now }.to raise_error(Atua::RetryableError, 'HTTP 502')
       expect(described_class).not_to have_been_enqueued
     end
 
-    it 'does not retry an answer that is not a spreadsheet' do
-      allow(Atua::ImportReportCommand).to receive(:call).and_raise(Atua::DownloadError.new('Não veio em Excel', status: 200))
+    it 'schedules a new attempt when the attached file cannot be processed' do
+      allow(Atua::ImportReportCommand).to receive(:call).and_call_original
+      allow(Atua::Client).to receive(:new).and_return(client)
 
-      expect { described_class.perform_now(tenant.id, 'manifests', start_date, end_date) }
-        .to raise_error(Atua::DownloadError, 'Não veio em Excel')
-      expect(described_class).not_to have_been_enqueued
+      described_class.perform_now(tenant.id, 'manifests', start_date, end_date)
+
+      expect(described_class).to have_been_enqueued.with(tenant.id, 'manifests', start_date, end_date)
+      expect(tenant.atua_imports.sole).to have_attributes(status_type: 'failed', error_type: 'unexpected')
     end
   end
 
@@ -101,6 +120,17 @@ RSpec.describe Atua::ImportReportJob do
         expect(repeated).to be(false)
         expect(other_period).to be_successfully_enqueued
         expect(GoodJob::Job.where(job_class: described_class.name).count).to eq(2)
+      end
+
+      it 'schedules a new attempt of the failed report even though its period label is taken' do
+        allow(Atua::ImportReportCommand).to receive(:call).and_raise(Atua::DownloadError.new('Não veio em Excel', status: 200))
+        job = described_class.perform_later(tenant.id, 'manifests', start_date, end_date)
+
+        GoodJob.perform_inline
+
+        expect(GoodJob::Job.where(job_class: described_class.name).count).to eq(1)
+        expect(good_job_record(job)).to have_attributes(finished_at: nil, executions_count: 1)
+        expect(good_job_record(job).scheduled_at).to be > 29.minutes.from_now
       end
 
       it 'runs the import when nothing else is running' do

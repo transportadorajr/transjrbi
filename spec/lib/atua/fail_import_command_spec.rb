@@ -24,7 +24,7 @@ RSpec.describe Atua::FailImportCommand do
       {
         Atua::ConfigurationError => 'configuration', Atua::DeviceVerificationError => 'device_verification', Atua::SessionError => 'session', Atua::DownloadError => 'download',
         Atua::SpreadsheetError => 'spreadsheet', Atua::LayoutError => 'layout', Atua::ConversionError => 'conversion',
-        Atua::UnavailableError => 'unexpected', Atua::Error => 'unexpected', ActiveRecord::StatementInvalid => 'unexpected'
+        Atua::RetryableError => 'unexpected', Atua::Error => 'unexpected', ActiveRecord::StatementInvalid => 'unexpected'
       }.each do |error_class, error_type|
         expect(described_class.call(running_import, error_class.new('falhou')).error_type).to eq(error_type)
       end
