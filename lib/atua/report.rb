@@ -49,8 +49,8 @@ module Atua
         return [[nil, nil]]
       end
 
-      start_date = (start_date || Date.current.beginning_of_month).to_date
       end_date = (end_date || Date.current).to_date
+      start_date = (start_date || end_date).to_date
       raise ArgumentError, I18n.t('atua.errors.invalid_period') if start_date > end_date
 
       monthly_slices(start_date, end_date)

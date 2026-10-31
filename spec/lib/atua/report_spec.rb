@@ -26,9 +26,9 @@ RSpec.describe Atua::Report do
       )
     end
 
-    it 'defaults the period to the current month through today' do
+    it 'defaults the period to the current day' do
       travel_to Time.zone.local(2026, 10, 14, 9) do
-        expect(described_class.find(:transport_documents).periods(nil, nil)).to eq([[Date.new(2026, 10, 1), Date.new(2026, 10, 14)]])
+        expect(described_class.find(:transport_documents).periods(nil, nil)).to eq([[Date.new(2026, 10, 14), Date.new(2026, 10, 14)]])
       end
     end
 

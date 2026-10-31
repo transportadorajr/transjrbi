@@ -1,7 +1,7 @@
 module Atua
   class ScheduleMovementsJob < ApplicationJob
     queue_with_priority 1
-    DEFAULT_DAYS = 10
+    DEFAULT_DAYS = 1
 
     queue_as :atua
 
