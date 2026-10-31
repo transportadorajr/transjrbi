@@ -10,9 +10,8 @@ class FreightExpensesController < BaseController
 
     freight_expenses = apply_scopes(current_tenant.freight_expenses)
 
-    @freight_expenses = freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate, :insurance_rate, :truck_group)
-      .joins(:transport_document)
-      .order(Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, :kind_type, id: :desc)
+    @freight_expenses = apply_sort(freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate, :insurance_rate, :truck_group)
+      .joins(:transport_document), Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, :kind_type, id: :desc)
       .page(params[:page])
     @customer_groups = current_tenant.customer_groups.where(id: current_tenant.commission_rules.select(:customer_group_id))
       .or(current_tenant.customer_groups.where(id: current_tenant.tonnage_rates.select(:customer_group_id)))

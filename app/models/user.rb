@@ -1,4 +1,8 @@
 class User < ApplicationRecord
+  include Sortable
+
+  sortable :name
+
   belongs_to :tenant
 
   has_many :accesses, dependent: :destroy

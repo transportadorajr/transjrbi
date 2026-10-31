@@ -1,6 +1,10 @@
 class TonnageRate < ApplicationRecord
+  include Sortable
+
   WEIGHT_KG_ABOVE = 200
   OUTDATED_MONTHS = 2
+
+  sortable :name
 
   belongs_to :tenant
   belongs_to :customer_group, inverse_of: :tonnage_rates

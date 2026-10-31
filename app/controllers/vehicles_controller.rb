@@ -8,7 +8,7 @@ class VehiclesController < BaseController
 
     vehicles = current_tenant.atua_vehicles.active
 
-    @vehicles = apply_scopes(vehicles).order(:plate, :id).page(params[:page])
+    @vehicles = apply_sort(apply_scopes(vehicles), :plate, :id).page(params[:page])
     @categories = vehicles.where.not(category: nil).distinct.order(:category).pluck(:category)
     @ownerships = vehicles.where.not(ownership: nil).distinct.order(:ownership).pluck(:ownership)
   end

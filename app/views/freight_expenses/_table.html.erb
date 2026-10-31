@@ -4,7 +4,7 @@
       <tr>
         <th><%= FreightExpense.human_attribute_name(:transport_document) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:taker) %></th>
+        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:taker), :customer_name, class: 'd-none d-lg-table-cell') %>
         <th><%= FreightExpense.human_attribute_name(:kind_type) %></th>
         <th class="d-none d-md-table-cell"><%= FreightExpense.human_attribute_name(:detail) %></th>
         <th class="d-none d-lg-table-cell text-end"><%= FreightExpense.human_attribute_name(:base) %></th>

@@ -1,6 +1,7 @@
 module Admin
   class BaseController < ApplicationController
     include Admin::Authentication
+    include Sorting
 
     layout 'admin'
 

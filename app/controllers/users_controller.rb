@@ -11,7 +11,7 @@ class UsersController < BaseController
     users = current_tenant.users.accessible_by(current_ability)
     counted_users = apply_scopes(users, params.except(:status))
 
-    @users = apply_scopes(users).order(:name).page(params[:page])
+    @users = apply_sort(apply_scopes(users), :name, :id).page(params[:page])
     @total_count = counted_users.count
     @active_count = counted_users.activated.count
     @deactivated_count = counted_users.not_activated.count

@@ -10,7 +10,7 @@ class CustomerGroupsController < BaseController
     customer_groups = current_tenant.customer_groups
     counted_customer_groups = apply_scopes(customer_groups, params.except(:status))
 
-    @customer_groups = apply_scopes(customer_groups).order(:name, :id).page(params[:page])
+    @customer_groups = apply_sort(apply_scopes(customer_groups), :name, :id).page(params[:page])
     @customer_counts = current_tenant.atua_customers.active.where(customer_group_id: @customer_groups.map(&:id))
       .group(:customer_group_id).count
     @total_count = counted_customer_groups.count
@@ -21,7 +21,7 @@ class CustomerGroupsController < BaseController
   def show
     authorize!(:read, :customer_groups)
 
-    @customers = @customer_group.customers.active.order(:name, :id).page(params[:page])
+    @customers = apply_sort(@customer_group.customers.active, :name, :id).page(params[:page])
   end
 
   def new

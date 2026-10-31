@@ -2,11 +2,11 @@
   <table class="table app-table align-middle mb-0">
     <thead>
       <tr>
-        <th><%= Atua::Vehicle.human_attribute_name(:plate) %></th>
+        <%= sortable_header(Atua::Vehicle.human_attribute_name(:plate), :plate) %>
         <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:category) %></th>
         <th class="d-none d-lg-table-cell"><%= Atua::Vehicle.human_attribute_name(:years) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:ownership) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::Vehicle.human_attribute_name(:driver_name) %></th>
+        <%= sortable_header(Atua::Vehicle.human_attribute_name(:driver_name), :driver_name, class: 'd-none d-lg-table-cell') %>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>

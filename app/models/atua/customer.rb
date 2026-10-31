@@ -1,6 +1,10 @@
 module Atua
   class Customer < ApplicationRecord
+    include Sortable
+
     include Importable
+
+    sortable :name
 
     belongs_to :customer_group, optional: true
 

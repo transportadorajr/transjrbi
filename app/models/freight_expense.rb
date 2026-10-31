@@ -1,5 +1,9 @@
 class FreightExpense < ApplicationRecord
+  include Sortable
+
   KINDS = %i[commission tonnage insurance tarp_lining fuel].freeze
+
+  sortable :customer_name, -> { sort_text(Atua::TransportDocument.arel_table[:taker_name]) }
 
   belongs_to :tenant
   belongs_to :transport_document, class_name: 'Atua::TransportDocument', inverse_of: :freight_expenses

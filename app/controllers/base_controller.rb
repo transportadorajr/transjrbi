@@ -1,4 +1,6 @@
 class BaseController < ApplicationController
+  include Sorting
+
   before_action :require_signed_in_user
   before_action :require_password_change
 

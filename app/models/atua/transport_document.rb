@@ -1,6 +1,7 @@
 module Atua
   class TransportDocument < ApplicationRecord
     include Importable
+    include Sortable
 
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
     TOLL_TOLERANCE_CENTS = 1
@@ -38,6 +39,11 @@ module Atua
              :other_charges_cents, :toll_cents, :icms_base_cents, :icms_cents, :icms_st_cents, :federal_tax_cents,
              :ibs_cents, :cbs_cents, :result_cents, :driver_freight_cents, :advance_cents, :commission_cents,
              :insurance_cents, :cost_cents, allow_nil: true
+
+    sortable :customer_name, -> { sort_text(arel_table[:taker_name]) }
+    sortable :driver_name
+    sortable :gross, -> { arel_table[:freight_cents] }
+    sortable :net, -> { Arel.sql('net_cents') }
 
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
     validates :number, presence: true
@@ -93,7 +99,32 @@ module Atua
       where(arel_table[:plate].in(truck_group.plates).or(arel_table[:axles].in(truck_group.axles).and(outside_plates)))
     }
 
+    scope :with_freight_totals, -> { select(arel_table[Arel.star], net_freight.as('net_cents')) }
+
     class << self
+      def net_freight
+        Arel::Nodes::Case.new.when(arel_table[:canceled_at].eq(nil)).then(net_freight_of_document)
+      end
+
+      def net_freight_of_document
+        zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) -
+          Arel::Nodes::Grouping.new(expenses_total.arel) - freight_toll
+      end
+
+      def freight_expenses_total
+        FreightExpense.where(FreightExpense.arel_table[:transport_document_id].eq(arel_table[:id]))
+          .select(sum_or_zero(FreightExpense.arel_table[:amount_cents]))
+      end
+
+      def expenses_total
+        Atua::Expense.active.freight.where(Atua::Expense.arel_table[:cost_object_id].eq(arel_table[:id]))
+          .select(sum_or_zero(Atua::Expense.arel_table[:total_cents]))
+      end
+
+      def sum_or_zero(column)
+        Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
+      end
+
       def freight_toll
         columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }
         parts = columns.drop(1).sum(columns.first)

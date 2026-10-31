@@ -1,5 +1,9 @@
 class MacroRegion < ApplicationRecord
+  include Sortable
+
   OTHERS = 'others'.freeze
+
+  sortable :name
 
   belongs_to :tenant
   has_many :transport_documents, class_name: 'Atua::TransportDocument', foreign_key: :origin_macro_region_id,

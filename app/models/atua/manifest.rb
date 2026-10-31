@@ -1,6 +1,7 @@
 module Atua
   class Manifest < ApplicationRecord
     include Importable
+    include Sortable
 
     CANCELED_STATUS = 'Cancelado'.freeze
 
@@ -18,6 +19,11 @@ module Atua
 
     monetize :goods_value_cents, allow_nil: true
 
+    sortable :customer_name, -> { Arel.sql('customer_name') }
+    sortable :driver_name, -> { Arel.sql('driver_name') }
+    sortable :gross, -> { Arel.sql('gross_cents') }
+    sortable :net, -> { Arel.sql('net_cents') }
+
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
     validates :number, presence: true
 
@@ -33,7 +39,37 @@ module Atua
     scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
     scope :trips, -> { active.not_canceled.where.not(plate: [nil, '']) }
 
+    scope :with_freight_totals, -> {
+      select(
+        arel_table[Arel.star],
+        sort_text(Arel::Nodes::Grouping.new(main_document_column(:taker_name).arel)).as('customer_name'),
+        sort_text(Arel::Nodes::Grouping.new(main_document_column(:driver_name).arel)).as('driver_name'),
+        Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel).as('gross_cents'),
+        Arel::Nodes::Grouping.new(trip_documents.select(trip_documents_net).arel).as('net_cents'),
+      )
+    }
+
     class << self
+      def trip_documents
+        documents = ManifestDocument.arel_table
+
+        TransportDocument.active.not_canceled.joins(:manifest_documents).merge(ManifestDocument.active)
+          .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
+          .where(documents[:manifest_code].eq(arel_table[:code]))
+      end
+
+      def trip_documents_net
+        net = Arel::Nodes::NamedFunction.new('SUM', [TransportDocument.net_freight_of_document])
+
+        Arel::Nodes::NamedFunction.new('COALESCE', [net, Arel::Nodes.build_quoted(0)])
+      end
+
+      def main_document_column(column)
+        table = TransportDocument.arel_table
+
+        trip_documents.order(table[:freight_cents].desc.nulls_last, table[:id].asc).limit(1).select(table[column])
+      end
+
       def trip_at
         Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:trip_started_at], arel_table[:departure_on], arel_table[:issued_on]])
       end
