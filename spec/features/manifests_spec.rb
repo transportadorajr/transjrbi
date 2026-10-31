@@ -48,7 +48,7 @@ describe 'Manifests' do
       let!(:removed) { create(:atua_manifest, tenant:, number: '40790', removed_from_atua_at: Time.current) }
       let!(:stranger) { create(:atua_manifest, tenant: other_tenant, number: '40791') }
 
-      scenario 'lists the active manifests of the tenant from the tax menu' do
+      scenario 'lists only the valid active manifests of the tenant from the tax menu' do
         visit root_path
         within('.sidebar-desktop') do
           click_on 'Fiscal'
@@ -59,46 +59,57 @@ describe 'Manifests' do
         expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Saída', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['40780 TRANSJR SABARA', '06/10/2026', '-', 'EXU0F72', '-', '-', 'R$ 0,00', 'Cancelado', ''],
-            ['40772 JR TRANSPORTES', '01/10/2026', '02/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', 'Válido', ''],
+            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
+            ['40772 JR TRANSPORTES', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', ''],
           ],
         )
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 1', 'Cancelados 1'])
-        expect(page).to have_text('2 registros')
+        expect(page).to have_no_css('.counter-card')
+        expect(page).to have_text('1 registro')
         expect(page).to have_link(href: manifest_path(closed), title: 'Visualizar')
+        expect(page).to have_no_text('40780')
         expect(page).to have_no_text('40790')
         expect(page).to have_no_text('40791')
       end
 
       scenario 'filters the manifests by number' do
+        create(:atua_manifest, tenant:, number: '40773', plate: 'EXU0F72')
+
         visit manifests_path
         fill_in 'Número do manifesto', with: '40772'
         click_on 'Aplicar Filtros'
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Saída', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['40772 JR TRANSPORTES', '01/10/2026', '02/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', 'Válido', ''],
+            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
+            ['40772 JR TRANSPORTES', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', ''],
           ],
         )
       end
 
-      scenario 'filters the manifests by plate, period and situation' do
+      scenario 'filters the manifests by plate and period without offering the situation' do
+        create(:atua_manifest, tenant:, number: '40773', branch_name: 'TRANSJR SABARA', issued_on: Date.new(2026, 10, 6), plate: 'EXU0F72')
+
         visit manifests_path
+        expect(page).to have_field('Placa')
+        expect(page).to have_no_select('Situação')
         fill_in 'Placa', with: 'exu 0f72'
         fill_in 'Emitidos a partir de', with: '2026-10-02'
         fill_in 'Emitidos até', with: '2026-10-31'
-        select 'Cancelado', from: 'Situação'
         click_on 'Aplicar Filtros'
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Saída', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['40780 TRANSJR SABARA', '06/10/2026', '-', 'EXU0F72', '-', '-', 'R$ 0,00', 'Cancelado', ''],
+            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
+            ['40773 TRANSJR SABARA', '06/10/2026', 'EXU0F72', '-', '-', 'R$ 0,00', ''],
           ],
         )
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 1', 'Válidos 0', 'Cancelados 1'])
+      end
+
+      scenario 'ignores a canceled situation left in the address' do
+        visit manifests_path(status: 'canceled')
+
+        expect(page).to have_text('40772')
+        expect(page).to have_no_text('40780')
       end
 
       scenario 'does not show a manifest removed from Atua' do
@@ -123,6 +134,45 @@ describe 'Manifests' do
         expect { page.driver.submit :delete, manifest_path(closed), {} }.not_to change(Atua::Manifest, :count)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when a manifest has transport documents from several cities' do
+      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_300, number: '40800', branch_name: 'JR', plate: 'RHJ4E07') }
+
+      def add_document(number, origin:, destination:, **attributes)
+        create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', **attributes)
+        create(:atua_manifest_document, tenant:, manifest_code: 41_300, transport_document_number: number, transport_document_series: 1,
+                                        branch_name: 'JR', origin_city: origin, origin_state: 'MG', destination_city: destination, destination_state: 'SP')
+      end
+
+      before do
+        add_document('1', origin: 'Ipatinga', destination: 'Santos', freight_cents: 600_000)
+        add_document('2', origin: 'Ipatinga', destination: 'Cubatão', freight_cents: 300_000)
+        add_document('3', origin: 'Betim', destination: 'Santos', freight_cents: 100_000)
+        add_document('4', origin: 'Sabará', destination: 'Campinas', freight_cents: 900_000, canceled_at: Time.current)
+      end
+
+      scenario 'shows every city once and sums the freight of the valid transport documents' do
+        visit manifests_path
+
+        expect(Atua::Manifest.count).to eq(1)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
+            ['40800 JR', '01/10/2026', 'RHJ4E07', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', 'R$ 10.000,00', ''],
+          ],
+        )
+      end
+
+      scenario 'shows the route and the total freight on the details' do
+        visit manifest_path(manifest)
+
+        expect(dl_to_hash('#manifest_data')).to include(
+          'Origem' => 'Ipatinga/MG Betim/MG',
+          'Destino' => 'Santos/SP Cubatão/SP',
+          'Valor total do frete' => 'R$ 10.000,00',
+        )
       end
     end
 
@@ -156,20 +206,14 @@ describe 'Manifests' do
         expect(page).to have_css('h1.page-title', text: 'Manifesto 40772')
         expect(dl_to_hash('#manifest_data')).to eq(
           'Número' => '40772',
-          'Série' => '1',
-          'Modelo' => '58',
-          'Chave de acesso' => manifest.access_key,
-          'Situação' => 'Válido',
-          'Situação na Atua' => 'Encerrado',
           'Filial' => 'JR TRANSPORTES',
           'Cidade da filial' => 'Ipatinga/MG',
           'Emitido em' => '01/10/2026',
-          'Saída' => '02/10/2026',
-          'Início da viagem' => '02/10/2026 06:30',
           'Encerrado em' => '03/10/2026 18:00',
           'Placa' => 'RHJ4E07',
-          'Valor da mercadoria' => 'R$ 112.596,72',
-          'Observações' => 'Entrega agendada',
+          'Origem' => 'Ipatinga/MG',
+          'Destino' => 'Betim/MG',
+          'Valor total do frete' => Money.from_cents(transport_document.freight_cents).format,
         )
         expect(manifest.documents.count).to eq(2)
         expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(

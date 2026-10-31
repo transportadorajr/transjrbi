@@ -203,25 +203,16 @@ pt-BR:
         icms_base: Base do ICMS
         icms: ICMS
       atua/manifest:
-        customer_name: Cliente
-        driver_name: Motorista
-        gross: Frete bruto
-        net: Frete líquido
+        total_freight: Valor total do frete
         number: Número
-        series: Série
-        model: Modelo
-        access_key: Chave de acesso
         situation: Situação
-        status: Situação na Atua
         branch_name: Filial
         company_city: Cidade da filial
         issued_on: Emitido em
-        departure_on: Saída
-        trip_started_at: Início da viagem
         closed_at: Encerrado em
         plate: Placa
-        goods_value: Valor da mercadoria
-        notes: Observações
+        origin: Origem
+        destination: Destino
       atua/manifest_document:
         transport_document_number: CT-e
         recipient_name: Destinatário
@@ -989,14 +980,10 @@ pt-BR:
   manifests:
     index:
       title: Manifestos
-      subtitle: Manifestos eletrônicos (MDF-e) emitidos na Atua.
-      total: Total
-      valid: Válidos
-      canceled: Cancelados
+      subtitle: Manifestos eletrônicos (MDF-e) válidos emitidos na Atua.
     filters:
       number: Número do manifesto
       plate: Placa
-      status: Situação
       start_date: Emitidos a partir de
       end_date: Emitidos até
     show:

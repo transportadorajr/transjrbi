@@ -111,8 +111,6 @@ RSpec.describe Atua::Manifest do
 
       it 'filters by the situation' do
         expect(described_class.canceled).to eq([canceled])
-        expect(described_class.by_situation('canceled')).to eq([canceled])
-        expect(described_class.by_situation('valid')).to contain_exactly(open, closed, removed)
       end
 
       it 'keeps out manifests removed from Atua' do
@@ -121,9 +119,32 @@ RSpec.describe Atua::Manifest do
     end
   end
 
-  describe '.statuses' do
-    it 'maps the translated situations to the filter keys' do
-      expect(described_class.statuses).to eq('Válido' => :valid, 'Cancelado' => :canceled)
+  describe '#origins and #destinations' do
+    let!(:manifest) { create(:atua_manifest, tenant:, code: 41_500, branch_name: 'JR') }
+    let!(:internal_taker) { create(:atua_customer, tenant:, code: 777, document_digits: Atua::TransportDocument::INTERNAL_TAKER_DOCUMENTS.first) }
+
+    def add_document(number, origin_city, destination_city, **attributes)
+      create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', **attributes)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_500, transport_document_number: number, transport_document_series: 1, branch_name: 'JR',
+                                      origin_city:, origin_state: 'MG', destination_city:, destination_state: 'SP')
+    end
+
+    before do
+      add_document('1', 'Ipatinga', 'Santos')
+      add_document('2', 'Ipatinga', 'Cubatão')
+      add_document('3', 'Canceled', 'Canceled', canceled_at: Time.current)
+      add_document('4', 'Removed', 'Removed', removed_from_atua_at: Time.current)
+      add_document('5', 'Internal', 'Internal', taker_code: 777)
+      add_document('6', nil, nil)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_500, transport_document_number: '7', transport_document_series: 1, branch_name: 'JR',
+                                      origin_city: 'Betim', origin_state: 'MG', destination_city: 'Campinas', destination_state: 'SP')
+      create(:atua_manifest_document, tenant:, manifest_code: 41_500, transport_document_number: '8', transport_document_series: 1, branch_name: 'JR',
+                                      origin_city: 'Gone', origin_state: 'MG', destination_city: 'Gone', destination_state: 'SP', removed_from_atua_at: Time.current)
+    end
+
+    it 'lists each city once and keeps out the documents that are not part of the trip' do
+      expect(manifest.origins).to eq([%w[Ipatinga MG], %w[Betim MG]])
+      expect(manifest.destinations).to eq([%w[Santos SP], %w[Cubatão SP], %w[Campinas SP]])
     end
   end
 

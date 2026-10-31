@@ -7,6 +7,16 @@ module ManifestsHelper
     menus
   end
 
+  def manifest_sort_columns
+    [[Atua::Manifest.human_attribute_name(:total_freight), :gross, :desc]]
+  end
+
+  def manifest_cities(cities)
+    return t('tax.blank') if cities.empty?
+
+    safe_join(cities.map { |(city, state)| content_tag(:span, tax_city(city, state), class: 'd-block') }, ' ')
+  end
+
   def manifest_documents_table(documents)
     return render('shared/no_content') if documents.none?
 

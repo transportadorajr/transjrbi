@@ -7,19 +7,13 @@
 
   <%= render 'filters' %>
 
-  <div class="row g-3 mb-4">
-    <%= counter_card(:dark, t('.total'), @total_count) %>
-    <%= counter_card(:success, t('.valid'), @valid_count) %>
-    <%= counter_card(:danger, t('.canceled'), @canceled_count) %>
-  </div>
-
   <div class="card table-card">
     <div class="table-card-header">
       <div class="table-card-heading">
         <p class="table-card-title"><%= t('.title') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @manifests.total_count) %></p>
       </div>
-      <%= sort_menu(freight_sort_columns(Atua::Manifest)) %>
+      <%= sort_menu(manifest_sort_columns) %>
     </div>
     <div class="table-card-body">
       <% if @manifests.any? %>
