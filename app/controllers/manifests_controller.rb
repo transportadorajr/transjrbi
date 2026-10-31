@@ -23,7 +23,7 @@ class ManifestsController < BaseController
     authorize!(:read, :manifests)
 
     @manifest = current_tenant.atua_manifests.active.preload(empty_leg: %i[origin destination previous_manifest]).find(params.expect(:id))
-    @documents = @manifest.documents.active.preload(:transport_document).order(:transport_document_number)
+    @documents = @manifest.documents.active.without_internal_taker.preload(:transport_document).order(:transport_document_number)
     load_expenses if can?(:read, :expenses)
     load_net_freight if can?(:read, :freight_expenses)
   end

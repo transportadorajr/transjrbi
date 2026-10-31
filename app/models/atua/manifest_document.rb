@@ -13,6 +13,8 @@ module Atua
 
     validates :manifest_code, :transport_document_number, presence: true
     validates :transport_document_number, uniqueness: { scope: %i[tenant_id manifest_code transport_document_series] }
+
+    scope :without_internal_taker, -> { where.not(id: joins(:transport_document).merge(TransportDocument.with_internal_taker).select(:id)) }
   end
 end
 

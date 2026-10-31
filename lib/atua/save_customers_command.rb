@@ -5,7 +5,10 @@ module Atua
     PREVIOUS_ATTRIBUTES = %i[whatsapp_at exporter_at simples_optant_at].freeze
 
     def call
-      super.tap { CustomerGroups::AssignCommand.call(tenant) }
+      super.tap do
+        CustomerGroups::AssignCommand.call(tenant)
+        DiscardInternalTakerDocumentsCommand.call(tenant)
+      end
     end
   end
 end

@@ -18,6 +18,18 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
     end
   end
 
+  context 'with a Transjr CNPJ among the takers of the file' do
+    let(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
+    let!(:taker) { create(:atua_customer, tenant:, code: first_record[:taker_code], document_digits: '51628145000172') }
+
+    it 'leaves the documents of that taker out of the active ones' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_transport_documents.active.where(taker_code: taker.code)).to be_empty
+      expect(tenant.atua_transport_documents.where(taker_code: taker.code)).to exist
+    end
+  end
+
   context 'with macro regions of the tenant' do
     let!(:oeste_parana) { create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', cities: %w[Corbélia Cascavel]) }
     let!(:interior) { create(:macro_region, :interior_sp, tenant:) }
