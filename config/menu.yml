@@ -1,5 +1,12 @@
 shared:
   companies:
+    - name: intelligence
+      icon: graph-up-arrow
+      menus:
+        - name: freight_billing
+          url: /freight_billing
+          controllers:
+            - freight_billings
     - name: tax
       icon: receipt
       menus:
@@ -11,13 +18,6 @@ shared:
           url: /manifests
           controllers:
             - manifests
-    - name: intelligence
-      icon: graph-up-arrow
-      menus:
-        - name: freight_billing
-          url: /freight_billing
-          controllers:
-            - freight_billings
     - name: registrations
       icon: card-list
       menus:

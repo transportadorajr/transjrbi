@@ -12,11 +12,23 @@ RSpec.describe FreightBillingFilterForm do
     end
   end
 
+  describe '.preset_period on a sunday' do
+    around { |example| travel_to(Date.new(2026, 10, 18)) { example.run } }
+
+    it 'returns the week that ended the day before as the previous week' do
+      expect(described_class.preset_period(:last_week)).to eq(Date.new(2026, 10, 11)..Date.new(2026, 10, 17))
+    end
+  end
+
   describe '.preset_period' do
     around { |example| travel_to(Date.new(2026, 10, 19)) { example.run } }
 
     it 'returns the current week from sunday to saturday' do
       expect(described_class.preset_period(:week)).to eq(Date.new(2026, 10, 18)..Date.new(2026, 10, 24))
+    end
+
+    it 'returns the previous week from sunday to saturday' do
+      expect(described_class.preset_period(:last_week)).to eq(Date.new(2026, 10, 11)..Date.new(2026, 10, 17))
     end
 
     it 'returns the current month' do

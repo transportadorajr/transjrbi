@@ -26,6 +26,18 @@ describe 'Freight billing' do
 
     before { login_as(admin, scope: :user) }
 
+    context 'when the transport documents are readable too' do
+      let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
+
+      scenario 'shows the intelligence menu above the tax menu' do
+        visit freight_billing_path
+
+        within('.sidebar-desktop') do
+          expect(page).to have_text(/Inteligência.*Fiscal/m)
+        end
+      end
+    end
+
     context 'when the Atua reports were never synced' do
       let!(:failed_import) { create(:atua_import, tenant:, status_type: :failed, finished_at: Time.zone.local(2026, 10, 28, 9)) }
 
@@ -852,32 +864,37 @@ describe 'Freight billing' do
         travel_to(Date.new(2026, 10, 19)) do
           visit freight_billing_path
 
-          expect(page).to have_link('Essa semana', class: 'btn-primary')
-          expect(page).to have_link('Esse mês', class: 'btn-outline-secondary')
+          expect(page).to have_link('Sem. atual', class: 'btn-primary')
+          expect(page).to have_link('Mês', exact: true, class: 'btn-outline-secondary')
 
-          click_on 'Esse mês'
+          click_on 'Mês'
 
           expect(page).to have_text('Saídas de 01/10/2026 a 31/10/2026')
           expect(page).to have_field('Saídas a partir de', with: '2026-10-01')
           expect(page).to have_field('Saídas até', with: '2026-10-31')
-          expect(page).to have_link('Esse mês', class: 'btn-primary')
-          expect(page).to have_link('Essa semana', class: 'btn-outline-secondary')
+          expect(page).to have_link('Mês', exact: true, class: 'btn-primary')
+          expect(page).to have_link('Sem. atual', class: 'btn-outline-secondary')
+
+          click_on 'Sem. passada'
+
+          expect(page).to have_text('Saídas de 11/10/2026 a 17/10/2026')
+          expect(page).to have_link('Sem. passada', class: 'btn-primary')
 
           click_on 'Mês passado'
 
           expect(page).to have_text('Saídas de 01/09/2026 a 30/09/2026')
           expect(page).to have_link('Mês passado', class: 'btn-primary')
-          expect(page).to have_link('Esse mês', class: 'btn-outline-secondary')
+          expect(page).to have_link('Mês', exact: true, class: 'btn-outline-secondary')
 
           click_on 'Hoje'
 
           expect(page).to have_text('Saídas de 19/10/2026 a 19/10/2026')
           expect(page).to have_link('Hoje', class: 'btn-primary')
 
-          click_on 'Essa semana'
+          click_on 'Sem. atual'
 
           expect(page).to have_text('Saídas de 18/10/2026 a 24/10/2026')
-          expect(page).to have_link('Essa semana', class: 'btn-primary')
+          expect(page).to have_link('Sem. atual', class: 'btn-primary')
         end
       end
 
@@ -885,7 +902,7 @@ describe 'Freight billing' do
         visit freight_billing_path(start_date: '2026-10-05', end_date: '2026-10-06')
 
         expect(page).to have_text('Saídas de 05/10/2026 a 06/10/2026')
-        expect(page).to have_no_css('a.btn-primary', text: /\A(Essa semana|Esse mês|Mês passado|Hoje)\z/)
+        expect(page).to have_no_css('a.btn-primary', text: /\A(Sem. atual|Sem. passada|Mês|Mês passado|Hoje)\z/)
       end
 
       scenario 'keeps the other filters and the grouping when choosing a shortcut' do
@@ -1009,17 +1026,17 @@ describe 'Freight billing' do
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
 
-    scenario 'shows the period shortcuts below the indicators and the groupings above them' do
+    scenario 'shows the period shortcuts above the groupings and the groupings above the indicators' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
       grouping_bottom = page.evaluate_script("document.querySelector('.dashboard-filter-bar').getBoundingClientRect().bottom")
       first_card_top = page.evaluate_script("document.querySelector('.counter-card').getBoundingClientRect().top")
-      last_card_bottom = page.evaluate_script("[...document.querySelectorAll('.counter-card')].pop().getBoundingClientRect().bottom")
-      shortcut_top = page.evaluate_script("[...document.querySelectorAll('a')].find((link) => link.textContent.trim() === 'Hoje').getBoundingClientRect().top")
+      grouping_top = page.evaluate_script("document.querySelector('.dashboard-filter-bar').getBoundingClientRect().top")
+      shortcut_bottom = page.evaluate_script("[...document.querySelectorAll('a')].find((link) => link.textContent.trim() === 'Hoje').getBoundingClientRect().bottom")
 
       expect(grouping_bottom).to be <= first_card_top
-      expect(shortcut_top).to be >= last_card_bottom
+      expect(shortcut_bottom).to be <= grouping_top
     end
 
     scenario 'lists what is discounted from the net freight above the indicators' do
@@ -1056,8 +1073,9 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      expect(page).to have_link('Essa semana')
-      expect(page).to have_link('Esse mês')
+      expect(page).to have_link('Sem. atual')
+      expect(page).to have_link('Sem. passada')
+      expect(page).to have_link('Mês', exact: true)
       expect(page).to have_link('Mês passado')
       expect(page).to have_link('Hoje')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
