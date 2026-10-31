@@ -5,6 +5,7 @@ class TruckGroupForm < BaseForm
   attribute :name, :string
   attribute :axles, default: -> { [] }
   attribute :fuel_percentage, :string
+  attribute :fuel_valid_month, :string, default: -> { Date.current.strftime('%Y-%m') }
   attribute :plates, :string
   attribute :remaining_axles, :boolean, default: false
   attribute :active, :boolean, default: true
@@ -20,6 +21,7 @@ class TruckGroupForm < BaseForm
   validate :remaining_axles_must_be_unique
   validates :fuel_percentage, presence: true
   validates :fuel_percentage, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }, allow_blank: true
+  validate :fuel_valid_month_must_be_a_past_or_current_month
 
   attr_accessor :tenant
   attr_writer :truck_group
@@ -56,9 +58,16 @@ class TruckGroupForm < BaseForm
     plates.to_s.split(PLATE_SEPARATORS).compact_blank.map { |plate| Atua::TransportDocument.normalize_plate(plate) }.uniq.sort
   end
 
+  def fuel_valid_month_value
+    TonnageRate.parse_month(fuel_valid_month) if fuel_valid_month.to_s.match?(/\A\d{4}-\d{2}\z/)
+  end
+
   def submit
-    truck_group.update!(name:, axles: axle_list, plates: plate_list, remaining_axles:, fuel_percentage: BigDecimal(fuel_percentage),
-                        activated: active)
+    transaction do
+      truck_group.fuel_percentage = BigDecimal(fuel_percentage) unless persisted?
+      truck_group.update!(name:, axles: axle_list, plates: plate_list, remaining_axles:, activated: active)
+      truck_group.change_fuel_percentage(BigDecimal(fuel_percentage), fuel_valid_month_value)
+    end
 
     FreightExpenses::CalculateFuelCommand.call(tenant)
   end
@@ -73,6 +82,14 @@ class TruckGroupForm < BaseForm
     return if name.blank? || other_groups.where(name:).none?
 
     errors.add(:name, :taken)
+  end
+
+  def fuel_valid_month_must_be_a_past_or_current_month
+    if fuel_valid_month_value.nil?
+      errors.add(:fuel_valid_month, :invalid)
+    elsif fuel_valid_month_value > Date.current
+      errors.add(:fuel_valid_month, :future)
+    end
   end
 
   def axles_must_be_valid

@@ -1,0 +1,23 @@
+<div class="card detail-card mt-3">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('truck_groups.show.fuel_rates') %></p>
+  </div>
+  <div class="table-responsive">
+    <table class="table app-table align-middle mb-0" id="truck_group_fuel_rates">
+      <thead>
+        <tr>
+          <th><%= t('truck_groups.show.fuel_rate_valid_month') %></th>
+          <th><%= t('truck_groups.show.fuel_rate_percentage') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% fuel_rates.each do |fuel_rate| %>
+          <tr>
+            <td><%= l(fuel_rate.valid_month, format: :month_year) %></td>
+            <td><%= truck_group_fuel_percentage(fuel_rate.percentage) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

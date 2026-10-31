@@ -236,11 +236,12 @@ describe 'Truck groups' do
 
     context 'when editing a group' do
       let!(:truck_group) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9], fuel_percentage: BigDecimal('35')) }
-      let!(:document) { create(:atua_transport_document, tenant:, axles: 9, freight_cents: 1_000_000) }
+      let!(:document) { create(:atua_transport_document, tenant:, axles: 9, freight_cents: 1_000_000, issued_at: Time.current) }
+      let!(:old_document) { create(:atua_transport_document, tenant:, axles: 9, freight_cents: 1_000_000, issued_at: 2.months.ago) }
 
       before { FreightExpenses::CalculateFuelCommand.call(tenant) }
 
-      scenario 'updates the fuel percentage and recalculates the fuel' do
+      scenario 'updates the fuel percentage from the current month and keeps the previous months' do
         visit truck_groups_path
         within("#truck_group_#{truck_group.id} .inline-actions") { click_on 'Alterar' }
 
@@ -255,7 +256,39 @@ describe 'Truck groups' do
         expect(page).to have_current_path(truck_group_path(truck_group))
         expect(page).to have_text('Grupo atualizado com sucesso.')
         expect(truck_group.reload.fuel_percentage).to eq(BigDecimal('40'))
-        expect(FreightExpense.fuel.sole).to have_attributes(transport_document: document, percentage: BigDecimal('40'), amount_cents: 400_000)
+        expect(FreightExpense.fuel.find_by!(transport_document: document)).to have_attributes(percentage: BigDecimal('40'), amount_cents: 400_000)
+        expect(FreightExpense.fuel.find_by!(transport_document: old_document)).to have_attributes(percentage: BigDecimal('35'), amount_cents: 350_000)
+        expect(html_table_to_rows(table: find_by_id('truck_group_fuel_rates'))).to eq(
+          [
+            %w[Vigência Percentual],
+            [I18n.l(Date.current, format: :month_year), '40%'],
+            [I18n.l(1.month.ago.to_date, format: :month_year), '35%'],
+          ],
+        )
+      end
+
+      scenario 'registers the percentage of a past month' do
+        visit edit_truck_group_path(truck_group)
+        fill_in 'Combustível sobre o frete (%)', with: '30'
+        fill_in 'Vigência do percentual', with: 2.months.ago.strftime('%Y-%m')
+
+        click_on 'Salvar Alterações'
+
+        expect(page).to have_text('Grupo atualizado com sucesso.')
+        expect(truck_group.reload.fuel_percentage).to eq(BigDecimal('35'))
+        expect(FreightExpense.fuel.find_by!(transport_document: old_document).percentage).to eq(BigDecimal('30'))
+        expect(FreightExpense.fuel.find_by!(transport_document: document).percentage).to eq(BigDecimal('35'))
+      end
+
+      scenario 'rejects a percentage valid from a future month' do
+        visit edit_truck_group_path(truck_group)
+        fill_in 'Combustível sobre o frete (%)', with: '40'
+        fill_in 'Vigência do percentual', with: 1.month.from_now.strftime('%Y-%m')
+
+        click_on 'Salvar Alterações'
+
+        expect(page).to have_text('não pode ser um mês futuro')
+        expect(truck_group.reload.fuel_percentage).to eq(BigDecimal('35'))
       end
 
       scenario 'deactivates the group and removes its fuel' do

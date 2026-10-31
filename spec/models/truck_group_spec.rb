@@ -71,6 +71,48 @@ RSpec.describe TruckGroup do
     end
   end
 
+  describe 'fuel rates' do
+    let(:truck_group) { create(:truck_group, tenant:, fuel_percentage: BigDecimal('35')) }
+    let(:current_month) { Date.current.beginning_of_month }
+
+    def rates
+      truck_group.fuel_rates.reload.order(:valid_month).pluck(:valid_month, :percentage)
+    end
+
+    it 'records the initial percentage when the group is created' do
+      expect(rates).to eq([[current_month, BigDecimal('35')]])
+    end
+
+    it 'does not record a rate when the percentage of the month does not change' do
+      expect { truck_group.change_fuel_percentage(BigDecimal('35'), current_month) }.not_to(change { rates })
+    end
+
+    it 'keeps the previous months when the only rate of the month changes' do
+      truck_group.change_fuel_percentage(BigDecimal('40'), current_month)
+
+      expect(rates).to eq([[current_month.prev_month, BigDecimal('35')], [current_month, BigDecimal('40')]])
+      expect(truck_group.fuel_percentage).to eq(BigDecimal('40'))
+      expect(truck_group.fuel_percentage_for(current_month.months_ago(6))).to eq(BigDecimal('35'))
+    end
+
+    it 'keeps the months before a percentage registered earlier than the first rate' do
+      truck_group.change_fuel_percentage(BigDecimal('30'), current_month.months_ago(2))
+
+      expect(truck_group.fuel_percentage_for(current_month.months_ago(3))).to eq(BigDecimal('35'))
+      expect(truck_group.fuel_percentage_for(current_month.months_ago(2))).to eq(BigDecimal('30'))
+      expect(truck_group.fuel_percentage_for(current_month.prev_month)).to eq(BigDecimal('30'))
+      expect(truck_group.fuel_percentage_for(current_month)).to eq(BigDecimal('35'))
+    end
+
+    it 'keeps the current percentage when correcting a past month' do
+      truck_group.change_fuel_percentage(BigDecimal('40'), current_month)
+      truck_group.change_fuel_percentage(BigDecimal('30'), current_month.prev_month)
+
+      expect(truck_group.fuel_percentage).to eq(BigDecimal('40'))
+      expect(truck_group.fuel_percentage_for(current_month.prev_month)).to eq(BigDecimal('30'))
+    end
+  end
+
   describe '#fuel_cents' do
     it 'applies the fuel percentage to the freight rounding half up' do
       truck_group = build(:truck_group, fuel_percentage: BigDecimal('32.5'))

@@ -37,24 +37,26 @@ module FreightExpenses
     end
 
     def expected_expenses
-      truck_groups = tenant.truck_groups.activated.to_a
-      fueled_groups = truck_groups.select { |truck_group| truck_group.fuel_percentage.positive? }
+      truck_groups = tenant.truck_groups.activated.preload(:fuel_rates).to_a
+      fueled_groups = truck_groups.select(&:fueled?)
       return {} if fueled_groups.empty?
 
-      documents(fueled_groups).each_with_object({}) do |(document_id, plate, axles, freight_cents), expenses|
+      documents(fueled_groups).each_with_object({}) do |(document_id, plate, axles, freight_cents, issued_at), expenses|
         truck_group = TruckGroup.for_document(truck_groups, plate:, axles:)
-        amount_cents = truck_group&.fuel_cents(freight_cents) || 0
+        next if truck_group.nil?
+
+        percentage = truck_group.fuel_percentage_for(issued_at&.to_date&.beginning_of_month)
+        amount_cents = truck_group.fuel_cents(freight_cents, percentage)
         next unless amount_cents.positive?
 
-        expenses[document_id] = { truck_group_id: truck_group.id, base_cents: freight_cents, percentage: truck_group.fuel_percentage,
-                                  amount_cents: }
+        expenses[document_id] = { truck_group_id: truck_group.id, base_cents: freight_cents, percentage:, amount_cents: }
       end
     end
 
     def documents(fueled_groups)
       documents = tenant.atua_transport_documents.commissionable
       documents = of_groups(documents, fueled_groups) if fueled_groups.none?(&:remaining_axles?)
-      documents.pluck(:id, :plate, :axles, :freight_cents)
+      documents.pluck(:id, :plate, :axles, :freight_cents, :issued_at)
     end
 
     def of_groups(documents, truck_groups)

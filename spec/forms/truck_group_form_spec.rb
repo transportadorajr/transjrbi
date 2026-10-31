@@ -169,7 +169,17 @@ RSpec.describe TruckGroupForm do
 
         expect(form).to have_attributes(axles: [9], fuel_percentage: '35', active: true)
 
-        form.assign_attributes(fuel_percentage: '40')
+        expect(form.fuel_valid_month).to eq(Date.current.strftime('%Y-%m'))
+
+        form.assign_attributes(fuel_valid_month: 'abc')
+        expect(form.save).to be_falsey
+        expect(form.errors).to be_of_kind(:fuel_valid_month, :invalid)
+
+        form.assign_attributes(fuel_valid_month: 1.month.from_now.strftime('%Y-%m'))
+        expect(form.save).to be_falsey
+        expect(form.errors).to be_of_kind(:fuel_valid_month, :future)
+
+        form.assign_attributes(fuel_valid_month: Date.current.strftime('%Y-%m'), fuel_percentage: '40')
 
         expect { expect(form.save).to be(true) }.not_to change(TruckGroup, :count)
         expect(rodotrem.reload.fuel_percentage).to eq(BigDecimal('40'))
