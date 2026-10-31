@@ -30,6 +30,26 @@ RSpec.describe CustomerGroups::AssignCommand do
     end
   end
 
+  context 'when transport documents are loaded and a customer took none recently' do
+    let!(:food) { create(:customer_group, tenant:, name: 'TERRAFEC', terms: ['TERRAFEC']) }
+    let!(:matching) { create(:atua_customer, tenant:, code: 1, name: 'TERRAFEC LTDA') }
+    let!(:recent_taker) { create(:atua_customer, tenant:, code: 2, name: 'TOMADOR RECENTE') }
+    let!(:former_taker) { create(:atua_customer, tenant:, code: 3, name: 'TOMADOR ANTIGO') }
+
+    before do
+      create(:atua_transport_document, tenant:, taker_code: 2, issued_at: 1.month.ago)
+      create(:atua_transport_document, tenant:, taker_code: 3, issued_at: 13.months.ago)
+    end
+
+    it 'creates an own group only for the recent taker and still applies the terms' do
+      expect { described_class.call(tenant) }.to change(CustomerGroup, :count).by(1)
+
+      expect(matching.reload.customer_group).to eq(food)
+      expect(recent_taker.reload.customer_group.name).to eq('TOMADOR RECENTE')
+      expect(former_taker.reload.customer_group_id).to be_nil
+    end
+  end
+
   context 'when a customer matches no terms' do
     let!(:food) { create(:customer_group, tenant:, name: 'TERRAFEC', terms: ['TERRAFEC']) }
     let!(:first_branch) { create(:atua_customer, tenant:, name: ' USIMINAS  S.A. ') }

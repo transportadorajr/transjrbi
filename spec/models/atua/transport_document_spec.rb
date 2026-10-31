@@ -238,6 +238,16 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.recently_issued' do
+    let!(:recent) { create(:atua_transport_document, tenant:, issued_at: 11.months.ago) }
+
+    before { create(:atua_transport_document, tenant:, issued_at: 13.months.ago) }
+
+    it 'returns only the documents issued in the last twelve months' do
+      expect(described_class.recently_issued).to contain_exactly(recent)
+    end
+  end
+
   describe '.commissionable' do
     context 'with normal, complement, CE, canceled and removed documents' do
       let!(:normal) { create(:atua_transport_document, tenant:) }
