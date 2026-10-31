@@ -15,7 +15,7 @@ module Atua
     def call
       return 0 unless tenant.atua_transport_documents.exists?
 
-      ActiveRecord::Base.transaction do
+      Customer.transaction do
         customers = tenant.atua_customers.where.not(code: active_codes)
         group_ids = customers.where.not(customer_group_id: nil).distinct.pluck(:customer_group_id)
         removed = customers.delete_all

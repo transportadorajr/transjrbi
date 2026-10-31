@@ -13,7 +13,7 @@ module CustomerGroups
     def call
       return 0 unless tenant.atua_transport_documents.exists?
 
-      ActiveRecord::Base.transaction do
+      CustomerGroup.transaction do
         group_ids = unused_groups.pluck(:id)
         tenant.atua_customers.where(customer_group_id: group_ids).update_all(customer_group_id: nil)
         tenant.customer_groups.where(id: group_ids).delete_all
