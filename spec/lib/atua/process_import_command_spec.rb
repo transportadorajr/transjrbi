@@ -84,6 +84,13 @@ RSpec.describe Atua::ProcessImportCommand do
       expect(tenant.atua_manifest_documents.count).to eq(0)
     end
 
+    it 'records the failure and raises the error when asked to' do
+      expect { described_class.call(import, raise_errors: true) }
+        .to raise_error(ActiveRecord::StatementInvalid, 'PG::Error: connection lost')
+
+      expect(import.reload).to have_attributes(status_type: 'failed', error_type: 'unexpected')
+    end
+
     it 'keeps the file to reprocess it later' do
       described_class.call(import)
 
