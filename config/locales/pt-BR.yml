@@ -1319,7 +1319,7 @@ pt-BR:
     form:
       insurance_rate_data: Dados da Alíquota
       insurance_rate_data_text: >-
-        O seguro da carga é calculado para os CT-es normais vinculados a um MDF-e válido: (valor da carga + valor do frete)
+        O seguro da carga é calculado para os CT-es normais vinculados a um MDF-e válido: valor da carga
         × alíquota do seguro. Nos CT-es com destino no exterior (UF EX) soma-se o IOF sobre o valor do seguro. CEs,
         complementos de valores, CT-es cancelados e CT-es sem MDF-e válido ficam sem seguro. Ao salvar, o seguro de todos os CT-es é recalculado com a nova alíquota.
       insurance_percentage_hint: 'Ex.: 0,022.'

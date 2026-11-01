@@ -45,7 +45,7 @@ RSpec.describe BackfillFreightRates do
       expect(expenses.keys).to contain_exactly('commission', 'tonnage', 'insurance')
       expect(expenses['commission']).to have_attributes(base_cents: 880_000, amount_cents: 17_600)
       expect(expenses['tonnage']).to have_attributes(weight_tons: BigDecimal('1.917'), rate_cents: 1_257, amount_cents: 2_410)
-      expect(expenses['insurance']).to have_attributes(insurance_rate: tenant.insurance_rate, base_cents: 1_838_998)
+      expect(expenses['insurance']).to have_attributes(insurance_rate: tenant.insurance_rate, base_cents: 838_998)
     end
 
     it 'can run again without duplicating the rates or the expenses' do

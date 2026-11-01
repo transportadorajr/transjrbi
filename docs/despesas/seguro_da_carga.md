@@ -11,7 +11,7 @@ As alíquotas ficam num cadastro próprio (**Alíquota de seguro**), um único r
 ## 2. Regra de cálculo
 
 ```
-base do seguro = valor da carga (vl_nota_fiscal) + valor do frete (vl_frete_empresa)
+base do seguro = valor da carga (vl_nota_fiscal), sem o valor do frete
 seguro         = base do seguro × alíquota do seguro          (hoje 0,022%)
 IOF            = seguro × alíquota do IOF                      (hoje 7,38%, só em frete internacional)
 despesa        = seguro + IOF
@@ -27,13 +27,10 @@ despesa        = seguro + IOF
 | | Nacional | Internacional |
 |---|---|---|
 | Valor da carga | R$ 8.389,98 | R$ 8.389,98 |
-| Valor do frete | R$ 555,04 | R$ 555,04 |
-| Base do seguro | R$ 8.945,02 | R$ 8.945,02 |
-| Seguro (0,022%) | R$ 1,97 | R$ 1,97 |
-| IOF (7,38% do seguro) | — | R$ 0,15 |
-| **Despesa** | **R$ 1,97** | **R$ 2,12** |
-
-Na amostra real do `rel_ctrc_detalhado` (01 a 13/10/2026: 509 CT-es, 498 depois de tirar 11 complementos), o seguro somaria **R$ 9.502,46**. Essa amostra não tem nenhum CT-e internacional.
+| Base do seguro | R$ 8.389,98 | R$ 8.389,98 |
+| Seguro (0,022%) | R$ 1,85 | R$ 1,85 |
+| IOF (7,38% do seguro) | — | R$ 0,14 |
+| **Despesa** | **R$ 1,85** | **R$ 1,99** |
 
 ### Alíquota única, sem vigência
 
@@ -77,7 +74,7 @@ Na tabela `freight_expenses`:
 - adicionar o valor `insurance` ao enum `freight_expense_kind_type`;
 - `insurance_rate_id` (references, FK, opcional), `iof_percentage` (decimal(7,4)) e `iof_cents` (bigint, default 0, not null).
 
-As colunas existentes são reaproveitadas: `base_cents` (valor da carga + frete), `percentage` (alíquota do seguro) e `amount_cents` (seguro + IOF, o total da despesa). O índice único `(transport_document_id, kind_type)` garante uma linha de seguro por CT-e.
+As colunas existentes são reaproveitadas: `base_cents` (valor da carga), `percentage` (alíquota do seguro) e `amount_cents` (seguro + IOF, o total da despesa). O índice único `(transport_document_id, kind_type)` garante uma linha de seguro por CT-e.
 
 ### Modelo `FreightExpense`
 
@@ -106,7 +103,7 @@ O comando é idempotente: rodar duas vezes seguidas não altera nada.
 |---|---|
 | **Detalhe do CT-e** | O card "Despesas de frete" ganha a linha "Seguro da carga". O card "Frete líquido" ganha a linha **Seguro da carga** (em vermelho, descontada). |
 | **Detalhe da viagem (MDF-e)** | Mesmas mudanças: uma linha de seguro por CT-e da viagem e o seguro somado no frete líquido da viagem. |
-| **Despesas de frete** (listagem) | O novo tipo aparece na lista e no filtro "Tipo". Colunas: detalhe = "Alíquota de seguro" + "Internacional (com IOF de R$ x)" quando houver; base = carga + frete; ICMS = "—"; taxa = alíquota do seguro; valor = seguro + IOF. Novo alerta quando o tenant não tem alíquota de seguro cadastrada. |
+| **Despesas de frete** (listagem) | O novo tipo aparece na lista e no filtro "Tipo". Colunas: detalhe = "Alíquota de seguro" + "Internacional (com IOF de R$ x)" quando houver; base = valor da carga; ICMS = "—"; taxa = alíquota do seguro; valor = seguro + IOF. Novo alerta quando o tenant não tem alíquota de seguro cadastrada. |
 
 O filtro por grupo de clientes dessa listagem continua considerando só comissão e tonelagem, porque o seguro não depende de grupo.
 
@@ -144,7 +141,7 @@ Seguindo o AGENTS.md (sem specs de controller/request):
 
 1. **Vigência ou valor único?** Decidido: valor único por empresa, sem vigência. Ao alterar, todo o histórico é recalculado.
 2. **Complementos de valores ficam fora?** A proposta é que fiquem, para não cobrar duas vezes o seguro da mesma carga.
-3. **Frete com ICMS?** A proposta usa `vl_frete_empresa`, que é o frete total do CT-e, com ICMS. Se a apólice considera o frete sem ICMS, a base muda.
+3. **Base do seguro:** somente o valor da carga. O valor do frete não entra na base.
 4. **Internacional só pela UF de destino `EX`?** Uma importação (origem no exterior, destino no Brasil) não teria IOF por esse critério.
 5. **Cálculo retroativo:** o backfill calcula o seguro para todos os CT-es já importados. Se preferir a partir de uma data, informe qual.
 
