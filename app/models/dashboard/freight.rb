@@ -6,6 +6,7 @@ module Dashboard
     HISTORY_MONTHS = 6
     MONTH_FORMAT = '%Y-%m'.freeze
     RANKING_LIMIT = 15
+    FOZ_ORIGIN_KEYS = ['FOZ DO IGUACU|PR|export', 'FOZ DO IGUACU|PR|national'].freeze
     TOTAL_KEY = 'total'.freeze
     COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
     ABBREVIATED_DIMENSIONS = %w[driver customer_group].freeze
@@ -15,9 +16,9 @@ module Dashboard
     CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
-                 toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
+                 toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id export_origin].freeze
     ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
-                          undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id].freeze
+                          undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id export_origin].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -119,9 +120,7 @@ module Dashboard
     end
 
     def ranking_rows
-      @ranking_rows ||= rows.reject { |row| chart_excluded?(row) }
-        .first(RANKING_LIMIT)
-        .map { |row| row.with(label: chart_label(row.label)) }
+      @ranking_rows ||= charted_rows.map { |row| row.with(label: chart_label(row.label)) }
     end
 
     def ranking_data
@@ -227,6 +226,16 @@ module Dashboard
       Array(key).join('|')
     end
 
+    def charted_rows
+      eligible = rows.reject { |row| chart_excluded?(row) }
+
+      eligible.first(RANKING_LIMIT) + eligible.drop(RANKING_LIMIT).select { |row| foz_origin_row?(row) }
+    end
+
+    def foz_origin_row?(row)
+      dimension == 'origin' && FOZ_ORIGIN_KEYS.include?(row.key)
+    end
+
     def chart_excluded?(row)
       CHART_EXCLUDED_LABELS.fetch(dimension, []).include?(normalized(row.label))
     end
@@ -245,7 +254,7 @@ module Dashboard
       Entry.new(
         document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'), **money_of([fact]),
         plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
-        origin_city: fact.origin_city, origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id
+        origin_city: fact.origin_city, origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin
       )
     end
 
@@ -259,7 +268,8 @@ module Dashboard
           document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
           **money_of(slice), plate: trip.trip_plate, driver_code: main.driver_code, driver_name: main.driver_name,
           customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
-          origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id
+          origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id,
+          export_origin: first_loading.export_origin
         )
       end
     end
@@ -317,6 +327,7 @@ module Dashboard
         table[:origin_city],
         table[:origin_state],
         table[:origin_macro_region_id],
+        Atua::TransportDocument.export_origin,
       ]
     end
 
@@ -385,7 +396,7 @@ module Dashboard
       when 'vehicle' then entry.plate.presence
       when 'driver' then entry.driver_code
       when 'customer_group' then entry.customer_group_id
-      when 'origin' then [entry.origin_city.presence, entry.origin_state.presence]
+      when 'origin' then [entry.origin_city.presence, entry.origin_state.presence, *origin_operation(entry)]
       when 'macro_region' then entry.origin_macro_region_id
       end
     end
@@ -434,10 +445,17 @@ module Dashboard
       [words.first, *initials, words.last].join(' ')
     end
 
-    def origin_label(city, state)
-      return city if city.blank? || state.blank?
+    def origin_operation(entry)
+      return unless Atua::MapTransportDocumentsCommand::REAL_ORIGIN.values_at(:origin_city, :origin_state) == [entry.origin_city, entry.origin_state]
 
-      I18n.t('tax.city', city:, state:)
+      entry.export_origin ? 'export' : 'national'
+    end
+
+    def origin_label(city, state, operation = nil)
+      return city if city.blank? || state.blank?
+      return I18n.t('tax.city', city:, state:) if operation.nil?
+
+      I18n.t('tax.city', city: I18n.t(operation, scope: 'dashboards.freight.foz_origin'), state:)
     end
 
     def customer_group_names
