@@ -995,11 +995,20 @@ pt-BR:
       no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
       expenses: Despesas da viagem
       no_expenses: Nenhuma despesa vinculada aos CT-es deste manifesto.
-      freight_expenses: Despesas internas da viagem
     expenses:
+      name: Despesa
+      kind: Tipo
+      transport_document: CT-e
+      posted_on: Lançado em
+      detail: Detalhe
+      amount: Valor
       total: Total de despesas
-    freight_expenses:
-      total: Total das despesas do frete
+      toll_voucher: Vale-pedágio
+      toll_in_freight: Pedágio no frete
+      kinds:
+        expense: Atua
+        freight_expense: Interna
+        toll: Pedágio
   empty_legs:
     distance: '%{distance} km'
   customers:

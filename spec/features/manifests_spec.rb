@@ -235,6 +235,7 @@ describe 'Manifests' do
 
       context 'with access to the freight expenses' do
         let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+        let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
         let!(:other_transport_document) do
           create(:atua_transport_document, tenant:, number: '74131', series: 1, branch_code: 2, branch_name: 'JR TRANSPORTES', freight_cents: 300_000,
                                            weight_freight_cents: 260_000, toll_cents: 15_000, icms_cents: 25_000)
@@ -248,7 +249,8 @@ describe 'Manifests' do
           create(:freight_expense, :insurance, tenant:, transport_document:)
           create(:freight_expense, tenant:, transport_document: other_transport_document, amount_cents: 6_000)
           create(:freight_expense, :tonnage, tenant:, transport_document: other_transport_document)
-          create(:atua_expense, tenant:, history_name: 'DESCARGA - CHAPA', total_cents: 35_000, cost_object: other_transport_document)
+          create(:atua_expense, tenant:, history_name: 'DESCARGA - CHAPA', payee_name: nil, posted_on: Date.new(2026, 10, 3), total_cents: 35_000,
+                                cost_object: other_transport_document)
           outside = create(:atua_transport_document, tenant:, number: '74200', series: 1, branch_name: 'JR TRANSPORTES')
           create(:freight_expense, tenant:, transport_document: outside, amount_cents: 99_999)
         end
@@ -270,20 +272,25 @@ describe 'Manifests' do
           )
         end
 
-        scenario 'lists the commissions, the tonnage costs and the cargo insurance of the transport documents of the trip with the total' do
+        scenario 'unifies the internal expenses, the toll and the Atua expenses of the trip with the total of the net freight deductions' do
           visit manifest_path(manifest)
 
           expect(FreightExpense.count).to eq(5)
-          expect(html_table_to_rows(table: find_by_id('manifest_freight_expenses'))).to eq(
+          expect(Atua::TollVoucher.count).to eq(1)
+          expect(Atua::Expense.count).to eq(1)
+          expect(html_table_to_rows(table: find_by_id('manifest_expenses'))).to eq(
             [
-              ['CT-e', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor'],
-              ['74130', 'Comissão', 'Nacional', 'R$ 1.000,00', '2,00%', 'R$ 111,01'],
-              ['74130', 'Seguro da carga', 'Alíquota de seguro', 'R$ 10.000,00', '0,022%', 'R$ 2,20'],
-              ['74131', 'Comissão', 'Nacional', 'R$ 1.000,00', '2,00%', 'R$ 60,00'],
-              ['74131', 'Custo por tonelada', 'Brasiltec – Cubatão/SP (Cubatão)', '32,500 t', 'R$ 12,57/t', 'R$ 408,53'],
+              ['Despesa', 'Tipo', 'CT-e', 'Lançado em', 'Detalhe', 'Valor'],
+              ['Comissão', 'Interna', '74130', '-', 'Nacional · R$ 1.000,00 · 2,00%', 'R$ 111,01'],
+              ['Seguro da carga', 'Interna', '74130', '-', 'Alíquota de seguro · R$ 10.000,00 · 0,022%', 'R$ 2,20'],
+              ['Comissão', 'Interna', '74131', '-', 'Nacional · R$ 1.000,00 · 2,00%', 'R$ 60,00'],
+              ['Custo por tonelada', 'Interna', '74131', '-', 'Brasiltec – Cubatão/SP (Cubatão) · 32,500 t · R$ 12,57/t', 'R$ 408,53'],
+              ['Vale-pedágio', 'Pedágio', '74131', '-', '-', 'R$ 150,00'],
+              ['DESCARGA - CHAPA', 'Atua', '74131', '03/10/2026', '-', 'R$ 350,00'],
             ],
           )
-          expect(page).to have_css('#manifest_freight_expenses_total', text: 'Total das despesas do frete R$ 581,74')
+          expect(page).to have_css('#manifest_expenses_total', text: 'Total de despesas R$ 1.081,74')
+          expect(page).to have_no_text('Despesas internas da viagem')
         end
       end
 
@@ -296,7 +303,7 @@ describe 'Manifests' do
           expect(FreightExpense.count).to eq(1)
           expect(page).to have_css('h1.page-title', text: 'Manifesto 40772')
           expect(page).to have_no_css('#manifest_net_freight')
-          expect(page).to have_no_css('#manifest_freight_expenses')
+          expect(page).to have_no_css('#manifest_expenses')
         end
       end
 
@@ -338,9 +345,9 @@ describe 'Manifests' do
             expect(Atua::Expense.count).to eq(5)
             expect(html_table_to_rows(table: find_by_id('manifest_expenses'))).to eq(
               [
-                ['Histórico', 'CT-e', 'Lançado em', 'Favorecido', 'Valor total'],
-                ['DESCARGA - CHAPA', '74131', '03/10/2026', '-', 'R$ 350,00'],
-                ['PEDAGIO', '74130', '02/10/2026', 'VIA 040', 'R$ 150,00'],
+                ['Despesa', 'Tipo', 'CT-e', 'Lançado em', 'Detalhe', 'Valor'],
+                ['PEDAGIO', 'Atua', '74130', '02/10/2026', 'VIA 040', 'R$ 150,00'],
+                ['DESCARGA - CHAPA', 'Atua', '74131', '03/10/2026', '-', 'R$ 350,00'],
               ],
             )
             expect(page).to have_css('#manifest_expenses_total', text: 'Total de despesas R$ 500,00')
@@ -499,7 +506,7 @@ describe 'Manifests' do
         visit manifest_path(manifest)
 
         expect(page).to have_css('#manifest_expenses td', text: 'R$ 150,00')
-        expect(page).to have_no_css('#manifest_expenses th', text: 'Favorecido')
+        expect(page).to have_no_css('#manifest_expenses th', text: 'Detalhe')
         expect(page).to have_no_css('#manifest_expenses th', text: 'CT-e')
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end
