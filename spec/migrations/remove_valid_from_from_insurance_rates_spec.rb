@@ -36,7 +36,7 @@ RSpec.describe RemoveValidFromFromInsuranceRates do
 
       expect(InsuranceRate.column_names).not_to include('valid_from')
       expect(InsuranceRate.pluck(:id)).to contain_exactly(october, other_rate)
-      expect(expense.reload).to have_attributes(insurance_rate_id: october, percentage: BigDecimal('0.022'), amount_cents: 197)
+      expect(expense.reload).to have_attributes(insurance_rate_id: october, percentage: BigDecimal('0.022'), amount_cents: 185)
     end
   end
 

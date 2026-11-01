@@ -18,7 +18,7 @@ RSpec.describe InsuranceRates::BackfillCommand do
       expect { described_class.call(tenant) }.to change(InsuranceRate, :count).by(1)
 
       expect(InsuranceRate.find_by!(tenant:)).to have_attributes(insurance_percentage: BigDecimal('0.022'), iof_percentage: BigDecimal('7.38'))
-      expect(FreightExpense.insurance.find_by!(transport_document: document).amount_cents).to eq(197)
+      expect(FreightExpense.insurance.find_by!(transport_document: document).amount_cents).to eq(185)
     end
 
     it 'can run again without duplicating the rate' do

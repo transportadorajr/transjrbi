@@ -33,14 +33,14 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       link_to_manifest(create(:atua_transport_document, tenant: create(:tenant), number: '76006', goods_value_cents: 100_000))
     end
 
-    it 'records the insurance of each transport document adding the IOF on the international ones' do
+    it 'records the insurance over the goods value only, adding the IOF on the international ones' do
       expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
 
       expect(FreightExpense.count).to eq(2)
       expect(FreightExpense.order(:transport_document_id).map { |expense| expense_values(expense) }).to eq(
         [
-          ['76001', rate, 894_502, BigDecimal('0.022'), BigDecimal('0'), 0, 197],
-          ['76002', rate, 894_502, BigDecimal('0.022'), BigDecimal('7.38'), 15, 212],
+          ['76001', rate, 838_998, BigDecimal('0.022'), BigDecimal('0'), 0, 185],
+          ['76002', rate, 838_998, BigDecimal('0.022'), BigDecimal('7.38'), 14, 199],
         ],
       )
       expect(FreightExpense.all).to all(have_attributes(tenant:, kind_type: 'insurance', commission_rule: nil, calculated_at: be_present))
@@ -67,9 +67,9 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       rate.update!(insurance_percentage: BigDecimal('0.03'))
 
       expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
-      expect(FreightExpense.find_by!(transport_document: national)).to have_attributes(percentage: BigDecimal('0.03'), amount_cents: 268)
-      expect(FreightExpense.find_by!(transport_document: international)).to have_attributes(percentage: BigDecimal('0.03'), iof_cents: 20,
-                                                                                            amount_cents: 288)
+      expect(FreightExpense.find_by!(transport_document: national)).to have_attributes(percentage: BigDecimal('0.03'), amount_cents: 252)
+      expect(FreightExpense.find_by!(transport_document: international)).to have_attributes(percentage: BigDecimal('0.03'), iof_cents: 19,
+                                                                                            amount_cents: 271)
     end
 
     it 'removes the insurance of a transport document canceled afterwards' do

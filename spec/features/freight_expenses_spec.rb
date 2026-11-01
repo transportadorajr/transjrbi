@@ -272,13 +272,13 @@ describe 'Freight expenses' do
       expect(html_table_to_rows).to eq(
         [
           ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
-          ['76001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga', 'Alíquota de seguro', 'R$ 8.945,02', '0,022%',
-           'R$ 1,97', ''],
+          ['76001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga', 'Alíquota de seguro', 'R$ 8.389,98', '0,022%',
+           'R$ 1,85', ''],
           ['76002', '04/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga',
-           'Alíquota de seguro (internacional, com IOF de R$ 0,15)', 'R$ 8.945,02', '0,022%', 'R$ 2,12', ''],
+           'Alíquota de seguro (internacional, com IOF de R$ 0,14)', 'R$ 8.389,98', '0,022%', 'R$ 1,99', ''],
         ],
       )
-      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 4,09')
+      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 3,84')
       expect(page).to have_no_css('#missing_insurance_rate')
     end
 
