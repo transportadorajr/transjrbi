@@ -20,7 +20,7 @@ end
   'transport_documents' => { name: 'CT-es', writable: false },
   'manifests' => { name: 'Manifestos', writable: false },
   'customers' => { name: 'Clientes', writable: false },
-  'drivers' => { name: 'Motoristas', writable: false },
+  'drivers' => { name: 'Motoristas', writable: true },
   'vehicles' => { name: 'Veículos', writable: false },
   'expenses' => { name: 'Despesas', writable: false },
   'customer_groups' => { name: 'Grupos de clientes', writable: true },

@@ -18,6 +18,19 @@ RSpec.describe Atua::SaveVehiclesCommand do
     end
   end
 
+  context 'when the report brings back a driver deleted from the registrations' do
+    let(:driver_code) { Atua::MapVehiclesCommand.call(tenant, spreadsheet).filter_map { |attributes| attributes[:driver_code] }.first }
+
+    before { create(:excluded_driver, tenant:, code: driver_code) }
+
+    it 'keeps the driver out of the registrations' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_vehicles.count).to be_positive
+      expect(tenant.atua_vehicles.where(driver_code:).count).to eq(0)
+    end
+  end
+
   context 'when the report brings back a driver without recent transport documents' do
     before { create(:atua_transport_document, tenant:, driver_code: nil, issued_at: 1.month.ago) }
 

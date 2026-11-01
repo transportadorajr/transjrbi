@@ -66,8 +66,8 @@ describe 'Drivers' do
         expect(html_table_to_rows).to eq(
           [
             ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
-            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', ''],
-            ['JOSE DA SILVA Código 760', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', ''],
+            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', 'Opções Visualizar Excluir'],
+            ['JOSE DA SILVA Código 760', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', 'Opções Visualizar Excluir'],
           ],
         )
         expect(page).to have_text('2 registros')
@@ -84,7 +84,7 @@ describe 'Drivers' do
         expect(html_table_to_rows).to eq(
           [
             ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
-            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', ''],
+            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', 'Opções Visualizar Excluir'],
           ],
         )
       end
@@ -97,9 +97,37 @@ describe 'Drivers' do
         expect(html_table_to_rows).to eq(
           [
             ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
-            ['JOSE DA SILVA Código 760', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', ''],
+            ['JOSE DA SILVA Código 760', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', 'Opções Visualizar Excluir'],
           ],
         )
+      end
+
+      scenario 'deletes a driver from the listing and keeps the vehicles' do
+        visit drivers_path
+
+        expect(page).to have_css("a[href='#{driver_path(760)}'][data-turbo-method='delete'][data-turbo-confirm]", text: 'Excluir')
+
+        expect { page.driver.submit :delete, driver_path(760), {} }
+          .to change(ExcludedDriver, :count).by(1).and(not_change(Atua::Vehicle, :count))
+
+        expect(page).to have_current_path(drivers_path)
+        expect(page).to have_text('Motorista excluído com sucesso.')
+        expect(html_table_to_rows).to eq(
+          [
+            ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
+            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', 'Opções Visualizar Excluir'],
+          ],
+        )
+        expect(ExcludedDriver.last).to have_attributes(tenant_id: tenant.id, code: 760, name: 'JOSE DA SILVA')
+        expect(truck.reload.driver_code).to be_nil
+        expect(spare_truck.reload.driver_code).to be_nil
+      end
+
+      scenario 'does not delete a driver of another tenant' do
+        expect { page.driver.submit :delete, driver_path(703), {} }.not_to change(ExcludedDriver, :count)
+
+        expect(page.status_code).to eq(404)
+        expect(stranger.reload.driver_code).to eq(703)
       end
 
       scenario 'does not show a driver only on vehicles removed from Atua' do
@@ -249,6 +277,20 @@ describe 'Drivers' do
       end
     end
 
+    context 'with write access to the drivers' do
+      let!(:access) { create(:access, user: operator, resource:, reads: true, creates: true) }
+
+      scenario 'deletes a driver' do
+        visit drivers_path
+
+        expect(page).to have_link('Excluir', href: driver_path(760), count: 2)
+
+        expect { page.driver.submit :delete, driver_path(760), {} }.to change(ExcludedDriver, :count).by(1)
+
+        expect(page).to have_text('Motorista excluído com sucesso.')
+      end
+    end
+
     context 'with read access to the drivers' do
       let!(:access) { create(:access, user: operator, resource:, reads: true) }
 
@@ -261,6 +303,18 @@ describe 'Drivers' do
         click_on 'JOSE DA SILVA'
 
         expect(page).to have_current_path(driver_path(760))
+      end
+
+      scenario 'cannot delete a driver' do
+        visit drivers_path
+
+        expect(page).to have_link('JOSE DA SILVA')
+        expect(page).to have_no_link('Excluir')
+
+        expect { page.driver.submit :delete, driver_path(760), {} }.not_to change(ExcludedDriver, :count)
+
+        expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
+        expect(vehicle.reload.driver_code).to eq(760)
       end
 
       context 'when the driver has a transport document' do

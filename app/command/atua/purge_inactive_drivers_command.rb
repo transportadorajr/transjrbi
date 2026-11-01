@@ -13,9 +13,7 @@ module Atua
     end
 
     def call
-      return 0 unless tenant.atua_transport_documents.exists?
-
-      inactive_vehicles.update_all(
+      vehicles_to_clear.update_all(
         [
           <<~SQL.squish,
             driver_code = NULL, driver_name = NULL, driver_document = NULL, driver_document_digits = NULL,
@@ -30,8 +28,12 @@ module Atua
 
     attr_reader :tenant
 
-    def inactive_vehicles
-      tenant.atua_vehicles.where.not(driver_code: nil).where.not(driver_code: active_codes)
+    def vehicles_to_clear
+      vehicles = tenant.atua_vehicles.where.not(driver_code: nil)
+      excluded = vehicles.where(driver_code: tenant.excluded_drivers.select(:code))
+      return excluded unless tenant.atua_transport_documents.exists?
+
+      excluded.or(vehicles.where.not(driver_code: active_codes))
     end
 
     def active_codes

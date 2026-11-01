@@ -76,7 +76,13 @@ pt-BR:
       excluded_issuer:
         one: Emissor desconsiderado
         other: Emissores desconsiderados
+      excluded_driver:
+        one: Motorista excluído
+        other: Motoristas excluídos
     attributes:
+      excluded_driver:
+        name: Motorista
+        code: Código no Atua
       excluded_issuer:
         name: Emissor
         code: Código no Atua
@@ -773,6 +779,7 @@ pt-BR:
         destroy: Voltar a considerar
       atua/vehicle:
         show: Visualizar
+        destroy: Excluir
       atua/expense:
         show: Visualizar
       atua/import:
@@ -1438,6 +1445,9 @@ pt-BR:
     index:
       title: Motoristas
       subtitle: Motoristas vinculados aos veículos cadastrados na Atua.
+      confirm_destroy: O motorista sairá do cadastro e não voltará nas próximas importações da Atua. Os CT-es dele continuam no sistema. Deseja continuar?
+    destroy:
+      success: Motorista excluído com sucesso.
     filters:
       name: Nome do motorista
       document: CPF do motorista
