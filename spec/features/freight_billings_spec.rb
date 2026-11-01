@@ -272,6 +272,21 @@ describe 'Freight billing' do
             expect(page).to have_current_path(freight_billing_path(october_by_truck))
           end
 
+          scenario 'lists the freights of the month from the oldest to the newest' do
+            steel.update!(issued_at: Time.zone.local(2026, 10, 5, 8))
+            coil.update!(issued_at: Time.zone.local(2026, 10, 3, 8))
+
+            visit freight_billing_path(october_by_truck)
+            click_month('Out/2026')
+
+            expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: 'Out/2026')
+            within('#freight_billing_freights_modal') do
+              numbers = html_table_to_rows[1..-2].map { |row| row.first.split.first }
+
+              expect(numbers & %w[74001 74002]).to eq(%w[74002 74001])
+            end
+          end
+
           scenario 'opens nothing from a month without freights' do
             visit freight_billing_path(october_by_truck)
             click_month('Mai/2026')
@@ -569,6 +584,27 @@ describe 'Freight billing' do
 
           expect(modal_numbers).to contain_exactly('74003', '3547')
           expect(modal_total).to eq(['Total', '', '', '', '', 'R$ 5.000,00', 'R$ 5.000,00'])
+        end
+
+        context 'when the freights were issued on different days' do
+          before do
+            steel.update!(issued_at: Time.zone.local(2026, 10, 5, 8))
+            coil.update!(issued_at: Time.zone.local(2026, 10, 3, 8))
+          end
+
+          scenario 'lists the freights of the truck from the oldest to the newest' do
+            visit freight_billing_path(october_by_truck)
+            open_freights('RVR2C34')
+
+            expect(modal_numbers).to eq(%w[74002 74001])
+          end
+
+          scenario 'lists the freights of the driver from the oldest to the newest' do
+            visit freight_billing_path(october.merge(dimension: 'driver'))
+            open_freights('JOSE SILVA')
+
+            expect(modal_numbers).to eq(%w[74002 74001])
+          end
         end
 
         scenario 'keeps a single modal on the page when another row is opened' do

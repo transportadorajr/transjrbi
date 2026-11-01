@@ -628,6 +628,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_004435) do
     t.index ["tenant_id", "previous_manifest_code"], name: "index_empty_legs_on_tenant_id_and_previous_manifest_code"
   end
 
+  create_table "excluded_drivers", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "code", null: false
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "code"], name: "index_excluded_drivers_on_tenant_id_and_code", unique: true
+    t.index ["tenant_id"], name: "index_excluded_drivers_on_tenant_id"
+  end
+
   create_table "excluded_issuers", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.integer "code", null: false
@@ -976,6 +986,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_004435) do
   add_foreign_key "empty_legs", "locations", column: "origin_id"
   add_foreign_key "empty_legs", "road_routes"
   add_foreign_key "empty_legs", "tenants"
+  add_foreign_key "excluded_drivers", "tenants"
   add_foreign_key "excluded_issuers", "tenants"
   add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
   add_foreign_key "freight_expenses", "commission_rules"

@@ -116,7 +116,7 @@ module Dashboard
     def freights_for(key)
       documents.where(id: entries.select { |entry| row_key(key_for(entry)) == key.to_s }.flat_map(&:document_ids))
         .with_freight_totals
-        .order(table[:issued_at].desc.nulls_last, id: :desc)
+        .order(table[:issued_at].asc.nulls_last, id: :asc)
     end
 
     def ranking_rows
@@ -162,7 +162,7 @@ module Dashboard
     def month_freights(month)
       issued_documents(month..month.end_of_month)
         .with_freight_totals
-        .order(table[:issued_at].desc.nulls_last, id: :desc)
+        .order(table[:issued_at].asc.nulls_last, id: :asc)
     end
 
     private
