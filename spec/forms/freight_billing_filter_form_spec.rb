@@ -111,4 +111,30 @@ RSpec.describe FreightBillingFilterForm do
       expect(form.errors.full_messages).to eq(['Tipo de conjunto não é válido'])
     end
   end
+
+  describe '#filtered?' do
+    let(:week) { described_class.preset_period(:week) }
+
+    it 'is false with the defaults' do
+      expect(described_class.new).not_to be_filtered
+    end
+
+    it 'is false when the defaults are sent explicitly' do
+      form = described_class.new(start_date: week.first, end_date: week.last, dimension: 'customer_group')
+
+      expect(form).not_to be_filtered
+    end
+
+    it 'is true with another dimension' do
+      expect(described_class.new(dimension: 'driver')).to be_filtered
+    end
+
+    it 'is true with another period' do
+      expect(described_class.new(start_date: week.first - 7, end_date: week.last - 7)).to be_filtered
+    end
+
+    it 'is true with a plate' do
+      expect(described_class.new(plate: 'ABC1D23')).to be_filtered
+    end
+  end
 end

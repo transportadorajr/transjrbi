@@ -59,7 +59,7 @@
 
   <%= net_freight_card(@net_freight, id: 'manifest_net_freight') %>
 
-  <%= manifest_freight_expenses(@freight_expenses, @freight_expenses_total) %>
+  <%= manifest_expenses(@trip_expenses) %>
 
   <div class="card detail-card">
     <div class="detail-card-header">
@@ -69,6 +69,4 @@
       <%= manifest_documents_table(@documents) %>
     </div>
   </div>
-
-  <%= manifest_expenses(@expenses, @expenses_total) %>
 </div>

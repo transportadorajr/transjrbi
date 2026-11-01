@@ -56,7 +56,7 @@
 
     <div class="d-flex flex-column gap-2 mt-4">
       <%= f.button t('shared.apply_filters'), name: nil, class: 'btn btn-primary w-100 btn-round' %>
-      <%= link_to t('shared.clear_filters'), freight_billing_path(dimension: @filter_form.dimension), class: 'btn btn-light w-100 btn-round' %>
+      <%= link_to t('shared.clear_filters'), freight_billing_path, class: 'btn btn-light w-100 btn-round' %>
     </div>
   <% end %>
 <% end %>
