@@ -1,5 +1,6 @@
 module ApplicationHelper
   COUNTER_ICONS = { dark: 'grid', success: 'check-circle', danger: 'x-circle', warning: 'exclamation-circle', primary: 'bar-chart' }.freeze
+  NON_FILTER_PARAMS = %w[page sort direction].freeze
 
   def icon(name, options = {})
     tag.i(**options, class: ['bi', "bi-#{name}", options[:class]], aria: { hidden: true })
@@ -23,11 +24,13 @@ module ApplicationHelper
     end
   end
 
-  def link_to_filters(modal_id, **options)
-    link_to icon(:funnel), modal_id,
-            data: { bs_toggle: :modal },
-            class: options.fetch(:class, 'btn btn-sm btn-primary btn-round ms-1'),
-            aria: { label: t('shared.filters') }
+  def link_to_filters(modal_id, applied: filters_applied?, **options)
+    css_class = options.fetch(:class, 'btn btn-sm btn-primary btn-round ms-1')
+
+    safe_join([
+                clear_filters_button(css_class, applied:),
+                link_to(icon(:funnel), modal_id, data: { bs_toggle: :modal }, class: css_class, aria: { label: t('shared.filters') }),
+              ])
   end
 
   def link_to_action(action, entity, path, icon:, data: {}, color: nil, **options)
@@ -78,6 +81,17 @@ module ApplicationHelper
   end
 
   private
+
+  def clear_filters_button(css_class, applied:)
+    label = safe_join([icon(:'x-circle', class: 'me-1'), t('shared.clear_filters')])
+    return link_to(label, url_for(only_path: true), class: css_class) if applied
+
+    button_tag(label, type: :button, disabled: true, class: css_class)
+  end
+
+  def filters_applied?
+    request.query_parameters.except(*NON_FILTER_PARAMS).values.any?(&:present?)
+  end
 
   def new_record_path
     send("new_#{controller_name.singularize}_path")
