@@ -19,27 +19,21 @@ class ManifestsController < BaseController
     @manifest = current_tenant.atua_manifests.active.with_freight_totals
       .preload(route_documents: :transport_document, empty_leg: %i[origin destination previous_manifest]).find(params.expect(:id))
     @documents = @manifest.documents.active.without_internal_taker.preload(:transport_document).order(:transport_document_number)
-    load_expenses if can?(:read, :expenses)
-    load_net_freight if can?(:read, :freight_expenses)
+    load_trip_expenses
+    @net_freight = NetFreight.for(manifest_transport_documents) if can?(:read, :freight_expenses)
   end
 
   private
 
-  def load_net_freight
-    transport_documents = @manifest.transport_documents.merge(Atua::ManifestDocument.active)
-    freight_expenses = current_tenant.freight_expenses
-      .where(transport_document_id: transport_documents.active.not_canceled.select(:id))
+  def load_trip_expenses
+    internal = can?(:read, :freight_expenses)
+    atua = can?(:read, :expenses)
+    return unless internal || atua
 
-    @net_freight = NetFreight.for(transport_documents)
-    @freight_expenses = freight_expenses.preload(:transport_document, :commission_rule, :tonnage_rate, :insurance_rate)
-      .joins(:transport_document).order(Atua::TransportDocument.arel_table[:number], :kind_type, :id)
-    @freight_expenses_total = Money.from_cents(freight_expenses.sum(:amount_cents))
+    @trip_expenses = TripExpenses.for(manifest_transport_documents, internal:, atua:)
   end
 
-  def load_expenses
-    expenses = current_tenant.atua_expenses.active.by_manifest(@manifest)
-
-    @expenses = expenses.preload(:cost_object).order(Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc)
-    @expenses_total = Money.from_cents(expenses.sum(:total_cents))
+  def manifest_transport_documents
+    @manifest.transport_documents.merge(Atua::ManifestDocument.active)
   end
 end

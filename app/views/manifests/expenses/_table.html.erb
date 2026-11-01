@@ -2,19 +2,20 @@
   <table class="table table-hover align-middle mb-0" id="manifest_expenses">
     <thead class="table-light">
       <tr>
-        <th><%= Atua::Expense.human_attribute_name(:history_name) %></th>
-        <th class="d-none d-md-table-cell"><%= Atua::Expense.human_attribute_name(:transport_document) %></th>
-        <th class="d-none d-md-table-cell"><%= Atua::Expense.human_attribute_name(:posted_on) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::Expense.human_attribute_name(:payee_name) %></th>
-        <th class="text-end"><%= Atua::Expense.human_attribute_name(:total) %></th>
+        <th><%= t('manifests.expenses.name') %></th>
+        <th class="d-none d-md-table-cell"><%= t('manifests.expenses.kind') %></th>
+        <th class="d-none d-md-table-cell"><%= t('manifests.expenses.transport_document') %></th>
+        <th class="d-none d-lg-table-cell"><%= t('manifests.expenses.posted_on') %></th>
+        <th class="d-none d-lg-table-cell"><%= t('manifests.expenses.detail') %></th>
+        <th class="text-end"><%= t('manifests.expenses.amount') %></th>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'manifests/expenses/row', collection: expenses, as: :expense %>
+      <%= render partial: 'manifests/expenses/row', collection: trip_expenses.items, as: :item %>
     </tbody>
   </table>
 </div>
 <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-3" id="manifest_expenses_total">
   <span class="fw-medium"><%= t('manifests.expenses.total') %></span>
-  <strong class="text-nowrap"><%= tax_money(total) %></strong>
+  <strong class="text-nowrap"><%= tax_money(trip_expenses.total) %></strong>
 </div>

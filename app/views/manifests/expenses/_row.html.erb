@@ -1,7 +1,8 @@
-<tr id="<%= dom_id(expense) %>">
-  <td><%= expense_link(expense) %></td>
-  <td class="d-none d-md-table-cell text-nowrap"><%= manifest_expense_transport_document(expense) %></td>
-  <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(expense.posted_on) %></td>
-  <td class="d-none d-lg-table-cell text-break"><%= tax_value(expense.payee_name) %></td>
-  <td class="text-end text-nowrap"><%= tax_money(expense.total) %></td>
+<tr id="<%= dom_id(item.record, item.kind) %>">
+  <td><%= manifest_expense_name(item) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= manifest_expense_kind(item) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= freight_expense_transport_document(item.transport_document) %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= tax_date(item.posted_on) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= manifest_expense_detail(item) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(item.amount) %></td>
 </tr>
