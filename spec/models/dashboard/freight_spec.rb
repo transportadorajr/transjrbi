@@ -10,6 +10,30 @@ RSpec.describe Dashboard::Freight do
   let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 31) }
   let(:dimension) { 'vehicle' }
 
+  describe '#ranking_rows' do
+    let(:dimension) { 'origin' }
+
+    def create_complement(**attributes)
+      create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 2),
+                                       issued_at: Time.zone.local(2026, 10, 2), origin_state: 'PR', **attributes)
+    end
+
+    before do
+      15.times { |index| create_complement(origin_city: "CIDADE #{index}", freight_cents: 500_000 + index) }
+      create_complement(origin_city: 'CIDADE MENOR', freight_cents: 200_000)
+      create_complement(origin_city: 'FOZ DO IGUACU', taker_name: 'ARCELORMITTAL BRASIL S.A.', freight_cents: 100_000)
+      create_complement(origin_city: 'FOZ DO IGUACU', taker_name: 'ARAUCO BRASIL', freight_cents: 50_000)
+    end
+
+    it 'keeps both Foz do Iguacu origins in the chart even below the ranking limit' do
+      labels = dashboard.ranking_rows.map(&:label)
+
+      expect(labels.size).to eq(17)
+      expect(labels.last(2)).to eq(['FOZ DO IGUAÇU EXPORTAÇÃO/PR', 'FOZ DO IGUAÇU NACIONAL/PR'])
+      expect(labels).not_to include('CIDADE MENOR/PR')
+    end
+  end
+
   describe '#sorted_rows' do
     before do
       create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 2), issued_at: Time.zone.local(2026, 10, 2),

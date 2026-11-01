@@ -1314,6 +1314,9 @@ pt-BR:
       gross: Frete bruto
       net: Frete líquido
       without_admission: Sem Admissão
+      foz_origin:
+        export: FOZ DO IGUAÇU EXPORTAÇÃO
+        national: FOZ DO IGUAÇU NACIONAL
       none:
         vehicle: Sem placa
         driver: Sem motorista

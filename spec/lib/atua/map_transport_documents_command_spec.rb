@@ -91,16 +91,18 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
       end
     end
 
-    context 'with documents issued from Juiz de Fora' do
+    context 'with documents billed to Foz do Iguacu' do
       let(:spreadsheet) do
         fixture = read_atua_fixture(:transport_documents)
-        juiz_de_fora = { 'nm_cidade_origem' => 'JUIZ DE FORA', 'ds_uf_origem' => 'MG', 'cd_cidade_origem' => 1234 }
+        juiz_de_fora = { 'nm_cidade_origem' => 'JUIZ DE FORA', 'ds_uf_origem' => 'MG', 'cd_cidade_origem' => 1234, 'nm_cidade_destino' => 'FOZ DO IGUACU', 'ds_uf_destino' => 'PR' }
         rows = [
           [80_842, 'CE', 'ARCELORMITTAL BRASIL S.A.'],
           [80_848, 'CTRC', 'ARCELORMITTAL BRASIL S.A.'],
           [80_909, 'CE', 'USIMINAS'],
-        ].map do |code, kind, taker|
-          fixture.rows.find { |row| row['cd_ctrc'].to_i == code }.merge(juiz_de_fora, 'id_sintegra' => kind, 'nm_pessoa_tomador' => taker)
+          [80_824, 'CE', 'USIMINAS', { 'ds_placa' => 'INT6R00' }],
+          [81_002, 'CE', 'ARCELORMITTAL BRASIL S.A.', { 'nm_cidade_destino' => 'TRES LAGOAS', 'ds_uf_destino' => 'MS' }],
+        ].map do |code, kind, taker, overrides|
+          fixture.rows.find { |row| row['cd_ctrc'].to_i == code }.merge(juiz_de_fora, 'id_sintegra' => kind, 'nm_pessoa_tomador' => taker, **overrides.to_h)
         end
         atua_spreadsheet(headers: fixture.headers, rows:)
       end
@@ -108,6 +110,14 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
       it 'moves the origin of an Arcelor CE to Foz do Iguacu and keeps the issued one in raw_data' do
         expect(document(80_842)).to include(origin_city: 'FOZ DO IGUACU', origin_state: 'PR', origin_city_code: 2946)
         expect(document(80_842)[:raw_data]).to include('nm_cidade_origem' => 'JUIZ DE FORA')
+      end
+
+      it 'moves the origin of a CE of the international plate to Foz do Iguacu' do
+        expect(document(80_824)).to include(origin_city: 'FOZ DO IGUACU', origin_state: 'PR', origin_city_code: 2946)
+      end
+
+      it 'keeps the origin of an Arcelor CE bound for another city' do
+        expect(document(81_002)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234)
       end
 
       it 'keeps the origin of an Arcelor CT-e' do

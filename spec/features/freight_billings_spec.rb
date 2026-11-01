@@ -373,6 +373,28 @@ describe 'Freight billing' do
         )
       end
 
+      context 'when Foz do Iguacu has national and export documents' do
+        let!(:national_trip) { create(:atua_manifest, tenant:, code: 41_030, plate: 'RVR3D45', trip_started_at: Time.zone.local(2026, 10, 14, 7)) }
+        let!(:national_document) do
+          create(:atua_transport_document, tenant:, number: '74030', freight_cents: 300_000, plate: 'RVR3D45', taker_name: 'ARAUCO BRASIL', posted_on: Date.new(2026, 10, 14),
+                                           origin_city: 'FOZ DO IGUACU', origin_state: 'PR')
+        end
+        let!(:national_link) { create(:atua_manifest_document, tenant:, manifest_code: 41_030, transport_document_number: '74030', transport_document_series: national_document.series, branch_name: national_document.branch_name) }
+        let!(:export_document) do
+          create(:atua_transport_document, tenant:, number: '4403', document_kind: 'ce', freight_cents: 200_000, plate: 'INT6R00', taker_name: 'ARCELORMITTAL BRASIL S.A.',
+                                           issued_at: Time.zone.local(2026, 10, 15, 8), posted_on: Date.new(2026, 10, 15), origin_city: 'FOZ DO IGUACU', origin_state: 'PR')
+        end
+
+        scenario 'splits the origin between national and export' do
+          visit freight_billing_path(october.merge(dimension: 'origin'))
+
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1) }).to include(
+            ['FOZ DO IGUAÇU NACIONAL/PR', 'R$ 3.000,00'],
+            ['FOZ DO IGUAÇU EXPORTAÇÃO/PR', 'R$ 2.000,00'],
+          )
+        end
+      end
+
       context 'when opening the detail of a row', :js do
         def row_detail(label)
           within('.freight-billing-table tr', text: label) { find(:link, title: 'Visualizar').click }

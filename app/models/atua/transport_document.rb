@@ -133,6 +133,16 @@ module Atua
         Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
       end
 
+      def export_origin
+        Arel::Nodes::Grouping.new(
+          arel_table[:origin_city].eq(MapTransportDocumentsCommand::REAL_ORIGIN[:origin_city])
+            .and(arel_table[:origin_state].eq(MapTransportDocumentsCommand::REAL_ORIGIN[:origin_state]))
+            .and(arel_table[:document_kind].eq(MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']))
+            .and(arel_table[:plate].eq(MapTransportDocumentsCommand::INTERNATIONAL_PLATE)
+              .or(arel_table[:taker_name].matches("%#{MapTransportDocumentsCommand::BILLING_ORIGIN_TAKER}%"))),
+        )
+      end
+
       def discounted_toll
         vouchers = Arel::Nodes::NamedFunction.new('NULLIF', [Arel::Nodes::Grouping.new(toll_vouchers_total.arel), Arel::Nodes.build_quoted(0)])
 
