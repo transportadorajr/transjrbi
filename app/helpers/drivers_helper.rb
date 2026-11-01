@@ -3,6 +3,7 @@ module DriversHelper
     menus = []
 
     menus << driver_show_menu(driver) if can?(:read, :drivers)
+    menus << driver_destroy_menu(driver) if can?(:destroy, :drivers)
 
     menus
   end
@@ -39,5 +40,18 @@ module DriversHelper
 
   def driver_show_menu(driver)
     Menu.new(name: :show, record: driver, url: driver_path(driver.driver_code), icon: :eye)
+  end
+
+  def driver_destroy_menu(driver)
+    Menu.new(
+      name: :destroy,
+      record: driver,
+      url: driver_path(driver.driver_code),
+      icon: :'x-circle',
+      data: {
+        turbo_confirm: t('drivers.index.confirm_destroy'),
+        turbo_method: :delete,
+      },
+    )
   end
 end

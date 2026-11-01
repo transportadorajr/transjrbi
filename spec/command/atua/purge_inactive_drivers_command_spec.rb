@@ -16,6 +16,29 @@ RSpec.describe Atua::PurgeInactiveDriversCommand do
     end
   end
 
+  context 'when a driver was excluded by hand' do
+    before do
+      create(:excluded_driver, tenant:, code: 2)
+      create(:atua_vehicle, tenant: create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra'), driver_code: 2)
+    end
+
+    it 'clears the driver even without transport documents loaded' do
+      expect(described_class.call(tenant)).to eq(1)
+      expect(active_vehicle.reload.driver_code).to be_nil
+      expect(inactive_vehicle.reload.driver_code).to eq(1)
+    end
+
+    it 'clears the driver even with a recent transport document' do
+      create(:atua_transport_document, tenant:, driver_code: 2, issued_at: 1.month.ago)
+      create(:atua_transport_document, tenant:, driver_code: 1, issued_at: 1.month.ago)
+
+      described_class.call(tenant)
+
+      expect(active_vehicle.reload.driver_code).to be_nil
+      expect(inactive_vehicle.reload.driver_code).to eq(1)
+    end
+  end
+
   context 'when a driver only has a transport document older than twelve months' do
     before do
       create(:atua_transport_document, tenant:, driver_code: 1, issued_at: 13.months.ago)

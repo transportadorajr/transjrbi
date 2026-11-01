@@ -19,4 +19,11 @@ class DriversController < BaseController
       .order(Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, id: :desc)
       .limit(TRANSPORT_DOCUMENTS_LIMIT)
   end
+
+  def destroy
+    authorize!(:destroy, :drivers)
+
+    Drivers::ExcludeCommand.call(current_tenant, current_tenant.atua_vehicles.drivers.find_by!(driver_code: params.expect(:id)))
+    redirect_to drivers_path, notice: t('.success')
+  end
 end
