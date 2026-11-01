@@ -4,7 +4,8 @@ module Atua
     DOCUMENT_KINDS = { 'CTRC' => 'cte', 'CE' => 'ce' }.freeze
     NOT_CHARGED = 'nao cobrado'.freeze
     BILLING_ORIGIN_TAKER = 'ARCELOR'.freeze
-    BILLING_ORIGIN = { origin_city: 'JUIZ DE FORA', origin_state: 'MG' }.freeze
+    BILLING_DESTINATION = { destination_city: 'FOZ DO IGUACU', destination_state: 'PR' }.freeze
+    INTERNATIONAL_PLATE = 'INT6R00'.freeze
     REAL_ORIGIN = { origin_city: 'FOZ DO IGUACU', origin_state: 'PR', origin_city_code: 2946 }.freeze
     COLUMNS = {
       'cd_ctrc' => %i[code integer],
@@ -135,8 +136,11 @@ module Atua
     end
 
     def billing_only?(record)
-      record[:document_kind] == DOCUMENT_KINDS['CE'] && record.slice(*BILLING_ORIGIN.keys) == BILLING_ORIGIN &&
-        record[:taker_name].to_s.upcase.include?(BILLING_ORIGIN_TAKER)
+      record[:document_kind] == DOCUMENT_KINDS['CE'] && (record[:plate] == INTERNATIONAL_PLATE || billed_to_border?(record))
+    end
+
+    def billed_to_border?(record)
+      record.slice(*BILLING_DESTINATION.keys) == BILLING_DESTINATION && record[:taker_name].to_s.upcase.include?(BILLING_ORIGIN_TAKER)
     end
 
     def map_row(row)
