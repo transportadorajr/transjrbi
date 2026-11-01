@@ -1,6 +1,5 @@
 module ApplicationHelper
   COUNTER_ICONS = { dark: 'grid', success: 'check-circle', danger: 'x-circle', warning: 'exclamation-circle', primary: 'bar-chart' }.freeze
-  KEPT_LISTING_PARAMS = %w[dimension].freeze
   NON_FILTER_PARAMS = %w[page sort direction].freeze
 
   def icon(name, options = {})
@@ -25,11 +24,11 @@ module ApplicationHelper
     end
   end
 
-  def link_to_filters(modal_id, **options)
+  def link_to_filters(modal_id, applied: filters_applied?, **options)
     css_class = options.fetch(:class, 'btn btn-sm btn-primary btn-round ms-1')
 
     safe_join([
-                link_to_clear_filters(css_class),
+                clear_filters_button(css_class, applied:),
                 link_to(icon(:funnel), modal_id, data: { bs_toggle: :modal }, class: css_class, aria: { label: t('shared.filters') }),
               ])
   end
@@ -83,18 +82,15 @@ module ApplicationHelper
 
   private
 
-  def link_to_clear_filters(css_class)
-    return unless filters_applied?
+  def clear_filters_button(css_class, applied:)
+    label = safe_join([icon(:'x-circle', class: 'me-1'), t('shared.clear_filters')])
+    return link_to(label, url_for(only_path: true), class: css_class) if applied
 
-    link_to url_for(**request.query_parameters.slice(*KEPT_LISTING_PARAMS).symbolize_keys, only_path: true),
-            class: css_class, aria: { label: t('shared.clear_filters') } do
-      concat icon(:'x-circle', class: 'me-1')
-      concat t('shared.clear')
-    end
+    button_tag(label, type: :button, disabled: true, class: css_class)
   end
 
   def filters_applied?
-    request.query_parameters.except(*KEPT_LISTING_PARAMS, *NON_FILTER_PARAMS).values.any?(&:present?)
+    request.query_parameters.except(*NON_FILTER_PARAMS).values.any?(&:present?)
   end
 
   def new_record_path

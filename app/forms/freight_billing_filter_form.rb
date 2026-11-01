@@ -41,6 +41,11 @@ class FreightBillingFilterForm < BaseForm
     start_date..end_date
   end
 
+  def filtered?
+    dimension != Dashboard::Freight::DEFAULT_DIMENSION || period != self.class.preset_period(:week) ||
+      [plate, driver_code, customer_group_id, macro_region_id, truck_group_id].any?(&:present?)
+  end
+
   private
 
   def apply_defaults

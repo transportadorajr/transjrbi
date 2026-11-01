@@ -3,7 +3,7 @@
 <div class="page-shell">
   <%= page_header_tag t('.title'), subtitle: freight_billing_period_label(@filter_form),
                                    note: freight_billing_last_sync_label(@last_synced_at), wrapper_class: 'page-header-inline' do %>
-    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= link_to_filters('#filtersModal', applied: @filter_form.filtered?, class: 'btn btn-outline-secondary btn-round') %>
   <% end %>
 
   <%= render 'filters' %>
