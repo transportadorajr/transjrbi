@@ -1,5 +1,7 @@
 module ApplicationHelper
   COUNTER_ICONS = { dark: 'grid', success: 'check-circle', danger: 'x-circle', warning: 'exclamation-circle', primary: 'bar-chart' }.freeze
+  KEPT_LISTING_PARAMS = %w[dimension].freeze
+  NON_FILTER_PARAMS = %w[page sort direction].freeze
 
   def icon(name, options = {})
     tag.i(**options, class: ['bi', "bi-#{name}", options[:class]], aria: { hidden: true })
@@ -24,10 +26,12 @@ module ApplicationHelper
   end
 
   def link_to_filters(modal_id, **options)
-    link_to icon(:funnel), modal_id,
-            data: { bs_toggle: :modal },
-            class: options.fetch(:class, 'btn btn-sm btn-primary btn-round ms-1'),
-            aria: { label: t('shared.filters') }
+    css_class = options.fetch(:class, 'btn btn-sm btn-primary btn-round ms-1')
+
+    safe_join([
+                link_to_clear_filters(css_class),
+                link_to(icon(:funnel), modal_id, data: { bs_toggle: :modal }, class: css_class, aria: { label: t('shared.filters') }),
+              ])
   end
 
   def link_to_action(action, entity, path, icon:, data: {}, color: nil, **options)
@@ -78,6 +82,20 @@ module ApplicationHelper
   end
 
   private
+
+  def link_to_clear_filters(css_class)
+    return unless filters_applied?
+
+    link_to url_for(**request.query_parameters.slice(*KEPT_LISTING_PARAMS).symbolize_keys, only_path: true),
+            class: css_class, aria: { label: t('shared.clear_filters') } do
+      concat icon(:'x-circle', class: 'me-1')
+      concat t('shared.clear')
+    end
+  end
+
+  def filters_applied?
+    request.query_parameters.except(*KEPT_LISTING_PARAMS, *NON_FILTER_PARAMS).values.any?(&:present?)
+  end
 
   def new_record_path
     send("new_#{controller_name.singularize}_path")
