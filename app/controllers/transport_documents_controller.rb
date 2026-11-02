@@ -12,15 +12,13 @@ class TransportDocumentsController < BaseController
     authorize!(:read, :transport_documents)
 
     transport_documents = apply_scopes(current_tenant.atua_transport_documents.active)
-    valid_transport_documents = transport_documents.not_canceled
 
     @transport_documents = apply_sort(transport_documents.with_freight_totals,
                                       Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
                                       Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
                                       id: :desc, except: hidden_sort_columns)
       .page(params[:page])
-    @valid_count = valid_transport_documents.count
-    @gross_total = Money.from_cents(valid_transport_documents.sum(:freight_cents))
+    @valid_count = transport_documents.not_canceled.count
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.order(:name)
   end
