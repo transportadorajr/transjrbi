@@ -12,7 +12,7 @@ RSpec.describe TruckGroups::BackfillCommand do
       expect(tenant.truck_groups.order(:id).map do |group|
         [group.name, group.axles, group.remaining_axles, group.fuel_percentage, group.activated?]
       end).to eq(
-        [['Rodotrem', [9], false, 0, true], ['Quarto eixo', [7], false, 0, true], ['LS', [6], false, 0, true],
+        [['Rodotrem', [9], false, 0, true], ['Quarto eixo', [7], false, 0, true], ['6 eixos', [6], false, 0, true],
          ['Outros', [], true, 0, true]],
       )
       expect(FreightExpense.count).to eq(0)

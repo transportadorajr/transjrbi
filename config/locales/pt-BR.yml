@@ -1170,10 +1170,11 @@ pt-BR:
     defaults:
       rodotrem: Rodotrem
       quarto_eixo: Quarto eixo
-      ls: LS
+      six_axles: 6 eixos
       others: Outros
       utinga: Utinga
       five_axles: 5 eixos
+      sider: Sider
     remaining_axles: Demais eixos
     index:
       title: Grupos de caminhões

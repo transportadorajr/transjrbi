@@ -7,7 +7,7 @@ FactoryBot.define do
     activated_at { Time.current }
 
     trait :ls do
-      name { 'LS' }
+      name { '6 eixos' }
       axles { [6] }
       fuel_percentage { BigDecimal('30') }
     end

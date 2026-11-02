@@ -898,7 +898,7 @@ describe 'Freight billing' do
           visit freight_billing_path(october_by_truck)
 
           expect(TruckGroup.count).to eq(5)
-          expect(page).to have_select('Tipo de conjunto', options: ['Todos', 'LS', 'Quarto eixo', 'Rodotrem', 'Sem grupo'])
+          expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Quarto eixo', 'Rodotrem', 'Sem grupo'])
 
           select 'Rodotrem', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
@@ -913,7 +913,7 @@ describe 'Freight billing' do
           expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
-          select 'LS', from: 'Tipo de conjunto'
+          select '6 eixos', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
 
           expect(page).to have_text('Nenhum registro encontrado')
@@ -940,7 +940,7 @@ describe 'Freight billing' do
             visit freight_billing_path(october_by_truck)
 
             expect(TruckGroup.count).to eq(6)
-            expect(page).to have_select('Tipo de conjunto', options: ['Todos', 'LS', 'Outros', 'Quarto eixo', 'Rodotrem'])
+            expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Outros', 'Quarto eixo', 'Rodotrem'])
             expect(page).to have_text('Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.')
 
             select 'Outros', from: 'Tipo de conjunto'
