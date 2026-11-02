@@ -23,4 +23,8 @@
       <% end %>
     </div>
   </div>
+
+  <div class="row g-3 mt-2 justify-content-end">
+    <%= counter_card(:primary, t('.gross_total'), tax_money(@gross_total)) %>
+  </div>
 </div>

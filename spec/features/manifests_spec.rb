@@ -63,7 +63,7 @@ describe 'Manifests' do
             ['40772 JR TRANSPORTES', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', ''],
           ],
         )
-        expect(page).to have_no_css('.counter-card')
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Valor total do frete R$ 0,00'])
         expect(page).to have_text('1 registro')
         expect(page).to have_link(href: manifest_path(closed), title: 'Visualizar')
         expect(page).to have_no_text('40780')
@@ -163,6 +163,22 @@ describe 'Manifests' do
             ['40800 JR', '01/10/2026', 'RHJ4E07', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', 'R$ 10.000,00', ''],
           ],
         )
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Valor total do frete R$ 10.000,00'])
+      end
+
+      scenario 'sums the freight of every filtered manifest at the bottom of the listing' do
+        create(:atua_manifest, tenant:, code: 41_301, number: '40801', branch_name: 'JR', plate: 'EXU0F72')
+        create(:atua_manifest_document, tenant:, manifest_code: 41_301, transport_document_number: '5', transport_document_series: 1,
+                                        branch_name: 'JR', freight_cents: 250_000)
+
+        visit manifests_path
+
+        expect(Atua::Manifest.count).to eq(2)
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Valor total do frete R$ 12.500,00'])
+
+        visit manifests_path(plate: 'EXU0F72')
+
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Valor total do frete R$ 2.500,00'])
       end
 
       scenario 'shows the route and the total freight on the details' do

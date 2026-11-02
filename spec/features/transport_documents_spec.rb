@@ -65,7 +65,7 @@ describe 'Transport documents' do
             ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', 'Válido', ''],
           ],
         )
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 1', 'Cancelados 1'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1', 'Total do frete bruto R$ 555,04'])
         expect(page).to have_text('2 registros')
         expect(page).to have_link(href: transport_document_path(authorized), title: 'Visualizar')
         expect(page).to have_no_text('74132')
@@ -100,7 +100,7 @@ describe 'Transport documents' do
             ['74131 GERDAU', '05/10/2026', '- → -', 'RHJ4E07', '-', '-', 'R$ 1.200,00', 'Cancelado', ''],
           ],
         )
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 1', 'Válidos 0', 'Cancelados 1'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 0', 'Total do frete bruto R$ 0,00'])
       end
 
       scenario 'does not show a transport document removed from Atua' do
@@ -156,14 +156,14 @@ describe 'Transport documents' do
 
         expect(Atua::TransportDocument.count).to eq(3)
         expect(html_table_to_rows).to eq([table_header, maria_usiminas_row, maria_gerdau_row])
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 2', 'Cancelados 0'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 2', 'Total do frete bruto R$ 500,00'])
       end
 
       scenario 'filters the transport documents by customer group' do
         visit transport_documents_path(customer_group_id: usiminas.id)
 
         expect(html_table_to_rows).to eq([table_header, jose_row, maria_usiminas_row])
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Total 2', 'Válidos 2', 'Cancelados 0'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 2', 'Total do frete bruto R$ 300,00'])
       end
 
       scenario 'combines the driver and the customer group filters' do

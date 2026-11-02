@@ -11,6 +11,7 @@ class ManifestsController < BaseController
 
     @manifests = apply_sort(manifests.preload(route_documents: :transport_document), Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc)
       .page(params[:page])
+    @gross_total = Money.from_cents(Atua::Manifest.from(manifests, Atua::Manifest.table_name).sum(:gross_cents))
   end
 
   def show

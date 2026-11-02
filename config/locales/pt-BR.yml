@@ -959,9 +959,8 @@ pt-BR:
     index:
       title: CT-es
       subtitle: Conhecimentos de transporte emitidos na Atua.
-      total: Total
-      valid: Válidos
-      canceled: Cancelados
+      valid: CT-es válidos
+      gross_total: Total do frete bruto
     filters:
       number: Número do CT-e
       plate: Placa
@@ -988,6 +987,7 @@ pt-BR:
     index:
       title: Manifestos
       subtitle: Manifestos eletrônicos (MDF-e) válidos emitidos na Atua.
+      gross_total: Valor total do frete
     filters:
       number: Número do manifesto
       plate: Placa
