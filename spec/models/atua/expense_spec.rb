@@ -269,10 +269,32 @@ RSpec.describe Atua::Expense do
       expect(described_class.unloading_transport_document_number(72, '74158 - Chapa')).to eq(74_158)
     end
 
+    it 'reads the transport document number followed by any other description' do
+      expect(described_class.unloading_transport_document_number(72, '74278 - DESCARGA ANT')).to eq(74_278)
+      expect(described_class.unloading_transport_document_number(72, '75010 ANTECIPAÇÃO')).to eq(75_010)
+      expect(described_class.unloading_transport_document_number(72, '70487 DIF')).to eq(70_487)
+      expect(described_class.unloading_transport_document_number(72, '63596-1')).to eq(63_596)
+      expect(described_class.unloading_transport_document_number(72, "65486'")).to eq(65_486)
+      expect(described_class.unloading_transport_document_number(72, '74158.0 DESC')).to eq(74_158)
+      expect(described_class.unloading_transport_document_number(72, '3908 desc')).to eq(3908)
+    end
+
+    it 'reads the first transport document number when the document lists two of them' do
+      expect(described_class.unloading_transport_document_number(72, '65529 - 65530')).to eq(65_529)
+    end
+
+    it 'ignores a short number followed by a description' do
+      expect(described_class.unloading_transport_document_number(72, '190 chapa ibirarema')).to be_nil
+      expect(described_class.unloading_transport_document_number(72, '330 avaria')).to be_nil
+    end
+
     it 'ignores documents without a transport document number' do
       expect(described_class.unloading_transport_document_number(72, 'VALE DESCARGA')).to be_nil
       expect(described_class.unloading_transport_document_number(72, '40-3009')).to be_nil
       expect(described_class.unloading_transport_document_number(72, '12')).to be_nil
+      expect(described_class.unloading_transport_document_number(72, '03-08-26')).to be_nil
+      expect(described_class.unloading_transport_document_number(72, '101635211032026')).to be_nil
+      expect(described_class.unloading_transport_document_number(72, 'DESCARGA NELSON 07.03')).to be_nil
       expect(described_class.unloading_transport_document_number(72, nil)).to be_nil
     end
 
