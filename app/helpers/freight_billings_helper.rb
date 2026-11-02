@@ -59,12 +59,7 @@ module FreightBillingsHelper
   end
 
   def freight_billing_product_group_options(product_groups)
-    product_groups.flat_map do |product_group|
-      [[product_group.name, product_group.id.to_s]] +
-        product_group.subgroups.sort_by(&:name).map do |subgroup|
-          [t('freight_billings.filters.product_subgroup', group: product_group.name, subgroup: subgroup.name), subgroup.id.to_s]
-        end
-    end
+    product_groups.map { |product_group| [product_group.name, product_group.id.to_s] }
   end
 
   def freight_billing_driver_options(drivers)

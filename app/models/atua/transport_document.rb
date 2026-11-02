@@ -87,11 +87,7 @@ module Atua
     scope :by_customer_group, ->(customer_group_id) {
       where(taker_code: Customer.where(customer_group_id:).select(:code))
     }
-    scope :by_product_group, ->(product_group_id) {
-      groups = ProductGroup.arel_table
-
-      where(product_group_id: ProductGroup.where(groups[:id].eq(product_group_id).or(groups[:parent_id].eq(product_group_id))).select(:id))
-    }
+    scope :by_product_group, ->(product_group_id) { where(product_group_id: ProductGroup.where(parent_id: product_group_id).select(:id)) }
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :recently_issued, -> { where(issued_at: INACTIVITY_PERIOD.ago..) }
     scope :by_origin_macro_region, ->(macro_region_id) {

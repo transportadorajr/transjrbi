@@ -799,17 +799,20 @@ describe 'Freight billing' do
           )
         end
 
-        scenario 'filters by a product group and by a product subgroup' do
+        scenario 'filters by a product group offering only the groups' do
           visit freight_billing_path(october_by_truck.merge(product_group_id: steel_group.id))
 
           expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+          expect(page).to have_field('product_group_id', type: :hidden, with: steel_group.id.to_s)
+          expect(all('#product_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['SIDERÚRGICO'])
+        end
 
+        scenario 'does not filter by a product subgroup' do
           visit freight_billing_path(october_by_truck.merge(product_group_id: coil_subgroup.id))
 
-          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
-          expect(page).to have_field('product_group_id', type: :hidden, with: coil_subgroup.id.to_s)
-          expect(page).to have_css('#product_group_id_select [role="option"]', text: 'SIDERÚRGICO / BOBINA', visible: :all)
+          expect(page).to have_text('Nenhum registro encontrado')
+          expect(page).to have_no_table
         end
       end
 

@@ -1457,7 +1457,6 @@ pt-BR:
       period: CT-es emitidos em %{month}
     filters:
       truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.
-      product_subgroup: '%{group} / %{subgroup}'
     period_presets:
       week: Sem. atual
       last_week: Sem. passada
