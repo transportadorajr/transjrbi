@@ -5,6 +5,10 @@ module Atua
     CHILDREN = %i[documents].freeze
     DOCUMENT_KEY = %i[transport_document_number transport_document_series].freeze
 
+    def call
+      super.tap { DiscardExcludedPlatesCommand.call(tenant) }
+    end
+
     private
 
     def save_children(records)
