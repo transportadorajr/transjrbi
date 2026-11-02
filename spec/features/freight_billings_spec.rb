@@ -957,7 +957,7 @@ describe 'Freight billing' do
           expect(all('.counter-card').first(2).map { |card| card.text.squish }).to eq(['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00'])
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
             [
-              ['Cavalo', 'Frete bruto', 'Frete líquido'],
+              ['Veículo', 'Frete bruto', 'Frete líquido'],
               ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00'],
               ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00'],
               ['Total', 'R$ 20.000,00', 'R$ 19.100,00'],
