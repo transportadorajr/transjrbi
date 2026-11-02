@@ -1,16 +1,30 @@
 class ManifestsController < BaseController
+  include CustomerOptions
+
   has_scope :by_number, as: :number
   has_scope :by_plate, as: :plate
+  has_scope :by_driver, as: :driver_code
+  has_scope :by_product_group, as: :product_group_id
+  has_scope :by_customer_group, as: :customer_group_id
+  has_scope :by_taker, as: :customer_code
   has_scope :by_period_start, as: :start_date
   has_scope :by_period_end, as: :end_date
 
   def index
     authorize!(:read, :manifests)
 
-    manifests = apply_scopes(current_tenant.atua_manifests.active.not_canceled).with_freight_totals
+    load_filter_options
+    manifests = by_truck_group(apply_scopes(current_tenant.atua_manifests.active.not_canceled)).with_freight_totals
 
     @manifests = apply_sort(manifests.preload(route_documents: :transport_document), Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc)
       .page(params[:page])
+  end
+
+  def customer_options
+    authorize!(:read, :manifests)
+
+    load_customer_options
+    render 'transport_documents/customer_options'
   end
 
   def show
@@ -24,6 +38,20 @@ class ManifestsController < BaseController
   end
 
   private
+
+  def load_filter_options
+    @drivers = current_tenant.atua_transport_documents.drivers
+    @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
+    @product_groups = current_tenant.product_groups.groups.order(:name)
+    @customer_groups = current_tenant.customer_groups.order(:name)
+  end
+
+  def by_truck_group(manifests)
+    return manifests if params[:truck_group_id].blank?
+
+    truck_group = @truck_groups.find_by(id: params[:truck_group_id])
+    truck_group ? manifests.by_truck_group(truck_group, @truck_groups.flat_map(&:plates)) : manifests.none
+  end
 
   def load_trip_expenses
     internal = can?(:read, :freight_expenses)

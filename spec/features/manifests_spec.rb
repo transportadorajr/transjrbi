@@ -138,6 +138,99 @@ describe 'Manifests' do
       end
     end
 
+    context 'when the manifests have transport documents of different drivers, trucks, products and customers' do
+      let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+      let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU') }
+      let!(:usiminas_customer) { create(:atua_customer, tenant:, code: 7100, name: 'USIMINAS IPATINGA', document: nil, customer_group: usiminas) }
+      let!(:gerdau_customer) { create(:atua_customer, tenant:, code: 7200, name: 'GERDAU OURO BRANCO', customer_group: gerdau) }
+      let!(:steel) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
+      let!(:coil) { create(:product_subgroup, tenant:, parent: steel, name: 'BOBINA') }
+      let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
+      let!(:ls) { create(:truck_group, :ls, tenant:) }
+      let!(:jose_trip) do
+        create(:atua_manifest, tenant:, code: 41_401, number: '40801', branch_name: 'JR', issued_on: Date.new(2026, 10, 1), plate: 'RHJ4E07')
+      end
+      let!(:maria_trip) do
+        create(:atua_manifest, tenant:, code: 41_402, number: '40802', branch_name: 'JR', issued_on: Date.new(2026, 10, 2), plate: 'EXU0F72')
+      end
+      let(:table_header) { ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'] }
+      let(:jose_row) { ['40801 JR', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 1.000,00', ''] }
+      let(:maria_row) { ['40802 JR', '02/10/2026', 'EXU0F72', '-', '-', 'R$ 2.000,00', ''] }
+
+      def add_document(manifest, number, **attributes)
+        create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', **attributes)
+        create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: number, transport_document_series: 1,
+                                        branch_name: 'JR')
+      end
+
+      before do
+        add_document(jose_trip, '1', driver_code: 10, driver_name: 'JOSE SILVA', axles: 9, taker_code: usiminas_customer.code,
+                                     product_group_id: coil.id, freight_cents: 100_000)
+        add_document(maria_trip, '2', driver_code: 20, driver_name: 'MARIA SOUZA', axles: 6, taker_code: gerdau_customer.code,
+                                      freight_cents: 200_000)
+      end
+
+      scenario 'offers the drivers, the truck groups, the product groups and the customer groups on the filters' do
+        visit manifests_path
+
+        expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Rodotrem'])
+        expect(all('#driver_code_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['JOSE SILVA', 'MARIA SOUZA'])
+        expect(all('#product_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['SIDERÚRGICO'])
+        expect(all('#customer_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(%w[GERDAU USIMINAS])
+      end
+
+      scenario 'filters the manifests by the driver of the transport documents' do
+        visit manifests_path(driver_code: 20)
+
+        expect(Atua::Manifest.count).to eq(2)
+        expect(html_table_to_rows).to eq([table_header, maria_row])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
+      end
+
+      scenario 'filters the manifests by the truck group of the transport documents' do
+        visit manifests_path
+        select 'Rodotrem', from: 'Tipo de conjunto'
+        click_on 'Aplicar Filtros'
+
+        expect(html_table_to_rows).to eq([table_header, jose_row])
+      end
+
+      scenario 'lists no manifest for a truck group of another tenant' do
+        visit manifests_path(truck_group_id: create(:truck_group, tenant: other_tenant).id)
+
+        expect(page).to have_text('Nenhum registro encontrado')
+      end
+
+      scenario 'filters the manifests by the product group of the transport documents' do
+        visit manifests_path(product_group_id: steel.id)
+
+        expect(html_table_to_rows).to eq([table_header, jose_row])
+      end
+
+      scenario 'filters the manifests by the customer group and by the customer of the transport documents' do
+        visit manifests_path(customer_group_id: gerdau.id)
+
+        expect(html_table_to_rows).to eq([table_header, maria_row])
+
+        visit manifests_path(customer_code: usiminas_customer.code)
+
+        expect(html_table_to_rows).to eq([table_header, jose_row])
+      end
+
+      scenario 'ignores the blank filters' do
+        visit manifests_path(driver_code: '', truck_group_id: '', product_group_id: '', customer_group_id: '', customer_code: '')
+
+        expect(html_table_to_rows).to eq([table_header, maria_row, jose_row])
+      end
+
+      scenario 'lists only the customers of the selected group' do
+        visit customer_options_manifests_path(customer_group_id: usiminas.id, customer_code: gerdau_customer.code)
+
+        expect(all('#customer_code_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['USIMINAS IPATINGA'])
+        expect(page).to have_no_css('#customer_code_select .select2-single-value', visible: :all)
+      end
+    end
+
     context 'when a manifest has transport documents from several cities' do
       let!(:manifest) { create(:atua_manifest, tenant:, code: 41_300, number: '40800', branch_name: 'JR', plate: 'RHJ4E07') }
 
@@ -497,6 +590,14 @@ describe 'Manifests' do
 
     context 'with read access to the manifests' do
       let!(:access) { create(:access, user: operator, resource:, reads: true) }
+
+      scenario 'loads the customers of the filters without access to the transport documents' do
+        create(:atua_customer, tenant:, code: 7100, name: 'USIMINAS IPATINGA')
+
+        visit customer_options_manifests_path
+
+        expect(page).to have_css('#customer_code_select [role="option"]', text: 'USIMINAS IPATINGA', visible: :all)
+      end
 
       scenario 'lists and opens the manifests' do
         visit manifests_path

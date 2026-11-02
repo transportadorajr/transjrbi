@@ -1062,6 +1062,12 @@ pt-BR:
     filters:
       number: Número do manifesto
       plate: Placa
+      driver_code: Motorista
+      truck_group_id: Tipo de conjunto
+      truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada nos CT-es do manifesto.
+      product_group_id: Grupo de produtos
+      customer_group_id: Grupo de clientes
+      customer_code: Cliente
       start_date: Emitidos a partir de
       end_date: Emitidos até
     show:

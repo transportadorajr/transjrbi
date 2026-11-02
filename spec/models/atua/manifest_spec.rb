@@ -119,6 +119,54 @@ RSpec.describe Atua::Manifest do
     end
   end
 
+  describe 'filters by the transport documents of the manifest' do
+    let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+    let!(:usiminas_customer) { create(:atua_customer, tenant:, code: 7100, customer_group: usiminas) }
+    let!(:steel) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
+    let!(:coil) { create(:product_subgroup, tenant:, parent: steel, name: 'BOBINA') }
+    let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
+    let!(:jose_trip) { create(:atua_manifest, tenant:, code: 41_001, number: '40801', branch_name: 'JR') }
+    let!(:maria_trip) { create(:atua_manifest, tenant:, code: 41_002, number: '40802', branch_name: 'JR') }
+    let!(:empty_trip) { create(:atua_manifest, tenant:, code: 41_003, number: '40803', branch_name: 'JR') }
+    let!(:stranger_trip) { create(:atua_manifest, tenant: other_tenant, code: 41_001, number: '40801', branch_name: 'JR') }
+
+    def add_document(manifest, number, **attributes)
+      create(:atua_transport_document, tenant: manifest.tenant, number:, series: 1, branch_name: 'JR', **attributes)
+      create(:atua_manifest_document, tenant: manifest.tenant, manifest_code: manifest.code, transport_document_number: number,
+                                      transport_document_series: 1, branch_name: 'JR')
+    end
+
+    before do
+      add_document(jose_trip, '1', driver_code: 10, axles: 9, taker_code: usiminas_customer.code, product_group_id: coil.id)
+      add_document(maria_trip, '2', driver_code: 20, axles: 6, taker_code: 7200)
+      add_document(maria_trip, '3', driver_code: 10, axles: 9, canceled_at: Time.current)
+      add_document(stranger_trip, '1', driver_code: 10, axles: 9, taker_code: 7100)
+    end
+
+    it 'keeps only the manifests with a valid transport document of the driver' do
+      expect(described_class.where(tenant:).by_driver(10)).to eq([jose_trip])
+      expect(described_class.where(tenant:).by_driver(20)).to eq([maria_trip])
+      expect(described_class.count).to eq(4)
+    end
+
+    it 'keeps only the manifests with a transport document of the customer or of the customer group' do
+      expect(described_class.where(tenant:).by_taker(7100)).to eq([jose_trip])
+      expect(described_class.where(tenant:).by_customer_group(usiminas.id)).to eq([jose_trip])
+    end
+
+    it 'keeps only the manifests with a transport document of a subgroup of the product group' do
+      expect(described_class.where(tenant:).by_product_group(steel.id)).to eq([jose_trip])
+    end
+
+    it 'keeps only the manifests with a transport document of the truck group' do
+      expect(described_class.where(tenant:).by_truck_group(rodotrem, [])).to eq([jose_trip])
+    end
+
+    it 'does not match a manifest of another tenant with the same code' do
+      expect(described_class.where(tenant: other_tenant).by_driver(20)).to be_empty
+    end
+  end
+
   describe '.with_freight_totals' do
     let!(:manifest) { create(:atua_manifest, tenant:, code: 41_600, branch_name: 'JR') }
 

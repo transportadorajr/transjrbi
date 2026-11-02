@@ -37,6 +37,20 @@ module Atua
     scope :not_canceled, -> { where.not(status: CANCELED_STATUS).or(where(status: nil)) }
     scope :canceled, -> { where(status: CANCELED_STATUS) }
     scope :trips, -> { active.not_canceled.where.not(plate: [nil, '']) }
+    scope :by_transport_documents, ->(transport_documents) {
+      documents = ManifestDocument.arel_table
+
+      where(ManifestDocument.active.joins(:transport_document).merge(TransportDocument.active.not_canceled.merge(transport_documents))
+        .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
+        .where(documents[:manifest_code].eq(arel_table[:code])).arel.exists)
+    }
+    scope :by_driver, ->(code) { by_transport_documents(TransportDocument.by_driver(code)) }
+    scope :by_customer_group, ->(customer_group_id) { by_transport_documents(TransportDocument.by_customer_group(customer_group_id)) }
+    scope :by_taker, ->(code) { by_transport_documents(TransportDocument.by_taker(code)) }
+    scope :by_product_group, ->(product_group_id) { by_transport_documents(TransportDocument.by_product_group(product_group_id)) }
+    scope :by_truck_group, ->(truck_group, grouped_plates) {
+      by_transport_documents(TransportDocument.by_truck_group(truck_group, grouped_plates))
+    }
 
     scope :with_freight_totals, -> {
       select(

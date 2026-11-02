@@ -52,7 +52,9 @@ Rails.application.routes.draw do
     resources :transport_documents, only: %i[index show] do
       get :customer_options, on: :collection
     end
-    resources :manifests, only: %i[index show]
+    resources :manifests, only: %i[index show] do
+      get :customer_options, on: :collection
+    end
     resources :customers, only: %i[index show]
     resources :customer_groups do
       patch :regroup, on: :member
