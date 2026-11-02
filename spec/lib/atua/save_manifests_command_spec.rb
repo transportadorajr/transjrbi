@@ -19,6 +19,23 @@ RSpec.describe Atua::SaveManifestsCommand do
     end
   end
 
+  context 'with a manifest of an excluded plate in the file' do
+    let!(:first_record) { Atua::MapManifestsCommand.call(tenant, spreadsheet).first }
+
+    before do
+      allow(Atua::MapManifestsCommand).to receive(:call).and_wrap_original do |original, *args, **options|
+        original.call(*args, **options).map { |attributes| attributes[:code] == first_record[:code] ? attributes.merge(plate: 'BAM2A26') : attributes }
+      end
+    end
+
+    it 'leaves the manifest and its documents out of the active ones' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_manifests.find_by!(code: first_record[:code]).removed_from_atua_at).to be_present
+      expect(tenant.atua_manifest_documents.active.where(manifest_code: first_record[:code])).to be_empty
+    end
+  end
+
   context 'with a manifest of the period that is no longer in the file' do
     let!(:manifest) { create(:atua_manifest, tenant:, code: 1) }
     let!(:document) { create(:atua_manifest_document, tenant:, manifest_code: 1, transport_document_number: '1') }

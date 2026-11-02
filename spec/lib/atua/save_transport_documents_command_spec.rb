@@ -30,6 +30,23 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
     end
   end
 
+  context 'with a document of an excluded plate in the file' do
+    let!(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
+
+    before do
+      allow(Atua::MapTransportDocumentsCommand).to receive(:call).and_wrap_original do |original, *args, **options|
+        original.call(*args, **options).map { |attributes| attributes[:code] == first_record[:code] ? attributes.merge(plate: 'BAM2A26') : attributes }
+      end
+    end
+
+    it 'leaves the document out of the active ones' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_transport_documents.active.where(plate: 'BAM2A26')).to be_empty
+      expect(tenant.atua_transport_documents.find_by!(code: first_record[:code]).removed_from_atua_at).to be_present
+    end
+  end
+
   context 'with macro regions of the tenant' do
     let!(:oeste_parana) { create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', city_names: %w[Corbélia Cascavel]) }
     let!(:interior) { create(:macro_region, :interior_sp, tenant:) }
