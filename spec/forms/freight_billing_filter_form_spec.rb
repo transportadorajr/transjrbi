@@ -97,9 +97,8 @@ RSpec.describe FreightBillingFilterForm do
   end
 
   context 'with a truck group' do
-    it 'keeps the group or the documents without group' do
-      expect(described_class.new(truck_group_id: '12')).to be_valid
-      expect(described_class.new(truck_group_id: 'none')).to have_attributes(valid?: true, truck_group_id: 'none')
+    it 'keeps the group' do
+      expect(described_class.new(truck_group_id: '12')).to have_attributes(valid?: true, truck_group_id: '12')
     end
   end
 
@@ -109,6 +108,10 @@ RSpec.describe FreightBillingFilterForm do
 
       expect(form).not_to be_valid
       expect(form.errors.full_messages).to eq(['Tipo de conjunto não é válido'])
+    end
+
+    it 'does not accept the documents without group' do
+      expect(described_class.new(truck_group_id: 'none')).not_to be_valid
     end
   end
 

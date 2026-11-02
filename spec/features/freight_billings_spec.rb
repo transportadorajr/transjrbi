@@ -898,7 +898,7 @@ describe 'Freight billing' do
           visit freight_billing_path(october_by_truck)
 
           expect(TruckGroup.count).to eq(5)
-          expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Quarto eixo', 'Rodotrem', 'Sem grupo'])
+          expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Quarto eixo', 'Rodotrem'])
 
           select 'Rodotrem', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
@@ -906,12 +906,6 @@ describe 'Freight billing' do
           expect(page).to have_select('Tipo de conjunto', selected: 'Rodotrem')
           expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
-
-          select 'Sem grupo', from: 'Tipo de conjunto'
-          click_on 'Aplicar Filtros'
-
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
-          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
           select '6 eixos', from: 'Tipo de conjunto'
           click_on 'Aplicar Filtros'
@@ -936,19 +930,16 @@ describe 'Freight billing' do
         context 'with a group of the remaining axles' do
           let!(:others) { create(:truck_group, :others, tenant:) }
 
-          scenario 'lists the group instead of the transport documents without group' do
+          scenario 'leaves the group of the remaining axles out of the filter' do
             visit freight_billing_path(october_by_truck)
 
             expect(TruckGroup.count).to eq(6)
-            expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Outros', 'Quarto eixo', 'Rodotrem'])
+            expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Quarto eixo', 'Rodotrem'])
             expect(page).to have_text('Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.')
 
-            select 'Outros', from: 'Tipo de conjunto'
-            click_on 'Aplicar Filtros'
+            visit freight_billing_path(october_by_truck.merge(truck_group_id: others.id))
 
-            expect(page).to have_select('Tipo de conjunto', selected: 'Outros')
-            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
-            expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+            expect(page).to have_text('Nenhum registro encontrado')
           end
         end
 
@@ -983,15 +974,16 @@ describe 'Freight billing' do
 
             expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
-
-            visit freight_billing_path(october.merge(truck_group_id: 'none'))
-
-            expect(page).to have_text('Nenhum registro encontrado')
           end
         end
 
         scenario 'rejects an unknown truck group' do
           visit freight_billing_path(october.merge(truck_group_id: 'rodotrem'))
+
+          expect(page).to have_current_path(freight_billing_path)
+          expect(page).to have_text('Tipo de conjunto não é válido')
+
+          visit freight_billing_path(october.merge(truck_group_id: 'none'))
 
           expect(page).to have_current_path(freight_billing_path)
           expect(page).to have_text('Tipo de conjunto não é válido')

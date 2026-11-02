@@ -42,7 +42,7 @@ class FreightBillingsController < BaseController
     @filter_form = FreightBillingFilterForm.new(filter_params)
     return redirect_to(freight_billing_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
-    @truck_groups = current_tenant.truck_groups.activated.order(:name)
+    @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
     @dashboard = Dashboard::Freight.new(documents,
                                         manifests: current_tenant.atua_manifests,
                                         dimension: @filter_form.dimension,
@@ -54,15 +54,8 @@ class FreightBillingsController < BaseController
     truck_group_id = @filter_form.truck_group_id
     return documents if truck_group_id.blank?
 
-    grouped_plates = @truck_groups.flat_map(&:plates)
-    return documents.without_axles(@truck_groups.flat_map(&:axles)).without_plates(grouped_plates) if remaining_axles?(truck_group_id)
-
     truck_group = @truck_groups.find_by(id: truck_group_id)
-    truck_group ? documents.by_truck_group(truck_group, grouped_plates) : documents.none
-  end
-
-  def remaining_axles?(truck_group_id)
-    truck_group_id == TruckGroup::NONE || @truck_groups.exists?(id: truck_group_id, remaining_axles: true)
+    truck_group ? documents.by_truck_group(truck_group, @truck_groups.flat_map(&:plates)) : documents.none
   end
 
   def filter_params
