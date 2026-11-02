@@ -24,7 +24,10 @@ module TransportDocumentsHelper
   def transport_document_kind(transport_document)
     return t('tax.blank') if transport_document.document_kind.blank?
 
-    t(transport_document.document_kind, scope: 'transport_documents.document_kinds')
+    kind = t(transport_document.document_kind, scope: 'transport_documents.document_kinds')
+    return kind unless transport_document.vehicle_sale?
+
+    safe_join([kind, status_badge(t('transport_documents.vehicle_sale'), kind: :warning)], ' ')
   end
 
   def transport_document_party(name, document)

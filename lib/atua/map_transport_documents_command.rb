@@ -128,7 +128,11 @@ module Atua
     private
 
     def map(rows)
-      rows.map { |row| with_real_origin(map_row(row)) }
+      rows.map { |row| with_vehicle_sale(with_real_origin(map_row(row))) }
+    end
+
+    def with_vehicle_sale(record)
+      record.merge(vehicle_sale: TransportDocument.vehicle_sale?(record))
     end
 
     def with_real_origin(record)
