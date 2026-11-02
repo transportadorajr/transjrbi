@@ -40,6 +40,28 @@ RSpec.describe Atua::ProcessImportCommand do
     end
   end
 
+  it 'does not link the value complements after importing manifests' do
+    allow(Atua::LinkComplementsCommand).to receive(:call)
+
+    described_class.call(import)
+
+    expect(Atua::LinkComplementsCommand).not_to have_received(:call)
+  end
+
+  context 'when importing transport_documents' do
+    let(:import) { create(:atua_import, tenant:, report_type: 'transport_documents', status_type: 'running', started_at: Time.current) }
+
+    before { import.file.attach(io: atua_fixture_path(:transport_documents).open, filename: 'transport_documents.xls') }
+
+    it 'links the value complements of the tenant to the transport documents they complement' do
+      allow(Atua::LinkComplementsCommand).to receive(:call)
+
+      described_class.call(import)
+
+      expect(Atua::LinkComplementsCommand).to have_received(:call).with(tenant)
+    end
+  end
+
   it 'recalculates the freight expenses after importing manifests' do
     expect { described_class.call(import) }.to have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
   end

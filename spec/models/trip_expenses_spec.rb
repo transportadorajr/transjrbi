@@ -49,4 +49,42 @@ RSpec.describe TripExpenses do
     expect(trip_expenses.items.map(&:kind)).to eq(%i[toll freight_expense])
     expect(trip_expenses.total).to eq(Money.from_cents(25_000))
   end
+
+  context 'with value complements' do
+    let!(:complement) do
+      create(:atua_transport_document, tenant:, number: '500', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, freight_cents: 35_000,
+                                       complemented_transport_document: first_document, issued_at: Time.zone.local(2026, 10, 3, 10))
+    end
+
+    before do
+      create(:atua_transport_document, tenant:, number: '501', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, freight_cents: 99_999,
+                                       complemented_transport_document: first_document, canceled_at: Time.current)
+    end
+
+    it 'credits the complements against the expenses of the transport documents they complement' do
+      trip_expenses = described_class.for(documents, internal: false, atua: true)
+
+      expect(trip_expenses.items.map { |item| [item.transport_document.number, item.kind, item.amount.cents] }).to eq(
+        [['100', :expense, 35_000], ['100', :complement_credit, -35_000]],
+      )
+      expect(trip_expenses.items.last.record).to eq(complement)
+      expect(trip_expenses.items.last.posted_on).to eq(Date.new(2026, 10, 3))
+      expect(trip_expenses.total).to eq(Money.from_cents(0))
+    end
+
+    it 'transfers the value of a complement listed with its own expenses' do
+      trip_expenses = described_class.for(Atua::TransportDocument.where(id: complement.id), internal: false, atua: true)
+
+      expect(trip_expenses.items.map { |item| [item.transport_document.number, item.kind, item.amount.cents] }).to eq(
+        [['500', :complement_transfer, 35_000]],
+      )
+    end
+
+    it 'totals the same deductions as the net freight' do
+      trip_expenses = described_class.for(documents, internal: true, atua: true)
+      net_freight = NetFreight.for(documents)
+
+      expect(trip_expenses.total).to eq(net_freight.freight - net_freight.net)
+    end
+  end
 end

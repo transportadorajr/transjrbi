@@ -4,5 +4,5 @@
   <td class="d-none d-md-table-cell text-nowrap"><%= freight_expense_transport_document(item.transport_document) %></td>
   <td class="d-none d-lg-table-cell text-nowrap"><%= tax_date(item.posted_on) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= manifest_expense_detail(item) %></td>
-  <td class="text-end text-nowrap"><%= tax_money(item.amount) %></td>
+  <td class="text-end text-nowrap"><%= manifest_expense_amount(item) %></td>
 </tr>

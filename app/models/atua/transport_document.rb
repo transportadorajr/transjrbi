@@ -24,6 +24,10 @@ module Atua
 
     belongs_to :origin_macro_region, class_name: 'MacroRegion', optional: true, inverse_of: :transport_documents
     belongs_to :product_group, optional: true, inverse_of: :transport_documents
+    belongs_to :complemented_transport_document, class_name: 'Atua::TransportDocument', optional: true, inverse_of: :value_complements
+
+    has_many :value_complements, class_name: 'Atua::TransportDocument', foreign_key: :complemented_transport_document_id,
+                                 inverse_of: :complemented_transport_document
 
     has_many :transport_document_manifests, class_name: 'Atua::TransportDocumentManifest',
                                             foreign_key: %i[tenant_id transport_document_code], primary_key: %i[tenant_id code],
@@ -121,8 +125,29 @@ module Atua
       end
 
       def net_freight_of_document
-        zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) -
-          Arel::Nodes::Grouping.new(expenses_total.arel) - discounted_toll
+        zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) - expenses_with_complements - discounted_toll
+      end
+
+      def expenses_with_complements
+        Arel::Nodes::Grouping.new(
+          Arel::Nodes::Subtraction.new(
+            Arel::Nodes::Addition.new(Arel::Nodes::Grouping.new(expenses_total.arel), complement_transfer),
+            Arel::Nodes::Grouping.new(complement_credits_total),
+          ),
+        )
+      end
+
+      def complement_credits_total
+        complements = arel_table.alias('value_complements')
+
+        Arel::SelectManager.new(complements).project(sum_or_zero(complements[:freight_cents]))
+          .where(complements[:complemented_transport_document_id].eq(arel_table[:id]))
+          .where(complements[:removed_from_atua_at].eq(nil))
+          .where(complements[:canceled_at].eq(nil))
+      end
+
+      def complement_transfer
+        Arel::Nodes::Case.new.when(arel_table[:complemented_transport_document_id].not_eq(nil)).then(zero_if_null(:freight_cents)).else(0)
       end
 
       def freight_expenses_total
@@ -200,6 +225,18 @@ module Atua
 
     def canceled?
       canceled_at.present?
+    end
+
+    def complement_credits
+      value_complements.active.not_canceled
+    end
+
+    def complement_credit
+      Money.from_cents(-freight_cents.to_i)
+    end
+
+    def complement_transfer
+      Money.from_cents(complemented_transport_document_id && !canceled? ? freight_cents.to_i : 0)
     end
 
     def toll_placement

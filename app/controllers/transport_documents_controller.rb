@@ -63,6 +63,7 @@ class TransportDocumentsController < BaseController
     expenses = @transport_document.expenses.active
 
     @expenses = expenses.order(Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc)
-    @expenses_total = Money.from_cents(expenses.sum(:total_cents))
+    @complements = @transport_document.complement_credits.order(:issued_at, :id)
+    @expenses_total = Money.from_cents(expenses.sum(:total_cents) - @complements.sum(:freight_cents)) + @transport_document.complement_transfer
   end
 end

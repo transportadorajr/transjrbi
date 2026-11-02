@@ -10,6 +10,8 @@
     </thead>
     <tbody>
       <%= render partial: 'transport_documents/expenses/row', collection: expenses, as: :expense %>
+      <%= render partial: 'transport_documents/expenses/complement_row', collection: complements, as: :complement %>
+      <%= transport_document_complement_transfer_row(transport_document) %>
     </tbody>
   </table>
 </div>

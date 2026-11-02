@@ -51,16 +51,37 @@ module TransportDocumentsHelper
     content_tag(:div, render(partial: 'transport_documents/empty_leg', collection: empty_legs), class: 'd-flex flex-column gap-4')
   end
 
-  def transport_document_expenses(expenses, total)
+  def transport_document_expenses(transport_document, expenses, complements, total)
     return if expenses.nil?
 
-    render 'transport_documents/expenses/card', expenses:, total:
+    render 'transport_documents/expenses/card', transport_document:, expenses:, complements:, total:
   end
 
-  def transport_document_expenses_table(expenses, total)
-    return content_tag(:p, t('transport_documents.show.no_expenses'), class: 'text-body-secondary mb-0') if expenses.none?
+  def transport_document_expenses_table(transport_document, expenses, complements, total)
+    if expenses.none? && complements.none? && transport_document.complement_transfer.zero?
+      return content_tag(:p, t('transport_documents.show.no_expenses'), class: 'text-body-secondary mb-0')
+    end
 
-    render 'transport_documents/expenses/table', expenses:, total:
+    render 'transport_documents/expenses/table', transport_document:, expenses:, complements:, total:
+  end
+
+  def transport_document_complemented(transport_document)
+    original = transport_document.complemented_transport_document
+    return unless original
+
+    safe_join([content_tag(:dt, Atua::TransportDocument.human_attribute_name(:complemented_transport_document), class: 'col-12 col-md-5'),
+               content_tag(:dd, freight_expense_transport_document(original), class: 'col-12 col-md-7')])
+  end
+
+  def transport_document_complement_credit_name(complement)
+    safe_join([t('transport_documents.expenses.complement_credit_html', number: freight_expense_transport_document(complement)),
+               status_badge(t('transport_documents.expenses.complement_kind'), kind: :success)], ' ')
+  end
+
+  def transport_document_complement_transfer_row(transport_document)
+    return if transport_document.complement_transfer.zero?
+
+    render 'transport_documents/expenses/complement_transfer_row', transport_document:
   end
 
   def transport_document_freight_expenses(freight_expenses, total)
