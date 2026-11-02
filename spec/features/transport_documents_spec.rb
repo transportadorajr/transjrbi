@@ -490,6 +490,67 @@ describe 'Transport documents' do
             expect(page).to have_current_path(expense_path(toll))
           end
         end
+
+        context 'when a value complement pays back the unloading of the freight' do
+          let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+          let!(:unload) do
+            create(:atua_expense, tenant:, code: 590_402, posted_at: Time.zone.local(2026, 10, 3, 15), posted_on: Date.new(2026, 10, 3),
+                                  history_code: 72, history_name: 'CHAPA / CARGA, DESCARGA', payee_name: 'XODO DE MINAS', total_cents: 73_600,
+                                  cost_object: transport_document)
+          end
+          let!(:complement) do
+            create(:atua_transport_document, tenant:, number: '74150', series: 1, branch_name: 'JR TRANSPORTES', taker_name: 'USIMINAS',
+                                             issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, complemented_number: '74130',
+                                             complemented_transport_document: transport_document, freight_cents: 73_600,
+                                             issued_at: Time.zone.local(2026, 10, 4, 9))
+          end
+
+          before do
+            create(:atua_transport_document, tenant:, number: '74151', series: 1, issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT,
+                                             complemented_transport_document: transport_document, freight_cents: 99_999, canceled_at: Time.current)
+          end
+
+          scenario 'credits the complement in green against the expenses without changing the gross freight' do
+            visit transport_document_path(transport_document)
+
+            expect(Atua::TransportDocument.count).to eq(3)
+            expect(html_table_to_rows(table: find_by_id('transport_document_expenses'))).to eq(
+              [
+                ['Histórico', 'Lançado em', 'Favorecido', 'Valor total'],
+                ['CHAPA / CARGA, DESCARGA', '03/10/2026', 'XODO DE MINAS', 'R$ 736,00'],
+                ['Complemento de valores — CT-e 74150 Crédito de complemento', '04/10/2026', 'USIMINAS', '-R$ 736,00'],
+              ],
+            )
+            expect(page).to have_css("#complement_credit_atua_transport_document_#{complement.id} .text-success", text: '-R$ 736,00')
+            expect(page).to have_css('#transport_document_expenses_total', text: 'Total de despesas R$ 0,00')
+            expect(dl_to_hash('#values')['Frete']).to eq('R$ 5.550,40')
+            expect(dl_to_hash('#transport_document_net_freight')).to include(
+              'Frete bruto' => 'R$ 5.550,40',
+              '(−) Despesas do frete na Atua' => 'R$ 736,00',
+              '(+) Complementos de valores' => 'R$ 736,00',
+              '(=) Frete líquido' => 'R$ 5.550,40',
+            )
+          end
+
+          scenario 'opens the complement and shows its value transferred to the original transport document' do
+            visit transport_document_path(transport_document)
+            within('#transport_document_expenses') { click_on '74150' }
+
+            expect(page).to have_current_path(transport_document_path(complement))
+            expect(dl_to_hash('#document_data')['CT-e complementado']).to eq('74130')
+            expect(html_table_to_rows(table: find_by_id('transport_document_expenses'))).to eq(
+              [
+                ['Histórico', 'Lançado em', 'Favorecido', 'Valor total'],
+                ['Repassado como crédito ao CT-e 74130', '04/10/2026', 'USIMINAS', 'R$ 736,00'],
+              ],
+            )
+            expect(dl_to_hash('#transport_document_net_freight')).to include(
+              'Frete bruto' => 'R$ 736,00',
+              '(−) Complemento repassado ao CT-e original' => 'R$ 736,00',
+              '(=) Frete líquido' => 'R$ 0,00',
+            )
+          end
+        end
       end
     end
 

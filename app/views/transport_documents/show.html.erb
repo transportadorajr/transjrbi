@@ -40,6 +40,8 @@
 
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:branch_name) %></dt>
             <dd class="col-12 col-md-7"><%= tax_value(@transport_document.branch_name) %></dd>
+
+            <%= transport_document_complemented(@transport_document) %>
           </dl>
         </div>
       </div>
@@ -170,7 +172,7 @@
 
   <%= transport_document_freight_expenses(@freight_expenses, @freight_expenses_total) %>
 
-  <%= transport_document_expenses(@expenses, @expenses_total) %>
+  <%= transport_document_expenses(@transport_document, @expenses, @complements, @expenses_total) %>
 
   <div class="card detail-card mb-4">
     <div class="detail-card-header">

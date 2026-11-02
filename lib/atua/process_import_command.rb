@@ -3,6 +3,7 @@ module Atua
     EMPTY_LEG_REPORTS = %w[manifests transport_documents].freeze
     EXPENSE_LINK_REPORTS = %w[expenses transport_documents vehicles].freeze
     COMMISSION_REPORTS = %w[customers manifests transport_documents].freeze
+    COMPLEMENT_LINK_REPORT = 'transport_documents'.freeze
 
     class << self
       def call(import, raise_errors: false)
@@ -25,6 +26,7 @@ module Atua
       )
       import.file.purge
       calculate_empty_legs
+      link_complements
       link_expenses
       calculate_commissions
       import
@@ -43,6 +45,12 @@ module Atua
       return unless EMPTY_LEG_REPORTS.include?(import.report_type)
 
       EmptyLegs::ScheduleCalculationCommand.call(import.tenant_id, import.start_date&.iso8601)
+    end
+
+    def link_complements
+      return unless import.report_type == COMPLEMENT_LINK_REPORT
+
+      LinkComplementsCommand.call(import.tenant)
     end
 
     def link_expenses

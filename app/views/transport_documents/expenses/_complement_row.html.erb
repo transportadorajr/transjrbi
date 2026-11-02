@@ -1,0 +1,6 @@
+<tr id="<%= dom_id(complement, :complement_credit) %>">
+  <td><%= transport_document_complement_credit_name(complement) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(complement.issued_at&.to_date) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(complement.taker_name) %></td>
+  <td class="text-end text-nowrap"><%= expense_amount(complement.complement_credit, credit: true) %></td>
+</tr>

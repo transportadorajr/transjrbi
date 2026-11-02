@@ -365,6 +365,51 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe 'value complements' do
+    let(:tenant) { create(:tenant) }
+    let!(:original) { create(:atua_transport_document, tenant:, number: '67991', freight_cents: 1_066_836) }
+    let!(:complement) do
+      create(:atua_transport_document, tenant:, number: '68005', issue_kind: described_class::VALUE_COMPLEMENT, freight_cents: 73_600,
+                                       complemented_transport_document: original)
+    end
+    let!(:canceled_complement) do
+      create(:atua_transport_document, tenant:, number: '68006', issue_kind: described_class::VALUE_COMPLEMENT, freight_cents: 50_000,
+                                       complemented_transport_document: original, canceled_at: Time.current)
+    end
+    let!(:unlinked_complement) do
+      create(:atua_transport_document, tenant:, number: '68007', issue_kind: described_class::VALUE_COMPLEMENT, freight_cents: 40_000)
+    end
+
+    before { create(:atua_expense, tenant:, history_code: 72, cost_object: original, total_cents: 73_600) }
+
+    it 'credits the valid complements to the expenses of the original without changing its gross freight' do
+      totals = described_class.where(tenant:).with_freight_totals.index_by(&:number)
+
+      expect(totals['67991'].freight_cents).to eq(1_066_836)
+      expect(totals['67991'].net_cents).to eq(1_066_836)
+    end
+
+    it 'transfers the value of a linked complement to the original, leaving the complement without net freight' do
+      totals = described_class.where(tenant:).with_freight_totals.index_by(&:number)
+
+      expect(totals['68005'].freight_cents).to eq(73_600)
+      expect(totals['68005'].net_cents).to eq(0)
+      expect(totals['68007'].net_cents).to eq(40_000)
+    end
+
+    it 'lists the valid complements credited to the original' do
+      expect(original.complement_credits).to eq([complement])
+      expect(complement.complement_credit).to eq(Money.from_cents(-73_600))
+    end
+
+    it 'transfers only the value of a valid linked complement' do
+      expect(complement.complement_transfer).to eq(Money.from_cents(73_600))
+      expect(canceled_complement.complement_transfer).to eq(Money.from_cents(0))
+      expect(unlinked_complement.complement_transfer).to eq(Money.from_cents(0))
+      expect(original.complement_transfer).to eq(Money.from_cents(0))
+    end
+  end
+
   describe '.taker_names_by_code' do
     context 'with documents of takers named in different ways' do
       let!(:first) { create(:atua_transport_document, tenant:, taker_code: 501, taker_name: 'USIMINAS CUBATAO') }

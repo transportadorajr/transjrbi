@@ -23,6 +23,10 @@ module Atua
     end
 
     belongs_to :origin_macro_region, class_name: 'MacroRegion', optional: true, inverse_of: :transport_documents
+    belongs_to :complemented_transport_document, class_name: 'Atua::TransportDocument', optional: true, inverse_of: :value_complements
+
+    has_many :value_complements, class_name: 'Atua::TransportDocument', foreign_key: :complemented_transport_document_id,
+                                 inverse_of: :complemented_transport_document
 
     has_many :transport_document_manifests, class_name: 'Atua::TransportDocumentManifest',
                                             foreign_key: %i[tenant_id transport_document_code], primary_key: %i[tenant_id code],
@@ -115,8 +119,29 @@ module Atua
       end
 
       def net_freight_of_document
-        zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) -
-          Arel::Nodes::Grouping.new(expenses_total.arel) - discounted_toll
+        zero_if_null(:freight_cents) - Arel::Nodes::Grouping.new(freight_expenses_total.arel) - expenses_with_complements - discounted_toll
+      end
+
+      def expenses_with_complements
+        Arel::Nodes::Grouping.new(
+          Arel::Nodes::Subtraction.new(
+            Arel::Nodes::Addition.new(Arel::Nodes::Grouping.new(expenses_total.arel), complement_transfer),
+            Arel::Nodes::Grouping.new(complement_credits_total),
+          ),
+        )
+      end
+
+      def complement_credits_total
+        complements = arel_table.alias('value_complements')
+
+        Arel::SelectManager.new(complements).project(sum_or_zero(complements[:freight_cents]))
+          .where(complements[:complemented_transport_document_id].eq(arel_table[:id]))
+          .where(complements[:removed_from_atua_at].eq(nil))
+          .where(complements[:canceled_at].eq(nil))
+      end
+
+      def complement_transfer
+        Arel::Nodes::Case.new.when(arel_table[:complemented_transport_document_id].not_eq(nil)).then(zero_if_null(:freight_cents)).else(0)
       end
 
       def freight_expenses_total
@@ -196,6 +221,18 @@ module Atua
       canceled_at.present?
     end
 
+    def complement_credits
+      value_complements.active.not_canceled
+    end
+
+    def complement_credit
+      Money.from_cents(-freight_cents.to_i)
+    end
+
+    def complement_transfer
+      Money.from_cents(complemented_transport_document_id && !canceled? ? freight_cents.to_i : 0)
+    end
+
     def toll_placement
       return :none unless toll_cents.to_i.positive?
 
@@ -232,112 +269,114 @@ end
 #
 # Table name: atua_transport_documents
 #
-#  id                        :bigint           not null, primary key
-#  access_key                :string
-#  ad_valorem_cents          :bigint
-#  advance_cents             :bigint
-#  agency_code               :bigint
-#  agency_name               :string
-#  arrival_on                :date
-#  axles                     :integer
-#  billing_number            :string
-#  branch_code               :bigint
-#  branch_name               :string
-#  canceled_at               :datetime
-#  cancellation_reason       :string
-#  cargo_destination         :string
-#  cbs_cents                 :bigint
-#  cfop                      :integer
-#  charged_at                :datetime
-#  ciot                      :string
-#  code                      :bigint           not null
-#  commission_cents          :bigint
-#  complemented_number       :string
-#  consignee_code            :bigint
-#  consignee_document        :string
-#  consignee_document_digits :string
-#  consignee_name            :string
-#  cost_cents                :bigint
-#  cte_status                :string
-#  destination_city          :string
-#  destination_city_code     :bigint
-#  destination_state         :string
-#  distance_km               :decimal(14, 2)
-#  document_kind             :string
-#  driver_code               :bigint
-#  driver_document           :string
-#  driver_document_digits    :string
-#  driver_freight_cents      :bigint
-#  driver_name               :string
-#  due_dates                 :date             default([]), not null, is an Array
-#  federal_tax_cents         :bigint
-#  freight_cents             :bigint
-#  goods_invoice_keys        :string           default([]), not null, is an Array
-#  goods_invoice_numbers     :string           default([]), not null, is an Array
-#  goods_value_cents         :bigint
-#  headquarters_code         :bigint
-#  headquarters_name         :string
-#  ibs_cents                 :bigint
-#  icms_base_cents           :bigint
-#  icms_cents                :bigint
-#  icms_st_cents             :bigint
-#  imported_at               :datetime         not null
-#  insurance_cents           :bigint
-#  issue_kind                :string
-#  issued_at                 :datetime
-#  issuer_code               :integer
-#  issuer_name               :string
-#  manifest_numbers          :string           default([]), not null, is an Array
-#  ncm                       :string
-#  nfse_pending_at           :datetime
-#  number                    :string           not null
-#  operational_unit          :string
-#  origin_city               :string
-#  origin_city_code          :bigint
-#  origin_state              :string
-#  other_charges_cents       :bigint
-#  payer_code                :bigint
-#  payer_document            :string
-#  payer_document_digits     :string
-#  payer_name                :string
-#  plate                     :string
-#  posted_on                 :date
-#  product_name              :string
-#  product_quantity          :decimal(14, 3)
-#  raw_data                  :jsonb            not null
-#  recipient_code            :bigint
-#  recipient_document        :string
-#  recipient_document_digits :string
-#  recipient_name            :string
-#  removed_from_atua_at      :datetime
-#  result_cents              :bigint
-#  result_margin_percentage  :decimal(12, 4)
-#  route                     :string
-#  sender_code               :bigint
-#  sender_document           :string
-#  sender_document_digits    :string
-#  sender_name               :string
-#  series                    :integer
-#  service_kind              :string
-#  shipment_number           :string
-#  taker_code                :bigint
-#  taker_name                :string
-#  toll_cents                :bigint
-#  trailer_plate             :string
-#  value_freight_cents       :bigint
-#  vehicle_code              :bigint
-#  vehicle_ownership         :string
-#  weight_freight_cents      :bigint
-#  weight_kg                 :decimal(14, 2)
-#  weight_tons               :decimal(14, 3)
-#  created_at                :datetime         not null
-#  updated_at                :datetime         not null
-#  atua_import_id            :bigint
-#  origin_macro_region_id    :bigint
-#  tenant_id                 :bigint           not null
+#  id                                 :bigint           not null, primary key
+#  access_key                         :string
+#  ad_valorem_cents                   :bigint
+#  advance_cents                      :bigint
+#  agency_code                        :bigint
+#  agency_name                        :string
+#  arrival_on                         :date
+#  axles                              :integer
+#  billing_number                     :string
+#  branch_code                        :bigint
+#  branch_name                        :string
+#  canceled_at                        :datetime
+#  cancellation_reason                :string
+#  cargo_destination                  :string
+#  cbs_cents                          :bigint
+#  cfop                               :integer
+#  charged_at                         :datetime
+#  ciot                               :string
+#  code                               :bigint           not null
+#  commission_cents                   :bigint
+#  complemented_number                :string
+#  consignee_code                     :bigint
+#  consignee_document                 :string
+#  consignee_document_digits          :string
+#  consignee_name                     :string
+#  cost_cents                         :bigint
+#  cte_status                         :string
+#  destination_city                   :string
+#  destination_city_code              :bigint
+#  destination_state                  :string
+#  distance_km                        :decimal(14, 2)
+#  document_kind                      :string
+#  driver_code                        :bigint
+#  driver_document                    :string
+#  driver_document_digits             :string
+#  driver_freight_cents               :bigint
+#  driver_name                        :string
+#  due_dates                          :date             default([]), not null, is an Array
+#  federal_tax_cents                  :bigint
+#  freight_cents                      :bigint
+#  goods_invoice_keys                 :string           default([]), not null, is an Array
+#  goods_invoice_numbers              :string           default([]), not null, is an Array
+#  goods_value_cents                  :bigint
+#  headquarters_code                  :bigint
+#  headquarters_name                  :string
+#  ibs_cents                          :bigint
+#  icms_base_cents                    :bigint
+#  icms_cents                         :bigint
+#  icms_st_cents                      :bigint
+#  imported_at                        :datetime         not null
+#  insurance_cents                    :bigint
+#  issue_kind                         :string
+#  issued_at                          :datetime
+#  issuer_code                        :integer
+#  issuer_name                        :string
+#  manifest_numbers                   :string           default([]), not null, is an Array
+#  ncm                                :string
+#  nfse_pending_at                    :datetime
+#  number                             :string           not null
+#  operational_unit                   :string
+#  origin_city                        :string
+#  origin_city_code                   :bigint
+#  origin_state                       :string
+#  other_charges_cents                :bigint
+#  payer_code                         :bigint
+#  payer_document                     :string
+#  payer_document_digits              :string
+#  payer_name                         :string
+#  plate                              :string
+#  posted_on                          :date
+#  product_name                       :string
+#  product_quantity                   :decimal(14, 3)
+#  raw_data                           :jsonb            not null
+#  recipient_code                     :bigint
+#  recipient_document                 :string
+#  recipient_document_digits          :string
+#  recipient_name                     :string
+#  removed_from_atua_at               :datetime
+#  result_cents                       :bigint
+#  result_margin_percentage           :decimal(12, 4)
+#  route                              :string
+#  sender_code                        :bigint
+#  sender_document                    :string
+#  sender_document_digits             :string
+#  sender_name                        :string
+#  series                             :integer
+#  service_kind                       :string
+#  shipment_number                    :string
+#  taker_code                         :bigint
+#  taker_name                         :string
+#  toll_cents                         :bigint
+#  trailer_plate                      :string
+#  value_freight_cents                :bigint
+#  vehicle_code                       :bigint
+#  vehicle_ownership                  :string
+#  weight_freight_cents               :bigint
+#  weight_kg                          :decimal(14, 2)
+#  weight_tons                        :decimal(14, 3)
+#  created_at                         :datetime         not null
+#  updated_at                         :datetime         not null
+#  atua_import_id                     :bigint
+#  complemented_transport_document_id :bigint
+#  origin_macro_region_id             :bigint
+#  tenant_id                          :bigint           not null
 #
 # Indexes
 #
+#  idx_on_complemented_transport_document_id_6691e9e8ef            (complemented_transport_document_id)
 #  idx_on_tenant_id_number_series_branch_name_82ba4806a5           (tenant_id,number,series,branch_name)
 #  index_atua_transport_documents_on_atua_import_id                (atua_import_id)
 #  index_atua_transport_documents_on_manifest_numbers              (manifest_numbers) USING gin
@@ -359,6 +398,7 @@ end
 # Foreign Keys
 #
 #  fk_rails_...  (atua_import_id => atua_imports.id) ON DELETE => nullify
+#  fk_rails_...  (complemented_transport_document_id => atua_transport_documents.id) ON DELETE => nullify
 #  fk_rails_...  (origin_macro_region_id => macro_regions.id) ON DELETE => nullify
 #  fk_rails_...  (tenant_id => tenants.id)
 #

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_02_172300) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_182001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -496,7 +496,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_172300) do
     t.bigint "origin_macro_region_id"
     t.integer "issuer_code"
     t.string "issuer_name"
+    t.bigint "complemented_transport_document_id"
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
+    t.index ["complemented_transport_document_id"], name: "idx_on_complemented_transport_document_id_6691e9e8ef"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
     t.index ["origin_macro_region_id"], name: "index_atua_transport_documents_on_origin_macro_region_id"
     t.index ["tenant_id", "code"], name: "index_atua_transport_documents_on_tenant_id_and_code", unique: true
@@ -982,6 +984,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_172300) do
   add_foreign_key "atua_transport_document_manifests", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_transport_document_manifests", "tenants"
   add_foreign_key "atua_transport_documents", "atua_imports", on_delete: :nullify
+  add_foreign_key "atua_transport_documents", "atua_transport_documents", column: "complemented_transport_document_id", on_delete: :nullify
   add_foreign_key "atua_transport_documents", "macro_regions", column: "origin_macro_region_id", on_delete: :nullify
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify

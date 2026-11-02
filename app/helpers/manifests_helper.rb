@@ -62,6 +62,8 @@ module ManifestsHelper
   def manifest_expense_name(item)
     case item.kind
     when :expense then expense_link(item.record)
+    when :complement_credit then manifest_complement_name(:complement_credit, item.record)
+    when :complement_transfer then manifest_complement_name(:complement_transfer, item.record.complemented_transport_document)
     when :toll then t(item.record.toll_voucher_paid.positive? ? 'toll_voucher' : 'toll_in_freight', scope: 'manifests.expenses')
     else item.record.kind_type_name
     end
@@ -74,12 +76,20 @@ module ManifestsHelper
   def manifest_expense_detail(item)
     case item.kind
     when :expense then tax_value(item.record.payee_name)
-    when :toll then t('tax.blank')
+    when :toll, :complement_credit, :complement_transfer then t('tax.blank')
     else manifest_freight_expense_detail(item.record)
     end
   end
 
+  def manifest_expense_amount(item)
+    expense_amount(item.amount, credit: item.kind == :complement_credit)
+  end
+
   private
+
+  def manifest_complement_name(kind, transport_document)
+    t("#{kind}_html", scope: 'manifests.expenses', number: freight_expense_transport_document(transport_document))
+  end
 
   def manifest_freight_expense_detail(freight_expense)
     parts = [freight_expense_detail(freight_expense), freight_expense_base(freight_expense), freight_expense_rate(freight_expense)]
