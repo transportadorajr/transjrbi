@@ -104,8 +104,12 @@ RSpec.describe TonnageRate do
       create(:atua_transport_document, tenant:, number: '4', taker_code: 501, origin_city: 'BETIM', origin_state: 'MG',
                                        weight_tons: nil, weight_kg: nil)
     end
+    let!(:vehicle_sale) do
+      create(:atua_transport_document, tenant:, number: '5', document_kind: 'ce', vehicle_sale: true, taker_code: 501, origin_city: 'CUBATAO',
+                                       origin_state: 'SP', weight_tons: nil, weight_kg: nil)
+    end
 
-    it 'lists the transport documents of an origin with cost that came without weight, except value complements' do
+    it 'lists the transport documents of an origin with cost that came without weight, except value complements and vehicle sales' do
       expect(described_class.missing_weight_documents(tenant)).to contain_exactly(without_weight)
     end
   end

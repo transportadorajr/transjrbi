@@ -128,6 +128,41 @@ describe 'Transport documents' do
       end
     end
 
+    context 'when a truck of the company was sold' do
+      let!(:freight) do
+        create(:atua_transport_document, tenant:, number: '74130', sender_name: 'USIMINAS', posted_on: Date.new(2026, 10, 1), plate: 'EXU0F72',
+                                         freight_cents: 55_504)
+      end
+      let!(:vehicle_sale) do
+        create(:atua_transport_document, tenant:, number: '3649', document_kind: 'ce', vehicle_sale: true, sender_name: 'TRANSJR TRANSPORTADORA LTDA',
+                                         taker_name: 'M J K TRANSPORTES & CIA LTDA', posted_on: Date.new(2026, 10, 5), plate: 'RHD5F24',
+                                         freight_cents: 71_818_500, goods_value_cents: 71_818_500)
+      end
+      let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+
+      scenario 'leaves the vehicle sale out of the listing and of the valid count' do
+        visit transport_documents_path
+
+        expect(Atua::TransportDocument.count).to eq(2)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Frete líquido', 'Situação', 'Ações'],
+            ['74130 USIMINAS', '01/10/2026', '- → -', 'EXU0F72', '-', '-', 'R$ 555,04', 'R$ 555,04', 'Válido', ''],
+          ],
+        )
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
+        expect(page).to have_no_text('3649')
+      end
+
+      scenario 'tells on the details that the document is a vehicle sale and shows no net freight' do
+        visit transport_document_path(vehicle_sale)
+
+        expect(page).to have_css('h1.page-title', text: 'CT-e 3649')
+        expect(dl_to_hash('#document_data')).to include('Tipo do documento' => 'CE Venda de veículo')
+        expect(page).to have_no_css('#transport_document_net_freight')
+      end
+    end
+
     context 'when transport documents have different drivers and customer groups' do
       let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
       let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU') }

@@ -47,7 +47,7 @@ module CustomerGroups
     end
 
     def recent_taker_codes
-      @recent_taker_codes ||= tenant.atua_transport_documents.active.recently_issued.distinct.pluck(:taker_code).to_set
+      @recent_taker_codes ||= tenant.atua_transport_documents.active.freights.recently_issued.distinct.pluck(:taker_code).to_set
     end
 
     def term_groups

@@ -52,7 +52,7 @@ class TonnageRate < ApplicationRecord
     end
 
     def covered_documents(tenant)
-      tenant.atua_transport_documents.active.not_canceled.joins(:taker)
+      tenant.atua_transport_documents.active.not_canceled.freights.joins(:taker)
         .where(atua_customers: { customer_group_id: tenant.tonnage_rates.activated.select(:customer_group_id) })
     end
 

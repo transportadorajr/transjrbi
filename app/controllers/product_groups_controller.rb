@@ -92,7 +92,7 @@ class ProductGroupsController < BaseController
   end
 
   def documents
-    current_tenant.atua_transport_documents.active
+    current_tenant.atua_transport_documents.active.freights
   end
 
   def product_name_counts(relation)

@@ -16,7 +16,7 @@ class DriversController < BaseController
     authorize!(:read, :drivers)
 
     @vehicles = current_tenant.atua_vehicles.active.where(driver_code: @driver.driver_code).order(:plate)
-    @transport_documents = current_tenant.atua_transport_documents.active.where(driver_code: @driver.driver_code)
+    @transport_documents = current_tenant.atua_transport_documents.active.freights.where(driver_code: @driver.driver_code)
       .order(Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last, id: :desc)
       .limit(TRANSPORT_DOCUMENTS_LIMIT)
   end

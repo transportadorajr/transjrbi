@@ -32,7 +32,7 @@ module CustomerGroups
     end
 
     def recent_taker_codes
-      tenant.atua_transport_documents.active.recently_issued.where.not(taker_code: nil).select(:taker_code)
+      tenant.atua_transport_documents.active.freights.recently_issued.where.not(taker_code: nil).select(:taker_code)
     end
   end
 end

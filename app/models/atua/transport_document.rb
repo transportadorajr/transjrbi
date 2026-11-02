@@ -104,6 +104,8 @@ module Atua
     scope :with_valid_manifest, -> {
       where(id: joins(:manifests).merge(TransportDocumentManifest.active).merge(Manifest.active.not_canceled).select(:id))
     }
+    scope :vehicle_sales, -> { where(vehicle_sale: true) }
+    scope :freights, -> { where(vehicle_sale: false) }
     scope :by_axles, ->(axles) { where(axles:) }
     scope :without_axles, ->(axles) { where(arel_table[:axles].not_in(axles).or(arel_table[:axles].eq(nil))) }
     scope :without_plates, ->(plates) { where(arel_table[:plate].not_in(plates).or(arel_table[:plate].eq(nil))) }
@@ -120,6 +122,19 @@ module Atua
     }
 
     class << self
+      def vehicle_sale?(record)
+        record[:document_kind] == MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'] &&
+          INTERNAL_TAKER_DOCUMENTS.include?(record[:sender_document_digits]) &&
+          record[:freight_cents].to_i.positive? && record[:freight_cents] == record[:goods_value_cents]
+      end
+
+      def vehicle_sale_condition
+        arel_table[:document_kind].eq(MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'])
+          .and(arel_table[:sender_document_digits].in(INTERNAL_TAKER_DOCUMENTS))
+          .and(arel_table[:freight_cents].gt(0))
+          .and(arel_table[:freight_cents].eq(arel_table[:goods_value_cents]))
+      end
+
       def international_vehicle(tenant)
         attributes = { plate: MapTransportDocumentsCommand::INTERNATIONAL_PLATE, trailer_plate: nil }
         vehicle_code = tenant.atua_vehicles.by_plate(MapTransportDocumentsCommand::INTERNATIONAL_PLATE).pick(:code)
@@ -383,6 +398,7 @@ end
 #  value_freight_cents                :bigint
 #  vehicle_code                       :bigint
 #  vehicle_ownership                  :string
+#  vehicle_sale                       :boolean          default(FALSE), not null
 #  weight_freight_cents               :bigint
 #  weight_kg                          :decimal(14, 2)
 #  weight_tons                        :decimal(14, 3)
@@ -415,6 +431,7 @@ end
 #  index_atua_transport_documents_on_tenant_id_and_taker_code      (tenant_id,taker_code)
 #  index_atua_transport_documents_on_tenant_id_and_trailer_plate   (tenant_id,trailer_plate)
 #  index_atua_transport_documents_on_tenant_id_and_vehicle_code    (tenant_id,vehicle_code)
+#  index_atua_transport_documents_on_tenant_id_and_vehicle_sale    (tenant_id,vehicle_sale)
 #
 # Foreign Keys
 #

@@ -13,7 +13,7 @@ class TransportDocumentsController < BaseController
   def index
     authorize!(:read, :transport_documents)
 
-    transport_documents = apply_scopes(current_tenant.atua_transport_documents.active)
+    transport_documents = apply_scopes(current_tenant.atua_transport_documents.active.freights)
 
     @transport_documents = apply_sort(transport_documents.with_freight_totals,
                                       Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
@@ -48,7 +48,7 @@ class TransportDocumentsController < BaseController
   end
 
   def load_net_freight
-    return if @transport_document.canceled?
+    return if @transport_document.canceled? || @transport_document.vehicle_sale?
 
     @net_freight = NetFreight.for(current_tenant.atua_transport_documents.where(id: @transport_document.id))
     freight_expenses = @transport_document.freight_expenses
