@@ -95,6 +95,7 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
       let(:spreadsheet) do
         fixture = read_atua_fixture(:transport_documents)
         juiz_de_fora = { 'nm_cidade_origem' => 'JUIZ DE FORA', 'ds_uf_origem' => 'MG', 'cd_cidade_origem' => 1234, 'nm_cidade_destino' => 'FOZ DO IGUACU', 'ds_uf_destino' => 'PR' }
+        truck = { 'ds_placa' => 'BDZ8J90', 'ds_placa_carreta' => 'AQZ1D12', 'cd_veiculo' => 585 }
         rows = [
           [80_842, 'CE', 'ARCELORMITTAL BRASIL S.A.'],
           [80_848, 'CTRC', 'ARCELORMITTAL BRASIL S.A.'],
@@ -102,30 +103,49 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
           [80_824, 'CE', 'USIMINAS', { 'ds_placa' => 'INT6R00' }],
           [81_002, 'CE', 'ARCELORMITTAL BRASIL S.A.', { 'nm_cidade_destino' => 'TRES LAGOAS', 'ds_uf_destino' => 'MS' }],
         ].map do |code, kind, taker, overrides|
-          fixture.rows.find { |row| row['cd_ctrc'].to_i == code }.merge(juiz_de_fora, 'id_sintegra' => kind, 'nm_pessoa_tomador' => taker, **overrides.to_h)
+          fixture.rows.find { |row| row['cd_ctrc'].to_i == code }.merge(juiz_de_fora, truck, 'id_sintegra' => kind, 'nm_pessoa_tomador' => taker, **overrides.to_h)
         end
         atua_spreadsheet(headers: fixture.headers, rows:)
       end
+      let(:truck_vehicle) { { plate: 'BDZ8J90', trailer_plate: 'AQZ1D12', vehicle_code: 585 } }
 
       it 'moves the origin of an Arcelor CE to Foz do Iguacu and keeps the issued one in raw_data' do
         expect(document(80_842)).to include(origin_city: 'FOZ DO IGUACU', origin_state: 'PR', origin_city_code: 2946)
         expect(document(80_842)[:raw_data]).to include('nm_cidade_origem' => 'JUIZ DE FORA')
       end
 
+      it 'moves an Arcelor CE to the international plate without a trailer and keeps the issued plate in raw_data' do
+        expect(document(80_842)).to include(plate: 'INT6R00', trailer_plate: nil, vehicle_code: 585)
+        expect(document(80_842)[:raw_data]).to include('ds_placa' => 'BDZ8J90', 'ds_placa_carreta' => 'AQZ1D12')
+      end
+
       it 'moves the origin of a CE of the international plate to Foz do Iguacu' do
         expect(document(80_824)).to include(origin_city: 'FOZ DO IGUACU', origin_state: 'PR', origin_city_code: 2946)
       end
 
-      it 'keeps the origin of an Arcelor CE bound for another city' do
-        expect(document(81_002)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234)
+      it 'keeps the origin and the vehicle of an Arcelor CE bound for another city' do
+        expect(document(81_002)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234, **truck_vehicle)
       end
 
-      it 'keeps the origin of an Arcelor CT-e' do
-        expect(document(80_848)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234)
+      it 'keeps the origin and the vehicle of an Arcelor CT-e' do
+        expect(document(80_848)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234, **truck_vehicle)
       end
 
-      it 'keeps the origin of a CE from another customer' do
-        expect(document(80_909)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234)
+      it 'keeps the origin and the vehicle of a CE from another customer' do
+        expect(document(80_909)).to include(origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234, **truck_vehicle)
+      end
+
+      context 'when the international vehicle is registered' do
+        let(:tenant) { create(:tenant) }
+        let!(:international_vehicle) { create(:atua_vehicle, tenant:, plate: 'INT6R00', code: 824) }
+
+        it 'moves an Arcelor CE to the international vehicle' do
+          expect(document(80_842)).to include(plate: 'INT6R00', trailer_plate: nil, vehicle_code: international_vehicle.code)
+        end
+
+        it 'keeps the vehicle of an Arcelor CT-e' do
+          expect(document(80_848)).to include(truck_vehicle)
+        end
       end
     end
 
