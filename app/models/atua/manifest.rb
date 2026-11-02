@@ -41,11 +41,32 @@ module Atua
     scope :with_freight_totals, -> {
       select(
         arel_table[Arel.star],
-        Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel).as('gross_cents'),
+        Arel::Nodes::Grouping.new(gross_freight).as('gross_cents'),
       )
     }
 
     class << self
+      def gross_freight
+        Arel::Nodes::Addition.new(
+          Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel),
+          Arel::Nodes::Grouping.new(documents_without_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
+        )
+      end
+
+      def documents_without_transport_document
+        documents = ManifestDocument.arel_table
+        transport_documents = TransportDocument.arel_table
+        transport_document = TransportDocument.where(transport_documents[:tenant_id].eq(documents[:tenant_id]))
+          .where(transport_documents[:number].eq(documents[:transport_document_number]))
+          .where(transport_documents[:series].eq(documents[:transport_document_series]))
+          .where(transport_documents[:branch_name].eq(documents[:branch_name]))
+
+        ManifestDocument.active
+          .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
+          .where(documents[:manifest_code].eq(arel_table[:code]))
+          .where(transport_document.arel.exists.not)
+      end
+
       def trip_documents
         documents = ManifestDocument.arel_table
 

@@ -176,6 +176,30 @@ describe 'Manifests' do
       end
     end
 
+    context 'when the transport document of a manifest was not imported from Atua' do
+      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_625, number: '41149', branch_name: 'JR TRANSPORTES', plate: 'BDC8D26') }
+      let!(:document) do
+        create(:atua_manifest_document, tenant:, manifest_code: 41_625, transport_document_number: '74764', transport_document_series: 1,
+                                        branch_name: 'JR TRANSPORTES', freight_cents: 801_915)
+      end
+
+      scenario 'shows the freight of the manifest instead of zero' do
+        visit manifests_path
+
+        expect(Atua::TransportDocument.count).to eq(0)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
+            ['41149 JR TRANSPORTES', '01/10/2026', 'BDC8D26', '-', '-', 'R$ 8.019,15', ''],
+          ],
+        )
+
+        visit manifest_path(manifest)
+
+        expect(dl_to_hash('#manifest_data')).to include('Valor total do frete' => 'R$ 8.019,15')
+      end
+    end
+
     context 'when a manifest has every detail and transport documents' do
       let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
       let!(:manifest) do

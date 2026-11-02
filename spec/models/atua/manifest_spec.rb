@@ -119,6 +119,37 @@ RSpec.describe Atua::Manifest do
     end
   end
 
+  describe '.with_freight_totals' do
+    let!(:manifest) { create(:atua_manifest, tenant:, code: 41_600, branch_name: 'JR') }
+
+    def add_document(number, document_freight, **attributes)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_600, transport_document_number: number, transport_document_series: 1, branch_name: 'JR',
+                                      freight_cents: document_freight, **attributes)
+    end
+
+    def add_transport_document(number, freight_cents, **attributes)
+      create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', freight_cents:, **attributes)
+    end
+
+    before do
+      add_transport_document('1', 600_000)
+      add_document('1', 500_000)
+      add_transport_document('2', 900_000, canceled_at: Time.current)
+      add_document('2', 900_000)
+      add_transport_document('3', 700_000, removed_from_atua_at: Time.current)
+      add_document('3', 700_000)
+      add_document('4', 801_915)
+      add_document('5', nil)
+      add_document('6', 400_000, removed_from_atua_at: Time.current)
+      add_transport_document('7', 250_000, series: 50)
+      add_document('7', 300_000)
+    end
+
+    it 'sums the transport documents and falls back to the manifest freight of the ones missing from Atua' do
+      expect(described_class.with_freight_totals.find(manifest.id).gross_cents).to eq(600_000 + 801_915 + 300_000)
+    end
+  end
+
   describe '#origins and #destinations' do
     let!(:manifest) { create(:atua_manifest, tenant:, code: 41_500, branch_name: 'JR') }
     let!(:internal_taker) { create(:atua_customer, tenant:, code: 777, document_digits: Atua::TransportDocument::INTERNAL_TAKER_DOCUMENTS.first) }
