@@ -11,7 +11,7 @@ module Atua
     }.freeze
     UNLOADING_HISTORY_CODES = [72, 474].freeze
     FUEL_HISTORY_CODES = [11, 396, 482].freeze
-    UNLOADING_DOCUMENT_NUMBER = /\A\s*(\d{3,7})(?:\.0)?\s*(?:-?\s*(?:chapa\s+guia|guia|chapa))?\s*\z/i
+    UNLOADING_DOCUMENT_NUMBER = /\A\s*(?:(\d{3,7})(?:\.0)?\s*|(\d{4,7})(?:\.0)?\D.*)\z/im
 
     sortable :payee_name
 
@@ -69,7 +69,7 @@ module Atua
       def unloading_transport_document_number(history_code, document_number)
         return unless UNLOADING_HISTORY_CODES.include?(history_code)
 
-        UNLOADING_DOCUMENT_NUMBER.match(document_number.to_s)&.captures&.first&.to_i
+        UNLOADING_DOCUMENT_NUMBER.match(document_number.to_s)&.captures&.compact&.first&.to_i
       end
     end
 
