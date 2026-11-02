@@ -114,8 +114,25 @@ module Atua
     }
 
     scope :with_freight_totals, -> { select(arel_table[Arel.star], net_freight.as('net_cents')) }
+    scope :billing_only, -> {
+      where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'])
+        .where(arel_table[:plate].eq(MapTransportDocumentsCommand::INTERNATIONAL_PLATE).or(billed_to_border))
+    }
 
     class << self
+      def international_vehicle(tenant)
+        attributes = { plate: MapTransportDocumentsCommand::INTERNATIONAL_PLATE, trailer_plate: nil }
+        vehicle_code = tenant.atua_vehicles.by_plate(MapTransportDocumentsCommand::INTERNATIONAL_PLATE).pick(:code)
+
+        vehicle_code ? attributes.merge(vehicle_code:) : attributes
+      end
+
+      def billed_to_border
+        arel_table[:destination_city].eq(MapTransportDocumentsCommand::BILLING_DESTINATION[:destination_city])
+          .and(arel_table[:destination_state].eq(MapTransportDocumentsCommand::BILLING_DESTINATION[:destination_state]))
+          .and(arel_table[:taker_name].matches("%#{MapTransportDocumentsCommand::BILLING_ORIGIN_TAKER}%"))
+      end
+
       def net_freight
         Arel::Nodes::Case.new.when(arel_table[:canceled_at].eq(nil)).then(net_freight_of_document)
       end

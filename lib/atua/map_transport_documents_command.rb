@@ -132,7 +132,11 @@ module Atua
     end
 
     def with_real_origin(record)
-      billing_only?(record) ? record.merge(REAL_ORIGIN) : record
+      billing_only?(record) ? record.merge(REAL_ORIGIN, international_vehicle) : record
+    end
+
+    def international_vehicle
+      @international_vehicle ||= TransportDocument.international_vehicle(tenant)
     end
 
     def billing_only?(record)
