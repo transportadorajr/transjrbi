@@ -63,6 +63,7 @@ Rails.application.routes.draw do
     resources :expenses, only: %i[index show]
     resources :commission_rules
     resources :macro_regions
+    resources :cities
     resources :truck_groups
     resources :excluded_issuers, only: %i[index new create destroy]
     resources :tonnage_rates

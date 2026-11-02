@@ -7,7 +7,7 @@ RSpec.describe MacroRegion do
     let!(:grande_bh) { create(:macro_region, tenant:, name: 'GRANDE BH') }
 
     it 'requires a name unique by tenant and a two letter state' do
-      region = build(:macro_region, tenant:, name: 'GRANDE BH', state: 'Minas')
+      region = build(:macro_region, tenant:, name: 'GRANDE BH', state: 'Minas', city_names: [])
 
       expect(region).not_to be_valid
       expect(region.errors.full_messages).to contain_exactly('Nome já está em uso', 'UF não é válido')
@@ -18,8 +18,18 @@ RSpec.describe MacroRegion do
     end
   end
 
+  describe 'cities' do
+    let!(:region) { create(:macro_region, tenant:) }
+
+    it 'keeps the cities without a region when the region is removed' do
+      expect { region.destroy! }.not_to change(City, :count)
+
+      expect(City.where(tenant:).pluck(:macro_region_id).uniq).to eq([nil])
+    end
+  end
+
   describe '#covers_city?' do
-    let(:region) { build(:macro_region, cities: ['Timóteo', "Pingo-d'Água"]) }
+    let(:region) { build(:macro_region, city_names: ['Timóteo', "Pingo-d'Água"]) }
 
     it 'ignores accents, case, spaces and punctuation' do
       expect(region.covers_city?('TIMOTEO')).to be(true)

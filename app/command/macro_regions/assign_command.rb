@@ -26,7 +26,7 @@ module MacroRegions
     end
 
     def regions
-      @regions ||= tenant.macro_regions.reload.to_a
+      @regions ||= tenant.macro_regions.preload(:cities).to_a
     end
 
     def documents_from(origins)

@@ -33,7 +33,7 @@ RSpec.describe MacroRegions::AssignCommand do
 
     it 'moves the documents when a city changes of region' do
       described_class.call(tenant)
-      sao_paulo.update!(cities: ['São Paulo'])
+      sao_paulo.cities.where.not(name: 'São Paulo').update_all(macro_region_id: nil)
 
       expect(described_class.call(tenant)).to eq(1)
       expect(cubatao.reload.origin_macro_region).to eq(interior)

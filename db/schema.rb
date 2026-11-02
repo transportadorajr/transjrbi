@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_02_185520) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_201941) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -573,6 +573,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_185520) do
     t.index ["tenant_id", "status"], name: "index_atua_vehicles_on_tenant_id_and_status"
   end
 
+  create_table "cities", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "macro_region_id"
+    t.string "name", null: false
+    t.string "state", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["macro_region_id"], name: "index_cities_on_macro_region_id"
+    t.index ["tenant_id", "state", "name"], name: "index_cities_on_tenant_id_and_state_and_name", unique: true
+    t.index ["tenant_id"], name: "index_cities_on_tenant_id"
+  end
+
   create_table "commission_rules", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "customer_group_id", null: false
@@ -850,7 +862,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_185520) do
     t.bigint "tenant_id", null: false
     t.string "name", null: false
     t.string "state", null: false
-    t.string "cities", default: [], null: false, array: true
     t.boolean "remaining_state", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -1005,6 +1016,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_185520) do
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_vehicles", "tenants"
+  add_foreign_key "cities", "macro_regions", on_delete: :nullify
+  add_foreign_key "cities", "tenants"
   add_foreign_key "commission_rules", "customer_groups"
   add_foreign_key "commission_rules", "tenants"
   add_foreign_key "customer_groups", "tenants"

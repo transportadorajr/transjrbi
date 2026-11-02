@@ -1,0 +1,7 @@
+<div class="col-12">
+  <%= form.label :city_ids, MacroRegionForm.human_attribute_name(:city_ids), for: nil, id: 'city_ids_select_label', class: 'form-label' %>
+  <%= render 'components/select2', id: 'city_ids_select', name: "#{form.object_name}[city_ids][]", multiple: true,
+                                   options:, selected: macro_region_form.city_ids,
+                                   placeholder: t('macro_regions.form.cities_placeholder') %>
+  <%= tag.div t('macro_regions.form.cities_hint'), class: 'form-text' %>
+</div>

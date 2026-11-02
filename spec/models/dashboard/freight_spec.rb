@@ -371,7 +371,7 @@ RSpec.describe Dashboard::Freight do
       let(:dimension) { 'macro_region' }
 
       before do
-        create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', cities: %w[Cascavel Corbélia])
+        create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', city_names: %w[Cascavel Corbélia])
         MacroRegions::AssignCommand.call(tenant)
       end
 

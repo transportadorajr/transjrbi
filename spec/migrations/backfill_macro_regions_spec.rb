@@ -9,10 +9,10 @@ RSpec.describe BackfillMacroRegions do
     let!(:other_tenant) { create(:tenant) }
 
     it 'registers the default regions of every tenant' do
-      expect { migration.up }.to change(MacroRegion, :count).by(10)
+      expect { migration.up }.to change(MacroRegion, :count).by(38)
 
-      expect(tenant.macro_regions.count).to eq(5)
-      expect(other_tenant.macro_regions.count).to eq(5)
+      expect(tenant.macro_regions.count).to eq(19)
+      expect(other_tenant.macro_regions.count).to eq(19)
     end
 
     it 'can run again without duplicating the regions' do

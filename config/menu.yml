@@ -37,6 +37,10 @@ shared:
           url: /macro_regions
           controllers:
             - macro_regions
+        - name: cities
+          url: /cities
+          controllers:
+            - cities
         - name: truck_groups
           url: /truck_groups
           controllers:

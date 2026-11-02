@@ -6,7 +6,7 @@ class MacroRegionsController < BaseController
   def index
     authorize!(:read, :macro_regions)
 
-    @macro_regions = apply_sort(apply_scopes(current_tenant.macro_regions), :state, :name, :id).page(params[:page])
+    @macro_regions = apply_sort(apply_scopes(current_tenant.macro_regions.preload(:cities)), :state, :name, :id).page(params[:page])
   end
 
   def show
@@ -70,6 +70,6 @@ class MacroRegionsController < BaseController
   end
 
   def macro_region_params
-    params.expect(macro_region: %i[name state cities remaining_state])
+    params.expect(macro_region: [:name, :state, :remaining_state, { city_ids: [] }])
   end
 end

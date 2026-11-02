@@ -19,13 +19,7 @@
                       hint: t('macro_regions.form.remaining_state_hint'),
                       input_html: { class: 'form-check-input me-2' } %>
         </div>
-        <div class="col-12">
-          <%= f.input :cities,
-                      as: :text,
-                      required: false,
-                      hint: t('macro_regions.form.cities_hint'),
-                      input_html: { class: 'form-control', rows: 8, autocomplete: 'off', spellcheck: false } %>
-        </div>
+        <%= macro_region_cities_field(f, macro_region_form) %>
       </div>
     </div>
 
