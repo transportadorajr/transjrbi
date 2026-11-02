@@ -18,6 +18,10 @@ shared:
     cron: '0 0-1 * * 0,2-6 America/Sao_Paulo'
     class: 'Atua::ScheduleMovementsJob'
     description: 'Imports the current day of movements at 0h and 1h, closing the nights from Monday to Saturday'
+  atua_movements_sunday:
+    cron: '0 2-22/2 * * 0 America/Sao_Paulo'
+    class: 'Atua::ScheduleMovementsJob'
+    description: 'Imports the current day of movements every 2 hours from 2h to 22h on Sunday'
   atua_previous_day:
     cron: '30 0 * * * America/Sao_Paulo'
     class: 'Atua::SchedulePreviousDayJob'
