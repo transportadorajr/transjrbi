@@ -264,6 +264,24 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.by_product_group' do
+    let(:tenant) { create(:tenant) }
+    let!(:steel) { create(:product_group, tenant:) }
+    let!(:coil) { create(:product_subgroup, tenant:, parent: steel) }
+    let!(:rebar) { create(:product_subgroup, tenant:, parent: steel) }
+    let!(:coil_document) { create(:atua_transport_document, tenant:, product_group: coil) }
+    let!(:rebar_document) { create(:atua_transport_document, tenant:, product_group: rebar) }
+    let!(:loose_document) { create(:atua_transport_document, tenant:) }
+
+    it 'keeps the documents of every subgroup of the group' do
+      expect(described_class.by_product_group(steel.id)).to contain_exactly(coil_document, rebar_document)
+    end
+
+    it 'keeps no document for a subgroup' do
+      expect(described_class.by_product_group(coil.id)).to be_empty
+    end
+  end
+
   describe '.by_axles and .without_axles' do
     context 'with transport documents of sets with different axle counts' do
       let!(:rodotrem) { create(:atua_transport_document, tenant:, plate: 'RDT9A99', axles: 9) }

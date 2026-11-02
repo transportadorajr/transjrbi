@@ -1,0 +1,22 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="product_groups">
+    <thead>
+      <tr>
+        <%= sortable_header(ProductGroup.human_attribute_name(:name), :name) %>
+        <th class="d-none d-md-table-cell"><%= ProductGroup.human_attribute_name(:subgroups) %></th>
+        <th class="d-none d-lg-table-cell"><%= ProductGroup.human_attribute_name(:transport_documents) %></th>
+        <th><%= ProductGroup.human_attribute_name(:status) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item:, subgroup_counts:, document_counts: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

@@ -1,0 +1,45 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= product_group_create_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="row g-3 mb-4">
+    <%= counter_card(:dark, t('.total'), @total_count, col_class: 'col-12 col-md-6 col-xl-3') %>
+    <%= counter_card(:success, t('.active_groups'), @active_count, col_class: 'col-12 col-md-6 col-xl-3') %>
+    <%= counter_card(:danger, t('.deactivated_groups'), @deactivated_count, col_class: 'col-12 col-md-6 col-xl-3') %>
+    <%= counter_card(:warning, t('.unclassified_products'), @unclassified_products.size, col_class: 'col-12 col-md-6 col-xl-3') %>
+  </div>
+
+  <div class="card table-card mb-4">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @product_groups.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @product_groups.any? %>
+        <%= render 'table', collection: @product_groups, subgroup_counts: @subgroup_counts, document_counts: @document_counts %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.unclassified_title') %></p>
+        <p class="table-card-subtitle"><%= t('.unclassified_subtitle') %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <%= product_group_products_table(@unclassified_products, 'unclassified_products') %>
+    </div>
+  </div>
+</div>

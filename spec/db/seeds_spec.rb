@@ -35,11 +35,12 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(17)
+    expect { run_seeds }.to change(Resource, :count).by(18)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
     expect(Resource.find_by!(slug: 'customers')).to have_attributes(name: 'Clientes', writable: false)
+    expect(Resource.find_by!(slug: 'product_groups')).to have_attributes(name: 'Grupos de produtos', writable: true)
   end
 
   it 'does not duplicate the access resources when run again' do
@@ -52,7 +53,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(16)
+      expect { run_seeds }.to change(Resource, :count).by(17)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end
@@ -63,5 +64,14 @@ RSpec.describe 'db/seeds.rb' do
 
     expect(CustomerGroups::BackfillCommand).to have_received(:call).with(tenant)
     expect(CustomerGroups::BackfillCommand).to have_received(:call).with(other_tenant)
+  end
+
+  it 'creates the product groups of every tenant' do
+    allow(ProductGroups::BackfillCommand).to receive(:call).and_return([])
+
+    run_seeds
+
+    expect(ProductGroups::BackfillCommand).to have_received(:call).with(tenant)
+    expect(ProductGroups::BackfillCommand).to have_received(:call).with(other_tenant)
   end
 end

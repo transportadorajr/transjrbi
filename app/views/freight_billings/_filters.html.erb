@@ -31,6 +31,14 @@
       </div>
 
       <div class="col-12">
+        <%= f.label :product_group_id, FreightBillingFilterForm.human_attribute_name(:product_group_id), for: nil, id: 'product_group_id_select_label',
+                                                                                                         class: 'form-label fw-medium' %>
+        <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
+                                         options: freight_billing_product_group_options(@product_groups),
+                                         selected: @filter_form.product_group_id, placeholder: t('shared.all') %>
+      </div>
+
+      <div class="col-12">
         <%= f.label :driver_code, FreightBillingFilterForm.human_attribute_name(:driver_code), for: nil, id: 'driver_code_select_label', class: 'form-label fw-medium' %>
         <%= render 'components/select2', id: 'driver_code_select', name: :driver_code, options: freight_billing_driver_options(@drivers),
                                          selected: @filter_form.driver_code, placeholder: t('shared.all') %>

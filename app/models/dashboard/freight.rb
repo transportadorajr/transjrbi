@@ -1,8 +1,9 @@
 module Dashboard
   class Freight
-    DIMENSIONS = %w[customer_group vehicle driver origin macro_region].freeze
+    DIMENSIONS = %w[customer_group product_group product_subgroup vehicle driver origin macro_region].freeze
     DEFAULT_DIMENSION = 'customer_group'.freeze
     FREIGHT_LIST_DIMENSIONS = %w[vehicle driver].freeze
+    SLICED_DIMENSIONS = %w[customer_group product_group product_subgroup].freeze
     HISTORY_MONTHS = 6
     MONTH_FORMAT = '%Y-%m'.freeze
     RANKING_LIMIT = 15
@@ -15,9 +16,11 @@ module Dashboard
     CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code trip_plate issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
-                 toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id export_origin].freeze
+                 toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city
+                 origin_state origin_macro_region_id export_origin].freeze
     ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
-                          undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id export_origin].freeze
+                          undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city origin_state
+                          origin_macro_region_id export_origin].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -230,7 +233,8 @@ module Dashboard
       Entry.new(
         document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), **money_of([fact]),
         plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
-        origin_city: fact.origin_city, origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin
+        product_group_id: fact.product_group_id, product_subgroup_id: fact.product_subgroup_id, origin_city: fact.origin_city,
+        origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin
       )
     end
 
@@ -243,7 +247,8 @@ module Dashboard
         Entry.new(
           document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, loaded_km: trip.loaded_km.to_d * weight,
           **money_of(slice), plate: trip.trip_plate, driver_code: main.driver_code, driver_name: main.driver_name,
-          customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
+          customer_group_id: slice.first.customer_group_id, product_group_id: slice.first.product_group_id,
+          product_subgroup_id: slice.first.product_subgroup_id, origin_city: first_loading.origin_city,
           origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id,
           export_origin: first_loading.export_origin
         )
@@ -251,9 +256,9 @@ module Dashboard
     end
 
     def slices_of(trip_facts)
-      return { trip_facts => BigDecimal('1') } unless dimension == 'customer_group'
+      return { trip_facts => BigDecimal('1') } unless SLICED_DIMENSIONS.include?(dimension)
 
-      slices = trip_facts.group_by(&:customer_group_id).values
+      slices = trip_facts.group_by { |fact| key_for(fact) }.values
       trip_cents = freight_of(trip_facts)
 
       slices.index_with { |slice| trip_cents.zero? ? BigDecimal('1') / slices.size : freight_of(slice).to_d / trip_cents }
@@ -275,7 +280,7 @@ module Dashboard
 
     def all_facts
       issued_documents
-        .left_joins(:taker)
+        .left_joins(:taker, :product_group)
         .joins(first_trip_join)
         .pluck(*fact_columns)
         .map { |values| Fact.new(*values) }
@@ -297,6 +302,8 @@ module Dashboard
         table[:driver_code],
         table[:driver_name],
         Atua::Customer.arel_table[:customer_group_id],
+        ProductGroup.arel_table[:parent_id],
+        table[:product_group_id],
         table[:origin_city],
         table[:origin_state],
         table[:origin_macro_region_id],
@@ -365,6 +372,8 @@ module Dashboard
       when 'vehicle' then entry.plate.presence
       when 'driver' then entry.driver_code
       when 'customer_group' then entry.customer_group_id
+      when 'product_group' then entry.product_group_id
+      when 'product_subgroup' then entry.product_subgroup_id
       when 'origin' then [entry.origin_city.presence, entry.origin_state.presence, *origin_operation(entry)]
       when 'macro_region' then entry.origin_macro_region_id
       end
@@ -375,6 +384,7 @@ module Dashboard
               when 'vehicle' then key
               when 'driver' then driver_display_names[key].presence || grouped.filter_map { |entry| entry.driver_name.presence }.first
               when 'customer_group' then customer_group_names[key]
+              when 'product_group', 'product_subgroup' then product_group_names[key]
               when 'origin' then origin_label(*key)
               when 'macro_region' then macro_region_names[key]
               end
@@ -438,6 +448,11 @@ module Dashboard
 
     def customer_group_names
       @customer_group_names ||= CustomerGroup.where(id: entries.filter_map(&:customer_group_id).uniq).pluck(:id, :name).to_h
+    end
+
+    def product_group_names
+      @product_group_names ||= ProductGroup.where(id: entries.flat_map { |entry| [entry.product_group_id, entry.product_subgroup_id] }.compact.uniq)
+        .pluck(:id, :name).to_h
     end
 
     def macro_region_names

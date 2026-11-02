@@ -1,0 +1,15 @@
+<% content_for :title, product_group_form_title(@product_group_form) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <%= product_group_form_breadcrumb_items(@product_group_form) %>
+      </ol>
+    </nav>
+    <%= page_header_tag product_group_form_title(@product_group_form), back_path: product_group_form_back_path(@product_group_form),
+                                                                       back_title: t('product_groups.form.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'form', product_group_form: @product_group_form %>
+</div>

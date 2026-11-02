@@ -1,7 +1,9 @@
 <%= tag.div class: 'select2-wrapper', id:,
             data: { controller: 'select2', select2_name: name, select2_placeholder_value: placeholder,
-                    select2_no_results_value: t('shared.select2.no_results'), select2_clearable_value: true } do %>
-  <%= hidden_field_tag name, selected, id: nil, data: { select2_target: 'hiddenInput' } %>
+                    select2_no_results_value: t('shared.select2.no_results'), select2_clearable_value: true,
+                    select2_multiple_value: local_assigns.fetch(:multiple, false),
+                    select2_remove_label_value: t('shared.select2.remove') } do %>
+  <%= select2_hidden_fields(name, selected, local_assigns.fetch(:multiple, false)) %>
 
   <%= tag.div class: 'select2-trigger form-select bg-light', role: 'combobox', aria: { labelledby: "#{id}_label", expanded: false },
               data: { action: 'click->select2#toggleDropdown' } do %>

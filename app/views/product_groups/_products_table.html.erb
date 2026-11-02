@@ -1,0 +1,18 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="<%= table_id %>">
+    <thead>
+      <tr>
+        <th><%= Atua::TransportDocument.human_attribute_name(:product_name) %></th>
+        <th class="text-end"><%= ProductGroup.human_attribute_name(:transport_documents) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.each do |product_name, count| %>
+        <tr>
+          <td class="text-break"><%= product_name %></td>
+          <td class="text-end"><%= number_with_delimiter(count) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

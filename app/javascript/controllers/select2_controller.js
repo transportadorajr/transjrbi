@@ -7,6 +7,40 @@ const normalize = text => text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g
 const digits = text => text.replace(/\D/g, '');
 
 export default class extends Select2Controller {
+  static values = { ...Select2Controller.values, removeLabel: { type: String, default: 'Remover' } };
+
+  _renderSelected() {
+    if (!this.multipleValue || this._selectedValues.size === 0) {
+      super._renderSelected();
+      return;
+    }
+
+    const tags = document.createElement('div');
+    tags.className = 'select2-tags';
+
+    this._selectedValues.forEach((label, value) => {
+      const tag = document.createElement('span');
+      tag.className = 'select2-tag';
+
+      const text = document.createElement('span');
+      text.className = 'select2-tag__label';
+      text.textContent = label;
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'select2-tag__remove';
+      remove.dataset.action = 'click->select2#removeTag';
+      remove.dataset.value = value;
+      remove.setAttribute('aria-label', `${this.removeLabelValue} ${label}`);
+      remove.textContent = '×';
+
+      tag.append(text, remove);
+      tags.appendChild(tag);
+    });
+
+    this.selectedTarget.replaceChildren(tags);
+  }
+
   search() {
     const query = normalize(this.searchTarget.value);
     const documentQuery = DOCUMENT_QUERY.test(query) ? digits(query) : '';

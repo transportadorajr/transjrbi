@@ -24,6 +24,7 @@ end
   'vehicles' => { name: 'Veículos', writable: false },
   'expenses' => { name: 'Despesas', writable: false },
   'customer_groups' => { name: 'Grupos de clientes', writable: true },
+  'product_groups' => { name: 'Grupos de produtos', writable: true },
   'commission_rules' => { name: 'Regras de comissão', writable: true },
   'freight_expenses' => { name: 'Despesas de frete', writable: false },
   'tonnage_rates' => { name: 'Custos por tonelada', writable: true },
@@ -45,4 +46,5 @@ Tenant.find_each do |tenant|
   CustomerGroups::BackfillCommand.call(tenant)
   FreightExpenses::CalculateTarpLiningCommand.call(tenant)
   TruckGroups::BackfillCommand.call(tenant)
+  ProductGroups::BackfillCommand.call(tenant)
 end

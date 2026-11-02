@@ -23,6 +23,7 @@ module Atua
     end
 
     belongs_to :origin_macro_region, class_name: 'MacroRegion', optional: true, inverse_of: :transport_documents
+    belongs_to :product_group, optional: true, inverse_of: :transport_documents
     belongs_to :complemented_transport_document, class_name: 'Atua::TransportDocument', optional: true, inverse_of: :value_complements
 
     has_many :value_complements, class_name: 'Atua::TransportDocument', foreign_key: :complemented_transport_document_id,
@@ -86,6 +87,7 @@ module Atua
     scope :by_customer_group, ->(customer_group_id) {
       where(taker_code: Customer.where(customer_group_id:).select(:code))
     }
+    scope :by_product_group, ->(product_group_id) { where(product_group_id: ProductGroup.where(parent_id: product_group_id).select(:id)) }
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :recently_issued, -> { where(issued_at: INACTIVITY_PERIOD.ago..) }
     scope :by_origin_macro_region, ->(macro_region_id) {
@@ -372,6 +374,7 @@ end
 #  atua_import_id                     :bigint
 #  complemented_transport_document_id :bigint
 #  origin_macro_region_id             :bigint
+#  product_group_id                   :bigint
 #  tenant_id                          :bigint           not null
 #
 # Indexes
@@ -381,6 +384,7 @@ end
 #  index_atua_transport_documents_on_atua_import_id                (atua_import_id)
 #  index_atua_transport_documents_on_manifest_numbers              (manifest_numbers) USING gin
 #  index_atua_transport_documents_on_origin_macro_region_id        (origin_macro_region_id)
+#  index_atua_transport_documents_on_product_group_id              (product_group_id)
 #  index_atua_transport_documents_on_tenant_id_and_code            (tenant_id,code) UNIQUE
 #  index_atua_transport_documents_on_tenant_id_and_consignee_code  (tenant_id,consignee_code)
 #  index_atua_transport_documents_on_tenant_id_and_cte_status      (tenant_id,cte_status)
@@ -400,5 +404,6 @@ end
 #  fk_rails_...  (atua_import_id => atua_imports.id) ON DELETE => nullify
 #  fk_rails_...  (complemented_transport_document_id => atua_transport_documents.id) ON DELETE => nullify
 #  fk_rails_...  (origin_macro_region_id => macro_regions.id) ON DELETE => nullify
+#  fk_rails_...  (product_group_id => product_groups.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #

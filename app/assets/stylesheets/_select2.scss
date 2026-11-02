@@ -43,7 +43,43 @@
   }
 }
 
-.select2-wrapper:not(:has(.select2-single-value)) .select2-clear-btn {
+.select2-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.125rem 0;
+}
+
+.select2-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--bs-border-radius-pill);
+  background-color: rgba($primary, 0.12);
+  color: $primary;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.select2-tag__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select2-tag__remove {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.select2-wrapper:not(:has(.select2-single-value, .select2-tag)) .select2-clear-btn {
   display: none;
 }
 
