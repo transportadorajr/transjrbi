@@ -559,6 +559,20 @@ RSpec.describe Dashboard::Freight do
         expect(dashboard.ranking_data.first[:data])
           .to eq('LUIS HENRIQUE DOS SANTOS COSTA' => 8_000.0, 'LUIS HENRIQUE DA SILVA COSTA' => 6_000.0, 'EDISON L. GOMES' => 3_000.0)
       end
+
+      context 'with drivers that have a display name' do
+        before do
+          create(:driver, tenant:, code: 42, display_name: 'EDISON LEITE')
+          create(:driver, tenant:, code: 40, display_name: nil)
+          create(:driver, tenant: create(:tenant, name: 'Outra Ltda', trade_name: 'Outra'), code: 41, display_name: 'OUTRO NOME')
+        end
+
+        it 'labels the rows and the bars with the display name in full' do
+          expect(dashboard.rows.map(&:label)).to eq(['LUIS HENRIQUE DOS SANTOS COSTA', 'LUIS HENRIQUE DA SILVA COSTA', 'EDISON LEITE'])
+          expect(dashboard.ranking_data.first[:data])
+            .to eq('LUIS HENRIQUE DOS SANTOS COSTA' => 8_000.0, 'LUIS HENRIQUE DA SILVA COSTA' => 6_000.0, 'EDISON LEITE' => 3_000.0)
+        end
+      end
     end
 
     context 'when grouped by customer group' do

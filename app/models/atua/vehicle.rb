@@ -9,9 +9,11 @@ module Atua
       'MAX(atua_vehicles.driver_document) AS driver_document',
       'MAX(atua_vehicles.driver_document_digits) AS driver_document_digits',
       'MAX(atua_vehicles.driver_license) AS driver_license',
+      'MAX(drivers.display_name) AS display_name',
       'COUNT(*) AS vehicles_count',
       "STRING_AGG(atua_vehicles.plate, ', ' ORDER BY atua_vehicles.plate) AS plates",
     ].freeze
+    DRIVER_JOIN = 'LEFT JOIN drivers ON drivers.tenant_id = atua_vehicles.tenant_id AND drivers.code = atua_vehicles.driver_code'.freeze
 
     sortable :plate
     sortable :driver_name
@@ -33,7 +35,7 @@ module Atua
     scope :by_driver_name, ->(name) { where(arel_table[:driver_name].matches("%#{sanitize_sql_like(name.to_s.strip)}%")) }
     scope :by_driver_document, ->(document) { where(driver_document_digits: document.to_s.gsub(/\D/, '')) }
     scope :drivers, -> {
-      grouped = active.where.not(driver_code: nil).group(:tenant_id, :driver_code).select(:tenant_id, :driver_code, *DRIVER_COLUMNS)
+      grouped = active.where.not(driver_code: nil).joins(DRIVER_JOIN).group(:tenant_id, :driver_code).select(:tenant_id, :driver_code, *DRIVER_COLUMNS)
 
       unscope(:where).from(grouped, :atua_vehicles)
     }

@@ -8,7 +8,9 @@
         <li class="breadcrumb-item active" aria-current="page"><%= tax_value(@driver.driver_name) %></li>
       </ol>
     </nav>
-    <%= page_header_tag tax_value(@driver.driver_name), back_path: drivers_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+    <%= page_header_tag tax_value(@driver.driver_name), back_path: drivers_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= driver_edit_button(@driver) %>
+    <% end %>
   </div>
 
   <div class="card detail-card mb-4">
@@ -22,6 +24,9 @@
 
         <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:driver_name) %></dt>
         <dd class="col-12 col-md-9 text-break"><%= tax_value(@driver.driver_name) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:display_name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@driver.display_name) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Vehicle.human_attribute_name(:driver_document) %></dt>
         <dd class="col-12 col-md-9"><%= tax_value(@driver.driver_document) %></dd>
