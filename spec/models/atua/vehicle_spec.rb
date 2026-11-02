@@ -88,6 +88,29 @@ RSpec.describe Atua::Vehicle do
       end
     end
 
+    context 'with transport documents issued in different years' do
+      let!(:truck) { create(:atua_vehicle, tenant:, plate: 'EXU0F72') }
+      let!(:trailer) { create(:atua_vehicle, tenant:, plate: 'BEV4G50') }
+      let!(:last_year_truck) { create(:atua_vehicle, tenant:, plate: 'QQI0395') }
+      let!(:canceled_truck) { create(:atua_vehicle, tenant:, plate: 'RHJ4E07') }
+      let!(:stranger) { create(:atua_vehicle, tenant: other_tenant, plate: 'ZIZ7D35') }
+      let(:year) { Time.zone.local(2026).all_year }
+
+      before do
+        idle = create(:atua_vehicle, tenant:, plate: 'AGL9451')
+        create(:atua_transport_document, tenant: other_tenant, vehicle_code: idle.code, issued_at: Time.zone.local(2026, 5, 1))
+        create(:atua_transport_document, tenant:, vehicle_code: truck.code, trailer_plate: 'BEV4G50', issued_at: Time.zone.local(2026, 1, 1, 0, 5))
+        create(:atua_transport_document, tenant:, vehicle_code: last_year_truck.code, issued_at: Time.zone.local(2025, 12, 31, 23, 55))
+        create(:atua_transport_document, tenant:, vehicle_code: canceled_truck.code, canceled_at: Time.current, issued_at: Time.zone.local(2026, 5, 1))
+        create(:atua_transport_document, tenant:, vehicle_code: stranger.code, issued_at: Time.zone.local(2026, 5, 1))
+      end
+
+      it 'keeps only the vehicles of a valid transport document of the same tenant issued in the period' do
+        expect(described_class.count).to eq(6)
+        expect(tenant.atua_vehicles.with_transport_documents_in(year).order(:plate)).to eq([trailer, truck])
+      end
+    end
+
     context 'with drivers linked to the vehicles' do
       let!(:truck) do
         create(:atua_vehicle, tenant:, plate: 'EXU0F72', driver_code: 760, driver_name: 'JOSE DA SILVA', driver_document: '808.542.250-64',

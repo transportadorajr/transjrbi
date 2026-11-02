@@ -126,8 +126,10 @@ describe 'Table sorting' do
       let!(:resource) { create(:resource, name: 'Veículos', slug: 'vehicles', writable: false) }
 
       before do
-        create(:atua_vehicle, tenant:, plate: 'AAA1A11', driver_code: 1, driver_name: 'ZECA')
-        create(:atua_vehicle, tenant:, plate: 'BBB2B22', driver_code: 2, driver_name: 'ANA')
+        zeca = create(:atua_vehicle, tenant:, plate: 'AAA1A11', driver_code: 1, driver_name: 'ZECA')
+        ana = create(:atua_vehicle, tenant:, plate: 'BBB2B22', driver_code: 2, driver_name: 'ANA')
+        create(:atua_transport_document, tenant:, vehicle_code: zeca.code, issued_at: Time.current)
+        create(:atua_transport_document, tenant:, vehicle_code: ana.code, issued_at: Time.current)
       end
 
       scenario 'sorts by plate and by driver' do
@@ -145,8 +147,10 @@ describe 'Table sorting' do
       let!(:resource) { create(:resource, name: 'Motoristas', slug: 'drivers', writable: false) }
 
       before do
-        create(:atua_vehicle, tenant:, plate: 'AAA1A11', driver_code: 1, driver_name: 'ZECA')
-        create(:atua_vehicle, tenant:, plate: 'BBB2B22', driver_code: 2, driver_name: 'ANA')
+        zeca = create(:atua_vehicle, tenant:, plate: 'AAA1A11', driver_code: 1, driver_name: 'ZECA')
+        ana = create(:atua_vehicle, tenant:, plate: 'BBB2B22', driver_code: 2, driver_name: 'ANA')
+        create(:atua_transport_document, tenant:, vehicle_code: zeca.code, issued_at: Time.current)
+        create(:atua_transport_document, tenant:, vehicle_code: ana.code, issued_at: Time.current)
       end
 
       scenario 'sorts by name without a primary key on the grouped relation' do

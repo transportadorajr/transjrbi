@@ -85,7 +85,7 @@ describe 'Freight billing' do
         expect(rows.call.first(2)).to eq(%w[BBB2B22 AAA1A11])
         expect(page).to have_current_path(/start_date=2026-10-01/)
 
-        within('.freight-billing-table thead') { click_on 'Cavalo' }
+        within('.freight-billing-table thead') { click_on 'Veículo' }
         expect(rows.call.first(2)).to eq(%w[AAA1A11 BBB2B22])
       end
     end
@@ -192,7 +192,7 @@ describe 'Freight billing' do
         visit freight_billing_path(october)
 
         expect(all('.dashboard-segmented[aria-label="Agrupar por"] .btn').map(&:text))
-          .to eq(['Grupo de clientes', 'Grupo de produtos', 'Subgrupo de produtos', 'Cavalo', 'Motorista', 'Origem', 'Macro região'])
+          .to eq(['Grupo de clientes', 'Grupo de produtos', 'Subgrupo de produtos', 'Veículo', 'Motorista', 'Origem', 'Macro região'])
       end
 
       scenario 'shows the gross and net freight per truck discounting the toll vouchers of the transport documents' do
@@ -203,12 +203,12 @@ describe 'Freight billing' do
           ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
            'KM rodado 720 km'],
         )
-        expect(page).to have_text('Frete por Cavalo')
+        expect(page).to have_text('Frete por Veículo')
         expect(page).to have_text('Evolução Mensal')
         expect(page).to have_text('Frete bruto e líquido por mês de emissão do CT-e, de Mai/2026 a Out/2026')
         expect(html_table_to_rows).to eq(
           [
-            ['Cavalo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
+            ['Veículo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
             ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00', 'R$ 250,00', '75,0%', ''],
             ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', 'R$ 0,00', '25,0%', ''],
             ['Total', 'R$ 20.000,00', 'R$ 19.100,00', 'R$ 250,00', '100,0%', ''],
@@ -524,7 +524,7 @@ describe 'Freight billing' do
           expect(page).to have_link('Motorista', class: 'btn-primary')
           page.go_back
 
-          expect(page).to have_link('Cavalo', class: 'btn-primary')
+          expect(page).to have_link('Veículo', class: 'btn-primary')
           expect(page).to have_no_css('#freight_billing_detail_modal', visible: :all)
         end
 
@@ -744,7 +744,7 @@ describe 'Freight billing' do
           select 'GRANDE BH', from: 'Macro região de origem'
           click_on 'Aplicar Filtros'
 
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR8J90 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
           expect(page).to have_select('Macro região de origem', selected: 'GRANDE BH', visible: :all)
         end
@@ -754,7 +754,7 @@ describe 'Freight billing' do
           select 'Outras Regiões', from: 'Macro região de origem'
           click_on 'Aplicar Filtros'
 
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
         end
       end
@@ -802,7 +802,7 @@ describe 'Freight billing' do
         scenario 'filters by a product group offering only the groups' do
           visit freight_billing_path(october_by_truck.merge(product_group_id: steel_group.id))
 
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
           expect(page).to have_field('product_group_id', type: :hidden, with: steel_group.id.to_s)
           expect(all('#product_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['SIDERÚRGICO'])
@@ -821,7 +821,7 @@ describe 'Freight billing' do
         fill_in 'Placa', with: 'rvr-8j90'
         click_on 'Aplicar Filtros'
 
-        expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
+        expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR8J90 Total])
         expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
       end
 
@@ -874,7 +874,7 @@ describe 'Freight billing' do
             ['Frete bruto R$ 6.073,32', 'Frete líquido R$ 6.073,32', 'Viagens 1'],
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
-            [['Cavalo', 'Frete bruto', 'Frete líquido'], ['RHJ5A50', 'R$ 6.073,32', 'R$ 6.073,32'], ['Total', 'R$ 6.073,32', 'R$ 6.073,32']],
+            [['Veículo', 'Frete bruto', 'Frete líquido'], ['RHJ5A50', 'R$ 6.073,32', 'R$ 6.073,32'], ['Total', 'R$ 6.073,32', 'R$ 6.073,32']],
           )
         end
       end
@@ -911,7 +911,7 @@ describe 'Freight billing' do
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
             [
-              ['Cavalo', 'Frete bruto', 'Frete líquido'],
+              ['Veículo', 'Frete bruto', 'Frete líquido'],
               ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00'],
               ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00'],
               ['Total', 'R$ 20.000,00', 'R$ 19.100,00'],
@@ -957,7 +957,7 @@ describe 'Freight billing' do
           expect(all('.counter-card').first(2).map { |card| card.text.squish }).to eq(['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00'])
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
             [
-              ['Cavalo', 'Frete bruto', 'Frete líquido'],
+              ['Veículo', 'Frete bruto', 'Frete líquido'],
               ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00'],
               ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00'],
               ['Total', 'R$ 20.000,00', 'R$ 19.100,00'],
@@ -989,7 +989,7 @@ describe 'Freight billing' do
           click_on 'Aplicar Filtros'
 
           expect(page).to have_select('Tipo de conjunto', selected: 'Rodotrem')
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
 
           select '6 eixos', from: 'Tipo de conjunto'
@@ -1020,7 +1020,7 @@ describe 'Freight billing' do
 
             expect(TruckGroup.count).to eq(6)
             expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Quarto eixo', 'Rodotrem'])
-            expect(page).to have_text('Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.')
+            expect(page).to have_text('Pela placa do veículo ou pela quantidade de eixos informada em cada CT-e.')
 
             visit freight_billing_path(october_by_truck.merge(truck_group_id: others.id))
 
@@ -1034,7 +1034,7 @@ describe 'Freight billing' do
           scenario 'filters each transport document by its own axle count' do
             visit freight_billing_path(october_by_truck.merge(truck_group_id: ls.id))
 
-            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
             visit freight_billing_path(october_by_truck.merge(truck_group_id: rodotrem.id))
@@ -1052,12 +1052,12 @@ describe 'Freight billing' do
             visit freight_billing_path(october_by_truck.merge(truck_group_id: utinga.id))
 
             expect(TruckGroup.count).to eq(6)
-            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR8J90 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
 
             visit freight_billing_path(october_by_truck.merge(truck_group_id: rodotrem.id))
 
-            expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
           end
         end
@@ -1088,7 +1088,7 @@ describe 'Freight billing' do
           click_on 'Aplicar Filtros'
 
           expect(page).to have_text('CT-es emitidos de 05/10/2026 a 31/10/2026')
-          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR7H89 Total])
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR7H89 Total])
         end
       end
 
@@ -1181,7 +1181,7 @@ describe 'Freight billing' do
           expect(find('table')).to have_no_text('Combustível')
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
             [
-              ['Cavalo', 'Frete bruto', 'Frete líquido'],
+              ['Veículo', 'Frete bruto', 'Frete líquido'],
               ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00'],
               ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00'],
               ['PUR1A81', 'R$ 3.000,00', 'R$ 3.000,00'],
