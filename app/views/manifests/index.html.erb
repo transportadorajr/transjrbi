@@ -7,6 +7,10 @@
 
   <%= render 'filters' %>
 
+  <div class="row g-3 mb-4">
+    <%= counter_card(:success, t('.valid'), @manifests.total_count) %>
+  </div>
+
   <div class="card table-card">
     <div class="table-card-header">
       <div class="table-card-heading">

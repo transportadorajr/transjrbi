@@ -63,7 +63,7 @@ describe 'Manifests' do
             ['40772 JR TRANSPORTES', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', ''],
           ],
         )
-        expect(page).to have_no_css('.counter-card')
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
         expect(page).to have_text('1 registro')
         expect(page).to have_link(href: manifest_path(closed), title: 'Visualizar')
         expect(page).to have_no_text('40780')
@@ -103,6 +103,7 @@ describe 'Manifests' do
             ['40773 TRANSJR SABARA', '06/10/2026', 'EXU0F72', '-', '-', 'R$ 0,00', ''],
           ],
         )
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
       end
 
       scenario 'ignores a canceled situation left in the address' do
