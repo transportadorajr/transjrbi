@@ -67,9 +67,9 @@ describe 'Freight billing' do
 
     context 'when sorting the table' do
       before do
-        create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 2),
+        create(:atua_transport_document, tenant:, document_kind: 'ce', posted_on: Date.new(2026, 10, 2),
                                          issued_at: Time.zone.local(2026, 10, 2), plate: 'BBB2B22', freight_cents: 300_000)
-        expensive = create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 3),
+        expensive = create(:atua_transport_document, tenant:, document_kind: 'ce', posted_on: Date.new(2026, 10, 3),
                                                      issued_at: Time.zone.local(2026, 10, 3), plate: 'AAA1A11', freight_cents: 500_000)
         create(:freight_expense, tenant:, transport_document: expensive, amount_cents: 450_000)
       end
@@ -181,9 +181,9 @@ describe 'Freight billing' do
 
           expect(page).to have_current_path(freight_billing_path)
           expect(page).to have_css('h1', text: 'Faturamento de Fretes')
-          expect(page).to have_text('Saídas de 18/10/2026 a 24/10/2026')
-          expect(page).to have_field('Saídas a partir de', with: '2026-10-18', visible: :all)
-          expect(page).to have_field('Saídas até', with: '2026-10-24', visible: :all)
+          expect(page).to have_text('CT-es emitidos de 18/10/2026 a 24/10/2026')
+          expect(page).to have_field('Emitidos a partir de', with: '2026-10-18', visible: :all)
+          expect(page).to have_field('Emitidos até', with: '2026-10-24', visible: :all)
           expect(page).to have_link('Grupo de clientes', class: 'btn-primary')
         end
       end
@@ -800,19 +800,23 @@ describe 'Freight billing' do
           create(:atua_manifest_document, tenant:, manifest_code: 41_010, transport_document_number: '74103', calculated_distance_km: 400)
         end
 
-        scenario 'bills its freight in the month of the issue like the Atua report and keeps the trip in the month it departed' do
+        scenario 'bills its freight and its trip in the month of the issue, matching the cards with the total of the table' do
           visit freight_billing_path(october_by_truck)
 
           expect(Atua::TransportDocument.where(tenant:).count).to eq(5)
           expect(all('.counter-card').first(3).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 3'],
+            ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2'],
           )
-          expect(html_table_to_rows.map { |row| row.values_at(0, 1) }).to include(['RHJ5A50', 'R$ 6.073,32'])
+          expect(html_table_to_rows.map(&:first)).not_to include('RHJ5A50')
+          expect(html_table_to_rows.last.values_at(0, 1, 2)).to eq(['Total', 'R$ 20.000,00', 'R$ 19.100,00'])
 
           visit freight_billing_path(start_date: '2026-09-01', end_date: '2026-09-30', dimension: 'vehicle')
 
           expect(all('.counter-card').first(3).map { |card| card.text.squish }).to eq(
-            ['Frete bruto R$ 6.073,32', 'Frete líquido R$ 6.073,32', 'Viagens 0'],
+            ['Frete bruto R$ 6.073,32', 'Frete líquido R$ 6.073,32', 'Viagens 1'],
+          )
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
+            [['Cavalo', 'Frete bruto', 'Frete líquido'], ['RHJ5A50', 'R$ 6.073,32', 'R$ 6.073,32'], ['Total', 'R$ 6.073,32', 'R$ 6.073,32']],
           )
         end
       end
@@ -998,14 +1002,21 @@ describe 'Freight billing' do
         end
       end
 
-      scenario 'filters by another period' do
-        visit freight_billing_path(october_by_truck)
-        fill_in 'Saídas a partir de', with: '2026-10-05'
-        fill_in 'Saídas até', with: '2026-10-31'
-        click_on 'Aplicar Filtros'
+      context 'when a transport document is issued later in the month' do
+        let!(:later) do
+          create(:atua_transport_document, tenant:, number: '74010', freight_cents: 300_000, plate: 'RVR7H89',
+                                           issued_at: Time.zone.local(2026, 10, 6, 9), posted_on: Date.new(2026, 10, 6))
+        end
 
-        expect(page).to have_text('Saídas de 05/10/2026 a 31/10/2026')
-        expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR8J90 Total])
+        scenario 'filters by another period' do
+          visit freight_billing_path(october_by_truck)
+          fill_in 'Emitidos a partir de', with: '2026-10-05'
+          fill_in 'Emitidos até', with: '2026-10-31'
+          click_on 'Aplicar Filtros'
+
+          expect(page).to have_text('CT-es emitidos de 05/10/2026 a 31/10/2026')
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR7H89 Total])
+        end
       end
 
       scenario 'keeps the period fields inside the filters modal and the shortcuts outside it' do
@@ -1025,31 +1036,31 @@ describe 'Freight billing' do
 
           click_on 'Mês'
 
-          expect(page).to have_text('Saídas de 01/10/2026 a 31/10/2026')
-          expect(page).to have_field('Saídas a partir de', with: '2026-10-01')
-          expect(page).to have_field('Saídas até', with: '2026-10-31')
+          expect(page).to have_text('CT-es emitidos de 01/10/2026 a 31/10/2026')
+          expect(page).to have_field('Emitidos a partir de', with: '2026-10-01')
+          expect(page).to have_field('Emitidos até', with: '2026-10-31')
           expect(page).to have_link('Mês', exact: true, class: 'btn-primary')
           expect(page).to have_link('Sem. atual', class: 'btn-outline-secondary')
 
           click_on 'Sem. passada'
 
-          expect(page).to have_text('Saídas de 11/10/2026 a 17/10/2026')
+          expect(page).to have_text('CT-es emitidos de 11/10/2026 a 17/10/2026')
           expect(page).to have_link('Sem. passada', class: 'btn-primary')
 
           click_on 'Mês passado'
 
-          expect(page).to have_text('Saídas de 01/09/2026 a 30/09/2026')
+          expect(page).to have_text('CT-es emitidos de 01/09/2026 a 30/09/2026')
           expect(page).to have_link('Mês passado', class: 'btn-primary')
           expect(page).to have_link('Mês', exact: true, class: 'btn-outline-secondary')
 
           click_on 'Hoje'
 
-          expect(page).to have_text('Saídas de 19/10/2026 a 19/10/2026')
+          expect(page).to have_text('CT-es emitidos de 19/10/2026 a 19/10/2026')
           expect(page).to have_link('Hoje', class: 'btn-primary')
 
           click_on 'Sem. atual'
 
-          expect(page).to have_text('Saídas de 18/10/2026 a 24/10/2026')
+          expect(page).to have_text('CT-es emitidos de 18/10/2026 a 24/10/2026')
           expect(page).to have_link('Sem. atual', class: 'btn-primary')
         end
       end
@@ -1057,7 +1068,7 @@ describe 'Freight billing' do
       scenario 'highlights no shortcut on a custom period' do
         visit freight_billing_path(start_date: '2026-10-05', end_date: '2026-10-06')
 
-        expect(page).to have_text('Saídas de 05/10/2026 a 06/10/2026')
+        expect(page).to have_text('CT-es emitidos de 05/10/2026 a 06/10/2026')
         expect(page).to have_no_css('a.btn-primary', text: /\A(Sem. atual|Sem. passada|Mês|Mês passado|Hoje)\z/)
       end
 
@@ -1066,7 +1077,7 @@ describe 'Freight billing' do
           visit freight_billing_path(october.merge(dimension: 'driver', plate: 'RVR8J90'))
           click_on 'Hoje'
 
-          expect(page).to have_text('Saídas de 19/10/2026 a 19/10/2026')
+          expect(page).to have_text('CT-es emitidos de 19/10/2026 a 19/10/2026')
           expect(Rack::Utils.parse_query(URI(page.current_url).query)).to eq('dimension' => 'driver', 'plate' => 'RVR8J90',
                                                                              'start_date' => '2026-10-19', 'end_date' => '2026-10-19')
         end
@@ -1127,7 +1138,7 @@ describe 'Freight billing' do
         visit freight_billing_path(start_date: '2026-10-31', end_date: '2026-10-01')
 
         expect(page).to have_current_path(freight_billing_path)
-        expect(page).to have_text('Saídas até não pode ser anterior à data inicial')
+        expect(page).to have_text('Emitidos até não pode ser anterior à data inicial')
       end
     end
   end
