@@ -47,8 +47,19 @@ describe 'Vehicles' do
       end
       let!(:removed) { create(:atua_vehicle, tenant:, plate: 'AGL9451', category: 'Outros', removed_from_atua_at: Time.current) }
       let!(:stranger) { create(:atua_vehicle, tenant: other_tenant, plate: 'ZIZ7D35', category: 'Bitrem') }
+      let!(:idle) { create(:atua_vehicle, tenant:, plate: 'QQI0395', category: 'Toco', ownership: 'Agregado') }
+      let!(:canceled_only) { create(:atua_vehicle, tenant:, plate: 'RHJ4E07', category: 'Truck', ownership: 'Agregado') }
 
-      scenario 'lists the active vehicles of the tenant from the registrations menu' do
+      before do
+        travel_to Time.zone.local(2026, 11, 2, 10)
+        create(:atua_transport_document, tenant:, vehicle_code: truck.code, trailer_plate: trailer.plate, issued_at: Time.zone.local(2026, 1, 5, 8))
+        create(:atua_transport_document, tenant:, vehicle_code: removed.code, issued_at: Time.zone.local(2026, 3, 1, 8))
+        create(:atua_transport_document, tenant: other_tenant, vehicle_code: stranger.code, issued_at: Time.zone.local(2026, 3, 1, 8))
+        create(:atua_transport_document, tenant:, vehicle_code: idle.code, issued_at: Time.zone.local(2025, 12, 31, 23))
+        create(:atua_transport_document, tenant:, vehicle_code: canceled_only.code, canceled_at: Time.current, issued_at: Time.zone.local(2026, 6, 1, 8))
+      end
+
+      scenario 'lists only the vehicles of the tenant with a transport document issued in the current year' do
         visit root_path
         within('.sidebar-desktop') do
           click_on 'Cadastros'
@@ -56,7 +67,8 @@ describe 'Vehicles' do
         end
 
         expect(page).to have_current_path(vehicles_path)
-        expect(Atua::Vehicle.count).to eq(4)
+        expect(Atua::Vehicle.count).to eq(6)
+        expect(page).to have_text('Veículos da Atua com CT-e emitido em 2026.')
         expect(html_table_to_rows).to eq(
           [
             ['Placa', 'Categoria', 'Ano fabricação/modelo', 'Propriedade', 'Motorista', 'Ações'],
@@ -68,9 +80,11 @@ describe 'Vehicles' do
         expect(page).to have_link(href: vehicle_path(truck), title: 'Visualizar')
         expect(page).to have_no_text('AGL9451')
         expect(page).to have_no_text('ZIZ7D35')
+        expect(page).to have_no_text('QQI0395')
+        expect(page).to have_no_text('RHJ4E07')
       end
 
-      scenario 'offers only the categories and ownerships of the active vehicles of the tenant' do
+      scenario 'offers only the categories and ownerships of the vehicles listed in the current year' do
         visit vehicles_path
 
         expect(page).to have_select('Categoria', options: ['Todos', 'Caminhão / Cavalo', 'Carreta'])
@@ -142,6 +156,7 @@ describe 'Vehicles' do
                               owner_document: '12.345.678/0001-90', driver_code: 760, driver_name: 'JOSE DA SILVA',
                               driver_document: '808.542.250-64', driver_license: '604269044')
       end
+      let!(:trip) { create(:atua_transport_document, tenant:, vehicle_code: vehicle.code, issued_at: Time.current) }
 
       scenario 'shows every detail of the vehicle' do
         visit vehicles_path
@@ -295,6 +310,7 @@ describe 'Vehicles' do
   context 'when an operator is signed in' do
     let!(:operator) { create(:user, tenant:, name: 'Carla Operadora') }
     let!(:vehicle) { create(:atua_vehicle, tenant:, plate: 'EXU0F72', driver_code: 760, driver_name: 'JOSE DA SILVA') }
+    let!(:trip) { create(:atua_transport_document, tenant:, vehicle_code: vehicle.code, issued_at: Time.current) }
 
     before { login_as(operator, scope: :user) }
 
@@ -352,6 +368,7 @@ describe 'Vehicles' do
   context 'on a phone', :js do
     let!(:admin) { create(:user, tenant:, user_type: :admin) }
     let!(:vehicle) { create(:atua_vehicle, tenant:, plate: 'EXU0F72') }
+    let!(:trip) { create(:atua_transport_document, tenant:, vehicle_code: vehicle.code, issued_at: Time.current) }
 
     before do
       login_as(admin, scope: :user)

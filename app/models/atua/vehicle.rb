@@ -34,6 +34,13 @@ module Atua
     scope :by_ownership, ->(ownership) { where(ownership:) }
     scope :by_driver_name, ->(name) { where(arel_table[:driver_name].matches("%#{sanitize_sql_like(name.to_s.strip)}%")) }
     scope :by_driver_document, ->(document) { where(driver_document_digits: document.to_s.gsub(/\D/, '')) }
+    scope :with_transport_documents_in, ->(period) {
+      documents = TransportDocument.arel_table
+      ownership = documents[:vehicle_code].eq(arel_table[:code]).or(documents[:trailer_plate].eq(arel_table[:plate]))
+
+      where(TransportDocument.active.not_canceled.where(issued_at: period).where(documents[:tenant_id].eq(arel_table[:tenant_id]))
+        .where(ownership).arel.exists)
+    }
     scope :drivers, -> {
       grouped = active.where.not(driver_code: nil).joins(DRIVER_JOIN).group(:tenant_id, :driver_code).select(:tenant_id, :driver_code, *DRIVER_COLUMNS)
 

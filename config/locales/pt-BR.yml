@@ -1064,7 +1064,7 @@ pt-BR:
       plate: Placa
       driver_code: Motorista
       truck_group_id: Tipo de conjunto
-      truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada nos CT-es do manifesto.
+      truck_group_hint: Pela placa do veículo ou pela quantidade de eixos informada nos CT-es do manifesto.
       product_group_id: Grupo de produtos
       customer_group_id: Grupo de clientes
       customer_code: Cliente
@@ -1524,7 +1524,7 @@ pt-BR:
       month_not_found: Este mês não está mais disponível. Confira os dados atualizados.
       period: CT-es emitidos em %{month}
     filters:
-      truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.
+      truck_group_hint: Pela placa do veículo ou pela quantidade de eixos informada em cada CT-e.
     period_presets:
       week: Sem. atual
       last_week: Sem. passada
@@ -1532,7 +1532,7 @@ pt-BR:
       last_month: Mês passado
       today: Hoje
     dimensions:
-      vehicle: Cavalo
+      vehicle: Veículo
       driver: Motorista
       customer_group: Grupo de clientes
       product_group: Grupo de produtos
@@ -1654,7 +1654,7 @@ pt-BR:
   vehicles:
     index:
       title: Veículos
-      subtitle: Frota de veículos cadastrada na Atua.
+      subtitle: Veículos da Atua com CT-e emitido em %{year}.
     filters:
       plate: Placa
       category: Categoria
