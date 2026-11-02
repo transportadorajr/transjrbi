@@ -57,6 +57,7 @@ Rails.application.routes.draw do
     resources :customer_groups do
       patch :regroup, on: :member
     end
+    resources :product_groups
     resources :drivers, only: %i[index show edit update destroy]
     resources :vehicles, only: %i[index show]
     resources :expenses, only: %i[index show]

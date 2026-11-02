@@ -1,0 +1,47 @@
+<div class="mb-3 page-breadcrumb">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <%= product_group_breadcrumb_items(@product_group.parent, @product_group.name) %>
+    </ol>
+  </nav>
+  <%= page_header_tag @product_group.name, back_path: product_group_back_path(@product_group),
+                                           back_title: t('product_groups.show.back_to_group'), wrapper_class: 'mb-0' do %>
+    <%= product_group_edit_button(@product_group) %>
+  <% end %>
+</div>
+
+<div class="card detail-card mb-4">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('product_groups.show.subgroup_data') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0" id="product_group_data">
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:name) %></dt>
+      <dd class="col-12 col-md-9 text-break"><%= @product_group.name %></dd>
+
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:parent) %></dt>
+      <dd class="col-12 col-md-9 text-break"><%= link_to @product_group.parent.name, product_group_path(@product_group.parent) %></dd>
+
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:status) %></dt>
+      <dd class="col-12 col-md-9"><%= product_group_status_badge(@product_group) %></dd>
+
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:product_names) %></dt>
+      <dd class="col-12 col-md-9 text-break"><%= product_group_product_names(@product_group) %></dd>
+
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:transport_documents) %></dt>
+      <dd class="col-12 col-md-9"><%= number_with_delimiter(@documents_count) %></dd>
+    </dl>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('product_groups.show.products') %></p>
+      <p class="table-card-subtitle"><%= t('product_groups.show.products_subtitle') %></p>
+    </div>
+  </div>
+  <div class="table-card-body">
+    <%= product_group_products_table(@products, 'product_group_products') %>
+  </div>
+</div>

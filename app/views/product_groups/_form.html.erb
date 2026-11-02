@@ -1,0 +1,29 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('product_groups.form.product_group_data') %></p>
+    <p class="form-card-subtitle"><%= product_group_form_text(product_group_form) %></p>
+  </div>
+  <%= simple_form_for(product_group_form, url: product_group_form_url(product_group_form)) do |f| %>
+    <%= f.hidden_field :parent_id %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'off', autocapitalize: 'characters' } %>
+        </div>
+        <%= product_group_product_names_field(f, product_group_form) %>
+        <div class="col-12">
+          <%= f.input :active,
+                      as: :boolean,
+                      hint: t('product_groups.form.active_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, product_group_form_submit_label(product_group_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), product_group_form_back_path(product_group_form), class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

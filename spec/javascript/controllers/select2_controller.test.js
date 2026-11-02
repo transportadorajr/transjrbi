@@ -73,4 +73,61 @@ describe('Select2Controller', () => {
 
     expect(noResults().hidden).toBe(false);
   });
+
+  describe('with multiple values', () => {
+    const multipleHtml = `
+      <div data-controller="select2" data-select2-name="product_names[]" data-select2-multiple-value="true"
+           data-select2-remove-label-value="Remover" data-select2-placeholder-value="Selecione">
+        <input type="hidden" name="product_names[]" value="BOBINA" data-select2-target="hiddenInput">
+        <div data-select2-target="selected"></div>
+        <div data-select2-target="dropdown">
+          <input type="search" data-select2-target="search">
+          <ul>
+            <li data-select2-target="option" data-value="BOBINA" data-label="BOBINA (2 CT-es)"
+                data-action="click->select2#selectOption">a</li>
+            <li data-select2-target="option" data-value="<b>CHAPAS</b>" data-label="<b>CHAPAS</b>"
+                data-action="click->select2#selectOption">b</li>
+          </ul>
+        </div>
+      </div>
+    `;
+    const tags = () => [...document.querySelectorAll('.select2-tag__label')].map(tag => tag.textContent);
+    const values = () => [...document.querySelectorAll('input[type="hidden"]')].map(input => input.value);
+
+    beforeEach(async () => {
+      application.stop();
+      document.body.innerHTML = multipleHtml;
+      application = Application.start();
+      application.register('select2', Select2Controller);
+      await tick();
+    });
+
+    it('starts with the values already selected as tags', () => {
+      expect(tags()).toEqual(['BOBINA (2 CT-es)']);
+      expect(values()).toEqual(['BOBINA']);
+    });
+
+    it('adds a value as text without rendering its markup', () => {
+      document.querySelectorAll('[data-select2-target="option"]')[1].click();
+
+      expect(tags()).toEqual(['BOBINA (2 CT-es)', '<b>CHAPAS</b>']);
+      expect(document.querySelector('.select2-tags b')).toBeNull();
+      expect(values()).toEqual(['BOBINA', '<b>CHAPAS</b>']);
+    });
+
+    it('removes a value from its tag and keeps an empty value when none is left', async () => {
+      document.querySelector('.select2-tag__remove').click();
+      await tick();
+
+      expect(tags()).toEqual([]);
+      expect(document.querySelector('.select2-placeholder').textContent).toBe('Selecione');
+      expect(values()).toEqual(['']);
+    });
+
+    it('labels the remove button with the value', () => {
+      expect(document.querySelector('.select2-tag__remove').getAttribute('aria-label')).toBe(
+        'Remover BOBINA (2 CT-es)'
+      );
+    });
+  });
 });

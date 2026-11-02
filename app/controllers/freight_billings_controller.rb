@@ -2,6 +2,7 @@ class FreightBillingsController < BaseController
   has_scope :by_plate, as: :plate
   has_scope :by_driver, as: :driver_code
   has_scope :by_customer_group, as: :customer_group_id
+  has_scope :by_product_group, as: :product_group_id
   has_scope :by_origin_macro_region, as: :macro_region_id
 
   before_action :load_dashboard
@@ -9,6 +10,7 @@ class FreightBillingsController < BaseController
   def show
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.order(:name)
+    @product_groups = current_tenant.product_groups.groups.preload(:subgroups).order(:name)
     @macro_regions = current_tenant.macro_regions.order(:name)
     @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
     @rows = Kaminari.paginate_array(@dashboard.sorted_rows(params[:sort], params[:direction])).page(params[:page])
@@ -59,6 +61,7 @@ class FreightBillingsController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :customer_group_id, :macro_region_id, :truck_group_id)
+    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :customer_group_id, :product_group_id, :macro_region_id,
+                  :truck_group_id)
   end
 end

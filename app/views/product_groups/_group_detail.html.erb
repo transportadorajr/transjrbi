@@ -1,0 +1,44 @@
+<div class="mb-3 page-breadcrumb">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <%= product_group_breadcrumb_items(nil, @product_group.name) %>
+    </ol>
+  </nav>
+  <%= page_header_tag @product_group.name, back_path: product_groups_path, back_title: t('product_groups.show.back'), wrapper_class: 'mb-0' do %>
+    <%= product_group_edit_button(@product_group) %>
+    <%= product_group_create_subgroup_button(@product_group) %>
+  <% end %>
+</div>
+
+<div class="card detail-card mb-4">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('product_groups.show.group_data') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0" id="product_group_data">
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:name) %></dt>
+      <dd class="col-12 col-md-9 text-break"><%= @product_group.name %></dd>
+
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:status) %></dt>
+      <dd class="col-12 col-md-9"><%= product_group_status_badge(@product_group) %></dd>
+
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:subgroups) %></dt>
+      <dd class="col-12 col-md-9"><%= @subgroups.total_count %></dd>
+
+      <dt class="col-12 col-md-3"><%= ProductGroup.human_attribute_name(:transport_documents) %></dt>
+      <dd class="col-12 col-md-9"><%= number_with_delimiter(@documents_count) %></dd>
+    </dl>
+  </div>
+</div>
+
+<div class="card table-card">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('product_groups.show.subgroups') %></p>
+      <p class="table-card-subtitle"><%= t('shared.total_records', count: @subgroups.total_count) %></p>
+    </div>
+  </div>
+  <div class="table-card-body">
+    <%= product_group_subgroups_table(@subgroups, @document_counts) %>
+  </div>
+</div>

@@ -139,5 +139,9 @@ RSpec.describe FreightBillingFilterForm do
     it 'is true with a plate' do
       expect(described_class.new(plate: 'ABC1D23')).to be_filtered
     end
+
+    it 'is true with a product group' do
+      expect(described_class.new(product_group_id: '7')).to be_filtered
+    end
   end
 end

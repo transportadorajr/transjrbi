@@ -43,4 +43,17 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
       expect(documents.where(origin_city: 'JUIZ DE FORA').pluck(:origin_macro_region_id).uniq).to eq([nil])
     end
   end
+
+  context 'with product groups of the tenant' do
+    let(:product_name) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).filter_map { |record| record[:product_name] }.first }
+    let!(:subgroup) { create(:product_subgroup, tenant:, product_names: [product_name]) }
+
+    it 'classifies the imported documents by their product' do
+      described_class.call(import, spreadsheet)
+
+      documents = tenant.atua_transport_documents
+      expect(documents.where(product_name:).pluck(:product_group_id).uniq).to eq([subgroup.id])
+      expect(documents.where.not(product_name:).where.not(product_group_id: nil)).to be_empty
+    end
+  end
 end

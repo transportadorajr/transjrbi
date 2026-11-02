@@ -1,0 +1,8 @@
+<div class="col-12">
+  <%= form.label :product_names, ProductGroupForm.human_attribute_name(:product_names), for: nil, id: 'product_names_select_label',
+                                                                                        class: 'form-label' %>
+  <%= render 'components/select2', id: 'product_names_select', name: "#{form.object_name}[product_names][]", multiple: true,
+                                   options:, selected: product_group_form.product_names,
+                                   placeholder: t('product_groups.form.product_names_placeholder') %>
+  <%= tag.div t('product_groups.form.product_names_hint'), class: 'form-text' %>
+</div>

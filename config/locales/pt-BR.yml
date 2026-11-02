@@ -55,6 +55,9 @@ pt-BR:
       customer_group:
         one: Grupo de clientes
         other: Grupos de clientes
+      product_group:
+        one: Grupo de produtos
+        other: Grupos de produtos
       commission_rule:
         one: Regra de comissão
         other: Regras de comissão
@@ -152,6 +155,13 @@ pt-BR:
         status: Status
         activated_at: Ativado em
         customers: Clientes
+      product_group:
+        name: Nome
+        parent: Grupo
+        product_names: Produtos
+        status: Status
+        subgroups: Subgrupos
+        transport_documents: CT-es
       empty_leg:
         previous_manifest: Viagem anterior
         trip_on: Data da viagem
@@ -404,6 +414,9 @@ pt-BR:
         customer_group:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um grupo com clientes, regras de comissão ou custos por tonelada vinculados. Desative o grupo para deixar de usá-lo.
+        product_group:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir um grupo com subgrupos. Exclua os subgrupos ou desative o grupo para deixar de usá-lo.
         commission_rule:
           restrict_dependent_destroy:
             has_many: Não é possível excluir uma regra que já gerou comissões. Desative a regra para deixar de usá-la.
@@ -425,6 +438,7 @@ pt-BR:
         plate: Placa
         driver_code: Motorista
         customer_group_id: Grupo de clientes
+        product_group_id: Grupo de produtos
         macro_region_id: Macro região de origem
         truck_group_id: Tipo de conjunto
       admin/login_form:
@@ -485,6 +499,11 @@ pt-BR:
       customer_group_form:
         name: Nome
         terms: Termos
+        active: Ativo
+      product_group_form:
+        name: Nome
+        parent_id: Grupo
+        product_names: Produtos
         active: Ativo
       commission_rule_form:
         customer_group_id: Grupo de clientes
@@ -601,6 +620,14 @@ pt-BR:
               taken: '%{plates} já estão em outro grupo ativo'
             remaining_axles:
               taken: já está em outro grupo ativo
+        product_group_form:
+          attributes:
+            name:
+              taken: já está em uso por outro grupo
+            parent_id:
+              invalid: não é um grupo válido
+            product_names:
+              taken: '%{product_names} já estão em outro subgrupo'
         customer_group_form:
           attributes:
             name:
@@ -720,6 +747,9 @@ pt-BR:
       customer_group:
         create: Cadastrar Grupo
         update: Salvar Alterações
+      product_group:
+        create: Cadastrar
+        update: Salvar Alterações
       commission_rule:
         create: Cadastrar Regra
         update: Salvar Alterações
@@ -761,6 +791,10 @@ pt-BR:
       atua/customer:
         show: Visualizar
       customer_group:
+        show: Visualizar
+        edit: Alterar
+        destroy: Excluir
+      product_group:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
@@ -816,6 +850,7 @@ pt-BR:
     select2:
       clear: Limpar seleção
       no_results: Nenhum resultado encontrado
+      remove: Remover
       search: Buscar...
     no_content:
       title: Nenhum registro encontrado
@@ -931,6 +966,7 @@ pt-BR:
     manifests: Manifestos
     customers: Clientes
     customer_groups: Grupos de clientes
+    product_groups: Grupos de produtos
     drivers: Motoristas
     vehicles: Veículos
     expenses: Despesas
@@ -1083,6 +1119,56 @@ pt-BR:
         Um termo por linha. Todo cliente cujo nome ou nome fantasia contenha um dos termos entra neste grupo
         (acentos, espaços e pontuação são ignorados).
       active_hint: Desmarque para deixar de usar o grupo sem perder os clientes vinculados.
+  product_groups:
+    index:
+      title: Grupos de produtos
+      subtitle: Agrupe os produtos transportados nos CT-es em grupos e subgrupos.
+      new_product_group: Novo Grupo
+      total: Total de grupos
+      active_groups: Grupos ativos
+      deactivated_groups: Grupos inativos
+      unclassified_products: Produtos sem grupo
+      unclassified_title: Produtos sem grupo
+      unclassified_subtitle: Produtos dos CT-es que ainda não estão em nenhum subgrupo ativo.
+      active: Ativo
+      deactivated: Inativo
+      confirm_destroy: Tem certeza que deseja excluir este grupo?
+    filters:
+      name: Nome do grupo
+      status: Status
+    show:
+      back: Voltar para grupos de produtos
+      back_to_group: Voltar para o grupo
+      group_data: Dados do grupo
+      subgroup_data: Dados do subgrupo
+      subgroups: Subgrupos
+      products: Produtos do subgrupo
+      products_subtitle: Produtos dos CT-es classificados neste subgrupo.
+      no_product_names: Nenhum produto
+      new_subgroup: Novo Subgrupo
+      edit: Alterar
+    create:
+      success: Grupo cadastrado com sucesso.
+    update:
+      success: Grupo atualizado com sucesso.
+    destroy:
+      success: Grupo excluído com sucesso.
+    form:
+      back: Voltar
+      titles:
+        new_group: Novo Grupo
+        new_subgroup: Novo Subgrupo
+        edit_group: Alterar Grupo
+        edit_subgroup: Alterar Subgrupo
+      product_group_data: Dados do Grupo
+      group_data_text: Informe o nome do grupo. Os produtos são vinculados nos seus subgrupos.
+      subgroup_data_text: Informe o nome do subgrupo e escolha os produtos dos CT-es que pertencem a ele.
+      product_names_hint: >-
+        Busque e selecione os produtos dos CT-es que ainda não estão em outro subgrupo; a quantidade de CT-es de cada um
+        aparece ao lado do nome (acentos, espaços e pontuação são ignorados).
+      product_names_placeholder: Selecione os produtos
+      product_name_option: '%{product_name} (%{count} CT-es)'
+      active_hint: Desmarque para deixar de usar o grupo; os CT-es dos produtos voltam a ficar sem grupo.
   commission_rules:
     index:
       title: Regras de comissão
@@ -1343,6 +1429,8 @@ pt-BR:
         vehicle: Sem placa
         driver: Sem motorista
         customer_group: Sem grupo
+        product_group: Sem grupo
+        product_subgroup: Sem subgrupo
         origin: Sem origem
         macro_region: Outras Regiões
   freight_billings:
@@ -1361,6 +1449,7 @@ pt-BR:
       period: CT-es emitidos em %{month}
     filters:
       truck_group_hint: Pela placa do cavalo ou pela quantidade de eixos informada em cada CT-e.
+      product_subgroup: '%{group} / %{subgroup}'
     period_presets:
       week: Sem. atual
       last_week: Sem. passada
@@ -1371,6 +1460,8 @@ pt-BR:
       vehicle: Cavalo
       driver: Motorista
       customer_group: Grupo de clientes
+      product_group: Grupo de produtos
+      product_subgroup: Subgrupo de produtos
       origin: Origem
       macro_region: Macro região
     columns:
@@ -1408,7 +1499,7 @@ pt-BR:
       table_subtitle: >-
         Soma os CT-es e CEs emitidos no período, como o relatório da Atua; os CT-es sem MDF-e entram no frete, mas não nas viagens. Cada viagem é um MDF-e: soma o frete e as despesas dos seus CT-es emitidos no período. Frete líquido = frete bruto − despesas
         de frete (comissão, custo por tonelada, seguro, forro de lona e combustível) − despesas lançadas nos CT-es − pedágio descontado (o vale-pedágio quando existir). O pedágio cobrado fora do frete aparece na coluna Pedágio, mas não é descontado. O frete
-        por km divide pelo KM rodado da viagem e considera só as viagens com KM rodado. Uma viagem com clientes de grupos
+        por km divide pelo KM rodado da viagem e considera só as viagens com KM rodado. Uma viagem com clientes ou produtos de grupos
         diferentes é rateada pela participação de cada grupo no frete.
   freight_expenses:
     index:
@@ -1594,6 +1685,7 @@ pt-BR:
     registrations: Cadastros
     customers: Clientes
     customer_groups: Grupos de clientes
+    product_groups: Grupos de produtos
     macro_regions: Macro regiões
     truck_groups: Grupos de caminhões
     excluded_issuers: Emissores desconsiderados

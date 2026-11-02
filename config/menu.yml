@@ -29,6 +29,10 @@ shared:
           url: /customer_groups
           controllers:
             - customer_groups
+        - name: product_groups
+          url: /product_groups
+          controllers:
+            - product_groups
         - name: macro_regions
           url: /macro_regions
           controllers:

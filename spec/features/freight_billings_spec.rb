@@ -191,7 +191,8 @@ describe 'Freight billing' do
       scenario 'lists the groupings starting from the customer group' do
         visit freight_billing_path(october)
 
-        expect(all('.dashboard-segmented[aria-label="Agrupar por"] .btn').map(&:text)).to eq(['Grupo de clientes', 'Cavalo', 'Motorista', 'Origem', 'Macro região'])
+        expect(all('.dashboard-segmented[aria-label="Agrupar por"] .btn').map(&:text))
+          .to eq(['Grupo de clientes', 'Grupo de produtos', 'Subgrupo de produtos', 'Cavalo', 'Motorista', 'Origem', 'Macro região'])
       end
 
       scenario 'shows the gross and net freight per truck discounting the toll vouchers of the transport documents' do
@@ -755,6 +756,60 @@ describe 'Freight billing' do
 
           expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
           expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+        end
+      end
+
+      context 'when the products belong to product groups' do
+        let!(:steel_group) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
+        let!(:rebar_subgroup) { create(:product_subgroup, tenant:, parent: steel_group, name: 'VERGALHÃO', product_names: ['VERGALHAO DE FERRO']) }
+        let!(:coil_subgroup) { create(:product_subgroup, tenant:, parent: steel_group, name: 'BOBINA', product_names: ['BOBINA']) }
+
+        before do
+          steel.update!(product_name: 'VERGALHAO DE FERRO')
+          coil.update!(product_name: 'BOBINA')
+          ProductGroups::AssignCommand.call(tenant)
+        end
+
+        scenario 'groups the freight by product group with the products without a group apart' do
+          visit freight_billing_path(october)
+          click_on 'Grupo de produtos'
+
+          expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'product_group')))
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
+            [
+              ['Grupo de produtos', 'Frete bruto', 'Participação'],
+              ['SIDERÚRGICO', 'R$ 15.000,00', '75,0%'],
+              ['Sem grupo', 'R$ 5.000,00', '25,0%'],
+              ['Total', 'R$ 20.000,00', '100,0%'],
+            ],
+          )
+        end
+
+        scenario 'splits a trip with products of different subgroups by their share of its freight' do
+          visit freight_billing_path(october.merge(dimension: 'product_subgroup'))
+
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
+            [
+              ['Subgrupo de produtos', 'Frete bruto', 'Participação'],
+              ['VERGALHÃO', 'R$ 10.000,00', '50,0%'],
+              ['BOBINA', 'R$ 5.000,00', '25,0%'],
+              ['Sem subgrupo', 'R$ 5.000,00', '25,0%'],
+              ['Total', 'R$ 20.000,00', '100,0%'],
+            ],
+          )
+        end
+
+        scenario 'filters by a product group and by a product subgroup' do
+          visit freight_billing_path(october_by_truck.merge(product_group_id: steel_group.id))
+
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Cavalo RVR2C34 Total])
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+
+          visit freight_billing_path(october_by_truck.merge(product_group_id: coil_subgroup.id))
+
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+          expect(page).to have_field('product_group_id', type: :hidden, with: coil_subgroup.id.to_s)
+          expect(page).to have_css('#product_group_id_select [role="option"]', text: 'SIDERÚRGICO / BOBINA', visible: :all)
         end
       end
 
@@ -1356,7 +1411,7 @@ describe 'Freight billing' do
       click_on 'Aplicar Filtros'
 
       expect(Atua::TransportDocument.where(tenant:).count).to eq(3)
-      expect(page).to have_current_path(/customer_group_id=\d+&driver_code=20/)
+      expect(page).to have_current_path(/customer_group_id=\d+&product_group_id=&driver_code=20/)
       expect(first('.counter-value')).to have_text('R$ 4.000,00')
       expect(page).to have_css('#customer_group_id_select .select2-single-value', text: 'USIMINAS', visible: :all)
       expect(page).to have_css('#driver_code_select .select2-single-value', text: 'MARIA SOUZA', visible: :all)

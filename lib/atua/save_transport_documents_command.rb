@@ -9,6 +9,7 @@ module Atua
       super.tap do
         DiscardInternalTakerDocumentsCommand.call(tenant)
         MacroRegions::AssignCommand.call(tenant)
+        ProductGroups::AssignCommand.call(tenant)
       end
     end
 

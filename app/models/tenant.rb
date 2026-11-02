@@ -23,6 +23,7 @@ class Tenant < ApplicationRecord
   has_many :atua_vehicles, class_name: 'Atua::Vehicle', dependent: :delete_all
   has_many :empty_legs, dependent: :delete_all
   has_many :customer_groups, dependent: :delete_all
+  has_many :product_groups, dependent: :delete_all
   has_many :macro_regions, dependent: :delete_all
   has_many :truck_groups, dependent: :delete_all
   has_many :excluded_issuers, dependent: :delete_all
