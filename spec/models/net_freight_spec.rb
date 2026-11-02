@@ -48,4 +48,35 @@ RSpec.describe NetFreight do
     expect(net_freight.toll).to eq(Money.from_cents(58_500))
     expect(net_freight.net).to eq(Money.from_cents(729_825))
   end
+
+  context 'with value complements of the transport documents' do
+    let!(:complement) do
+      create(:atua_transport_document, tenant:, issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, freight_cents: 45_000,
+                                       complemented_transport_document: document)
+    end
+
+    it 'credits the complements to the original and does not change its gross freight' do
+      net_freight = described_class.for(tenant.atua_transport_documents.where(id: document.id))
+
+      expect(net_freight.freight).to eq(Money.from_cents(1_000_000))
+      expect(net_freight.complement_credit).to eq(Money.from_cents(45_000))
+      expect(net_freight.complement_transfer).to eq(Money.from_cents(0))
+      expect(net_freight.net).to eq(Money.from_cents(574_825))
+    end
+
+    it 'transfers the value of the complement, leaving it without net freight' do
+      net_freight = described_class.for(tenant.atua_transport_documents.where(id: complement.id))
+
+      expect(net_freight.freight).to eq(Money.from_cents(45_000))
+      expect(net_freight.complement_transfer).to eq(Money.from_cents(45_000))
+      expect(net_freight.net).to eq(Money.from_cents(0))
+    end
+
+    it 'counts the complement once when both documents are listed' do
+      net_freight = described_class.for(tenant.atua_transport_documents.where(id: [document.id, complement.id]))
+
+      expect(net_freight.freight).to eq(Money.from_cents(1_045_000))
+      expect(net_freight.net).to eq(Money.from_cents(574_825))
+    end
+  end
 end

@@ -41,6 +41,12 @@ module ExpensesHelper
     link_to tax_value(expense.history_name), expense_path(expense), class: 'fw-semibold text-decoration-none text-body text-break'
   end
 
+  def expense_amount(amount, credit: false)
+    return tax_money(amount) unless credit
+
+    content_tag(:span, tax_money(amount), class: 'text-success fw-semibold')
+  end
+
   def expense_attachment(expense)
     expense.attachment_at ? t('expenses.attachment.present') : t('expenses.attachment.absent')
   end

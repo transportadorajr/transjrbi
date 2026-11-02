@@ -164,6 +164,7 @@ pt-BR:
         status_type: Situação
         calculated_at: Calculado em
       atua/transport_document:
+        complemented_transport_document: CT-e complementado
         customer_name: Cliente
         gross: Frete bruto
         net: Frete líquido
@@ -953,6 +954,9 @@ pt-BR:
     route: '%{origin} → %{destination}'
     expenses:
       total: Total de despesas
+      complement_credit_html: 'Complemento de valores — CT-e %{number}'
+      complement_transfer_html: 'Repassado como crédito ao CT-e %{number}'
+      complement_kind: Crédito de complemento
     freight_expenses:
       total: Total das despesas do frete
     document_kinds:
@@ -1017,10 +1021,14 @@ pt-BR:
       total: Total de despesas
       toll_voucher: Vale-pedágio
       toll_in_freight: Pedágio no frete
+      complement_credit_html: 'Complemento de valores — CT-e %{number}'
+      complement_transfer_html: 'Repassado como crédito ao CT-e %{number}'
       kinds:
         expense: Atua
         freight_expense: Interna
         toll: Pedágio
+        complement_credit: Crédito de complemento
+        complement_transfer: Complemento repassado
   empty_legs:
     distance: '%{distance} km'
   customers:
@@ -1455,6 +1463,8 @@ pt-BR:
       tarp_lining: (−) Forro de lona
       fuel: (−) Combustível
       expenses: (−) Despesas do frete na Atua
+      complement_credit: (+) Complementos de valores
+      complement_transfer: (−) Complemento repassado ao CT-e original
       toll: (−) Pedágio
       net: (=) Frete líquido
   drivers:

@@ -392,6 +392,34 @@ describe 'Manifests' do
             expect(page).to have_current_path(transport_document_path(other_transport_document))
           end
         end
+
+        context 'when a value complement pays back the unloading of a transport document of the trip' do
+          let!(:unload) do
+            create(:atua_expense, tenant:, code: 590_402, posted_at: Time.zone.local(2026, 10, 3, 15), posted_on: Date.new(2026, 10, 3),
+                                  history_code: 72, history_name: 'CHAPA / CARGA, DESCARGA', payee_name: nil, total_cents: 73_600,
+                                  cost_object: transport_document)
+          end
+          let!(:complement) do
+            create(:atua_transport_document, tenant:, number: '74150', series: 1, branch_name: 'JR TRANSPORTES',
+                                             issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, complemented_transport_document: transport_document,
+                                             freight_cents: 73_600, issued_at: Time.zone.local(2026, 10, 4, 9))
+          end
+
+          scenario 'credits the complement in green against the expenses of the trip' do
+            visit manifest_path(manifest)
+
+            expect(Atua::TransportDocument.count).to eq(2)
+            expect(html_table_to_rows(table: find_by_id('manifest_expenses'))).to eq(
+              [
+                ['Despesa', 'Tipo', 'CT-e', 'Lançado em', 'Detalhe', 'Valor'],
+                ['CHAPA / CARGA, DESCARGA', 'Atua', '74130', '03/10/2026', '-', 'R$ 736,00'],
+                ['Complemento de valores — CT-e 74150', 'Crédito de complemento', '74130', '04/10/2026', '-', '-R$ 736,00'],
+              ],
+            )
+            expect(page).to have_css("#complement_credit_atua_transport_document_#{complement.id} .text-success", text: '-R$ 736,00')
+            expect(page).to have_css('#manifest_expenses_total', text: 'Total de despesas R$ 0,00')
+          end
+        end
       end
     end
 

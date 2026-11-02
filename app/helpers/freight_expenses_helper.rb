@@ -120,7 +120,20 @@ module FreightExpensesHelper
     render 'freight_expenses/net_freight', net_freight:, id:
   end
 
+  def net_freight_complements(net_freight)
+    rows = []
+    rows << net_freight_row(:complement_credit, net_freight.complement_credit, 'text-success') if net_freight.complement_credit.positive?
+    rows << net_freight_row(:complement_transfer, net_freight.complement_transfer, 'text-danger') if net_freight.complement_transfer.positive?
+
+    safe_join(rows)
+  end
+
   private
+
+  def net_freight_row(name, amount, color)
+    safe_join([content_tag(:dt, t(name, scope: 'freight_expenses.net_freight'), class: 'col-12 col-md-6'),
+               content_tag(:dd, tax_money(amount), class: "col-12 col-md-6 text-md-end #{color}")])
+  end
 
   def freight_expense_transport_document_menu(freight_expense)
     Menu.new(name: :show, record: freight_expense.transport_document,

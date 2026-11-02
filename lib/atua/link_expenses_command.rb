@@ -5,9 +5,10 @@ module Atua
       SET cost_object_type = targets.cost_object_type, cost_object_id = targets.cost_object_id, updated_at = NOW()
       FROM (
         SELECT expenses.id,
-               CASE WHEN COALESCE(documents_by_code.id, documents_by_number.id) IS NOT NULL THEN :transport_document_type
+               CASE WHEN documents.id IS NOT NULL THEN :transport_document_type
                     WHEN vehicles.id IS NOT NULL THEN :vehicle_type END AS cost_object_type,
-               COALESCE(documents_by_code.id, documents_by_number.id, vehicles.id) AS cost_object_id
+               COALESCE(CASE WHEN expenses.history_code IN (:unloading_history_codes) THEN documents.complemented_transport_document_id END,
+                        documents.id, vehicles.id) AS cost_object_id
         FROM atua_expenses expenses
         LEFT JOIN atua_transport_documents documents_by_code
           ON documents_by_code.tenant_id = expenses.tenant_id
@@ -28,6 +29,8 @@ module Atua
                    candidates.code DESC
           LIMIT 1
         ) documents_by_number ON TRUE
+        LEFT JOIN atua_transport_documents documents
+          ON documents.id = COALESCE(documents_by_code.id, documents_by_number.id)
         LEFT JOIN LATERAL (
           SELECT candidates.id
           FROM atua_vehicles candidates
@@ -66,6 +69,7 @@ module Atua
         transport_document_type: Expense::ALLOCATION_TYPES['freight'],
         transport_document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'],
         vehicle_type: Expense::ALLOCATION_TYPES['vehicle'],
+        unloading_history_codes: Expense::UNLOADING_HISTORY_CODES,
       }
     end
   end

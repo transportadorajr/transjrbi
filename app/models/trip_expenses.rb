@@ -8,7 +8,7 @@ class TripExpenses
       documents = transport_documents.active.not_canceled
       items = []
       items += freight_expense_items(documents) + toll_items(documents) if internal
-      items += expense_items(documents) if atua
+      items += expense_items(documents) + complement_credit_items(documents) + complement_transfer_items(documents) if atua
 
       new(items)
     end
@@ -40,6 +40,21 @@ class TripExpenses
           Item.new(kind: :expense, record: expense, transport_document: expense.cost_object, posted_on: expense.posted_on,
                    amount: Money.from_cents(expense.total_cents.to_i))
         end
+    end
+
+    def complement_credit_items(documents)
+      Atua::TransportDocument.active.not_canceled.where(complemented_transport_document_id: documents.select(:id))
+        .preload(:complemented_transport_document).order(:issued_at, :id).map do |complement|
+          Item.new(kind: :complement_credit, record: complement, transport_document: complement.complemented_transport_document,
+                   posted_on: complement.issued_at&.to_date, amount: complement.complement_credit)
+        end
+    end
+
+    def complement_transfer_items(documents)
+      documents.where.not(complemented_transport_document_id: nil).preload(:complemented_transport_document).order(:issued_at, :id).map do |complement|
+        Item.new(kind: :complement_transfer, record: complement, transport_document: complement,
+                 posted_on: complement.issued_at&.to_date, amount: complement.complement_transfer)
+      end
     end
   end
 

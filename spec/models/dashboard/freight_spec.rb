@@ -415,6 +415,24 @@ RSpec.describe Dashboard::Freight do
     end
   end
 
+  context 'with a value complement that pays back the unloading of a trip in the next month' do
+    before do
+      create(:atua_manifest, tenant:, code: 43_001, plate: 'RVR3D45', trip_started_at: Time.zone.local(2026, 9, 28, 8))
+      original = create(:atua_transport_document, tenant:, number: '76001', freight_cents: 1_000_000, plate: 'RVR3D45',
+                                                  issued_at: Time.zone.local(2026, 9, 28, 10), posted_on: Date.new(2026, 9, 28))
+      create(:atua_manifest_document, tenant:, manifest_code: 43_001, transport_document_number: '76001', calculated_distance_km: 400)
+      create(:atua_expense, tenant:, history_code: 72, cost_object: original, total_cents: 73_600)
+      create(:atua_transport_document, tenant:, number: '76050', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, freight_cents: 73_600,
+                                       plate: 'RVR3D45', complemented_transport_document: original, issued_at: Time.zone.local(2026, 10, 2, 10))
+    end
+
+    it 'counts the complement in the gross billing of its month and credits it to the net of the original trip' do
+      expect(dashboard.total).to have_attributes(gross: Money.from_cents(73_600), net: Money.from_cents(0))
+      expect(dashboard.monthly_data.first[:data].values_at('Set/2026', 'Out/2026')).to eq([10_000.0, 736.0])
+      expect(dashboard.monthly_data.last[:data].values_at('Set/2026', 'Out/2026')).to eq([10_000.0, 0.0])
+    end
+  end
+
   context 'with tolls inside and outside the gross freight, with and without vouchers' do
     def trip(code, plate, number, **attributes)
       create(:atua_manifest, tenant:, code:, plate:, trip_started_at: Time.zone.local(2026, 10, 9, 8))

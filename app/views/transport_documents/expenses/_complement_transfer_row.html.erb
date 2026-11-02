@@ -1,0 +1,6 @@
+<tr id="<%= dom_id(transport_document, :complement_transfer) %>">
+  <td><%= t('transport_documents.expenses.complement_transfer_html', number: freight_expense_transport_document(transport_document.complemented_transport_document)) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(transport_document.issued_at&.to_date) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(transport_document.taker_name) %></td>
+  <td class="text-end text-nowrap"><%= expense_amount(transport_document.complement_transfer) %></td>
+</tr>

@@ -150,6 +150,23 @@ RSpec.describe Atua::LinkExpensesCommand do
     end
   end
 
+  context 'with expenses entered under the number of a value complement' do
+    let!(:original) { create(:atua_transport_document, tenant:, number: '67991') }
+    let!(:complement) do
+      create(:atua_transport_document, tenant:, number: '68005', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, complemented_number: '67991',
+                                       complemented_transport_document: original)
+    end
+    let!(:unload) { create(:atua_expense, tenant:, history_code: 72, transport_document_number: '68005') }
+    let!(:icms) { create(:atua_expense, tenant:, history_code: 434, transport_document_number: '68005') }
+
+    it 'moves the unloading to the complemented transport document and keeps the other expenses on the complement' do
+      described_class.call(tenant)
+
+      expect(unload.reload.cost_object).to eq(original)
+      expect(icms.reload.cost_object).to eq(complement)
+    end
+  end
+
   context 'with records of another tenant' do
     let!(:tire) { create(:atua_expense, tenant:, transport_document_code: 80_512, plate: 'EXU0F72') }
     let!(:stranger) { create(:atua_expense, tenant: other_tenant, plate: 'EXU0F72') }

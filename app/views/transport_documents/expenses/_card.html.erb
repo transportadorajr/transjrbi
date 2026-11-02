@@ -3,6 +3,6 @@
     <p class="detail-card-title"><%= t('transport_documents.show.expenses') %></p>
   </div>
   <div class="detail-card-body">
-    <%= transport_document_expenses_table(expenses, total) %>
+    <%= transport_document_expenses_table(transport_document, expenses, complements, total) %>
   </div>
 </div>
