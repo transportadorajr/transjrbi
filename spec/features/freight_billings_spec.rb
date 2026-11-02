@@ -230,18 +230,18 @@ describe 'Freight billing' do
           expect(Atua::TransportDocument.count).to eq(6)
           expect(ranking_bar_labels).to contain_exactly(
             ['R$ 15.000,00', '#ffffff'], ['R$ 5.000,00', '#ffffff'], ['R$ 300,00', '#2563eb'],
-            ['R$ 14.100,00', '#ffffff'], ['R$ 5.000,00', '#ffffff'], ['R$ 300,00', '#eb6834']
+            ['R$ 14.100,00', '#ffffff'], ['R$ 5.000,00', '#ffffff'], ['R$ 300,00', '#dc3545']
           )
         end
 
-        scenario 'writes the monthly values on horizontal bars in their own colors', :js do
+        scenario 'writes the monthly values on horizontal bars with the gross in blue and the net in red', :js do
           visit freight_billing_path(october_by_truck)
 
           expect(Atua::TransportDocument.count).to eq(6)
           expect(monthly_bar_labels).to contain_exactly(['R$ 20.300,00', '#ffffff'], ['R$ 19.400,00', '#ffffff'])
           expect(page.evaluate_script('Object.values(Chartkick.charts)[1].getChartObject().options.indexAxis')).to eq('y')
           expect(page.evaluate_script('Object.values(Chartkick.charts)[1].getChartObject().data.datasets.map((dataset) => dataset.backgroundColor)')).to eq(
-            %w[#dc3545 #198754],
+            %w[#2563eb #dc3545],
           )
         end
 
@@ -322,7 +322,7 @@ describe 'Freight billing' do
             expect(Atua::TransportDocument.count).to eq(18)
             expect(ranking_bar_labels.size).to eq(30)
             expect(ranking_bar_labels).to include(['R$ 14.100,00', '#ffffff'], ['R$ 2.500,00', '#ffffff'])
-            expect(ranking_bar_labels.count(['R$ 500,00', '#eb6834'])).to eq(12)
+            expect(ranking_bar_labels.count(['R$ 500,00', '#dc3545'])).to eq(12)
           end
         end
       end

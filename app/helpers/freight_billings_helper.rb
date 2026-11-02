@@ -1,10 +1,7 @@
 module FreightBillingsHelper
   BRAND_BLUE = '#2563eb'.freeze
-  BRAND_ORANGE = '#eb6834'.freeze
-  SERIES_COLORS = [BRAND_BLUE, BRAND_ORANGE].freeze
   DANGER_RED = '#dc3545'.freeze
-  SUCCESS_GREEN = '#198754'.freeze
-  MONTHLY_SERIES_COLORS = [DANGER_RED, SUCCESS_GREEN].freeze
+  SERIES_COLORS = [BRAND_BLUE, DANGER_RED].freeze
   CHART_GRID_COLOR = '#eef0f4'.freeze
   CHART_TEXT_COLOR = '#52514e'.freeze
   CHART_HEIGHT = '320px'.freeze
@@ -155,7 +152,7 @@ module FreightBillingsHelper
 
   def freight_billing_monthly_chart(dashboard)
     tag.div(data: freight_billing_monthly_chart_data(dashboard)) do
-      bar_chart(freight_billing_series(dashboard.monthly_data, MONTHLY_SERIES_COLORS),
+      bar_chart(freight_billing_series(dashboard.monthly_data),
                 height: CHART_HEIGHT,
                 legend: 'bottom',
                 **freight_billing_money_options,
@@ -204,8 +201,8 @@ module FreightBillingsHelper
     )
   end
 
-  def freight_billing_series(series, colors = SERIES_COLORS)
-    series.zip(colors).map do |serie, color|
+  def freight_billing_series(series)
+    series.zip(SERIES_COLORS).map do |serie, color|
       serie.merge(color:, dataset: { backgroundColor: color, borderWidth: 0, borderRadius: 4, maxBarThickness: 28 })
     end
   end
