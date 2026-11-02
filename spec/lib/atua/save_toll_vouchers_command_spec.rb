@@ -25,6 +25,16 @@ RSpec.describe Atua::SaveTollVouchersCommand do
     expect(Atua::TollVoucher.sole).to have_attributes(tenant:, code: '2:74855:123', toll_cents: 58_517, import:)
   end
 
+  context 'with a voucher of an excluded plate' do
+    let(:spreadsheet) { Atua::ReadSpreadsheetCommand::Result.new(headers: [*row.keys, 'ds_placa'], rows: [row.merge('ds_placa' => 'BAM-2A26')]) }
+
+    it 'leaves the voucher out of the active ones' do
+      described_class.call(import, spreadsheet)
+
+      expect(Atua::TollVoucher.sole.removed_from_atua_at).to be_present
+    end
+  end
+
   context 'with a voucher of the period that left the report' do
     let!(:gone) { create(:atua_toll_voucher, tenant:, issued_on: Date.new(2026, 10, 2)) }
     let!(:out_of_period) { create(:atua_toll_voucher, tenant:, issued_on: Date.new(2026, 9, 2)) }

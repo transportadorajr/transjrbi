@@ -52,7 +52,7 @@ class FreightBillingsController < BaseController
   end
 
   def documents
-    documents = apply_scopes(current_tenant.atua_transport_documents).without_issuers(current_tenant.excluded_issuers.select(:code))
+    documents = apply_scopes(current_tenant.atua_transport_documents.freights).without_issuers(current_tenant.excluded_issuers.select(:code))
     truck_group_id = @filter_form.truck_group_id
     return documents if truck_group_id.blank?
 

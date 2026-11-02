@@ -168,6 +168,17 @@ RSpec.describe Atua::TransportDocument do
       end
     end
 
+    context 'with a vehicle sale and a freight' do
+      let!(:vehicle_sale) { create(:atua_transport_document, tenant:, document_kind: 'ce', vehicle_sale: true) }
+      let!(:freight) { create(:atua_transport_document, tenant:) }
+
+      it 'separates the vehicle sales from the freights' do
+        expect(described_class.vehicle_sales).to contain_exactly(vehicle_sale)
+        expect(described_class.freights).to contain_exactly(freight)
+        expect(described_class.count).to eq(2)
+      end
+    end
+
     context 'with documents of different periods, plates, customers and situations' do
       let!(:first) do
         create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 1, 0, 5), posted_on: Date.new(2026, 10, 1),

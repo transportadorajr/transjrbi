@@ -943,6 +943,29 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when a truck of the company was sold' do
+        let!(:vehicle_sale) do
+          create(:atua_transport_document, tenant:, number: '3649', document_kind: 'ce', vehicle_sale: true, freight_cents: 71_818_500,
+                                           goods_value_cents: 71_818_500, issued_at: Time.zone.local(2026, 10, 5, 15), posted_on: Date.new(2026, 10, 5),
+                                           plate: 'RVR8J90', taker_code: 7100)
+        end
+
+        scenario 'leaves the vehicle sale out of the gross and the net freight' do
+          visit freight_billing_path(october_by_truck)
+
+          expect(Atua::TransportDocument.where(tenant:).count).to eq(5)
+          expect(all('.counter-card').first(2).map { |card| card.text.squish }).to eq(['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00'])
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
+            [
+              ['Cavalo', 'Frete bruto', 'Frete líquido'],
+              ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00'],
+              ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00'],
+              ['Total', 'R$ 20.000,00', 'R$ 19.100,00'],
+            ],
+          )
+        end
+      end
+
       context 'when the trucks haul sets with different axle counts' do
         let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
         let!(:ls) { create(:truck_group, :ls, tenant:) }

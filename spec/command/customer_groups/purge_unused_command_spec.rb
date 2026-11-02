@@ -34,6 +34,16 @@ RSpec.describe CustomerGroups::PurgeUnusedCommand do
     end
   end
 
+  context 'when the customer only bought a truck of the company recently' do
+    before { create(:atua_transport_document, tenant:, document_kind: 'ce', vehicle_sale: true, taker_code: 1, issued_at: 1.month.ago) }
+
+    it 'removes the group' do
+      expect(described_class.call(tenant)).to eq(1)
+
+      expect(customer.reload.customer_group_id).to be_nil
+    end
+  end
+
   context 'when the customer is only the sender of a recent transport document' do
     before { create(:atua_transport_document, tenant:, sender_code: 1, taker_code: 2, issued_at: 1.month.ago) }
 

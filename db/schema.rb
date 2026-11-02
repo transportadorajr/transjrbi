@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_02_215915) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_224203) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -498,6 +498,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_215915) do
     t.string "issuer_name"
     t.bigint "complemented_transport_document_id"
     t.bigint "product_group_id"
+    t.boolean "vehicle_sale", default: false, null: false
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["complemented_transport_document_id"], name: "idx_on_complemented_transport_document_id_6691e9e8ef"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
@@ -517,6 +518,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_02_215915) do
     t.index ["tenant_id", "taker_code"], name: "index_atua_transport_documents_on_tenant_id_and_taker_code"
     t.index ["tenant_id", "trailer_plate"], name: "index_atua_transport_documents_on_tenant_id_and_trailer_plate"
     t.index ["tenant_id", "vehicle_code"], name: "index_atua_transport_documents_on_tenant_id_and_vehicle_code"
+    t.index ["tenant_id", "vehicle_sale"], name: "index_atua_transport_documents_on_tenant_id_and_vehicle_sale"
   end
 
   create_table "atua_vehicles", force: :cascade do |t|

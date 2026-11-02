@@ -188,6 +188,7 @@ pt-BR:
         number: Número
         series: Série
         document_kind: Tipo do documento
+        vehicle_sale: Venda de veículo
         access_key: Chave de acesso
         issued_at: Emitido em
         posted_on: Lançado em
@@ -1024,6 +1025,7 @@ pt-BR:
     document_kinds:
       cte: CT-e
       ce: CE
+    vehicle_sale: Venda de veículo
     toll_placements:
       in_freight: Incluso no frete
       outside_freight: Fora do frete

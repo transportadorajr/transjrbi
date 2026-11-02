@@ -44,7 +44,7 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
         federal_tax_cents: 5006, ibs_cents: 45, cbs_cents: 408, result_cents: 0, driver_freight_cents: 0,
         advance_cents: nil, commission_cents: 0, insurance_cents: 0, cost_cents: 0,
         result_margin_percentage: BigDecimal('83.75'), distance_km: BigDecimal('1055'),
-        document_kind: 'cte', billing_number: 131_391, charged_at: now, nfse_pending_at: nil
+        document_kind: 'cte', billing_number: 131_391, charged_at: now, nfse_pending_at: nil, vehicle_sale: false
       )
     end
 
@@ -146,6 +146,43 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
         it 'keeps the vehicle of an Arcelor CT-e' do
           expect(document(80_848)).to include(truck_vehicle)
         end
+      end
+    end
+
+    context 'with documents sent by the company itself' do
+      let(:spreadsheet) do
+        fixture = read_atua_fixture(:transport_documents)
+        own_sender = { 'nr_cnpj_cpf_remetente' => '10.212.838/0001-00', 'nm_pessoa_remetente' => 'TRANSJR TRANSPORTADORA LTDA' }
+        rows = [
+          [80_842, 'CE', own_sender.merge('vl_frete_empresa' => 718_185, 'vl_nota_fiscal' => 718_185)],
+          [80_848, 'CE', own_sender.merge('vl_frete_empresa' => 9000, 'vl_nota_fiscal' => 1000)],
+          [80_909, 'CTRC', own_sender.merge('vl_frete_empresa' => 1, 'vl_nota_fiscal' => 1)],
+          [80_824, 'CE', { 'vl_frete_empresa' => 450_000, 'vl_nota_fiscal' => 450_000 }],
+          [81_002, 'CE', own_sender.merge('vl_frete_empresa' => 0, 'vl_nota_fiscal' => 0)],
+        ].map do |code, kind, overrides|
+          fixture.rows.find { |row| row['cd_ctrc'].to_i == code }.merge('id_sintegra' => kind, **overrides)
+        end
+        atua_spreadsheet(headers: fixture.headers, rows:)
+      end
+
+      it 'marks a CE of the company itself whose freight equals the goods value as a vehicle sale' do
+        expect(document(80_842)).to include(document_kind: 'ce', freight_cents: 71_818_500, goods_value_cents: 71_818_500, vehicle_sale: true)
+      end
+
+      it 'keeps an internal shipment CE whose freight differs from the goods value as a freight' do
+        expect(document(80_848)).to include(vehicle_sale: false)
+      end
+
+      it 'keeps a CT-e whose freight equals the goods value as a freight' do
+        expect(document(80_909)).to include(document_kind: 'cte', vehicle_sale: false)
+      end
+
+      it 'keeps a CE sent by another company whose freight equals the goods value as a freight' do
+        expect(document(80_824)).to include(document_kind: 'ce', vehicle_sale: false)
+      end
+
+      it 'keeps a CE of the company itself without freight as a freight' do
+        expect(document(81_002)).to include(vehicle_sale: false)
       end
     end
 
