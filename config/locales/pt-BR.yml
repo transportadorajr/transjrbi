@@ -270,6 +270,7 @@ pt-BR:
         driver_name: Motorista
         driver_document: CPF do motorista
         driver_license: CNH
+        display_name: Nome de exibição
         vehicles_count: Veículos
         plates: Placas
       atua/expense:
@@ -513,6 +514,8 @@ pt-BR:
         remaining_state: Abrange o restante do estado
       excluded_issuer_form:
         code: Emissor
+      driver_form:
+        display_name: Nome de exibição
       truck_group_form:
         name: Nome
         axles: Quantidades de eixos
@@ -723,6 +726,8 @@ pt-BR:
       macro_region:
         create: Cadastrar Macro Região
         update: Salvar Alterações
+      driver:
+        update: Salvar Alterações
       truck_group:
         create: Cadastrar Grupo
         update: Salvar Alterações
@@ -779,6 +784,7 @@ pt-BR:
         destroy: Voltar a considerar
       atua/vehicle:
         show: Visualizar
+        edit: Alterar
         destroy: Excluir
       atua/expense:
         show: Visualizar
@@ -1458,13 +1464,23 @@ pt-BR:
       title: Motoristas
       subtitle: Motoristas vinculados aos veículos cadastrados na Atua.
       confirm_destroy: O motorista sairá do cadastro e não voltará nas próximas importações da Atua. Os CT-es dele continuam no sistema. Deseja continuar?
+    edit:
+      title: Alterar Motorista
+      back: Voltar para o motorista
+    update:
+      success: Motorista atualizado com sucesso.
     destroy:
       success: Motorista excluído com sucesso.
+    form:
+      driver_data: Dados do motorista
+      driver_data_text: O nome de exibição aparece nos gráficos e no faturamento no lugar do nome completo.
+      display_name_hint: Deixe em branco para usar o nome completo do motorista.
     filters:
       name: Nome do motorista
       document: CPF do motorista
     show:
       back: Voltar para motoristas
+      edit: Alterar
       driver_data: Dados do motorista
       vehicles: Veículos do motorista
       transport_documents: Últimos CT-es do motorista

@@ -5,6 +5,7 @@
       <span class="text-muted text-small d-block"><%= t('drivers.code', code: item.driver_code) %></span>
     </div>
   </td>
+  <td class="d-none d-md-table-cell text-break"><%= tax_value(item.display_name) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.driver_document) %></td>
   <td class="d-none d-lg-table-cell text-nowrap"><%= tax_value(item.driver_license) %></td>
   <td class="d-none d-md-table-cell text-break"><%= tax_value(item.plates) %></td>

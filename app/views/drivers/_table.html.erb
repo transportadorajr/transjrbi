@@ -3,6 +3,7 @@
     <thead>
       <tr>
         <%= sortable_header(Atua::Vehicle.human_attribute_name(:driver_name), :driver_name) %>
+        <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:display_name) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:driver_document) %></th>
         <th class="d-none d-lg-table-cell"><%= Atua::Vehicle.human_attribute_name(:driver_license) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::Vehicle.human_attribute_name(:plates) %></th>

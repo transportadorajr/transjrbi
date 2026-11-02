@@ -3,6 +3,7 @@ module DriversHelper
     menus = []
 
     menus << driver_show_menu(driver) if can?(:read, :drivers)
+    menus << driver_edit_menu(driver) if can?(:update, :drivers)
     menus << driver_destroy_menu(driver) if can?(:destroy, :drivers)
 
     menus
@@ -10,6 +11,15 @@ module DriversHelper
 
   def driver_dom_id(driver)
     "driver_#{driver.driver_code}"
+  end
+
+  def driver_edit_button(driver)
+    return unless can?(:update, :drivers)
+
+    link_to edit_driver_path(driver.driver_code), class: 'btn btn-outline-secondary btn-round' do
+      concat icon(:pencil, class: 'me-2')
+      concat t('drivers.show.edit')
+    end
   end
 
   def driver_vehicles_table(vehicles)
@@ -40,6 +50,10 @@ module DriversHelper
 
   def driver_show_menu(driver)
     Menu.new(name: :show, record: driver, url: driver_path(driver.driver_code), icon: :eye)
+  end
+
+  def driver_edit_menu(driver)
+    Menu.new(name: :edit, record: driver, url: edit_driver_path(driver.driver_code), icon: :pencil)
   end
 
   def driver_destroy_menu(driver)

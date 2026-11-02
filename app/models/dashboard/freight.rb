@@ -373,7 +373,7 @@ module Dashboard
     def label_for(key, grouped)
       label = case dimension
               when 'vehicle' then key
-              when 'driver' then grouped.filter_map { |entry| entry.driver_name.presence }.first
+              when 'driver' then driver_display_names[key].presence || grouped.filter_map { |entry| entry.driver_name.presence }.first
               when 'customer_group' then customer_group_names[key]
               when 'origin' then origin_label(*key)
               when 'macro_region' then macro_region_names[key]
@@ -385,14 +385,23 @@ module Dashboard
     def ranking_labels
       return ranking_rows.map(&:label) unless ABBREVIATED_DIMENSIONS.include?(dimension)
 
-      abbreviated = ranking_rows.map { |row| ranking_label(row.label) }
+      abbreviated = ranking_rows.map { |row| ranking_label(row) }
       repeated = abbreviated.tally.select { |_, count| count > 1 }.keys
 
       ranking_rows.zip(abbreviated).map { |row, label| repeated.include?(label) ? row.label : label }
     end
 
-    def ranking_label(name)
-      named_customer_group?(name) ? name : abbreviate(name)
+    def ranking_label(row)
+      named_customer_group?(row.label) || displayed_driver?(row) ? row.label : abbreviate(row.label)
+    end
+
+    def displayed_driver?(row)
+      dimension == 'driver' && driver_display_names[row.key.to_i].present?
+    end
+
+    def driver_display_names
+      @driver_display_names ||= Driver.where(tenant_id: documents.unscope(:order, :select).select(:tenant_id))
+        .where(code: entries.filter_map(&:driver_code).uniq).pluck(:code, :display_name).to_h
     end
 
     def named_customer_group?(name)

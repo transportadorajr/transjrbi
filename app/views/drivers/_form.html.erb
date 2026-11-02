@@ -1,0 +1,21 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('drivers.form.driver_data') %></p>
+    <p class="form-card-subtitle"><%= t('drivers.form.driver_data_text') %></p>
+  </div>
+  <%= simple_form_for(driver_form, url: driver_path(driver_form.code), method: :patch) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :display_name, required: false, hint: t('drivers.form.display_name_hint'),
+                                     input_html: { class: 'form-control text-uppercase', maxlength: DriverForm::DISPLAY_NAME_MAX_LENGTH, autocomplete: 'off' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.driver.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), driver_path(driver_form.code), class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

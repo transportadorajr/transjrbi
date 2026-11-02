@@ -65,9 +65,9 @@ describe 'Drivers' do
         expect(Atua::Vehicle.count).to eq(5)
         expect(html_table_to_rows).to eq(
           [
-            ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
-            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', 'Opções Visualizar Excluir'],
-            ['JOSE DA SILVA Código 760', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', 'Opções Visualizar Excluir'],
+            ['Motorista', 'Nome de exibição', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
+            ['ANA SOUZA Código 701', '-', '-', '-', 'RHJ4E07', 'Opções Visualizar Alterar Excluir'],
+            ['JOSE DA SILVA Código 760', '-', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', 'Opções Visualizar Alterar Excluir'],
           ],
         )
         expect(page).to have_text('2 registros')
@@ -83,8 +83,8 @@ describe 'Drivers' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
-            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', 'Opções Visualizar Excluir'],
+            ['Motorista', 'Nome de exibição', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
+            ['ANA SOUZA Código 701', '-', '-', '-', 'RHJ4E07', 'Opções Visualizar Alterar Excluir'],
           ],
         )
       end
@@ -96,8 +96,8 @@ describe 'Drivers' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
-            ['JOSE DA SILVA Código 760', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', 'Opções Visualizar Excluir'],
+            ['Motorista', 'Nome de exibição', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
+            ['JOSE DA SILVA Código 760', '-', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', 'Opções Visualizar Alterar Excluir'],
           ],
         )
       end
@@ -114,8 +114,8 @@ describe 'Drivers' do
         expect(page).to have_text('Motorista excluído com sucesso.')
         expect(html_table_to_rows).to eq(
           [
-            ['Motorista', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
-            ['ANA SOUZA Código 701', '-', '-', 'RHJ4E07', 'Opções Visualizar Excluir'],
+            ['Motorista', 'Nome de exibição', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
+            ['ANA SOUZA Código 701', '-', '-', '-', 'RHJ4E07', 'Opções Visualizar Alterar Excluir'],
           ],
         )
         expect(ExcludedDriver.last).to have_attributes(tenant_id: tenant.id, code: 760, name: 'JOSE DA SILVA')
@@ -138,6 +138,57 @@ describe 'Drivers' do
 
       scenario 'does not show a driver of another tenant' do
         visit driver_path(703)
+
+        expect(page.status_code).to eq(404)
+      end
+
+      scenario 'edits the display name of a driver from the details' do
+        visit driver_path(760)
+        click_on 'Alterar'
+
+        expect(page).to have_current_path(edit_driver_path(760))
+        fill_in 'Nome de exibição', with: '  jose   silva '
+
+        expect { click_on 'Salvar Alterações' }.to change(Driver, :count).by(1).and(not_change(Atua::Vehicle, :count))
+
+        expect(page).to have_current_path(driver_path(760))
+        expect(page).to have_text('Motorista atualizado com sucesso.')
+        expect(dl_to_hash('#driver_data')).to include('Motorista' => 'JOSE DA SILVA', 'Nome de exibição' => 'JOSE SILVA')
+        expect(Driver.last).to have_attributes(tenant_id: tenant.id, code: 760, display_name: 'JOSE SILVA')
+        expect(truck.reload.driver_name).to eq('JOSE DA SILVA')
+      end
+
+      context 'when the driver already has a display name' do
+        let!(:driver) { create(:driver, tenant:, code: 760, display_name: 'JOSE SILVA') }
+
+        scenario 'shows the display name on the listing' do
+          visit drivers_path
+
+          expect(Driver.count).to eq(1)
+          expect(html_table_to_rows).to eq(
+            [
+              ['Motorista', 'Nome de exibição', 'CPF do motorista', 'CNH', 'Placas', 'Ações'],
+              ['ANA SOUZA Código 701', '-', '-', '-', 'RHJ4E07', 'Opções Visualizar Alterar Excluir'],
+              ['JOSE DA SILVA Código 760', 'JOSE SILVA', '808.542.250-64', '604269044', 'AGL9451, EXU0F72', 'Opções Visualizar Alterar Excluir'],
+            ],
+          )
+        end
+
+        scenario 'clears the display name to fall back to the full name' do
+          visit edit_driver_path(760)
+
+          expect(page).to have_field('Nome de exibição', with: 'JOSE SILVA')
+          fill_in 'Nome de exibição', with: ''
+
+          expect { click_on 'Salvar Alterações' }.not_to change(Driver, :count)
+
+          expect(page).to have_text('Motorista atualizado com sucesso.')
+          expect(driver.reload.display_name).to be_nil
+        end
+      end
+
+      scenario 'does not edit a driver of another tenant' do
+        expect { page.driver.submit :patch, driver_path(703), { driver: { display_name: 'INVASOR' } } }.not_to change(Driver, :count)
 
         expect(page.status_code).to eq(404)
       end
@@ -186,6 +237,7 @@ describe 'Drivers' do
         expect(dl_to_hash('#driver_data')).to eq(
           'Código do motorista' => '760',
           'Motorista' => 'JOSE DA SILVA',
+          'Nome de exibição' => '-',
           'CPF do motorista' => '808.542.250-64',
           'CNH' => '604269044',
           'Veículos' => '2',
@@ -289,6 +341,15 @@ describe 'Drivers' do
 
         expect(page).to have_text('Motorista excluído com sucesso.')
       end
+
+      scenario 'edits the display name of a driver' do
+        visit edit_driver_path(760)
+        fill_in 'Nome de exibição', with: 'JOSE'
+
+        expect { click_on 'Salvar Alterações' }.to change(Driver, :count).by(1)
+
+        expect(Driver.last).to have_attributes(code: 760, display_name: 'JOSE')
+      end
     end
 
     context 'with read access to the drivers' do
@@ -315,6 +376,18 @@ describe 'Drivers' do
 
         expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
         expect(vehicle.reload.driver_code).to eq(760)
+      end
+
+      scenario 'cannot edit a driver' do
+        visit driver_path(760)
+
+        expect(page).to have_css('#driver_data', text: 'JOSE DA SILVA')
+        expect(page).to have_no_link('Alterar')
+
+        visit edit_driver_path(760)
+
+        expect(page).to have_current_path(root_path)
+        expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
       end
 
       context 'when the driver has a transport document' do

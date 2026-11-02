@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_004435) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_172300) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -596,6 +596,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_004435) do
     t.index ["tenant_id"], name: "index_customer_groups_on_tenant_id"
   end
 
+  create_table "drivers", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "code", null: false
+    t.string "display_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "code"], name: "index_drivers_on_tenant_id_and_code", unique: true
+  end
+
   create_table "empty_leg_transport_documents", force: :cascade do |t|
     t.bigint "empty_leg_id", null: false
     t.bigint "tenant_id", null: false
@@ -980,6 +989,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_004435) do
   add_foreign_key "commission_rules", "customer_groups"
   add_foreign_key "commission_rules", "tenants"
   add_foreign_key "customer_groups", "tenants"
+  add_foreign_key "drivers", "tenants"
   add_foreign_key "empty_leg_transport_documents", "empty_legs", on_delete: :cascade
   add_foreign_key "empty_leg_transport_documents", "tenants"
   add_foreign_key "empty_legs", "locations", column: "destination_id"
