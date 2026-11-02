@@ -165,6 +165,7 @@ RSpec.describe TruckGroupForm do
       end
 
       it 'updates the group keeping its own name and axles and recalculates the fuel' do
+        document.update!(issued_at: Time.current)
         form = described_class.for_truck_group(rodotrem)
 
         expect(form).to have_attributes(axles: [9], fuel_percentage: '35', active: true)
