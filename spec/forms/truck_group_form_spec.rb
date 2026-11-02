@@ -92,7 +92,7 @@ RSpec.describe TruckGroupForm do
     context 'with other groups of the tenant' do
       let!(:rodotrem) { create(:truck_group, tenant:) }
 
-      before { create(:truck_group, :ls, tenant:, name: 'LS antigo', activated_at: nil) }
+      before { create(:truck_group, :ls, tenant:, name: '6 eixos antigo', activated_at: nil) }
 
       it 'rejects a name already in use by the tenant' do
         form = described_class.new(tenant:, name: 'Rodotrem', axles: ['7'], fuel_percentage: '30')
@@ -124,7 +124,7 @@ RSpec.describe TruckGroupForm do
       end
 
       it 'accepts an axle count of an inactive group' do
-        form = described_class.new(tenant:, name: 'LS', axles: ['6'], fuel_percentage: '30')
+        form = described_class.new(tenant:, name: '6 eixos', axles: ['6'], fuel_percentage: '30')
 
         expect(form.save).to be(true)
       end

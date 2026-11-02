@@ -1,7 +1,6 @@
 class TruckGroup < ApplicationRecord
   include Sortable
 
-  NONE = 'none'.freeze
   AXLE_OPTIONS = (2..9).to_a.freeze
 
   sortable :name
