@@ -1,4 +1,292 @@
-- name: GRANDE BH
+- name: OESTE PARANA
+  state: PR
+  cities:
+    - Assis Chateaubriand
+    - Diamante d'Oeste
+    - Entre Rios do Oeste
+    - Formosa do Oeste
+    - Guaíra
+    - Iracema do Oeste
+    - Jesuítas
+    - Marechal Cândido Rondon
+    - Maripá
+    - Mercedes
+    - Nova Santa Rosa
+    - Ouro Verde do Oeste
+    - Palotina
+    - Pato Bragado
+    - Quatro Pontes
+    - Santa Helena
+    - São José das Palmeiras
+    - São Pedro do Iguaçu
+    - Terra Roxa
+    - Toledo
+    - Tupãssi
+    - Anahy
+    - Boa Vista da Aparecida
+    - Braganey
+    - Cafelândia
+    - Campo Bonito
+    - Capitão Leônidas Marques
+    - Cascavel
+    - Catanduvas
+    - Corbélia
+    - Diamante do Sul
+    - Guaraniaçu
+    - Ibema
+    - Iguatu
+    - Lindoeste
+    - Nova Aurora
+    - Santa Lúcia
+    - Santa Tereza do Oeste
+    - Três Barras do Paraná
+    - Céu Azul
+    - Foz do Iguaçu
+    - Itaipulândia
+    - Matelândia
+    - Medianeira
+    - Missal
+    - Ramilândia
+    - Santa Terezinha de Itaipu
+    - São Miguel do Iguaçu
+    - Serranópolis do Iguaçu
+    - Vera Cruz do Oeste
+- name: REGIÃO CTBA
+  state: PR
+  cities:
+    - Curitiba
+    - Adrianópolis
+    - Agudos do Sul
+    - Almirante Tamandaré
+    - Araucária
+    - Balsa Nova
+    - Bocaiúva do Sul
+    - Campina Grande do Sul
+    - Campo do Tenente
+    - Campo Largo
+    - Campo Magro
+    - Cerro Azul
+    - Colombo
+    - Contenda
+    - Doutor Ulysses
+    - Fazenda Rio Grande
+    - Itaperuçu
+    - Lapa
+    - Mandirituba
+    - Piên
+    - Pinhais
+    - Piraquara
+    - Quatro Barras
+    - Quitandinha
+    - Rio Branco do Sul
+    - Rio Negro
+    - São José dos Pinhais
+    - Tijucas do Sul
+    - Tunas do Paraná
+    - Paranaguá
+    - Antonina
+    - Morretes
+    - Pontal do Paraná
+    - Matinhos
+    - Guaratuba
+- name: SÃO PAULO CAPITAL
+  previous_names:
+    - SAO PAULO REGIAO METROCAPITAL
+  state: SP
+  cities:
+    - Arujá
+    - Barueri
+    - Biritiba-Mirim
+    - Caieiras
+    - Cajamar
+    - Carapicuíba
+    - Cotia
+    - Diadema
+    - Embu das Artes
+    - Embu-Guaçu
+    - Ferraz de Vasconcelos
+    - Francisco Morato
+    - Franco da Rocha
+    - Guararema
+    - Guarulhos
+    - Itapecerica da Serra
+    - Itapevi
+    - Itaquaquecetuba
+    - Jandira
+    - Juquitiba
+    - Mairiporã
+    - Mauá
+    - Mogi das Cruzes
+    - Osasco
+    - Pirapora do Bom Jesus
+    - Poá
+    - Ribeirão Pires
+    - Rio Grande da Serra
+    - Salesópolis
+    - Santa Isabel
+    - Santana de Parnaíba
+    - Santo André
+    - São Bernardo do Campo
+    - São Caetano do Sul
+    - São Lourenço da Serra
+    - São Paulo
+    - Suzano
+    - Taboão da Serra
+    - Vargem Grande Paulista
+    - Cubatão
+    - Araçariguama
+- name: NORTE PARANA
+  state: PR
+  cities:
+    - Londrina
+    - Maringá
+    - Apucarana
+    - Arapongas
+    - Cambé
+    - Rolândia
+    - Ibiporã
+    - Sarandi
+    - Marialva
+    - Mandaguari
+    - Mandaguaçu
+    - Paiçandu
+    - Astorga
+    - Jandaia do Sul
+    - Ivaiporã
+    - Faxinal
+    - Bela Vista do Paraíso
+    - Primeiro de Maio
+    - Sertanópolis
+    - Porecatu
+    - Centenário do Sul
+    - Jaguapitã
+    - Tamarana
+    - Califórnia
+    - Marilândia do Sul
+    - Cambira
+    - Nova Esperança
+    - Colorado
+    - Paranavaí
+    - Umuarama
+    - Cianorte
+    - Cidade Gaúcha
+    - Loanda
+    - Cornélio Procópio
+    - Bandeirantes
+    - Santo Antônio da Platina
+    - Jacarezinho
+    - Andirá
+    - Cambará
+    - Ibaiti
+    - Siqueira Campos
+    - Wenceslau Braz
+    - Assaí
+    - Uraí
+    - Sertaneja
+    - Leópolis
+    - Santa Mariana
+    - Nova Fátima
+    - Ribeirão do Pinhal
+    - Carlópolis
+    - Joaquim Távora
+    - Ribeirão Claro
+    - Santa Isabel do Ivaí
+    - Planaltina do Paraná
+    - Amaporã
+    - Alto Paraná
+    - Tapira
+    - Paraíso do Norte
+    - Nova Londrina
+    - Terra Rica
+    - Querência do Norte
+    - Santa Cruz de Monte Castelo
+    - Guairaçá
+    - Mirador
+    - Tamboara
+    - Nova Aliança do Ivaí
+    - São Carlos do Ivaí
+    - Santa Mônica
+    - Marilena
+    - Diamante do Norte
+    - Itaúna do Sul
+    - Porto Rico
+    - São Pedro do Paraná
+    - Cruzeiro do Sul
+    - Inajá
+    - Jardim Olinda
+    - Paranapoema
+    - Santo Antônio do Caiuá
+    - São João do Caiuá
+    - Paranacity
+- name: INTERIOR DE SÃO PAULO
+  previous_names:
+    - INTERIOR SP
+  state: SP
+  remaining_state: true
+- name: PRUDENTE / ASSIS / OURINHOS / SALTO GRANDE / AGUDOS
+  state: SP
+  cities:
+    - Presidente Prudente
+    - Álvares Machado
+    - Presidente Bernardes
+    - Pirapozinho
+    - Regente Feijó
+    - Martinópolis
+    - Indiana
+    - Santo Anastácio
+    - Presidente Venceslau
+    - Presidente Epitácio
+    - Rancharia
+    - Tarabai
+    - Anhumas
+    - Caiabu
+    - Taciba
+    - Narandiba
+    - Alfredo Marcondes
+    - Santo Expedito
+    - Emilianópolis
+    - Estrela do Norte
+    - Sandovalina
+    - Iepê
+    - Teodoro Sampaio
+    - Mirante do Paranapanema
+    - Assis
+    - Cândido Mota
+    - Paraguaçu Paulista
+    - Maracaí
+    - Tarumã
+    - Palmital
+    - Platina
+    - Echaporã
+    - Florínea
+    - Cruzália
+    - Pedrinhas Paulista
+    - Lutécia
+    - Borá
+    - Ibirarema
+    - Campos Novos Paulista
+    - Ourinhos
+    - Salto Grande
+    - Chavantes
+    - Santa Cruz do Rio Pardo
+    - Ipaussu
+    - Bernardino de Campos
+    - Canitar
+    - Ribeirão do Sul
+    - São Pedro do Turvo
+    - Espírito Santo do Turvo
+    - Óleo
+    - Timburi
+    - Piraju
+    - Fartura
+    - Manduri
+    - Sarutaiá
+    - Taguaí
+    - Tejupá
+    - Agudos
+- name: MINAS GRANDE BH
+  previous_names:
+    - GRANDE BH
   state: MG
   cities:
     - Baldim
@@ -66,103 +354,219 @@
     - São José do Goiabal
     - Sobrália
     - Vargem Alegre
-- name: OESTE PARANA
+- name: NORTÃO DE MINAS
+  state: MG
+  cities:
+    - Montes Claros
+    - Janaúba
+    - Januária
+    - Pirapora
+    - Bocaiúva
+    - Salinas
+    - Taiobeiras
+    - Espinosa
+    - Porteirinha
+    - Brasília de Minas
+    - São Francisco
+    - Várzea da Palma
+    - Buritizeiro
+    - Manga
+    - Francisco Sá
+    - Capitão Enéas
+    - Jaíba
+    - Mato Verde
+    - Monte Azul
+    - Coração de Jesus
+    - Grão Mogol
+    - Itacarambi
+    - Montalvânia
+    - Rio Pardo de Minas
+    - São João da Ponte
+    - Varzelândia
+    - Mirabela
+    - Francisco Dumont
+    - Engenheiro Navarro
+    - Claro dos Poções
+    - Lagoa dos Patos
+    - Jequitaí
+    - Ibiaí
+    - Lassance
+    - São João da Lagoa
+    - Glaucilândia
+    - Juramento
+    - Itacambira
+    - Botumirim
+    - Riacho dos Machados
+    - Serranópolis de Minas
+    - Pai Pedro
+    - Nova Porteirinha
+    - Verdelândia
+    - Matias Cardoso
+    - Pedras de Maria da Cruz
+    - São João das Missões
+    - Japonvar
+    - Patis
+    - Ubaí
+    - Luislândia
+    - Icaraí de Minas
+    - Lontra
+    - Pintópolis
+- name: REGIÃO DE JUIZ DE FORA
+  state: MG
+  cities:
+    - Juiz de Fora
+    - Aracitaba
+    - Belmiro Braga
+    - Bias Fortes
+    - Bicas
+    - Chácara
+    - Chiador
+    - Coronel Pacheco
+    - Descoberto
+    - Ewbank da Câmara
+    - Goianá
+    - Guarará
+    - Lima Duarte
+    - Mar de Espanha
+    - Maripá de Minas
+    - Matias Barbosa
+    - Olaria
+    - Oliveira Fortes
+    - Paiva
+    - Pedro Teixeira
+    - Pequeri
+    - Piau
+    - Rio Novo
+    - Rio Preto
+    - Rochedo de Minas
+    - Santa Bárbara do Monte Verde
+    - Santa Rita de Jacutinga
+    - Santana do Deserto
+    - Santos Dumont
+    - São João Nepomuceno
+    - Senador Cortes
+    - Simão Pereira
+    - Tabuleiro
+- name: REGIÃO UBERLANDIA E UBERABA
+  state: MG
+  cities:
+    - Uberlândia
+    - Uberaba
+    - Araguari
+    - Araporã
+    - Canápolis
+    - Cascalho Rico
+    - Centralina
+    - Indianópolis
+    - Monte Alegre de Minas
+    - Prata
+    - Tupaciguara
+    - Água Comprida
+    - Campo Florido
+    - Conceição das Alagoas
+    - Conquista
+    - Delta
+    - Veríssimo
+    - Sacramento
+    - Nova Ponte
+    - Ituiutaba
+    - Cachoeira Dourada
+    - Capinópolis
+    - Gurinhatã
+    - Ipiaçu
+    - Santa Vitória
+    - Frutal
+    - Campina Verde
+    - Carneirinho
+    - Comendador Gomes
+    - Fronteira
+    - Itapagipe
+    - Iturama
+    - Limeira do Oeste
+    - Pirajuba
+    - Planura
+    - São Francisco de Sales
+    - União de Minas
+- name: BAHIA
+  state: BA
+  remaining_state: true
+- name: RIO DE JANEIRO CAPITAL
+  state: RJ
+  cities:
+    - Rio de Janeiro
+    - Belford Roxo
+    - Cachoeiras de Macacu
+    - Duque de Caxias
+    - Guapimirim
+    - Itaboraí
+    - Itaguaí
+    - Japeri
+    - Magé
+    - Maricá
+    - Mesquita
+    - Nilópolis
+    - Niterói
+    - Nova Iguaçu
+    - Paracambi
+    - Petrópolis
+    - Queimados
+    - Rio Bonito
+    - São Gonçalo
+    - São João de Meriti
+    - Seropédica
+    - Tanguá
+- name: CAMPOS GOYTACAZES E INTERIOR
+  state: RJ
+  remaining_state: true
+- name: ESPIRITO SANTO
+  state: ES
+  remaining_state: true
+- name: SUDOESTE PARANAENSE
   state: PR
   cities:
-    - Assis Chateaubriand
-    - Diamante d'Oeste
-    - Entre Rios do Oeste
-    - Formosa do Oeste
-    - Guaíra
-    - Iracema do Oeste
-    - Jesuítas
-    - Marechal Cândido Rondon
-    - Maripá
-    - Mercedes
-    - Nova Santa Rosa
-    - Ouro Verde do Oeste
-    - Palotina
-    - Pato Bragado
-    - Quatro Pontes
-    - Santa Helena
-    - São José das Palmeiras
-    - São Pedro do Iguaçu
-    - Terra Roxa
-    - Toledo
-    - Tupãssi
-    - Anahy
-    - Boa Vista da Aparecida
-    - Braganey
-    - Cafelândia
-    - Campo Bonito
-    - Capitão Leônidas Marques
-    - Cascavel
-    - Catanduvas
-    - Corbélia
-    - Diamante do Sul
-    - Guaraniaçu
-    - Ibema
-    - Iguatu
-    - Lindoeste
-    - Nova Aurora
-    - Santa Lúcia
-    - Santa Tereza do Oeste
-    - Três Barras do Paraná
-    - Céu Azul
-    - Foz do Iguaçu
-    - Itaipulândia
-    - Matelândia
-    - Medianeira
-    - Missal
-    - Ramilândia
-    - Santa Terezinha de Itaipu
-    - São Miguel do Iguaçu
-    - Serranópolis do Iguaçu
-    - Vera Cruz do Oeste
-- name: SAO PAULO REGIAO METROCAPITAL
-  state: SP
-  cities:
-    - Arujá
-    - Barueri
-    - Biritiba-Mirim
-    - Caieiras
-    - Cajamar
-    - Carapicuíba
-    - Cotia
-    - Diadema
-    - Embu das Artes
-    - Embu-Guaçu
-    - Ferraz de Vasconcelos
-    - Francisco Morato
-    - Franco da Rocha
-    - Guararema
-    - Guarulhos
-    - Itapecerica da Serra
-    - Itapevi
-    - Itaquaquecetuba
-    - Jandira
-    - Juquitiba
-    - Mairiporã
-    - Mauá
-    - Mogi das Cruzes
-    - Osasco
-    - Pirapora do Bom Jesus
-    - Poá
-    - Ribeirão Pires
-    - Rio Grande da Serra
-    - Salesópolis
-    - Santa Isabel
-    - Santana de Parnaíba
-    - Santo André
-    - São Bernardo do Campo
-    - São Caetano do Sul
-    - São Lourenço da Serra
-    - São Paulo
-    - Suzano
-    - Taboão da Serra
-    - Vargem Grande Paulista
-    - Cubatão
-    - Araçariguama
-- name: INTERIOR SP
-  state: SP
+    - Francisco Beltrão
+    - Pato Branco
+    - Ampére
+    - Barracão
+    - Bela Vista da Caroba
+    - Boa Esperança do Iguaçu
+    - Bom Jesus do Sul
+    - Bom Sucesso do Sul
+    - Capanema
+    - Chopinzinho
+    - Coronel Vivida
+    - Cruzeiro do Iguaçu
+    - Dois Vizinhos
+    - Enéas Marques
+    - Flor da Serra do Sul
+    - Itapejara d'Oeste
+    - Manfrinópolis
+    - Mariópolis
+    - Marmeleiro
+    - Nova Esperança do Sudoeste
+    - Nova Prata do Iguaçu
+    - Pérola d'Oeste
+    - Pinhal de São Bento
+    - Planalto
+    - Pranchita
+    - Realeza
+    - Renascença
+    - Salgado Filho
+    - Salto do Lontra
+    - Santa Izabel do Oeste
+    - Santo Antônio do Sudoeste
+    - São João
+    - São Jorge d'Oeste
+    - Saudade do Iguaçu
+    - Sulina
+    - Verê
+    - Vitorino
+- name: GOIANIA
+  state: GO
+  remaining_state: true
+- name: CUIABA MT
+  state: MT
+  remaining_state: true
+- name: SANTA CATARINA
+  state: SC
   remaining_state: true

@@ -1,7 +1,7 @@
 class MacroRegionForm < BaseForm
   attribute :name, :string
   attribute :state, :string
-  attribute :cities, :string
+  attribute :city_ids, default: -> { [] }
   attribute :remaining_state, :boolean, default: false
 
   before_validation :normalize_fields
@@ -11,6 +11,7 @@ class MacroRegionForm < BaseForm
   validate :name_must_be_unique
   validate :listed_region_must_have_cities
   validate :remaining_state_must_be_unique
+  validate :cities_must_belong_to_the_state
   validate :cities_must_not_be_in_another_region
 
   attr_accessor :tenant
@@ -20,7 +21,7 @@ class MacroRegionForm < BaseForm
 
   class << self
     def for_macro_region(macro_region)
-      form = new(name: macro_region.name, state: macro_region.state, cities: macro_region.cities.join("\n"),
+      form = new(name: macro_region.name, state: macro_region.state, city_ids: macro_region.city_ids,
                  remaining_state: macro_region.remaining_state, tenant: macro_region.tenant)
       form.macro_region = macro_region
       form
@@ -31,14 +32,21 @@ class MacroRegionForm < BaseForm
     @macro_region ||= tenant.macro_regions.new
   end
 
-  def city_list
-    return [] if remaining_state
+  def selected_cities
+    return City.none if remaining_state
 
-    cities.to_s.lines.map(&:squish).compact_blank.uniq { |city| CustomerGroup.compact(city) }
+    tenant.cities.where(id: city_ids)
+  end
+
+  def available_cities
+    tenant.cities.where(macro_region_id: [nil, macro_region.id].uniq).order(:state, City.sort_text(City.arel_table[:name]))
   end
 
   def submit
-    macro_region.update!(name:, state:, cities: city_list, remaining_state:)
+    transaction do
+      macro_region.update!(name:, state:, remaining_state:)
+      macro_region.cities = selected_cities.to_a
+    end
 
     MacroRegions::AssignCommand.call(tenant)
   end
@@ -48,6 +56,7 @@ class MacroRegionForm < BaseForm
   def normalize_fields
     self.name = name.to_s.squish
     self.state = state.to_s.squish.upcase
+    self.city_ids = Array(city_ids).compact_blank.map(&:to_i).uniq
   end
 
   def name_must_be_unique
@@ -57,9 +66,9 @@ class MacroRegionForm < BaseForm
   end
 
   def listed_region_must_have_cities
-    return if remaining_state || city_list.any?
+    return if remaining_state || selected_cities.any?
 
-    errors.add(:cities, :blank)
+    errors.add(:city_ids, :blank)
   end
 
   def remaining_state_must_be_unique
@@ -68,11 +77,16 @@ class MacroRegionForm < BaseForm
     errors.add(:remaining_state, :taken)
   end
 
-  def cities_must_not_be_in_another_region
-    regions = other_regions.where(state:).to_a
-    taken = city_list.select { |city| regions.any? { |region| region.covers_city?(city) } }
+  def cities_must_belong_to_the_state
+    other_state = selected_cities.where.not(state:).pluck(:name)
 
-    errors.add(:cities, :taken, cities: taken.to_sentence) if taken.any?
+    errors.add(:city_ids, :other_state, cities: other_state.to_sentence, state:) if state.present? && other_state.any?
+  end
+
+  def cities_must_not_be_in_another_region
+    taken = selected_cities.where.not(macro_region_id: nil).where.not(macro_region_id: macro_region.id).pluck(:name)
+
+    errors.add(:city_ids, :taken, cities: taken.to_sentence) if taken.any?
   end
 
   def other_regions

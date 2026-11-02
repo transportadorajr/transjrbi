@@ -6,7 +6,7 @@ RSpec.describe Atua::ApplyRealOriginCommand do
   let(:billing_origin) { { origin_city: 'JUIZ DE FORA', origin_state: 'MG', origin_city_code: 1234, destination_city: 'FOZ DO IGUACU', destination_state: 'PR' } }
 
   context 'with documents billed to Foz do Iguacu' do
-    let!(:west_parana) { create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', cities: ['Foz do Iguaçu']) }
+    let!(:west_parana) { create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', city_names: ['Foz do Iguaçu']) }
     let!(:billing_only) { create(:atua_transport_document, tenant:, document_kind: 'ce', taker_name: 'ARCELORMITTAL BRASIL S.A.', **billing_origin) }
     let!(:real_trip) { create(:atua_transport_document, tenant:, document_kind: 'cte', taker_name: 'ARCELORMITTAL BRASIL S.A.', **billing_origin) }
     let!(:other_customer) { create(:atua_transport_document, tenant:, document_kind: 'ce', taker_name: 'USIMINAS', **billing_origin) }

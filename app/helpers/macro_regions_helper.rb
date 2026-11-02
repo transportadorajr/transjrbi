@@ -18,7 +18,11 @@ module MacroRegionsHelper
   def macro_region_cities(macro_region)
     return t('macro_regions.show.remaining_state_cities', state: macro_region.state) if macro_region.remaining_state?
 
-    macro_region.cities.join(', ')
+    macro_region.cities.sort_by { |city| I18n.transliterate(city.name) }.map(&:name).join(', ')
+  end
+
+  def macro_region_cities_field(form, macro_region_form)
+    render 'macro_regions/cities_field', form:, macro_region_form:, options: macro_region_city_options(macro_region_form)
   end
 
   def macro_region_form_url(macro_region_form)
@@ -43,6 +47,10 @@ module MacroRegionsHelper
   end
 
   private
+
+  def macro_region_city_options(macro_region_form)
+    macro_region_form.available_cities.map { |city| [t('tax.city', city: city.name, state: city.state), city.id] }
+  end
 
   def macro_region_show_menu(macro_region)
     Menu.new(name: :show, record: macro_region, url: macro_region_path(macro_region), icon: :eye)

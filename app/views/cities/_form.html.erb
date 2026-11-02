@@ -1,0 +1,31 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('cities.form.city_data') %></p>
+    <p class="form-card-subtitle"><%= t('cities.form.city_data_text') %></p>
+  </div>
+  <%= simple_form_for(city_form, url: city_form_url(city_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :state, required: true, hint: t('cities.form.state_hint'),
+                              input_html: { class: 'form-control text-uppercase', maxlength: 2, autocomplete: 'off' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :macro_region_id,
+                      collection: city_macro_region_options(city_form),
+                      include_blank: t('cities.no_macro_region'),
+                      hint: t('cities.form.macro_region_hint'),
+                      input_html: { class: 'form-select' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, city_form_submit_label(city_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), cities_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

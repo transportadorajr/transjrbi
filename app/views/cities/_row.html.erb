@@ -1,0 +1,10 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <%= link_to item.name, city_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+  </td>
+  <td><%= item.state %></td>
+  <td class="d-none d-md-table-cell"><%= city_macro_region_name(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(cities_menu(item)) %>
+  </td>
+</tr>

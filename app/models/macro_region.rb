@@ -8,6 +8,7 @@ class MacroRegion < ApplicationRecord
   belongs_to :tenant
   has_many :transport_documents, class_name: 'Atua::TransportDocument', foreign_key: :origin_macro_region_id,
                                  inverse_of: :origin_macro_region, dependent: :nullify
+  has_many :cities, dependent: :nullify
 
   validates :name, presence: true, uniqueness: { scope: :tenant_id }
   validates :state, format: { with: /\A[A-Z]{2}\z/ }
@@ -25,7 +26,7 @@ class MacroRegion < ApplicationRecord
   def covers_city?(city)
     compacted_city = CustomerGroup.compact(city)
 
-    compacted_city.present? && cities.any? { |region_city| CustomerGroup.compact(region_city) == compacted_city }
+    compacted_city.present? && cities.any? { |region_city| region_city.compacted_name == compacted_city }
   end
 end
 
@@ -34,7 +35,6 @@ end
 # Table name: macro_regions
 #
 #  id              :bigint           not null, primary key
-#  cities          :string           default([]), not null, is an Array
 #  name            :string           not null
 #  remaining_state :boolean          default(FALSE), not null
 #  state           :string           not null

@@ -14,7 +14,7 @@ describe 'Macro regions' do
 
     scenario 'does not create a region' do
       expect do
-        page.driver.submit :post, macro_regions_path, { macro_region: { name: 'GRANDE BH', state: 'MG', cities: 'Betim' } }
+        page.driver.submit :post, macro_regions_path, { macro_region: { name: 'GRANDE BH', state: 'MG', city_ids: [] } }
       end.not_to change(MacroRegion, :count)
 
       expect(page).to have_current_path(new_user_session_path)
@@ -93,7 +93,7 @@ describe 'Macro regions' do
             'Nome' => vale_do_aco.name,
             'UF' => vale_do_aco.state,
             'Abrangência' => '3 cidades',
-            'Cidades' => 'Ipatinga, Coronel Fabriciano, Timóteo',
+            'Cidades' => 'Coronel Fabriciano, Ipatinga, Timóteo',
             'CT-es com origem na região' => '2',
           )
         end
@@ -120,21 +120,40 @@ describe 'Macro regions' do
 
     context 'when creating a region' do
       let!(:betim_document) { create(:atua_transport_document, tenant:, origin_city: 'BETIM', origin_state: 'MG') }
+      let!(:belo_horizonte) { create(:city, tenant:, name: 'Belo Horizonte', state: 'MG') }
+      let!(:betim) { create(:city, tenant:, name: 'Betim', state: 'MG') }
+      let!(:contagem) { create(:city, tenant:, name: 'Contagem', state: 'MG') }
+      let!(:vale_do_aco) { create(:macro_region, tenant:) }
 
-      scenario 'creates a region with its cities and assigns the documents of its cities' do
+      scenario 'creates a region choosing registered cities and assigns the documents of its cities', :js do
         visit macro_regions_path
         click_on 'Nova Macro Região'
         fill_in 'Nome', with: 'GRANDE BH'
         fill_in 'UF', with: 'mg'
-        fill_in 'Cidades', with: "Belo Horizonte\nBetim\nContagem"
 
-        expect { click_on 'Cadastrar Macro Região' }.to change(MacroRegion, :count).by(1)
+        within('#city_ids_select') do
+          find('.select2-trigger').click
+          expect(all('.select2-option').map(&:text)).to eq(['Belo Horizonte/MG', 'Betim/MG', 'Contagem/MG'])
+
+          find('.select2-search').fill_in(with: 'bet')
+          find('.select2-option', text: 'Betim').click
+          find('.select2-search').fill_in(with: 'conta')
+          find('.select2-option', text: 'Contagem').click
+
+          expect(all('.select2-tag__label').map(&:text)).to eq(['Betim/MG', 'Contagem/MG'])
+        end
+        find('.form-card-title').click
+
+        expect do
+          click_on 'Cadastrar Macro Região'
+          expect(page).to have_text('Macro região cadastrada com sucesso.')
+        end.to change(MacroRegion, :count).by(1)
 
         macro_region = MacroRegion.last
         expect(page).to have_current_path(macro_region_path(macro_region))
-        expect(page).to have_text('Macro região cadastrada com sucesso.')
-        expect(macro_region).to have_attributes(tenant:, name: 'GRANDE BH', state: 'MG', cities: ['Belo Horizonte', 'Betim', 'Contagem'],
-                                                remaining_state: false)
+        expect(macro_region).to have_attributes(tenant:, name: 'GRANDE BH', state: 'MG', remaining_state: false)
+        expect(macro_region.cities).to contain_exactly(betim, contagem)
+        expect(belo_horizonte.reload.macro_region).to be_nil
         expect(betim_document.reload.origin_macro_region).to eq(macro_region)
       end
 
@@ -146,7 +165,8 @@ describe 'Macro regions' do
 
         expect { click_on 'Cadastrar Macro Região' }.to change(MacroRegion, :count).by(1)
 
-        expect(MacroRegion.last).to have_attributes(name: 'INTERIOR MG', state: 'MG', cities: [], remaining_state: true)
+        expect(MacroRegion.last).to have_attributes(name: 'INTERIOR MG', state: 'MG', remaining_state: true)
+        expect(MacroRegion.last.cities).to be_empty
         expect(betim_document.reload.origin_macro_region).to eq(MacroRegion.last)
       end
 
@@ -159,40 +179,48 @@ describe 'Macro regions' do
         expect(page).to have_text('Cidades não pode ficar em branco')
       end
 
-      context 'when a city is already in another region of the state' do
-        let!(:vale_do_aco) { create(:macro_region, tenant:) }
+      scenario 'does not take a city of another region through a forged request' do
+        ipatinga = vale_do_aco.cities.find_by!(name: 'Ipatinga')
 
-        scenario 'shows the validation message' do
-          visit new_macro_region_path
-          fill_in 'Nome', with: 'LESTE MG'
-          fill_in 'UF', with: 'MG'
-          fill_in 'Cidades', with: "Ipatinga\nGovernador Valadares"
+        expect do
+          page.driver.submit :post, macro_regions_path,
+                             { macro_region: { name: 'LESTE MG', state: 'MG', city_ids: [ipatinga.id, betim.id] } }
+        end.not_to change(MacroRegion, :count)
 
-          expect { click_on 'Cadastrar Macro Região' }.not_to change(MacroRegion, :count)
-
-          expect(page).to have_text('Cidades Ipatinga já estão em outra macro região desta UF')
-        end
+        expect(page).to have_text('Cidades Ipatinga já estão em outra macro região desta UF')
+        expect(ipatinga.reload.macro_region).to eq(vale_do_aco)
       end
     end
 
     context 'when editing a region' do
       let!(:macro_region) { create(:macro_region, tenant:) }
+      let!(:belo_oriente) { create(:city, tenant:, name: 'Belo Oriente', state: 'MG') }
       let!(:belo_oriente_document) { create(:atua_transport_document, tenant:, origin_city: 'BELO ORIENTE', origin_state: 'MG') }
 
-      scenario 'updates the region and assigns the documents of the new cities' do
+      scenario 'adds and removes cities and assigns the documents of the new cities', :js do
         visit macro_regions_path
         within("#macro_region_#{macro_region.id} .inline-actions") { click_on 'Alterar' }
 
         expect(page).to have_current_path(edit_macro_region_path(macro_region))
-        expect(page).to have_field('Cidades', with: "Ipatinga\nCoronel Fabriciano\nTimóteo")
 
-        fill_in 'Cidades', with: "Ipatinga\nCoronel Fabriciano\nTimóteo\nBelo Oriente"
+        within('#city_ids_select') do
+          expect(all('.select2-tag__label').map(&:text)).to contain_exactly('Ipatinga/MG', 'Coronel Fabriciano/MG', 'Timóteo/MG')
 
-        expect { click_on 'Salvar Alterações' }.not_to change(MacroRegion, :count)
+          find('.select2-tag', text: 'Coronel Fabriciano').find('.select2-tag__remove').click
+          find('.select2-trigger').click
+          find('.select2-option', text: 'Belo Oriente').click
+        end
+        find('.form-card-title').click
+
+        expect do
+          click_on 'Salvar Alterações'
+          expect(page).to have_text('Macro região atualizada com sucesso.')
+        end.not_to change(MacroRegion, :count)
 
         expect(page).to have_current_path(macro_region_path(macro_region))
-        expect(page).to have_text('Macro região atualizada com sucesso.')
-        expect(macro_region.reload.cities).to eq(['Ipatinga', 'Coronel Fabriciano', 'Timóteo', 'Belo Oriente'])
+        expect(macro_region.reload.cities.pluck(:name)).to contain_exactly('Ipatinga', 'Timóteo', 'Belo Oriente')
+        expect(City.find_by(name: 'Coronel Fabriciano').macro_region).to be_nil
+        expect(City.count).to eq(4)
         expect(belo_oriente_document.reload.origin_macro_region).to eq(macro_region)
       end
     end

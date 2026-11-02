@@ -31,7 +31,7 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
   end
 
   context 'with macro regions of the tenant' do
-    let!(:oeste_parana) { create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', cities: %w[Corbélia Cascavel]) }
+    let!(:oeste_parana) { create(:macro_region, tenant:, name: 'OESTE PARANA', state: 'PR', city_names: %w[Corbélia Cascavel]) }
     let!(:interior) { create(:macro_region, :interior_sp, tenant:) }
 
     it 'assigns the macro region of the origin of the imported documents' do

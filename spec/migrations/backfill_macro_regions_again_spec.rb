@@ -8,18 +8,21 @@ RSpec.describe BackfillMacroRegionsAgain do
     let!(:tenant) { create(:tenant) }
 
     it 'registers the default regions of the tenant' do
-      expect { migration.up }.to change(MacroRegion, :count).by(5)
+      expect { migration.up }.to change(MacroRegion, :count).by(19)
 
-      expect(tenant.macro_regions.order(:name).pluck(:name, :state, :remaining_state)).to eq(
+      expect(tenant.macro_regions.where(state: %w[MG SP]).order(:state, :name).pluck(:name, :state, :remaining_state)).to eq(
         [
-          ['GRANDE BH', 'MG', false],
-          ['INTERIOR SP', 'SP', true],
-          ['OESTE PARANA', 'PR', false],
-          ['SAO PAULO REGIAO METROCAPITAL', 'SP', false],
+          ['MINAS GRANDE BH', 'MG', false],
+          ['NORTÃO DE MINAS', 'MG', false],
+          ['REGIÃO DE JUIZ DE FORA', 'MG', false],
+          ['REGIÃO UBERLANDIA E UBERABA', 'MG', false],
           ['VALE DO AÇO/MG', 'MG', false],
+          ['INTERIOR DE SÃO PAULO', 'SP', true],
+          ['PRUDENTE / ASSIS / OURINHOS / SALTO GRANDE / AGUDOS', 'SP', false],
+          ['SÃO PAULO CAPITAL', 'SP', false],
         ],
       )
-      expect(tenant.macro_regions.find_by(name: 'GRANDE BH').cities).to include('Belo Horizonte', 'Contagem', 'Betim')
+      expect(tenant.macro_regions.find_by(name: 'MINAS GRANDE BH').cities.pluck(:name)).to include('Belo Horizonte', 'Contagem', 'Betim')
     end
 
     it 'assigns the origin macro region of the transport documents' do
@@ -27,7 +30,7 @@ RSpec.describe BackfillMacroRegionsAgain do
 
       migration.up
 
-      expect(document.reload.origin_macro_region.name).to eq('GRANDE BH')
+      expect(document.reload.origin_macro_region.name).to eq('MINAS GRANDE BH')
     end
 
     it 'can run again without duplicating the regions' do
@@ -42,9 +45,10 @@ RSpec.describe BackfillMacroRegionsAgain do
     let!(:macro_region) { create(:macro_region, tenant:, name: 'NORTE DE MINAS', state: 'MG') }
 
     it 'keeps the regions the tenant already has' do
-      expect { migration.up }.not_to change(MacroRegion, :count)
+      expect { migration.up }.to change(MacroRegion, :count).by(19)
 
-      expect(tenant.macro_regions.pluck(:name)).to eq(['NORTE DE MINAS'])
+      expect(macro_region.reload).to have_attributes(name: 'NORTE DE MINAS', state: 'MG')
+      expect(macro_region.cities.pluck(:name)).to contain_exactly('Ipatinga', 'Coronel Fabriciano', 'Timóteo')
     end
   end
 end

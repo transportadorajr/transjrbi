@@ -720,7 +720,7 @@ describe 'Freight billing' do
       end
 
       context 'when the origins belong to macro regions' do
-        let!(:grande_bh) { create(:macro_region, tenant:, name: 'GRANDE BH', state: 'MG', cities: ['Belo Horizonte', 'Betim']) }
+        let!(:grande_bh) { create(:macro_region, tenant:, name: 'GRANDE BH', state: 'MG', city_names: ['Belo Horizonte', 'Betim']) }
 
         before { MacroRegions::AssignCommand.call(tenant) }
 
