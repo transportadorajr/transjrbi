@@ -74,7 +74,7 @@ RSpec.describe FreightBillingFilterForm do
       form = described_class.new(start_date: '2026-08-01')
 
       expect(form).not_to be_valid
-      expect(form.errors.full_messages).to eq(['Saídas até não pode ficar em branco'])
+      expect(form.errors.full_messages).to eq(['Emitidos até não pode ficar em branco'])
     end
   end
 
@@ -83,7 +83,7 @@ RSpec.describe FreightBillingFilterForm do
       form = described_class.new(start_date: '2026-08-31', end_date: '2026-08-01')
 
       expect(form).not_to be_valid
-      expect(form.errors.full_messages).to eq(['Saídas até não pode ser anterior à data inicial'])
+      expect(form.errors.full_messages).to eq(['Emitidos até não pode ser anterior à data inicial'])
     end
   end
 

@@ -14,7 +14,7 @@ RSpec.describe Dashboard::Freight do
     let(:dimension) { 'origin' }
 
     def create_complement(**attributes)
-      create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 2),
+      create(:atua_transport_document, tenant:, document_kind: 'ce', posted_on: Date.new(2026, 10, 2),
                                        issued_at: Time.zone.local(2026, 10, 2), origin_state: 'PR', **attributes)
     end
 
@@ -36,11 +36,11 @@ RSpec.describe Dashboard::Freight do
 
   describe '#sorted_rows' do
     before do
-      create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 2), issued_at: Time.zone.local(2026, 10, 2),
+      create(:atua_transport_document, tenant:, document_kind: 'ce', posted_on: Date.new(2026, 10, 2), issued_at: Time.zone.local(2026, 10, 2),
                                        plate: 'BBB2B22', freight_cents: 300_000)
-      expensive = create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 3),
+      expensive = create(:atua_transport_document, tenant:, document_kind: 'ce', posted_on: Date.new(2026, 10, 3),
                                                    issued_at: Time.zone.local(2026, 10, 3), plate: 'AAA1A11', freight_cents: 500_000)
-      create(:atua_transport_document, tenant:, document_kind: Dashboard::Freight::COMPLEMENT_KIND, posted_on: Date.new(2026, 10, 4), issued_at: Time.zone.local(2026, 10, 4),
+      create(:atua_transport_document, tenant:, document_kind: 'ce', posted_on: Date.new(2026, 10, 4), issued_at: Time.zone.local(2026, 10, 4),
                                        plate: 'CCC3C33', freight_cents: 100_000)
       create(:freight_expense, tenant:, transport_document: expensive, amount_cents: 450_000)
     end
@@ -153,21 +153,23 @@ RSpec.describe Dashboard::Freight do
                                       calculated_distance_km: 50)
     end
 
-    it 'sums the gross and net freight of the trips and of the complements, dividing only by the loaded km of the trips' do
+    it 'sums the gross and net freight of every document issued in the period, dividing only by the loaded km of the trips' do
       expect(Atua::TransportDocument.count).to eq(10)
       expect(dashboard.total).to have_attributes(
         label: 'Total',
-        trips_count: 2,
-        loaded_km: BigDecimal('720'),
-        gross: Money.from_cents(2_000_000),
+        trips_count: 3,
+        loaded_km: BigDecimal('820'),
+        gross: Money.from_cents(4_490_000),
         freight_expenses: Money.from_cents(50_000),
         expenses: Money.from_cents(15_000),
         toll: Money.from_cents(0),
-        net: Money.from_cents(1_935_000),
-        gross_per_km: Money.from_cents(2_639),
-        net_per_km: Money.from_cents(2_549),
+        net: Money.from_cents(4_425_000),
+        gross_per_km: Money.from_cents(3_171),
+        net_per_km: Money.from_cents(3_091),
         share: BigDecimal('100'),
       )
+      expect(dashboard.gross).to eq(dashboard.total.gross)
+      expect(dashboard.net).to eq(dashboard.total.net)
     end
 
     context 'with documents linked to no trip' do
@@ -181,9 +183,7 @@ RSpec.describe Dashboard::Freight do
 
       it 'adds the documents without a valid trip to the gross and the net freight of the period, keeping them out of the trips' do
         expect(Atua::TransportDocument.where(tenant:).count).to eq(11)
-        expect(dashboard.gross).to eq(Money.from_cents(4_490_000))
-        expect(dashboard.net).to eq(Money.from_cents(4_425_000))
-        expect(dashboard.total.gross).to eq(Money.from_cents(2_000_000))
+        expect(dashboard.total).to have_attributes(trips_count: 3, gross: Money.from_cents(4_490_000), net: Money.from_cents(4_425_000))
       end
     end
 
@@ -199,23 +199,29 @@ RSpec.describe Dashboard::Freight do
         create(:atua_manifest_document, tenant:, manifest_code: 41_011, transport_document_number: '74990', calculated_distance_km: 300)
       end
 
-      it 'bills the freight in the month of the issue while the trip stays in the month it departed' do
-        expect(dashboard.gross).to eq(Money.from_cents(4_740_000))
-        expect(dashboard.total).to have_attributes(trips_count: 3, gross: Money.from_cents(2_607_332))
+      it 'bills the freight and the trip in the month the document was issued' do
+        expect(dashboard.total).to have_attributes(trips_count: 4, gross: Money.from_cents(4_740_000))
+        expect(dashboard.row_for('RHJ5A50')).to have_attributes(trips_count: 1, gross: Money.from_cents(250_000))
         expect(dashboard.monthly_data.first[:data].values_at('Set/2026', 'Out/2026')).to eq([6_073.32, 47_400.0])
       end
     end
 
     it 'groups by the truck plate' do
-      expect(dashboard.rows.map(&:to_h)).to eq(
+      expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents, row.share] }).to eq(
+        [
+          ['Sem placa', 0, 1_790_000, BigDecimal('39.9')], ['RVR2C34', 1, 1_500_000, BigDecimal('33.4')],
+          ['RVR7H89', 1, 700_000, BigDecimal('15.6')], ['RVR8J90', 1, 500_000, BigDecimal('11.1')]
+        ],
+      )
+      expect(dashboard.rows.values_at(1, 3).map(&:to_h)).to eq(
         [
           { key: 'RVR2C34', label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
             freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0),
             net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
-            share: BigDecimal('75') },
+            share: BigDecimal('33.4') },
           { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), gross: Money.from_cents(500_000),
             freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0), net: Money.from_cents(500_000),
-            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('25') },
+            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('11.1') },
         ],
       )
     end
@@ -227,7 +233,6 @@ RSpec.describe Dashboard::Freight do
 
     it 'finds no row for a key out of the report' do
       expect(dashboard.row_for('OUT1A11')).to be_nil
-      expect(dashboard.row_for(nil)).to be_nil
     end
 
     it 'lists the freights of a truck, adding up to the gross of its row' do
@@ -248,7 +253,7 @@ RSpec.describe Dashboard::Freight do
 
       it 'labels each row with the driver name' do
         expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] })
-          .to eq([['JOSE SILVA', 1, 1_500_000], ['MARIA SOUZA', 1, 500_000]])
+          .to eq([['Sem motorista', 1, 2_490_000], ['JOSE SILVA', 1, 1_500_000], ['MARIA SOUZA', 1, 500_000]])
       end
 
       it 'lists the freights of the driver' do
@@ -269,11 +274,11 @@ RSpec.describe Dashboard::Freight do
       it 'splits a shared trip between the groups by their share of its freight' do
         expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.gross.cents] }).to eq(
           [
+            ['Sem grupo', BigDecimal('1.33'), BigDecimal('273.33'), 2_990_000],
             ['USIMINAS', BigDecimal('1.67'), BigDecimal('546.67'), 1_500_000],
-            ['Sem grupo', BigDecimal('0.33'), BigDecimal('173.33'), 500_000],
           ],
         )
-        expect(dashboard.total).to have_attributes(trips_count: 2, loaded_km: BigDecimal('720'))
+        expect(dashboard.total).to have_attributes(trips_count: 3, loaded_km: BigDecimal('820'))
       end
     end
 
@@ -282,7 +287,8 @@ RSpec.describe Dashboard::Freight do
 
       it 'labels each row with the origin city and state' do
         expect(dashboard.rows.map { |row| [row.label, row.gross.cents, row.share] })
-          .to eq([['IPATINGA/MG', 1_500_000, BigDecimal('75')], ['BELO HORIZONTE/MG', 500_000, BigDecimal('25')]])
+          .to eq([['Sem origem', 2_490_000, BigDecimal('55.5')], ['IPATINGA/MG', 1_500_000, BigDecimal('33.4')],
+                  ['BELO HORIZONTE/MG', 500_000, BigDecimal('11.1')]])
       end
     end
 
@@ -296,7 +302,7 @@ RSpec.describe Dashboard::Freight do
 
       it 'labels each row with the region of the origin and puts the other origins in other regions' do
         expect(dashboard.rows.map { |row| [row.label, row.gross.cents, row.share] })
-          .to eq([['VALE DO AÇO/MG', 1_500_000, BigDecimal('75')], ['Outras Regiões', 500_000, BigDecimal('25')]])
+          .to eq([['Outras Regiões', 2_990_000, BigDecimal('66.6')], ['VALE DO AÇO/MG', 1_500_000, BigDecimal('33.4')]])
       end
     end
 
@@ -311,8 +317,8 @@ RSpec.describe Dashboard::Freight do
     it 'plots the ranking with the gross and the net freight' do
       expect(dashboard.ranking_data).to eq(
         [
-          { name: 'Frete bruto', data: { 'RVR2C34' => 15_000.0, 'RVR8J90' => 5_000.0 } },
-          { name: 'Frete líquido', data: { 'RVR2C34' => 14_350.0, 'RVR8J90' => 5_000.0 } },
+          { name: 'Frete bruto', data: { 'Sem placa' => 17_900.0, 'RVR2C34' => 15_000.0, 'RVR7H89' => 7_000.0, 'RVR8J90' => 5_000.0 } },
+          { name: 'Frete líquido', data: { 'Sem placa' => 17_900.0, 'RVR2C34' => 14_350.0, 'RVR7H89' => 7_000.0, 'RVR8J90' => 5_000.0 } },
         ],
       )
     end
@@ -453,7 +459,7 @@ RSpec.describe Dashboard::Freight do
       create(:atua_manifest, tenant:, code: 45_001, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 10, 10, 8))
       create(:atua_manifest, tenant:, code: 45_002, plate: 'RVR6G78', trip_started_at: Time.zone.local(2026, 10, 25, 8))
       create(:atua_transport_document, tenant:, number: '78001', freight_cents: 400_000, plate: 'RVR6G78')
-      create(:atua_transport_document, tenant:, number: '78002', freight_cents: 600_000, plate: 'RVR6G78')
+      create(:atua_transport_document, tenant:, number: '78002', freight_cents: 600_000, plate: 'RVR6G78', issued_at: Time.zone.local(2026, 10, 24, 9))
       create(:atua_manifest_document, tenant:, manifest_code: 45_001, transport_document_number: '78001', calculated_distance_km: 200)
       create(:atua_manifest_document, tenant:, manifest_code: 45_002, transport_document_number: '78002', calculated_distance_km: 300)
     end
@@ -466,14 +472,15 @@ RSpec.describe Dashboard::Freight do
     end
   end
 
-  context 'with a trip started late at night on the last day of the month' do
+  context 'with a document issued late at night on the last day of the month' do
     before do
-      create(:atua_manifest, tenant:, code: 41_010, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 31, 22, 30))
-      create(:atua_transport_document, tenant:, number: '74010', freight_cents: 300_000, posted_on: Date.new(2026, 11, 2))
+      create(:atua_manifest, tenant:, code: 41_010, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 11, 1, 8))
+      create(:atua_transport_document, tenant:, number: '74010', freight_cents: 300_000, issued_at: Time.zone.local(2026, 10, 31, 23, 30),
+                                       posted_on: Date.new(2026, 11, 2))
       create(:atua_manifest_document, tenant:, manifest_code: 41_010, transport_document_number: '74010', calculated_distance_km: 150)
     end
 
-    it 'keeps the trip in the local day it started' do
+    it 'keeps the document and its trip in the local day it was issued' do
       expect(dashboard.total).to have_attributes(trips_count: 1, gross: Money.from_cents(300_000), loaded_km: BigDecimal('150'))
     end
   end

@@ -8,16 +8,15 @@ module Dashboard
     RANKING_LIMIT = 15
     FOZ_ORIGIN_KEYS = ['FOZ DO IGUACU|PR|export', 'FOZ DO IGUACU|PR|national'].freeze
     TOTAL_KEY = 'total'.freeze
-    COMPLEMENT_KIND = Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CE']
     ABBREVIATED_DIMENSIONS = %w[driver customer_group].freeze
     NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
     NAME_PARTICLES = %w[DA DAS DE DO DOS E].freeze
     COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
     CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
-    COLUMNS = %i[id manifest_code trip_plate reference_on issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
+    COLUMNS = %i[id manifest_code trip_plate issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id export_origin].freeze
-    ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight reference_on loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
+    ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
                           undiscounted_toll_cents plate driver_code driver_name customer_group_id origin_city origin_state origin_macro_region_id export_origin].freeze
 
     Fact = Data.define(*COLUMNS) do
@@ -78,17 +77,10 @@ module Dashboard
     end
 
     delegate :empty?, to: :entries
+    delegate :gross, :net, to: :total
 
     def total
       @total ||= build_row(TOTAL_KEY, I18n.t('dashboards.freight.total'), entries)
-    end
-
-    def gross
-      @gross ||= Money.from_cents(issued_documents.sum(table[:freight_cents]))
-    end
-
-    def net
-      @net ||= gross - Money.from_cents(issued_freight_expenses_cents + issued_expenses_cents + issued_toll_cents)
     end
 
     def rows
@@ -191,27 +183,11 @@ module Dashboard
         end
     end
 
-    def issued_freight_expenses_cents
-      FreightExpense.where(transport_document_id: issued_documents.select(:id)).sum(:amount_cents)
-    end
-
-    def issued_expenses_cents
-      Atua::Expense.active.freight.where(cost_object_id: issued_documents.select(:id)).sum(:total_cents)
-    end
-
-    def issued_toll_cents
-      issued_documents.sum(Atua::TransportDocument.discounted_toll)
-    end
-
     def entries
-      @entries ||= all_entries.select { |entry| period.cover?(entry.reference_on) }
-    end
+      @entries ||= begin
+        trips, documents_off_trip = all_facts.partition(&:trip?)
 
-    def all_entries
-      @all_entries ||= begin
-        trips, complements = all_facts.partition(&:trip?)
-
-        complements.map { |fact| complement_entry(fact) } +
+        documents_off_trip.map { |fact| document_entry(fact) } +
           trips.group_by(&:manifest_code).values.flat_map { |trip_facts| trip_entries(trip_facts) }
       end
     end
@@ -250,9 +226,9 @@ module Dashboard
       value.to_s.squish.upcase
     end
 
-    def complement_entry(fact)
+    def document_entry(fact)
       Entry.new(
-        document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), reference_on: fact.reference_on, loaded_km: BigDecimal('0'), **money_of([fact]),
+        document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), **money_of([fact]),
         plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
         origin_city: fact.origin_city, origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin
       )
@@ -265,7 +241,7 @@ module Dashboard
 
       slices_of(trip_facts).map do |slice, weight|
         Entry.new(
-          document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, reference_on: trip.reference_on, loaded_km: trip.loaded_km.to_d * weight,
+          document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, loaded_km: trip.loaded_km.to_d * weight,
           **money_of(slice), plate: trip.trip_plate, driver_code: main.driver_code, driver_name: main.driver_name,
           customer_group_id: slice.first.customer_group_id, origin_city: first_loading.origin_city,
           origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id,
@@ -298,11 +274,9 @@ module Dashboard
     end
 
     def all_facts
-      documents.active.not_canceled
+      issued_documents
         .left_joins(:taker)
         .joins(first_trip_join)
-        .where(first_trips[:manifest_code].not_eq(nil).or(table[:document_kind].eq(COMPLEMENT_KIND)))
-        .where(Arel.sql(reference_on_sql).between(period))
         .pluck(*fact_columns)
         .map { |values| Fact.new(*values) }
     end
@@ -312,7 +286,6 @@ module Dashboard
         table[:id],
         Arel.sql('first_trips.manifest_code'),
         Arel.sql('first_trips.plate'),
-        Arel.sql(reference_on_sql),
         table[:issued_at],
         Arel.sql('first_trips.loaded_km'),
         table[:freight_cents],
@@ -331,14 +304,10 @@ module Dashboard
       ]
     end
 
-    def reference_on_sql
-      "COALESCE(first_trips.trip_on, #{table.name}.posted_on)"
-    end
-
     def first_trip_join
       <<~SQL.squish
         LEFT JOIN LATERAL (
-          SELECT atua_manifests.code AS manifest_code, atua_manifests.plate AS plate, #{Atua::Manifest.trip_on_sql} AS trip_on,
+          SELECT atua_manifests.code AS manifest_code, atua_manifests.plate AS plate,
                  (#{Atua::Manifest.loaded_km_sql}) AS loaded_km
           FROM atua_manifest_documents
           INNER JOIN atua_manifests ON atua_manifests.tenant_id = atua_manifest_documents.tenant_id
