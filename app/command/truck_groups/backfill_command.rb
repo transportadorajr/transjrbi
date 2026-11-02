@@ -1,6 +1,6 @@
 module TruckGroups
   class BackfillCommand
-    DEFAULTS = { rodotrem: [9], quarto_eixo: [7], ls: [6] }.freeze
+    DEFAULTS = { rodotrem: [9], quarto_eixo: [7], six_axles: [6] }.freeze
 
     class << self
       def call(tenant)

@@ -1,7 +1,7 @@
 class FreightBillingFilterForm < BaseForm
   WEEK_START = :sunday
   PERIOD_PRESETS = %i[week last_week month last_month today].freeze
-  TRUCK_GROUP_ID_FORMAT = /\A(\d+|#{TruckGroup::NONE})\z/
+  TRUCK_GROUP_ID_FORMAT = /\A\d+\z/
 
   attribute :start_date, :date
   attribute :end_date, :date

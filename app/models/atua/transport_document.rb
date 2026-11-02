@@ -210,6 +210,12 @@ module Atua
       raw_data['id_pedagio_ctrc'].presence
     end
 
+    def linked_manifests
+      Manifest.where(tenant_id:).and(
+        Manifest.where(id: manifests.select(:id)).or(Manifest.where(code: manifest_documents.active.select(:manifest_code))),
+      )
+    end
+
     def toll_voucher_issuer
       raw_data['nm_emissao_vale_pedagio'].presence
     end

@@ -286,6 +286,41 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '#linked_manifests' do
+    context 'with manifests linked by the CT-e report and by the MDF-e report' do
+      let!(:transport_document) do
+        create(:atua_transport_document, tenant:, code: 80_842, number: '74130', series: 1, branch_name: 'JR TRANSPORTES')
+      end
+      let!(:linked_by_transport_document) { create(:atua_manifest, tenant:, code: 41_317, number: '41317') }
+      let!(:linked_by_both) { create(:atua_manifest, tenant:, code: 41_340, number: '41340') }
+      let!(:issued_later) { create(:atua_manifest, tenant:, code: 41_365, number: '41365', issued_on: Date.new(2026, 11, 1)) }
+      let!(:removed_document) { create(:atua_manifest, tenant:, code: 41_370, number: '41370') }
+
+      before do
+        create(:atua_manifest, tenant:, code: 41_380, number: '41380')
+        create(:atua_manifest, tenant: other_tenant, code: 41_365, number: '41365')
+        [linked_by_transport_document, linked_by_both].each do |manifest|
+          create(:atua_transport_document_manifest, tenant:, transport_document_code: 80_842, manifest_number: manifest.number,
+                                                    branch_name: 'JR TRANSPORTES')
+        end
+        [linked_by_both, issued_later].each do |manifest|
+          create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
+                                          transport_document_series: 1, branch_name: 'JR TRANSPORTES')
+        end
+        create(:atua_manifest_document, tenant:, manifest_code: removed_document.code, transport_document_number: '74130',
+                                        transport_document_series: 1, branch_name: 'JR TRANSPORTES', removed_from_atua_at: Time.current)
+        create(:atua_manifest_document, tenant: other_tenant, manifest_code: 41_365, transport_document_number: '74130',
+                                        transport_document_series: 1, branch_name: 'JR TRANSPORTES')
+      end
+
+      it 'lists the manifests of both reports once, even when the CT-e report does not know the manifest' do
+        expect(Atua::Manifest.count).to eq(6)
+        expect(transport_document.manifests).to contain_exactly(linked_by_transport_document, linked_by_both)
+        expect(transport_document.linked_manifests).to contain_exactly(linked_by_transport_document, linked_by_both, issued_later)
+      end
+    end
+  end
+
   describe '#toll_placement' do
     context 'with tolls inside and outside the gross freight' do
       let!(:included) do

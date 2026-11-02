@@ -57,7 +57,7 @@ describe 'Truck groups' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['LS', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+            ['6 eixos', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
             ['Quarto eixo', '7 e 8 eixos', '-', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
             ['Rodotrem', '9 eixos', '-', '32,5%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
           ],
@@ -68,7 +68,7 @@ describe 'Truck groups' do
 
       scenario 'filters the groups by name and status' do
         visit truck_groups_path
-        fill_in 'Nome do grupo', with: 'eixo'
+        fill_in 'Nome do grupo', with: 'quarto'
         click_on 'Aplicar Filtros'
 
         expect(TruckGroup.count).to eq(4)
@@ -86,7 +86,7 @@ describe 'Truck groups' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['LS', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+            ['6 eixos', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(

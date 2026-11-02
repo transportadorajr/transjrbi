@@ -40,7 +40,7 @@ class TransportDocumentsController < BaseController
     authorize!(:read, :transport_documents)
 
     @transport_document = current_tenant.atua_transport_documents.active.find(params.expect(:id))
-    @manifests = @transport_document.manifests.active.order(:issued_on, :number)
+    @manifests = @transport_document.linked_manifests.active.order(:issued_on, :number)
     @empty_legs = @transport_document.empty_legs.preload(:origin, :destination).order(:next_manifest_code)
     load_expenses if can?(:read, :expenses)
     load_net_freight if can?(:read, :freight_expenses)
