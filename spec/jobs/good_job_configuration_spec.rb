@@ -11,19 +11,23 @@ RSpec.describe GoodJob, '.configuration' do
   end
 
   def movement_runs(from:, to:)
-    %i[atua_movements atua_movements_business_hours atua_movements_late_night]
+    %i[atua_movements atua_movements_business_hours atua_movements_late_night atua_movements_sunday]
       .flat_map { |key| next_runs(key, from:, count: 40).select { |time| time <= to } }
       .sort
       .map { |time| time.strftime('%d %H:%M') }
   end
 
   it 'schedules the jobs in the São Paulo time zone' do
-    keys = %i[atua_movements atua_movements_business_hours atua_movements_late_night atua_previous_day atua_registries atua_month_closing]
+    keys = %i[
+      atua_movements atua_movements_business_hours atua_movements_late_night atua_movements_sunday atua_previous_day
+      atua_registries atua_month_closing
+]
 
     expect(cron.slice(*keys).transform_values { |entry| entry.slice(:class, :args) }).to eq(
       atua_movements: { class: 'Atua::ScheduleMovementsJob' },
       atua_movements_business_hours: { class: 'Atua::ScheduleMovementsJob' },
       atua_movements_late_night: { class: 'Atua::ScheduleMovementsJob' },
+      atua_movements_sunday: { class: 'Atua::ScheduleMovementsJob' },
       atua_previous_day: { class: 'Atua::SchedulePreviousDayJob' },
       atua_registries: { class: 'Atua::ScheduleRegistriesJob' },
       atua_month_closing: { class: 'Atua::ScheduleMonthClosingJob' },
@@ -43,10 +47,12 @@ RSpec.describe GoodJob, '.configuration' do
     )
   end
 
-  it 'closes the saturday night at 1h and only returns on monday at 7h' do
+  it 'closes the saturday night at 1h, imports every 2 hours on sunday and returns on monday at 7h' do
     runs = movement_runs(from: Time.zone.local(2026, 10, 17, 22, 30), to: Time.zone.local(2026, 10, 19, 7))
 
-    expect(runs).to eq(['17 23:00', '18 00:00', '18 01:00', '19 07:00'])
+    expect(runs).to eq(
+      ['17 23:00', '18 00:00', '18 01:00', *(2..22).step(2).map { |hour| format('18 %02d:00', hour) }, '19 07:00'],
+    )
   end
 
   it 'imports the previous day every day at 0h30' do
