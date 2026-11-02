@@ -309,6 +309,35 @@ describe 'Transport documents' do
         expect(page).to have_current_path(manifest_path(manifest))
       end
 
+      context 'when a later manifest only lists the transport document in the MDF-e report' do
+        let!(:later_manifest) do
+          create(:atua_manifest, tenant:, number: '41365', branch_name: 'JR TRANSPORTES', issued_on: Date.new(2026, 11, 1), plate: 'TBR2J02',
+                                 status: nil)
+        end
+
+        before do
+          create(:atua_manifest_document, tenant:, manifest_code: later_manifest.code, transport_document_number: '74130',
+                                          transport_document_series: 1, branch_name: 'JR TRANSPORTES')
+        end
+
+        scenario 'lists the manifest that the CT-e report does not know yet' do
+          visit transport_document_path(transport_document)
+
+          expect(Atua::TransportDocumentManifest.count).to eq(1)
+          expect(html_table_to_rows(table: find_by_id('transport_document_manifests'))).to eq(
+            [
+              ['Número', 'Emitido em', 'Placa', 'Situação'],
+              ['40798', '01/10/2026', 'EXU0F72', 'Válido'],
+              ['41365', '01/11/2026', 'TBR2J02', 'Válido'],
+            ],
+          )
+
+          click_on '41365'
+
+          expect(page).to have_current_path(manifest_path(later_manifest))
+        end
+      end
+
       scenario 'tells that there is no empty leg to reach the transport document' do
         visit transport_document_path(transport_document)
 
