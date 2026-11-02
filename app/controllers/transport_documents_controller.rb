@@ -11,17 +11,14 @@ class TransportDocumentsController < BaseController
   def index
     authorize!(:read, :transport_documents)
 
-    transport_documents = current_tenant.atua_transport_documents.active
-    counted_transport_documents = apply_scopes(transport_documents, params.except(:status))
+    transport_documents = apply_scopes(current_tenant.atua_transport_documents.active)
 
-    @transport_documents = apply_sort(apply_scopes(transport_documents).with_freight_totals,
+    @transport_documents = apply_sort(transport_documents.with_freight_totals,
                                       Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
                                       Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
                                       id: :desc, except: hidden_sort_columns)
       .page(params[:page])
-    @total_count = counted_transport_documents.count
-    @valid_count = counted_transport_documents.not_canceled.count
-    @canceled_count = counted_transport_documents.canceled.count
+    @valid_count = transport_documents.not_canceled.count
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.order(:name)
   end

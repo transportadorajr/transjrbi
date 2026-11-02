@@ -8,9 +8,7 @@
   <%= render 'filters' %>
 
   <div class="row g-3 mb-4">
-    <%= counter_card(:dark, t('.total'), @total_count) %>
     <%= counter_card(:success, t('.valid'), @valid_count) %>
-    <%= counter_card(:danger, t('.canceled'), @canceled_count) %>
   </div>
 
   <div class="card table-card">
