@@ -24,6 +24,10 @@ module FreightBillingsHelper
     t(dimension, scope: 'freight_billings.dimensions')
   end
 
+  def freight_billing_dimension_shortcut(dimension)
+    t(dimension, scope: 'freight_billings.dimension_shortcuts')
+  end
+
   def freight_billing_dimension_path(dimension)
     freight_billing_path(**request.query_parameters.symbolize_keys.except(:page), dimension:)
   end

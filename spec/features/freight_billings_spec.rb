@@ -184,7 +184,7 @@ describe 'Freight billing' do
           expect(page).to have_text('CT-es emitidos de 18/10/2026 a 24/10/2026')
           expect(page).to have_field('Emitidos a partir de', with: '2026-10-18', visible: :all)
           expect(page).to have_field('Emitidos até', with: '2026-10-24', visible: :all)
-          expect(page).to have_link('Grupo de clientes', class: 'btn-primary')
+          expect(page).to have_link('Clientes', class: 'btn-primary')
         end
       end
 
@@ -192,7 +192,7 @@ describe 'Freight billing' do
         visit freight_billing_path(october)
 
         expect(all('.dashboard-segmented[aria-label="Agrupar por"] .btn').map(&:text))
-          .to eq(['Grupo de clientes', 'Grupo de produtos', 'Subgrupo de produtos', 'Veículo', 'Motorista', 'Origem', 'Macro região'])
+          .to eq(['Clientes', 'Produtos', 'Sub. produtos', 'Veículo', 'Motorista', 'Origem', 'Região'])
       end
 
       scenario 'shows the gross and net freight per truck discounting the toll vouchers of the transport documents' do
@@ -726,7 +726,7 @@ describe 'Freight billing' do
 
         scenario 'groups the freight by the macro region of the origin with the other origins apart' do
           visit freight_billing_path(october)
-          click_on 'Macro região'
+          click_on 'Região'
 
           expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'macro_region')))
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
@@ -772,7 +772,7 @@ describe 'Freight billing' do
 
         scenario 'groups the freight by product group with the products without a group apart' do
           visit freight_billing_path(october)
-          click_on 'Grupo de produtos'
+          click_on 'Produtos'
 
           expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'product_group')))
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
