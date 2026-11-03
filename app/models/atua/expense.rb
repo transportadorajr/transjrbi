@@ -9,7 +9,7 @@ module Atua
       'vehicle' => 'Atua::Vehicle',
       'overhead' => nil,
     }.freeze
-    UNLOADING_HISTORY_CODES = [72, 474].freeze
+    UNLOADING_HISTORY_CODES = [72, 474, 476].freeze
     FUEL_HISTORY_CODES = [11, 396, 482].freeze
     UNLOADING_DOCUMENT_NUMBER = /\A\s*(?:(\d{3,7})(?:\.0)?\s*|(\d{4,7})(?:\.0)?\D.*)\z/im
 
