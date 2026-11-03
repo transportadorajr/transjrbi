@@ -212,15 +212,16 @@ RSpec.describe Atua::Expense do
       end
     end
 
-    context 'with unloading, damage and other expenses' do
+    context 'with unloading, damage, forklift and other expenses' do
       let!(:unload) { create(:atua_expense, tenant:, history_code: 72) }
       let!(:damage) { create(:atua_expense, tenant:, history_code: 474) }
+      let!(:forklift) { create(:atua_expense, tenant:, history_code: 476, history_name: 'EMPILHADEIRA / MOV CARGA') }
 
       before { create(:atua_expense, tenant:, history_code: 434) }
 
-      it 'filters the unloading and damage expenses' do
-        expect(described_class.unloading).to contain_exactly(unload, damage)
-        expect(described_class.count).to eq(3)
+      it 'filters the unloading, damage and forklift expenses' do
+        expect(described_class.unloading).to contain_exactly(unload, damage, forklift)
+        expect(described_class.count).to eq(4)
       end
     end
 
