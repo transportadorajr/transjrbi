@@ -128,6 +128,50 @@ describe 'Transport documents' do
       end
     end
 
+    context 'when a transport document may have received a correction letter in Atua' do
+      let!(:transport_document) do
+        create(:atua_transport_document, tenant:, number: '74130', issued_at: Time.zone.local(2026, 10, 1, 16, 45))
+      end
+
+      context 'with the Atua import enabled for the company', flipper: { atua_import: :tenant } do
+        scenario 'enqueues the import of the transport documents issued on the same day' do
+          visit transport_document_path(transport_document)
+
+          expect(page).to have_css("form[action='#{resync_transport_document_path(transport_document)}'] button[data-turbo-confirm]")
+
+          expect { click_on 'Sincronizar o dia' }.to have_enqueued_job(Atua::ImportReportJob)
+            .with(tenant.id, 'transport_documents', Date.new(2026, 10, 1), Date.new(2026, 10, 1))
+
+          expect(page).to have_current_path(transport_document_path(transport_document))
+          expect(page).to have_text('Sincronização dos CT-es emitidos em 01/10/2026 enfileirada. Ela roda em segundo plano.')
+        end
+
+        scenario 'cannot resync a transport document of another tenant' do
+          stranger = create(:atua_transport_document, tenant: other_tenant, number: '99001')
+
+          expect { page.driver.submit :post, resync_transport_document_path(stranger), {} }.not_to have_enqueued_job(Atua::ImportReportJob)
+
+          expect(page.status_code).to eq(404)
+        end
+      end
+
+      context 'without the Atua import enabled for the company' do
+        scenario 'does not offer the resync' do
+          visit transport_document_path(transport_document)
+
+          expect(page).to have_css('h1.page-title', text: 'CT-e 74130')
+          expect(page).to have_no_button('Sincronizar o dia')
+        end
+
+        scenario 'does not enqueue the import through a forged request' do
+          expect { page.driver.submit :post, resync_transport_document_path(transport_document), {} }.not_to have_enqueued_job(Atua::ImportReportJob)
+
+          expect(page).to have_current_path(transport_document_path(transport_document))
+          expect(page).to have_text('Não é possível sincronizar este CT-e com a Atua.')
+        end
+      end
+    end
+
     context 'when a truck of the company was sold' do
       let!(:freight) do
         create(:atua_transport_document, tenant:, number: '74130', sender_name: 'USIMINAS', posted_on: Date.new(2026, 10, 1), plate: 'EXU0F72',
@@ -706,6 +750,21 @@ describe 'Transport documents' do
             ],
           )
           expect(page).to have_no_link('40798')
+        end
+      end
+
+      context 'with the Atua import enabled for the company', flipper: { atua_import: :tenant } do
+        scenario 'does not offer the resync' do
+          visit transport_document_path(transport_document)
+
+          expect(page).to have_css('h1.page-title', text: 'CT-e 74130')
+          expect(page).to have_no_button('Sincronizar o dia')
+        end
+
+        scenario 'cannot resync through a forged request' do
+          expect { page.driver.submit :post, resync_transport_document_path(transport_document), {} }.not_to have_enqueued_job(Atua::ImportReportJob)
+
+          expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
         end
       end
 
