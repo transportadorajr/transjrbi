@@ -65,14 +65,14 @@ RSpec.describe Atua::ImportReportJob do
       'a value that cannot be converted' => Atua::ConversionError.new('Valor inválido'),
       'an unexpected failure' => ActiveRecord::StatementInvalid.new('PG::Error: connection lost'),
     }.each do |description, error|
-      it "retries #{description} after a long wait" do
+      it "retries #{description} after a short wait" do
         allow(Atua::ImportReportCommand).to receive(:call).and_raise(error)
 
         described_class.perform_now(tenant.id, 'manifests', start_date, end_date)
 
         expect(described_class).to have_been_enqueued.with(tenant.id, 'manifests', start_date, end_date)
         scheduled_at = Time.zone.at(enqueued_jobs.sole['scheduled_at'].then { |value| Time.zone.parse(value) })
-        expect(scheduled_at).to be_between(now + 30.minutes, now + 35.minutes)
+        expect(scheduled_at).to be_between(now + 15.seconds, now + 20.seconds)
       end
     end
 
@@ -130,7 +130,7 @@ RSpec.describe Atua::ImportReportJob do
 
         expect(GoodJob::Job.where(job_class: described_class.name).count).to eq(1)
         expect(good_job_record(job)).to have_attributes(finished_at: nil, executions_count: 1)
-        expect(good_job_record(job).scheduled_at).to be > 29.minutes.from_now
+        expect(good_job_record(job).scheduled_at).to be > 14.seconds.from_now
       end
 
       it 'runs the import when nothing else is running' do

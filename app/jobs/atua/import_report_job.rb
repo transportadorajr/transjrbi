@@ -4,7 +4,7 @@ module Atua
     include GoodJob::ActiveJobExtensions::Concurrency
 
     SESSION_LABEL = 'atua-session'.freeze
-    RETRY_WAIT = 30.minutes
+    RETRY_WAIT = 15.seconds
     RETRY_ATTEMPTS = 3
     ACTION_REQUIRED_ERRORS = [AuthenticationError, ConfigurationError, LayoutError].freeze
 
