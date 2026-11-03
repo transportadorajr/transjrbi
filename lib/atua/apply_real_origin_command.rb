@@ -12,6 +12,7 @@ module Atua
 
     def call
       updated = billing_only_documents.update_all(**MapTransportDocumentsCommand::REAL_ORIGIN, updated_at: Time.current)
+      Cities::RegisterOriginsCommand.call(tenant)
       MacroRegions::AssignCommand.call(tenant)
 
       updated

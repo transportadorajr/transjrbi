@@ -1259,6 +1259,34 @@ pt-BR:
         do destinatário (ex.: "Exterior") não estão nas cidades das regras.
       active_hint: Desmarque para deixar de calcular a comissão desta regra. Toda alteração recalcula as comissões de todos os CT-es.
   macro_regions:
+    remaining_state_names:
+      AC: RESTO DO ACRE
+      AL: RESTO DE ALAGOAS
+      AM: RESTO DO AMAZONAS
+      AP: RESTO DO AMAPÁ
+      BA: RESTO DA BAHIA
+      CE: RESTO DO CEARÁ
+      DF: RESTO DO DISTRITO FEDERAL
+      ES: RESTO DO ESPÍRITO SANTO
+      GO: RESTO DE GOIÁS
+      MA: RESTO DO MARANHÃO
+      MG: RESTO DE MINAS GERAIS
+      MS: RESTO DO MATO GROSSO DO SUL
+      MT: RESTO DO MATO GROSSO
+      PA: RESTO DO PARÁ
+      PB: RESTO DA PARAÍBA
+      PE: RESTO DE PERNAMBUCO
+      PI: RESTO DO PIAUÍ
+      PR: RESTO DO PARANÁ
+      RJ: RESTO DO RIO DE JANEIRO
+      RN: RESTO DO RIO GRANDE DO NORTE
+      RO: RESTO DE RONDÔNIA
+      RR: RESTO DE RORAIMA
+      RS: RESTO DO RIO GRANDE DO SUL
+      SC: RESTO DE SANTA CATARINA
+      SE: RESTO DE SERGIPE
+      SP: RESTO DE SÃO PAULO
+      TO: RESTO DO TOCANTINS
     coverage:
       remaining_state: Restante de %{state}
       cities:
@@ -1297,8 +1325,8 @@ pt-BR:
         lista de cidades é ignorada.
       cities_placeholder: Selecione as cidades da região
       cities_hint: >-
-        Escolha entre as cidades já cadastradas em Cidades que não estão em outra macro região. Cadastre a cidade antes
-        se ela ainda não aparece na lista.
+        Escolha entre as cidades já cadastradas em Cidades que estão no resto do estado (ex.: Resto do Paraná). Cadastre
+        a cidade antes se ela ainda não aparece na lista.
   cities:
     no_macro_region: Sem macro região
     macro_region_label: '%{name} (%{state})'
@@ -1331,7 +1359,10 @@ pt-BR:
       city_data: Dados da Cidade
       city_data_text: O nome é comparado com a cidade de origem do CT-e (acentos, espaços e hífen são ignorados).
       state_hint: 'Sigla com 2 letras. Ex.: MG.'
-      macro_region_hint: Só aparecem as macro regiões que listam cidades. Toda alteração reatribui a macro região dos CT-es.
+      macro_region_hint: >-
+        Só aparecem as macro regiões que listam cidades. Sem uma delas, a cidade fica no resto do estado (ex.: Resto do
+        Paraná). Toda alteração reatribui a macro região dos CT-es.
+      remaining_state_region: Resto do estado
   truck_groups:
     axles:
       one: '%{axles} eixo'

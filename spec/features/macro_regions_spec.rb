@@ -147,17 +147,17 @@ describe 'Macro regions' do
         expect do
           click_on 'Cadastrar Macro Região'
           expect(page).to have_text('Macro região cadastrada com sucesso.')
-        end.to change(MacroRegion, :count).by(1)
+        end.to change(MacroRegion, :count).by(2)
 
-        macro_region = MacroRegion.last
+        macro_region = tenant.macro_regions.find_by!(name: 'GRANDE BH')
         expect(page).to have_current_path(macro_region_path(macro_region))
         expect(macro_region).to have_attributes(tenant:, name: 'GRANDE BH', state: 'MG', remaining_state: false)
         expect(macro_region.cities).to contain_exactly(betim, contagem)
-        expect(belo_horizonte.reload.macro_region).to be_nil
+        expect(belo_horizonte.reload.macro_region).to have_attributes(name: 'RESTO DE MINAS GERAIS', remaining_state: true)
         expect(betim_document.reload.origin_macro_region).to eq(macro_region)
       end
 
-      scenario 'creates a region with the remaining cities of the state' do
+      scenario 'creates a region gathering the cities of the state without a region' do
         visit new_macro_region_path
         fill_in 'Nome', with: 'INTERIOR MG'
         fill_in 'UF', with: 'MG'
@@ -166,7 +166,7 @@ describe 'Macro regions' do
         expect { click_on 'Cadastrar Macro Região' }.to change(MacroRegion, :count).by(1)
 
         expect(MacroRegion.last).to have_attributes(name: 'INTERIOR MG', state: 'MG', remaining_state: true)
-        expect(MacroRegion.last.cities).to be_empty
+        expect(MacroRegion.last.cities).to contain_exactly(belo_horizonte, betim, contagem)
         expect(betim_document.reload.origin_macro_region).to eq(MacroRegion.last)
       end
 
@@ -215,11 +215,11 @@ describe 'Macro regions' do
         expect do
           click_on 'Salvar Alterações'
           expect(page).to have_text('Macro região atualizada com sucesso.')
-        end.not_to change(MacroRegion, :count)
+        end.to change(MacroRegion, :count).by(1)
 
         expect(page).to have_current_path(macro_region_path(macro_region))
         expect(macro_region.reload.cities.pluck(:name)).to contain_exactly('Ipatinga', 'Timóteo', 'Belo Oriente')
-        expect(City.find_by(name: 'Coronel Fabriciano').macro_region).to be_nil
+        expect(City.find_by(name: 'Coronel Fabriciano').macro_region.name).to eq('RESTO DE MINAS GERAIS')
         expect(City.count).to eq(4)
         expect(belo_oriente_document.reload.origin_macro_region).to eq(macro_region)
       end

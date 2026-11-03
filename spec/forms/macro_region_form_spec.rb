@@ -19,12 +19,12 @@ RSpec.describe MacroRegionForm do
       expect(ipatinga_document.reload.origin_macro_region).to eq(region)
     end
 
-    it 'ignores the cities of a remaining state region' do
+    it 'ignores the selected cities of a remaining state region and gathers the cities of the state without a region' do
       form = described_class.new(tenant:, name: 'INTERIOR MG', state: 'MG', city_ids: [ipatinga.id], remaining_state: '1')
 
       expect(form.save).to be(true)
       expect(MacroRegion.last).to have_attributes(remaining_state: true)
-      expect(MacroRegion.last.cities).to be_empty
+      expect(MacroRegion.last.cities).to contain_exactly(ipatinga, timoteo)
       expect(ipatinga_document.reload.origin_macro_region).to eq(MacroRegion.last)
     end
 
@@ -92,10 +92,28 @@ RSpec.describe MacroRegionForm do
         form = described_class.for_macro_region(vale_do_aco)
         form.assign_attributes(city_ids: [ipatinga.id, belo_oriente.id])
 
-        expect { expect(form.save).to be(true) }.not_to change(MacroRegion, :count)
+        expect { expect(form.save).to be(true) }.to change(MacroRegion, :count).by(1)
         expect(vale_do_aco.reload.cities).to contain_exactly(ipatinga, belo_oriente)
-        expect(timoteo.reload.macro_region).to be_nil
+        expect(timoteo.reload.macro_region).to have_attributes(name: 'RESTO DE MINAS GERAIS', state: 'MG', remaining_state: true)
         expect(City.count).to eq(3)
+      end
+
+      it 'moves a city out of the remaining state region' do
+        cubatao = create(:city, tenant:, name: 'Cubatão', state: 'SP', macro_region: interior)
+        form = described_class.new(tenant:, name: 'BAIXADA SANTISTA', state: 'SP', city_ids: [cubatao.id])
+
+        expect(described_class.new(tenant:).available_cities).to eq([belo_oriente, cubatao])
+        expect(form.save).to be(true)
+        expect(cubatao.reload.macro_region).to eq(tenant.macro_regions.find_by!(name: 'BAIXADA SANTISTA'))
+      end
+
+      it 'keeps the cities of a remaining state region when updating it' do
+        cubatao = create(:city, tenant:, name: 'Cubatão', state: 'SP', macro_region: interior)
+        form = described_class.for_macro_region(interior)
+        form.assign_attributes(name: 'RESTO DE SÃO PAULO')
+
+        expect(form.save).to be(true)
+        expect(interior.reload.cities).to eq([cubatao])
       end
     end
   end

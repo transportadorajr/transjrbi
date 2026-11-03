@@ -57,7 +57,17 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
       documents = tenant.atua_transport_documents
       expect(documents.where(origin_city: 'CORBELIA').pluck(:origin_macro_region_id).uniq).to eq([oeste_parana.id])
       expect(documents.where(origin_city: 'SANTA GERTRUDES').pluck(:origin_macro_region_id).uniq).to eq([interior.id])
-      expect(documents.where(origin_city: 'JUIZ DE FORA').pluck(:origin_macro_region_id).uniq).to eq([nil])
+      expect(documents.where(origin_city: 'JUIZ DE FORA').pluck(:origin_macro_region_id).uniq)
+        .to eq([tenant.macro_regions.find_by!(name: 'RESTO DE MINAS GERAIS').id])
+    end
+
+    it 'registers the new origin cities in the remaining state region of their state' do
+      described_class.call(import, spreadsheet)
+
+      juiz_de_fora = tenant.cities.find_by!(name: 'JUIZ DE FORA', state: 'MG')
+      expect(juiz_de_fora.macro_region).to have_attributes(name: 'RESTO DE MINAS GERAIS', state: 'MG', remaining_state: true)
+      expect(tenant.cities.where(name: 'CORBELIA')).to be_empty
+      expect(tenant.cities.find_by!(name: 'SANTA GERTRUDES').macro_region).to eq(interior)
     end
   end
 

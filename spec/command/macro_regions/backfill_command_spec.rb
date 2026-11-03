@@ -66,4 +66,17 @@ RSpec.describe MacroRegions::BackfillCommand do
       expect(tenant.macro_regions.find_by(name: 'VALE DO AÇO/MG').cities.pluck(:name)).not_to include('Ipatinga')
     end
   end
+
+  context 'when a default city sits in the remaining state region' do
+    let!(:resto_minas) { create(:macro_region, tenant:, name: 'RESTO DE MINAS GERAIS', remaining_state: true, city_names: []) }
+    let!(:sabara) { create(:city, tenant:, name: 'Sabará', state: 'MG', macro_region: resto_minas) }
+    let!(:unlisted) { create(:city, tenant:, name: 'Patos de Minas', state: 'MG') }
+
+    it 'moves the default city to its region and keeps the other cities in the remaining state region' do
+      described_class.call(tenant)
+
+      expect(sabara.reload.macro_region.name).to eq('MINAS GRANDE BH')
+      expect(unlisted.reload.macro_region).to eq(resto_minas)
+    end
+  end
 end

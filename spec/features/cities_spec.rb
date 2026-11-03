@@ -122,7 +122,7 @@ describe 'Cities' do
         visit cities_path
         click_on 'Nova Cidade'
 
-        expect(page).to have_select('Macro região', options: ['Sem macro região', 'VALE DO AÇO/MG (MG)'])
+        expect(page).to have_select('Macro região', options: ['Resto do estado', 'VALE DO AÇO/MG (MG)'])
 
         fill_in 'Nome', with: 'Belo Oriente'
         fill_in 'UF', with: 'mg'
@@ -166,7 +166,7 @@ describe 'Cities' do
 
       before { MacroRegions::AssignCommand.call(tenant) }
 
-      scenario 'takes the city out of its macro region and moves its documents to Others' do
+      scenario 'takes the city out of its macro region and moves its documents to the rest of the state' do
         visit cities_path
         within("#city_#{ipatinga.id} .inline-actions") { click_on 'Alterar' }
 
@@ -174,14 +174,17 @@ describe 'Cities' do
         expect(page).to have_field('Nome', with: 'Ipatinga')
         expect(page).to have_select('Macro região', selected: 'VALE DO AÇO/MG (MG)')
 
-        select 'Sem macro região', from: 'Macro região'
+        select 'Resto do estado', from: 'Macro região'
 
-        expect { click_on 'Salvar Alterações' }.not_to change(City, :count)
+        expect { click_on 'Salvar Alterações' }.to change(MacroRegion, :count).by(1)
 
+        remaining_region = MacroRegion.last
         expect(page).to have_current_path(city_path(ipatinga))
         expect(page).to have_text('Cidade atualizada com sucesso.')
-        expect(ipatinga.reload).to have_attributes(name: 'Ipatinga', state: 'MG', macro_region: nil)
-        expect(ipatinga_document.reload.origin_macro_region).to be_nil
+        expect(dl_to_hash).to include('Macro região' => 'RESTO DE MINAS GERAIS')
+        expect(remaining_region).to have_attributes(name: 'RESTO DE MINAS GERAIS', state: 'MG', remaining_state: true)
+        expect(ipatinga.reload).to have_attributes(name: 'Ipatinga', state: 'MG', macro_region: remaining_region)
+        expect(ipatinga_document.reload.origin_macro_region).to eq(remaining_region)
       end
     end
 
