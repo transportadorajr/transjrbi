@@ -443,8 +443,8 @@ describe 'Transport documents' do
 
           expect(EmptyLegTransportDocument.count).to eq(1)
           expect(dl_to_hash("#empty_leg_#{empty_leg.id}")).to eq(
-            'Última entrega da viagem anterior' => 'RUA DAS FLORES 10 - BETIM/MG',
-            'Primeira coleta desta viagem' => 'IPATINGA/MG',
+            'De' => 'RUA DAS FLORES 10 - BETIM/MG',
+            'Para' => 'IPATINGA/MG',
             'KM vazio' => '217,44 km',
             'Precisão' => 'Centro da cidade',
             'Calculado em' => '01/10/2026 18:05',

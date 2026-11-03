@@ -19,6 +19,22 @@ module Atua
     def on_route?
       transport_document.nil? || (transport_document.active? && transport_document.canceled_at.nil?)
     end
+
+    def loaded_km
+      distance = [calculated_distance_km, document_distance_km].compact.max
+      distance if distance&.positive?
+    end
+
+    def gross_cents
+      return unless on_route?
+
+      transport_document ? transport_document.freight_cents : freight_cents
+    end
+
+    def per_km(cents)
+      distance = loaded_km
+      Money.from_cents((cents / distance).round(0, BigDecimal::ROUND_HALF_UP)) if cents && distance
+    end
   end
 end
 

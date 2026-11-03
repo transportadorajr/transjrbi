@@ -1,8 +1,6 @@
 <tr id="<%= dom_id(document) %>">
   <td><%= manifest_document_number(document) %></td>
-  <td class="d-none d-md-table-cell text-break"><%= tax_value(document.recipient_name) %></td>
-  <td class="d-none d-lg-table-cell"><%= manifest_document_route(document) %></td>
-  <td class="d-none d-lg-table-cell text-nowrap"><%= tax_decimal(document.weight_kg) %></td>
-  <td class="text-nowrap"><%= tax_money(document.freight) %></td>
-  <td class="d-none d-md-table-cell"><%= manifest_document_toll(document) %></td>
+  <td class="d-none d-md-table-cell text-break"><%= tax_value(document.transport_document&.taker_name) %></td>
+  <td class="text-nowrap"><%= tax_money(document.per_km(document.gross_cents)) %></td>
+  <%= manifest_document_net_per_km_cell(document, net_cents_by_document) %>
 </tr>

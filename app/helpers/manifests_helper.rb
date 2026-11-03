@@ -8,7 +8,22 @@ module ManifestsHelper
   end
 
   def manifest_sort_columns
-    [[Atua::Manifest.human_attribute_name(:total_freight), :gross, :desc]]
+    columns = [[Atua::Manifest.human_attribute_name(:gross_per_km), :gross_per_km, :desc]]
+    columns << [Atua::Manifest.human_attribute_name(:net_per_km), :net_per_km, :desc] if can?(:read, :freight_expenses)
+
+    columns
+  end
+
+  def manifest_net_per_km_header
+    return unless can?(:read, :freight_expenses)
+
+    sortable_header(Atua::Manifest.human_attribute_name(:net_per_km), :net_per_km, first_direction: :desc, class: 'd-none d-md-table-cell text-nowrap')
+  end
+
+  def manifest_net_per_km_cell(manifest)
+    return unless can?(:read, :freight_expenses)
+
+    content_tag(:td, freight_money(manifest.net_per_km_cents), class: 'd-none d-md-table-cell text-nowrap')
   end
 
   def manifest_cities(cities)
@@ -17,10 +32,29 @@ module ManifestsHelper
     safe_join(cities.map { |(city, state)| content_tag(:span, tax_city(city, state), class: 'd-block') }, ' ')
   end
 
-  def manifest_documents_table(documents)
+  def manifest_names(names)
+    return t('tax.blank') if names.empty?
+
+    safe_join(names.map { |name| content_tag(:span, name, class: 'd-block') }, ' ')
+  end
+
+  def manifest_documents_table(documents, net_cents_by_document)
     return render('shared/no_content') if documents.none?
 
-    render 'manifests/documents/table', documents:
+    render 'manifests/documents/table', documents:, net_cents_by_document:
+  end
+
+  def manifest_document_net_per_km_header(net_cents_by_document)
+    return unless net_cents_by_document
+
+    content_tag(:th, Atua::ManifestDocument.human_attribute_name(:net_per_km), class: 'text-nowrap')
+  end
+
+  def manifest_document_net_per_km_cell(document, net_cents_by_document)
+    return unless net_cents_by_document
+
+    net_cents = net_cents_by_document[document.transport_document&.id] if document.on_route?
+    content_tag(:td, tax_money(document.per_km(net_cents)), class: 'text-nowrap')
   end
 
   def manifest_document_number(document)
@@ -28,17 +62,6 @@ module ManifestsHelper
     return document.transport_document_number unless transport_document&.active? && can?(:read, :transport_documents)
 
     link_to document.transport_document_number, transport_document_path(transport_document), class: 'fw-semibold text-decoration-none'
-  end
-
-  def manifest_document_toll(document)
-    return t('tax.blank') unless document.transport_document
-
-    transport_document_toll(document.transport_document)
-  end
-
-  def manifest_document_route(document)
-    t('transport_documents.route', origin: tax_city(document.origin_city, document.origin_state),
-                                   destination: tax_city(document.destination_city, document.destination_state))
   end
 
   def manifest_empty_leg_details(empty_leg)

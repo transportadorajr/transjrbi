@@ -252,10 +252,10 @@ describe 'Table sorting' do
     let!(:small) { create(:atua_manifest, tenant:, code: 2, number: '502', branch_name: 'JR') }
     let!(:empty) { create(:atua_manifest, tenant:, code: 3, number: '503', branch_name: 'JR') }
 
-    def add_document(manifest, number, **attributes)
+    def add_document(manifest, number, distance_km: nil, **attributes)
       document = create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', toll_cents: 0, **attributes)
       create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: number,
-                                      transport_document_series: 1, branch_name: 'JR')
+                                      transport_document_series: 1, branch_name: 'JR', document_distance_km: distance_km)
       document
     end
 
@@ -264,18 +264,18 @@ describe 'Table sorting' do
     end
 
     before do
-      add_document(large, '9001', taker_name: 'MENOR', driver_name: 'AUXILIAR', freight_cents: 100_000)
+      add_document(large, '9001', taker_name: 'MENOR', driver_name: 'AUXILIAR', freight_cents: 100_000, distance_km: BigDecimal('300'))
       add_document(large, '9002', taker_name: 'ZETA', driver_name: 'ANA', freight_cents: 500_000)
-      add_document(small, '9003', taker_name: 'ÁGUA', driver_name: 'ZECA', freight_cents: 200_000)
+      add_document(small, '9003', taker_name: 'ÁGUA', driver_name: 'ZECA', freight_cents: 200_000, distance_km: BigDecimal('500'))
       add_document(small, '9004', taker_name: 'MAIOR CANCELADO', driver_name: 'OUTRO', freight_cents: 900_000, canceled_at: Time.current)
     end
 
-    scenario 'sorts by the total freight of the valid transport documents' do
-      visit manifests_path(sort: 'gross', direction: 'desc')
+    scenario 'sorts by the gross freight per loaded km of the valid transport documents' do
+      visit manifests_path(sort: 'gross_per_km', direction: 'desc')
 
       expect(Atua::Manifest.count).to eq(3)
       expect(numbers).to eq(%w[501 502 503])
-      expect(column('Valor total do frete')).to eq(['R$ 6.000,00', 'R$ 2.000,00', 'R$ 0,00'])
+      expect(column('Bruto/km')).to eq(['R$ 20,00', 'R$ 4,00', '-'])
     end
 
     scenario 'ignores the columns that left the listing' do

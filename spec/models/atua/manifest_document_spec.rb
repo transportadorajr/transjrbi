@@ -66,4 +66,47 @@ RSpec.describe Atua::ManifestDocument do
       expect(build(:atua_manifest_document, freight_cents: 321_720).freight).to eq(Money.from_cents(321_720, 'BRL'))
     end
   end
+
+  describe '#loaded_km and #per_km' do
+    it 'uses the greatest of the calculated and the document distances' do
+      document = build(:atua_manifest_document, calculated_distance_km: BigDecimal('200'), document_distance_km: BigDecimal('180'))
+
+      expect(document.loaded_km).to eq(BigDecimal('200'))
+      expect(document.per_km(55_504)).to eq(Money.from_cents(278, 'BRL'))
+    end
+
+    it 'returns no value per km without a distance' do
+      document = build(:atua_manifest_document, calculated_distance_km: nil, document_distance_km: BigDecimal('0'))
+
+      expect(document.loaded_km).to be_nil
+      expect(document.per_km(55_504)).to be_nil
+    end
+
+    it 'returns no value per km without an amount' do
+      expect(build(:atua_manifest_document, document_distance_km: BigDecimal('100')).per_km(nil)).to be_nil
+    end
+  end
+
+  describe '#gross_cents' do
+    let!(:document) do
+      create(:atua_manifest_document, tenant:, manifest_code: 41_520, transport_document_number: '74130', transport_document_series: 1,
+                                      branch_name: 'JR', freight_cents: 321_720)
+    end
+
+    it 'uses the freight of the manifest document when the transport document was not imported' do
+      expect(document.gross_cents).to eq(321_720)
+    end
+
+    it 'uses the freight of the transport document' do
+      create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR', freight_cents: 55_504)
+
+      expect(document.reload.gross_cents).to eq(55_504)
+    end
+
+    it 'returns no freight for a canceled transport document' do
+      create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR', canceled_at: Time.current)
+
+      expect(document.reload.gross_cents).to be_nil
+    end
+  end
 end

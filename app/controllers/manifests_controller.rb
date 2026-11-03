@@ -14,9 +14,10 @@ class ManifestsController < BaseController
     authorize!(:read, :manifests)
 
     load_filter_options
-    manifests = by_truck_group(apply_scopes(current_tenant.atua_manifests.active.not_canceled)).with_freight_totals
+    manifests = Atua::Manifest.with_trip_totals(by_truck_group(apply_scopes(current_tenant.atua_manifests.active.not_canceled)))
+      .preload(route_documents: :transport_document)
 
-    @manifests = apply_sort(manifests.preload(route_documents: :transport_document), Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc)
+    @manifests = apply_sort(manifests, Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc, except: manifest_sort_exceptions)
       .page(params[:page])
   end
 
@@ -34,10 +35,14 @@ class ManifestsController < BaseController
       .preload(route_documents: :transport_document, empty_leg: %i[origin destination previous_manifest]).find(params.expect(:id))
     @documents = @manifest.documents.active.without_internal_taker.preload(:transport_document).order(:transport_document_number)
     load_trip_expenses
-    @net_freight = NetFreight.for(manifest_transport_documents) if can?(:read, :freight_expenses)
+    load_net_freight
   end
 
   private
+
+  def manifest_sort_exceptions
+    can?(:read, :freight_expenses) ? [] : %w[net_per_km]
+  end
 
   def load_filter_options
     @drivers = current_tenant.atua_transport_documents.drivers
@@ -59,6 +64,13 @@ class ManifestsController < BaseController
     return unless internal || atua
 
     @trip_expenses = TripExpenses.for(manifest_transport_documents, internal:, atua:)
+  end
+
+  def load_net_freight
+    return unless can?(:read, :freight_expenses)
+
+    @net_freight = NetFreight.for(manifest_transport_documents)
+    @net_cents_by_document = manifest_transport_documents.with_freight_totals.to_h { |document| [document.id, document.net_cents] }
   end
 
   def manifest_transport_documents

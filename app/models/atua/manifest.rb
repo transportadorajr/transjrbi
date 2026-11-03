@@ -22,7 +22,8 @@ module Atua
 
     monetize :goods_value_cents, allow_nil: true
 
-    sortable :gross, -> { Arel.sql('gross_cents') }
+    sortable :gross_per_km, -> { Arel.sql('gross_per_km_cents') }
+    sortable :net_per_km, -> { Arel.sql('net_per_km_cents') }
 
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
     validates :number, presence: true
@@ -60,9 +61,23 @@ module Atua
     }
 
     class << self
+      def with_trip_totals(manifests)
+        totals = manifests.with_freight_totals.select(Arel::Nodes::Grouping.new(net_freight).as('net_cents'), Arel::Nodes::Grouping.new(Arel.sql(loaded_km_sql)).as('loaded_km'))
+
+        from(totals, table_name).select(arel_table[Arel.star], per_km('gross_cents').as('gross_per_km_cents'),
+                                        per_km('net_cents').as('net_per_km_cents'))
+      end
+
       def gross_freight
         Arel::Nodes::Addition.new(
           Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel),
+          Arel::Nodes::Grouping.new(documents_without_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
+        )
+      end
+
+      def net_freight
+        Arel::Nodes::Addition.new(
+          Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.net_freight)).arel),
           Arel::Nodes::Grouping.new(documents_without_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
         )
       end
@@ -97,6 +112,12 @@ module Atua
         started_on = "(atua_manifests.trip_started_at AT TIME ZONE 'UTC' AT TIME ZONE #{connection.quote(Time.zone.tzinfo.name)})::date"
 
         "COALESCE(#{started_on}, atua_manifests.departure_on, atua_manifests.issued_on)"
+      end
+
+      def per_km(cents_column)
+        loaded_km = Arel::Nodes::NamedFunction.new('NULLIF', [arel_table[:loaded_km], Arel::Nodes.build_quoted(0)])
+
+        Arel::Nodes::NamedFunction.new('ROUND', [Arel::Nodes::Division.new(arel_table[cents_column], loaded_km)])
       end
 
       def loaded_km_sql
@@ -135,6 +156,19 @@ module Atua
 
     def destinations
       route_cities(:destination_city, :destination_state)
+    end
+
+    def drivers
+      route_documents.select(&:on_route?).filter_map { |document| document.transport_document&.driver_name.presence }.uniq
+    end
+
+    def customers
+      route_documents.select(&:on_route?).filter_map { |document| document.transport_document&.taker_name.presence }.uniq
+    end
+
+    def weight_kg
+      weights = route_documents.select(&:on_route?).filter_map(&:weight_kg)
+      weights.sum if weights.any?
     end
 
     def ordered_documents

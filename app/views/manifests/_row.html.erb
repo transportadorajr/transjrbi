@@ -5,11 +5,14 @@
       <span class="text-muted text-small d-block text-break"><%= tax_value(item.branch_name) %></span>
     </div>
   </td>
-  <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(item.issued_on) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.plate) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= manifest_names(item.drivers) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= manifest_cities(item.origins) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= manifest_cities(item.destinations) %></td>
-  <td class="d-none d-md-table-cell text-nowrap"><%= freight_money(item.gross_cents) %></td>
+  <td class="d-none d-xl-table-cell text-nowrap"><%= tax_decimal(item.weight_kg) %></td>
+  <td class="d-none d-xl-table-cell text-break"><%= manifest_names(item.customers) %></td>
+  <td class="text-nowrap"><%= freight_money(item.gross_per_km_cents) %></td>
+  <%= manifest_net_per_km_cell(item) %>
   <td class="text-end text-nowrap">
     <%= responsive_actions_menu(manifests_menu(item)) %>
   </td>
