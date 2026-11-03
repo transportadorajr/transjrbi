@@ -670,6 +670,20 @@ RSpec.describe Dashboard::Freight do
           .to eq([['JECI FERREIRA DE SOUZA JUNIOR', 1_600_000], ['JECI FERREIRA DE SOUZA', 500_000], ['ANA LIMA', 300_000]])
         expect(dashboard.ranking_data.first[:data]).to eq('Sem Admissão' => 5_000.0, 'ANA LIMA' => 3_000.0)
       end
+
+      context 'when the excluded drivers have a display name' do
+        before do
+          create(:driver, tenant:, code: 3, display_name: 'JECI JUNIOR')
+          create(:driver, tenant:, code: 95, display_name: 'JECI')
+        end
+
+        it 'still leaves the driver out of the ranking chart and labels the driver without admission' do
+          expect(Driver.count).to eq(2)
+          expect(dashboard.rows.map { |row| [row.label, row.gross.cents] })
+            .to eq([['JECI JUNIOR', 1_600_000], ['JECI', 500_000], ['ANA LIMA', 300_000]])
+          expect(dashboard.ranking_data.first[:data]).to eq('Sem Admissão' => 5_000.0, 'ANA LIMA' => 3_000.0)
+        end
+      end
     end
   end
 end

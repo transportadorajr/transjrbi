@@ -114,7 +114,7 @@ module Dashboard
     end
 
     def ranking_rows
-      @ranking_rows ||= charted_rows.map { |row| row.with(label: chart_label(row.label)) }
+      @ranking_rows ||= charted_rows.map { |row| row.with(label: chart_label(row)) }
     end
 
     def ranking_data
@@ -215,13 +215,22 @@ module Dashboard
     end
 
     def chart_excluded?(row)
-      CHART_EXCLUDED_LABELS.fetch(dimension, []).include?(normalized(row.label))
+      CHART_EXCLUDED_LABELS.fetch(dimension, []).intersect?(chart_names(row))
     end
 
-    def chart_label(label)
-      renamed = CHART_RENAMED_DRIVERS[normalized(label)] if dimension == 'driver'
+    def chart_label(row)
+      renamed = CHART_RENAMED_DRIVERS.values_at(*chart_names(row)).compact.first if dimension == 'driver'
 
-      renamed ? I18n.t(renamed) : label
+      renamed ? I18n.t(renamed) : row.label
+    end
+
+    def chart_names(row)
+      [normalized(row.label), *document_driver_names.fetch(row.key, [])]
+    end
+
+    def document_driver_names
+      @document_driver_names ||= entries.group_by { |entry| row_key(entry.driver_code) }
+        .transform_values { |grouped| grouped.filter_map { |entry| normalized(entry.driver_name).presence }.uniq }
     end
 
     def normalized(value)
