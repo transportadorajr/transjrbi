@@ -62,6 +62,34 @@ describe 'Cities' do
         expect(page).to have_no_text('Cidade de Outra')
       end
 
+      scenario 'does not show the alert when every CT-e origin is in a macro region' do
+        create(:atua_transport_document, tenant:, origin_city: 'IPATINGA', origin_state: 'MG', origin_macro_region: vale_do_aco)
+
+        visit cities_path
+
+        expect(page).to have_css('.page-title', text: 'Cidades')
+        expect(page).to have_no_css('#unassigned_origins')
+      end
+
+      context 'when CT-e origins are in no macro region' do
+        before do
+          create_list(:atua_transport_document, 2, tenant:, origin_city: 'CASCAVEL', origin_state: 'PR')
+          create(:atua_transport_document, tenant:, origin_city: 'MARINGA', origin_state: 'PR')
+          create(:atua_transport_document, tenant: other_tenant, origin_city: 'TOLEDO', origin_state: 'PR')
+        end
+
+        scenario 'alerts the origin cities to be linked to a macro region' do
+          visit cities_path
+
+          within('#unassigned_origins') do
+            expect(page).to have_text('2 cidades de origem de CT-e sem macro região')
+            expect(page).to have_text('Vincule a cidade a uma macro região da UF para classificar os CT-es.')
+            expect(all('li').map(&:text)).to eq(['CASCAVEL/PR 2 CT-es', 'MARINGA/PR 1 CT-e'])
+            expect(page).to have_no_text('TOLEDO')
+          end
+        end
+      end
+
       scenario 'filters the cities by name, state and macro region' do
         visit cities_path
         fill_in 'Nome da cidade', with: 'tim'

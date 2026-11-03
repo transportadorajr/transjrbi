@@ -10,6 +10,7 @@ class CitiesController < BaseController
 
     @cities = apply_sort(apply_scopes(current_tenant.cities.preload(:macro_region)), :state, :name, :id).page(params[:page])
     @macro_regions = current_tenant.macro_regions.order(:state, :name)
+    @unassigned_origins = MacroRegion.unassigned_origins(current_tenant)
   end
 
   def show

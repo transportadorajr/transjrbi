@@ -1172,6 +1172,16 @@ pt-BR:
         (acentos, espaços e pontuação são ignorados).
       active_hint: Desmarque para deixar de usar o grupo sem perder os clientes vinculados.
   product_groups:
+    unclassified_alert:
+      title:
+        one: 1 produto de CT-e sem grupo
+        other: '%{count} produtos de CT-e sem grupo'
+      text: >-
+        Estes produtos não estão em nenhum subgrupo ativo e os CT-es deles aparecem como Sem grupo no faturamento de frete.
+        Inclua o produto num subgrupo para classificar os CT-es.
+      documents:
+        one: 1 CT-e
+        other: '%{count} CT-es'
     index:
       title: Grupos de produtos
       subtitle: Agrupe os produtos transportados nos CT-es em grupos e subgrupos.
@@ -1339,6 +1349,16 @@ pt-BR:
         a cidade antes se ela ainda não aparece na lista.
   cities:
     no_macro_region: Sem macro região
+    unassigned_origins_alert:
+      title:
+        one: 1 cidade de origem de CT-e sem macro região
+        other: '%{count} cidades de origem de CT-e sem macro região'
+      text: >-
+        Os CT-es destas cidades estão em Outras Regiões porque a UF não tem nenhuma macro região. Vincule a cidade a uma
+        macro região da UF para classificar os CT-es.
+      documents:
+        one: 1 CT-e
+        other: '%{count} CT-es'
     macro_region_label: '%{name} (%{state})'
     index:
       title: Cidades

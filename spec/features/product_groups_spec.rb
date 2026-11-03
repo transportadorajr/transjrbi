@@ -31,6 +31,15 @@ describe 'Product groups' do
     context 'when there are no groups' do
       let!(:document) { create(:atua_transport_document, tenant:, product_name: 'BOBINA') }
 
+      scenario 'does not show the alert when every CT-e product is in a subgroup' do
+        document.update!(product_name: nil)
+
+        visit product_groups_path
+
+        expect(page).to have_css('.page-title', text: 'Grupos de produtos')
+        expect(page).to have_no_css('#unclassified_products_alert')
+      end
+
       scenario 'shows the empty state and the products without a group' do
         visit product_groups_path
 
@@ -85,6 +94,16 @@ describe 'Product groups' do
         expect(page).to have_css('.counter-card', text: "Produtos sem grupo\n2")
         expect(page).to have_link('Novo Grupo', href: new_product_group_path)
         expect(page).to have_no_text('GRUPO DE OUTRA EMPRESA')
+      end
+
+      scenario 'alerts the CT-e products to be included in a subgroup' do
+        visit product_groups_path
+
+        within('#unclassified_products_alert') do
+          expect(page).to have_text('2 produtos de CT-e sem grupo')
+          expect(page).to have_text('Inclua o produto num subgrupo para classificar os CT-es.')
+          expect(all('li').map(&:text)).to eq(['DIVERSOS 1 CT-e', 'VERGALHAO DE FERRO 1 CT-e'])
+        end
       end
 
       scenario 'filters the groups by name and status' do
