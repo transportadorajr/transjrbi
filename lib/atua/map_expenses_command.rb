@@ -25,6 +25,7 @@ module Atua
       'ds_serie' => %i[document_series string],
       'ds_chave_documento' => %i[document_key string],
       'ds_complemento' => %i[description string],
+      'ds_observacao_titulo' => %i[observation string],
       'nr_contabilidade' => %i[accounting_account string],
       'nr_classificacao_contabilidade' => %i[accounting_classification string],
       'vl_lancamento' => %i[amount_cents cents],
@@ -53,7 +54,7 @@ module Atua
       nm_cidade_favorecido dt_quitacao_titulo ds_tipo_pagamento id_estoque id_via_documento ds_via_documento
       proprietario_posse cd_veiculo_manutencao dt_conferencia nm_pessoa_conferencia nr_acumulador nr_cfop vl_base
       pr_aliquota vl_isento vl_outras vl_base_ibs_cbs vl_cbs vl_ibs_estadual vl_ibs_municipal vl_ibs COFINS CSLL IRPJ
-      ISSQN ds_observacao_titulo
+      ISSQN
     ].freeze
     REQUIRED_COLUMNS = %w[cd_caixa dt_lancamento cd_historico nm_historico vl_lancamento vl_total vl_credito_icms].freeze
 
