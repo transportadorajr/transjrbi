@@ -26,6 +26,8 @@ module Admin
 
     def set_current_admin_user
       Current.admin_user = current_admin_user
+      Sentry.set_user(id: current_admin_user.id, segment: 'admin')
+      Rails.error.set_context(admin_user_id: current_admin_user.id)
     end
   end
 end

@@ -91,3 +91,6 @@ gem 'groupdate', '~> 6.8'
 gem 'flipper'
 gem 'flipper-active_record'
 gem 'flipper-ui'
+
+gem 'sentry-ruby', '~> 7.2'
+gem 'sentry-rails', '~> 7.2'
