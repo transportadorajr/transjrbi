@@ -198,7 +198,7 @@ describe 'Expenses' do
       let!(:transport_document) { create(:atua_transport_document, tenant:, code: 80_512, number: '74512') }
       let!(:expense) do
         create(:atua_expense, tenant:, code: 590_101, history_code: 434, history_name: 'COMBUSTIVEL - DIESEL',
-                              description: 'ABASTECIMENTO VIAGEM 2500653', posted_at: Time.zone.local(2026, 10, 1, 9, 18),
+                              observation: 'ABASTECIMENTO PEDIDO PELO JUNIOR', description: 'ABASTECIMENTO VIAGEM 2500653', posted_at: Time.zone.local(2026, 10, 1, 9, 18),
                               accounting_on: Date.new(2026, 10, 2), settled_on: Date.new(2026, 10, 5), spending_kind: 'Variável',
                               cash_account_name: 'CAIXA MATRIZ', branch_name: 'JR TRANSPORTES', headquarters_name: 'JR HOLDING',
                               accounting_account: '4.1.01', accounting_classification: '410101', payee_code: 1951,
@@ -224,6 +224,7 @@ describe 'Expenses' do
         expect(dl_to_hash('#expense_data')).to eq(
           'Código' => '590101',
           'Histórico' => 'COMBUSTIVEL - DIESEL',
+          'Observação' => 'ABASTECIMENTO PEDIDO PELO JUNIOR',
           'Complemento' => 'ABASTECIMENTO VIAGEM 2500653',
           'Lançado em' => '01/10/2026 09:18',
           'Data contábil' => '02/10/2026',

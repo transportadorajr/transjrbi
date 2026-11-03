@@ -25,7 +25,7 @@ RSpec.describe Atua::MapExpensesCommand do
         branch_code: 2189, branch_name: 'EMPRESA 04', headquarters_name: 'EMPRESA 04',
         trip_expense_kind: 'Despesa Fora da Viagem', spending_kind: nil,
         document_model: 'Recibo', document_number: nil, document_series: '1', document_key: nil,
-        description: 'TEXTO ANONIMIZADO', accounting_account: nil, accounting_classification: nil,
+        description: 'TEXTO ANONIMIZADO', observation: nil, accounting_account: nil, accounting_classification: nil,
         amount_cents: 781_540, discount_cents: 0, total_cents: 781_540, net_amount_cents: 781_540,
         pis_credit_cents: 0, cofins_credit_cents: 0, withholdings_cents: 0, paid_cents: nil, icms_cents: nil,
         plate: nil, vehicle_model: nil, trip_number: nil, trip_departure_on: nil, trip_arrival_on: nil,
@@ -46,6 +46,10 @@ RSpec.describe Atua::MapExpensesCommand do
         raw_data: rows
       )
       expect(rows.size).to eq(2)
+    end
+
+    it 'reads the observation of the expense' do
+      expect(expense(600_346)).to include(observation: 'TEXTO ANONIMIZADO')
     end
 
     it 'reads the posting time with fraction' do

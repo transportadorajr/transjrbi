@@ -118,6 +118,7 @@ end
 #  movement_code             :bigint
 #  movement_on               :date
 #  net_amount_cents          :bigint
+#  observation               :text
 #  paid_cents                :bigint
 #  payee_code                :bigint
 #  payee_document            :string

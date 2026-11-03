@@ -29,6 +29,9 @@
             <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:history_name) %></dt>
             <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.history_name) %></dd>
 
+            <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:observation) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.observation) %></dd>
+
             <dt class="col-12 col-md-5"><%= Atua::Expense.human_attribute_name(:description) %></dt>
             <dd class="col-12 col-md-7 text-break"><%= tax_value(@expense.description) %></dd>
 
