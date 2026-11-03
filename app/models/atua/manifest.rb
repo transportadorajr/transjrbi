@@ -62,7 +62,7 @@ module Atua
 
     class << self
       def with_trip_totals(manifests)
-        totals = manifests.with_freight_totals.select(Arel::Nodes::Grouping.new(net_freight).as('net_cents'), Arel.sql("(#{loaded_km_sql}) AS loaded_km"))
+        totals = manifests.with_freight_totals.select(Arel::Nodes::Grouping.new(net_freight).as('net_cents'), Arel::Nodes::Grouping.new(Arel.sql(loaded_km_sql)).as('loaded_km'))
 
         from(totals, table_name).select(arel_table[Arel.star], per_km('gross_cents').as('gross_per_km_cents'),
                                         per_km('net_cents').as('net_per_km_cents'))
@@ -115,7 +115,9 @@ module Atua
       end
 
       def per_km(cents_column)
-        Arel.sql("ROUND(#{table_name}.#{cents_column} / NULLIF(#{table_name}.loaded_km, 0))")
+        loaded_km = Arel::Nodes::NamedFunction.new('NULLIF', [arel_table[:loaded_km], Arel::Nodes.build_quoted(0)])
+
+        Arel::Nodes::NamedFunction.new('ROUND', [Arel::Nodes::Division.new(arel_table[cents_column], loaded_km)])
       end
 
       def loaded_km_sql
