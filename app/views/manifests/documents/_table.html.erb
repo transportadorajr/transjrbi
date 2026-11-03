@@ -3,15 +3,13 @@
     <thead class="table-light">
       <tr>
         <th><%= Atua::ManifestDocument.human_attribute_name(:transport_document_number) %></th>
-        <th class="d-none d-md-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:recipient_name) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:route) %></th>
-        <th class="d-none d-lg-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:weight_kg) %></th>
-        <th><%= Atua::ManifestDocument.human_attribute_name(:freight) %></th>
-        <th class="d-none d-md-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:toll) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::ManifestDocument.human_attribute_name(:customer_name) %></th>
+        <th class="text-nowrap"><%= Atua::ManifestDocument.human_attribute_name(:gross_per_km) %></th>
+        <%= manifest_document_net_per_km_header(net_cents_by_document) %>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'manifests/documents/row', collection: documents, as: :document %>
+      <%= render partial: 'manifests/documents/row', collection: documents, as: :document, locals: { net_cents_by_document: } %>
     </tbody>
   </table>
 </div>

@@ -17,23 +17,14 @@
     </div>
     <div class="detail-card-body">
       <dl class="row detail-list mb-0" id="manifest_data">
-        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:number) %></dt>
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:mdfe) %></dt>
         <dd class="col-12 col-md-9"><%= @manifest.number %></dd>
-
-        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:branch_name) %></dt>
-        <dd class="col-12 col-md-9"><%= tax_value(@manifest.branch_name) %></dd>
-
-        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:company_city) %></dt>
-        <dd class="col-12 col-md-9"><%= tax_city(@manifest.company_city, @manifest.company_state) %></dd>
-
-        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:issued_on) %></dt>
-        <dd class="col-12 col-md-9"><%= tax_date(@manifest.issued_on) %></dd>
-
-        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:closed_at) %></dt>
-        <dd class="col-12 col-md-9"><%= tax_time(@manifest.closed_at) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:plate) %></dt>
         <dd class="col-12 col-md-9"><%= tax_value(@manifest.plate) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:driver) %></dt>
+        <dd class="col-12 col-md-9"><%= manifest_names(@manifest.drivers) %></dd>
 
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:origin) %></dt>
         <dd class="col-12 col-md-9"><%= manifest_cities(@manifest.origins) %></dd>
@@ -41,9 +32,8 @@
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:destination) %></dt>
         <dd class="col-12 col-md-9"><%= manifest_cities(@manifest.destinations) %></dd>
 
-        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:total_freight) %></dt>
-        <dd class="col-12 col-md-9"><%= freight_money(@manifest.gross_cents) %></dd>
-
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:weight_kg) %></dt>
+        <dd class="col-12 col-md-9"><%= tax_decimal(@manifest.weight_kg) %></dd>
       </dl>
     </div>
   </div>
@@ -66,7 +56,7 @@
       <p class="detail-card-title"><%= t('.documents') %></p>
     </div>
     <div class="detail-card-body">
-      <%= manifest_documents_table(@documents) %>
+      <%= manifest_documents_table(@documents, @net_cents_by_document) %>
     </div>
   </div>
 </div>

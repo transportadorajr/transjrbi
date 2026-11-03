@@ -227,6 +227,41 @@ RSpec.describe Atua::Manifest do
     end
   end
 
+  describe '#drivers and #weight_kg' do
+    let!(:manifest) { create(:atua_manifest, tenant:, code: 41_510, branch_name: 'JR') }
+
+    def add_document(number, driver_name, weight_kg, **attributes)
+      create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', driver_name:, **attributes)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_510, transport_document_number: number, transport_document_series: 1,
+                                      branch_name: 'JR', weight_kg:)
+    end
+
+    context 'when the trip has documents of the same driver and documents out of the trip' do
+      before do
+        add_document('1', 'JOÃO', BigDecimal('19170'))
+        add_document('2', 'JOÃO', BigDecimal('10000.5'))
+        add_document('3', 'MARIA', BigDecimal('5000'), canceled_at: Time.current)
+        add_document('4', nil, nil)
+        create(:atua_manifest_document, tenant:, manifest_code: 41_510, transport_document_number: '5', transport_document_series: 1,
+                                        branch_name: 'JR', weight_kg: BigDecimal('1000'))
+      end
+
+      it 'lists each driver once and sums the weight of the documents on the trip' do
+        expect(manifest.drivers).to eq(['JOÃO'])
+        expect(manifest.weight_kg).to eq(BigDecimal('30170.5'))
+      end
+    end
+
+    context 'when the documents have no driver nor weight' do
+      before { add_document('1', nil, nil) }
+
+      it 'returns no driver and no weight' do
+        expect(manifest.drivers).to eq([])
+        expect(manifest.weight_kg).to be_nil
+      end
+    end
+  end
+
   describe '#previous_trip' do
     let!(:first_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 1, 8)) }
     let!(:second_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 3, 8)) }

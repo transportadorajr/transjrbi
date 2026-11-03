@@ -238,13 +238,17 @@ pt-BR:
         plate: Placa
         origin: Origem
         destination: Destino
+        mdfe: MDF-e
+        driver: Motorista
+        weight_kg: Peso (kg)
+        customer: Cliente
+        gross_per_km: Bruto/km
+        net_per_km: Líquido/km
       atua/manifest_document:
         transport_document_number: CT-e
-        recipient_name: Destinatário
-        route: Origem / Destino
-        weight_kg: Peso (kg)
-        freight: Frete
-        toll: Pedágio
+        customer_name: Cliente
+        gross_per_km: Bruto/km
+        net_per_km: Líquido/km
       atua/customer:
         code: Código
         name: Nome

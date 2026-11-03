@@ -59,8 +59,8 @@ describe 'Manifests' do
         expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
-            ['40772 JR TRANSPORTES', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Ações'],
+            ['40772 JR TRANSPORTES', 'RHJ4E07', '-', '-', '-', '-', '-', '-', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
@@ -80,8 +80,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
-            ['40772 JR TRANSPORTES', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 0,00', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Ações'],
+            ['40772 JR TRANSPORTES', 'RHJ4E07', '-', '-', '-', '-', '-', '-', ''],
           ],
         )
       end
@@ -99,8 +99,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
-            ['40773 TRANSJR SABARA', '06/10/2026', 'EXU0F72', '-', '-', 'R$ 0,00', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Ações'],
+            ['40773 TRANSJR SABARA', 'EXU0F72', '-', '-', '-', '-', '-', '-', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
@@ -153,9 +153,9 @@ describe 'Manifests' do
       let!(:maria_trip) do
         create(:atua_manifest, tenant:, code: 41_402, number: '40802', branch_name: 'JR', issued_on: Date.new(2026, 10, 2), plate: 'EXU0F72')
       end
-      let(:table_header) { ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'] }
-      let(:jose_row) { ['40801 JR', '01/10/2026', 'RHJ4E07', '-', '-', 'R$ 1.000,00', ''] }
-      let(:maria_row) { ['40802 JR', '02/10/2026', 'EXU0F72', '-', '-', 'R$ 2.000,00', ''] }
+      let(:table_header) { ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Ações'] }
+      let(:jose_row) { ['40801 JR', 'RHJ4E07', 'JOSE SILVA', '-', '-', '-', '-', '-', ''] }
+      let(:maria_row) { ['40802 JR', 'EXU0F72', 'MARIA SOUZA', '-', '-', '-', '-', '-', ''] }
 
       def add_document(manifest, number, **attributes)
         create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', **attributes)
@@ -247,26 +247,100 @@ describe 'Manifests' do
         add_document('4', origin: 'Sabará', destination: 'Campinas', freight_cents: 900_000, canceled_at: Time.current)
       end
 
-      scenario 'shows every city once and sums the freight of the valid transport documents' do
+      scenario 'shows every city once' do
         visit manifests_path
 
         expect(Atua::Manifest.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
-            ['40800 JR', '01/10/2026', 'RHJ4E07', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', 'R$ 10.000,00', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Ações'],
+            ['40800 JR', 'RHJ4E07', '-', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', '-', '-', '-', ''],
           ],
         )
       end
 
-      scenario 'shows the route and the total freight on the details' do
+      scenario 'shows the route of the valid transport documents on the details' do
         visit manifest_path(manifest)
 
         expect(dl_to_hash('#manifest_data')).to include(
           'Origem' => 'Ipatinga/MG Betim/MG',
           'Destino' => 'Santos/SP Cubatão/SP',
-          'Valor total do frete' => 'R$ 10.000,00',
         )
+      end
+    end
+
+    context 'when the manifests have drivers, customers, weights and loaded km' do
+      let!(:jose_trip) do
+        create(:atua_manifest, tenant:, code: 41_700, number: '40900', branch_name: 'JR', issued_on: Date.new(2026, 10, 1), plate: 'AAA1A11')
+      end
+      let!(:maria_trip) do
+        create(:atua_manifest, tenant:, code: 41_701, number: '40901', branch_name: 'JR', issued_on: Date.new(2026, 10, 2), plate: 'BBB2B22')
+      end
+      let!(:steel_document) do
+        create(:atua_transport_document, tenant:, number: '901', series: 1, branch_name: 'JR', driver_name: 'JOSE SILVA', taker_name: 'USIMINAS',
+                                         freight_cents: 600_000)
+      end
+
+      def add_document(manifest, number, weight_kg:, **distances)
+        create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: number, transport_document_series: 1,
+                                        branch_name: 'JR', weight_kg:, **distances)
+      end
+
+      before do
+        create(:atua_transport_document, tenant:, number: '902', series: 1, branch_name: 'JR', driver_name: 'JOSE SILVA', taker_name: 'GERDAU',
+                                         freight_cents: 400_000)
+        create(:atua_transport_document, tenant:, number: '903', series: 1, branch_name: 'JR', driver_name: 'MARIA SOUZA', taker_name: 'USIMINAS',
+                                         freight_cents: 300_000)
+        add_document(jose_trip, '901', weight_kg: BigDecimal('20000'), calculated_distance_km: BigDecimal('500'))
+        add_document(jose_trip, '902', weight_kg: BigDecimal('10000'), document_distance_km: BigDecimal('400'))
+        add_document(maria_trip, '903', weight_kg: BigDecimal('5000'), document_distance_km: BigDecimal('100'))
+      end
+
+      scenario 'lists the driver, the weight, the customers and the gross freight per loaded km of each trip' do
+        visit manifests_path
+
+        expect(Atua::Manifest.count).to eq(2)
+        expect(html_table_to_rows).to eq(
+          [
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Ações'],
+            ['40901 JR', 'BBB2B22', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', 'R$ 30,00', ''],
+            ['40900 JR', 'AAA1A11', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', 'R$ 20,00', ''],
+          ],
+        )
+      end
+
+      scenario 'sorts the trips by the gross freight per loaded km' do
+        visit manifests_path
+        within('thead') { click_on 'Bruto/km' }
+        within('thead') { click_on 'Bruto/km' }
+
+        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['40900 JR', '40901 JR'])
+      end
+
+      context 'with access to the freight expenses' do
+        let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+        let!(:freight_expense) { create(:freight_expense, tenant:, transport_document: steel_document, amount_cents: 100_000) }
+
+        scenario 'shows and sorts by the net freight per loaded km of each trip' do
+          visit manifests_path
+          within('thead') { click_on 'Líquido/km' }
+
+          expect(FreightExpense.count).to eq(1)
+          expect(html_table_to_rows).to eq(
+            [
+              ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Líquido/km', 'Ações'],
+              ['40901 JR', 'BBB2B22', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', 'R$ 30,00', 'R$ 30,00', ''],
+              ['40900 JR', 'AAA1A11', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', 'R$ 20,00', 'R$ 18,00', ''],
+            ],
+          )
+        end
+      end
+
+      scenario 'does not sort by the net freight per loaded km without access to the freight expenses' do
+        visit manifests_path(sort: 'net_per_km', direction: 'asc')
+
+        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['40901 JR', '40900 JR'])
+        expect(page).to have_no_css('th', text: 'Líquido/km')
       end
     end
 
@@ -274,23 +348,28 @@ describe 'Manifests' do
       let!(:manifest) { create(:atua_manifest, tenant:, code: 41_625, number: '41149', branch_name: 'JR TRANSPORTES', plate: 'BDC8D26') }
       let!(:document) do
         create(:atua_manifest_document, tenant:, manifest_code: 41_625, transport_document_number: '74764', transport_document_series: 1,
-                                        branch_name: 'JR TRANSPORTES', freight_cents: 801_915)
+                                        branch_name: 'JR TRANSPORTES', freight_cents: 801_915, document_distance_km: BigDecimal('500'))
       end
 
-      scenario 'shows the freight of the manifest instead of zero' do
+      scenario 'divides the freight of the manifest by the loaded km instead of showing zero' do
         visit manifests_path
 
         expect(Atua::TransportDocument.count).to eq(0)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Emitido em', 'Placa', 'Origem', 'Destino', 'Valor total do frete', 'Ações'],
-            ['41149 JR TRANSPORTES', '01/10/2026', 'BDC8D26', '-', '-', 'R$ 8.019,15', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Cliente', 'Bruto/km', 'Ações'],
+            ['41149 JR TRANSPORTES', 'BDC8D26', '-', '-', '-', '-', '-', 'R$ 16,04', ''],
           ],
         )
 
         visit manifest_path(manifest)
 
-        expect(dl_to_hash('#manifest_data')).to include('Valor total do frete' => 'R$ 8.019,15')
+        expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
+          [
+            ['CT-e', 'Cliente', 'Bruto/km'],
+            ['74764', '-', 'R$ 16,04'],
+          ],
+        )
       end
     end
 
@@ -304,12 +383,14 @@ describe 'Manifests' do
                                plate: 'RHJ4E07', goods_value_cents: 11_259_672, notes: 'Entrega agendada')
       end
       let!(:transport_document) do
-        create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR TRANSPORTES', toll_cents: 20_000)
+        create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR TRANSPORTES', toll_cents: 20_000,
+                                         driver_name: 'JOÃO DA SILVA', taker_name: 'USIMINAS')
       end
       let!(:linked_document) do
         create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74130', transport_document_series: 1,
                                         branch_name: 'JR TRANSPORTES', recipient_name: 'FIAT', origin_city: 'Ipatinga', origin_state: 'MG',
-                                        destination_city: 'Betim', destination_state: 'MG', weight_kg: BigDecimal('19170'), freight_cents: 555_040)
+                                        destination_city: 'Betim', destination_state: 'MG', weight_kg: BigDecimal('19170'), freight_cents: 555_040,
+                                        calculated_distance_km: BigDecimal('200'), document_distance_km: BigDecimal('180'))
       end
       let!(:unlinked_document) do
         create(:atua_manifest_document, tenant:, manifest_code: 41_236, transport_document_number: '74199', transport_document_series: 1,
@@ -323,22 +404,19 @@ describe 'Manifests' do
         expect(page).to have_current_path(manifest_path(manifest))
         expect(page).to have_css('h1.page-title', text: 'Manifesto 40772')
         expect(dl_to_hash('#manifest_data')).to eq(
-          'Número' => '40772',
-          'Filial' => 'JR TRANSPORTES',
-          'Cidade da filial' => 'Ipatinga/MG',
-          'Emitido em' => '01/10/2026',
-          'Encerrado em' => '03/10/2026 18:00',
+          'MDF-e' => '40772',
           'Placa' => 'RHJ4E07',
+          'Motorista' => 'JOÃO DA SILVA',
           'Origem' => 'Ipatinga/MG',
           'Destino' => 'Betim/MG',
-          'Valor total do frete' => Money.from_cents(transport_document.freight_cents).format,
+          'Peso (kg)' => '19.170,00',
         )
         expect(manifest.documents.count).to eq(2)
         expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
           [
-            ['CT-e', 'Destinatário', 'Origem / Destino', 'Peso (kg)', 'Frete', 'Pedágio'],
-            ['74130', 'FIAT', 'Ipatinga/MG → Betim/MG', '19.170,00', 'R$ 5.550,40', 'R$ 200,00 Fora do frete'],
-            ['74199', '-', '- → -', '-', '-', '-'],
+            ['CT-e', 'Cliente', 'Bruto/km'],
+            ['74130', 'USIMINAS', 'R$ 2,78'],
+            ['74199', '-', '-'],
           ],
         )
         expect(page).to have_no_link('74199')
@@ -387,6 +465,20 @@ describe 'Manifests' do
             '(−) Despesas do frete na Atua' => 'R$ 350,00',
             '(−) Pedágio' => 'R$ 150,00',
             '(=) Frete líquido' => 'R$ 2.473,30',
+          )
+        end
+
+        scenario 'shows the gross and the net freight per loaded km of each transport document' do
+          visit manifest_path(manifest)
+
+          expect(manifest.documents.count).to eq(3)
+          expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
+            [
+              ['CT-e', 'Cliente', 'Bruto/km', 'Líquido/km'],
+              ['74130', 'USIMINAS', 'R$ 2,78', 'R$ 2,21'],
+              ['74131', '-', '-', '-'],
+              ['74199', '-', '-', '-'],
+            ],
           )
         end
 
@@ -671,16 +763,17 @@ describe 'Manifests' do
 
       before do
         create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: manifest.branch_name, freight_cents: 100_000,
-                                         weight_freight_cents: 90_000, toll_cents: 10_000)
+                                         weight_freight_cents: 90_000, toll_cents: 10_000, taker_name: 'USIMINAS')
         create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
-                                        transport_document_series: 1, branch_name: manifest.branch_name, freight_cents: 100_000)
+                                        transport_document_series: 1, branch_name: manifest.branch_name, freight_cents: 100_000,
+                                        document_distance_km: BigDecimal('100'))
       end
 
-      scenario 'hides the toll column of the transport documents without horizontal scroll' do
+      scenario 'hides the customer column of the transport documents without horizontal scroll' do
         visit manifest_path(manifest)
 
-        expect(page).to have_css('#manifest_documents td', text: 'R$ 1.000,00')
-        expect(page).to have_no_css('#manifest_documents th', text: 'Pedágio')
+        expect(page).to have_css('#manifest_documents td', text: 'R$ 10,00')
+        expect(page).to have_no_css('#manifest_documents th', text: 'Cliente')
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end
     end
