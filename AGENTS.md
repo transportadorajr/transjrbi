@@ -325,6 +325,14 @@ end
   - Use `show_footer: false` when the modal's action buttons live inside its own form (as with `estimate_items/_missing_customer_modal.html.erb`); otherwise the component renders a default footer with a Cancel button. To render custom footer content instead, wrap it in `content_for :footer do ... end` inside the block — the partial exposes it via `yield :footer`.
   - See `app/views/estimate_items/_missing_customer_modal.html.erb` and `app/views/estimate_items/missing_customer.turbo_stream.erb` for a full reference implementation (`turbo_stream.update` + `auto_show: true`).
 
+## Error Tracking
+
+- Production errors are reported to Sentry (`sentry-ruby` + `sentry-rails`, configured in `config/initializers/sentry.rb`). Setup is documented in `docs/sentry/configuracao.md`.
+- The team's Discord channel is notified by the app itself through a webhook: `Discord::ErrorSubscriber` (`lib/discord/`) subscribes to `Rails.error` in production and calls `Discord::NotifyErrorCommand`, throttled to once per hour per error. The webhook URL lives in `Rails.application.credentials.dig(:discord, :error_webhook_url)` — never write it in code, specs or docs.
+- The DSN comes from `ENV['SENTRY_DSN']`, falling back to `Rails.application.credentials.dig(:sentry, :dsn)`. Reporting only runs in `production`.
+- `BaseController` and `Admin::BaseController` attach the signed-in user id (and the `tenant_id` tag) to every event, both in Sentry and in the `Rails.error` context. Never send e-mails, names or other personal data to Sentry (`send_default_pii` stays `false`).
+- To report a handled error, use `Rails.error.report(error)` instead of calling `Sentry` directly, so the code does not depend on the tracker.
+
 ## Admin Namespace
 
 The application is served from two subdomains, both derived from `config.x.domain` in `config/application.rb`:

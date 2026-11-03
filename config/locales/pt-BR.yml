@@ -2035,6 +2035,23 @@ pt-BR:
     warnings:
       missing_period: O arquivo foi importado sem período, por isso os registros que sumiram da Atua não foram verificados.
       removals_skipped: 'O arquivo trouxe %{received} registro(s), menos da metade dos %{existing} que o banco tem para o mesmo período: nenhum registro foi marcado como removido da Atua.'
+  discord:
+    error_notification:
+      username: JR BI - Erros
+      environment: Ambiente
+      source: Origem
+      unknown: desconhecida
+      handled: Tipo
+      handled_error: Tratado
+      unhandled_error: Não tratado
+      tenant_id: Tenant
+      user_id: Usuário
+      admin_user_id: Usuário admin
+      backtrace: Backtrace
+    errors:
+      unexpected_status: O Discord respondeu HTTP %{status}.
+      request_failed: 'A requisição para o webhook do Discord falhou: %{reason}.'
+      notification_failed: 'Não foi possível avisar o erro no Discord: %{reason}'
   tomtom:
     errors:
       missing_api_key: 'Configuração do TomTom incompleta: falta tomtom.api_key nos credentials.'
