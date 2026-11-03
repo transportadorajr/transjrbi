@@ -325,6 +325,18 @@ end
   - Use `show_footer: false` when the modal's action buttons live inside its own form (as with `estimate_items/_missing_customer_modal.html.erb`); otherwise the component renders a default footer with a Cancel button. To render custom footer content instead, wrap it in `content_for :footer do ... end` inside the block — the partial exposes it via `yield :footer`.
   - See `app/views/estimate_items/_missing_customer_modal.html.erb` and `app/views/estimate_items/missing_customer.turbo_stream.erb` for a full reference implementation (`turbo_stream.update` + `auto_show: true`).
 
+## Deploy
+
+Production runs on a VPS from `deploy/compose.yaml`, behind Traefik, and every push to `production` deploys through `.github/workflows/publish.yml`, which copies `deploy/` to the VPS and runs `deploy/release`. The `web` service is replaced by `docker rollout` with no downtime: the new container starts next to the old one, receives traffic once its `/up` healthcheck passes, both serve together for 60 seconds, and then the old one is drained (`tmp/drain` makes `/up` answer 503, so Traefik stops routing to it) and stopped. Setup and the first deploy are documented in `docs/deploy/configuracao.md`.
+
+Because two versions of the app serve at the same time during every deploy, the code must stay compatible with the version before it:
+
+- **Migrations must be backward compatible.** They run before the new container starts, while the old one is still serving. Adding a table, a nullable column or a column with a default is safe; removing or renaming a column or table, or adding `NOT NULL` without a default, breaks the running version. Split those changes over two deploys (expand/contract): first add the new structure and make the code stop using the old one, and only in a later deploy drop it. Ignore a column being removed with `self.ignored_columns` in the first deploy.
+- **Seeds must be idempotent**, since `db:seed` runs on every boot of the `web` container (`find_or_create_by!`, never a bare `create!`).
+- **Jobs must accept the arguments of the previous version.** A job enqueued by one version can be performed by the other. Add new arguments as optional keywords, and keep a renamed or removed job class around for one deploy.
+- **Never add `container_name` or `ports` to the `web` service**: `docker rollout` needs two containers of it at once. Only Traefik publishes ports.
+- **`/up` (`HealthController`) is the deploy healthcheck.** Keep it public, fast and free of authentication.
+
 ## Error Tracking
 
 - Production errors are reported to Sentry (`sentry-ruby` + `sentry-rails`, configured in `config/initializers/sentry.rb`). Setup is documented in `docs/sentry/configuracao.md`.
@@ -342,7 +354,7 @@ The application is served from two subdomains, both derived from `config.x.domai
 
 Each subdomain gets its own `constraints subdomain: ...` block in `config/routes.rb`, and the admin block wraps a `namespace :admin, path: '/'` so the back office lives at the root of its own subdomain (`admin.<domain>/`, `admin.<domain>/login`, …). Both hosts are whitelisted in `config.hosts` (`config/environments/production.rb`); locally they resolve through `app.localhost` / `admin.localhost` with no extra setup.
 
-On the VPS the two hosts also have to exist in the nginx layer: `on_premise/install` resolves a Let's Encrypt certificate for each subdomain (issuing one via certbot when none covers it) and writes a `server` block per host into `nginx/nginx.conf`. Anything not listed there falls into the `default_server` block and gets `return 444`, so a new subdomain needs both its DNS record pointing at the VPS and its own block in the generated config — the certificates are independent, and a missing `admin.` DNS record leaves the app untouched.
+On the VPS both hosts are served by Traefik (`deploy/compose.yaml`): the `web` service's router matches `app.${APP_DOMAIN}` and `admin.${APP_DOMAIN}` and Traefik issues a Let's Encrypt certificate for each one. A new subdomain needs its DNS record pointing at the VPS and its own `Host(...)` in that router rule; any other host gets Traefik's 404.
 
 ### Naming Convention
 
