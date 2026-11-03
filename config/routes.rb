@@ -51,6 +51,7 @@ Rails.application.routes.draw do
     end
     resources :transport_documents, only: %i[index show] do
       get :customer_options, on: :collection
+      post :resync, on: :member
     end
     resources :manifests, only: %i[index show] do
       get :customer_options, on: :collection

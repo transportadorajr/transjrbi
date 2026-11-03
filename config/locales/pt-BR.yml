@@ -1056,6 +1056,11 @@ pt-BR:
       freight_expenses: Despesas internas do frete
       empty_legs: KM vazio para chegar à coleta
       no_empty_leg: Sem KM vazio, porque este CT-e está na primeira viagem da placa ou o manifesto dele ainda não foi importado.
+      resync: Sincronizar o dia
+      confirm_resync: Sincronizar novamente com a Atua os CT-es emitidos em %{date}? Assim as cartas de correção do dia são aplicadas. A sincronização roda em segundo plano.
+    resync:
+      success: Sincronização dos CT-es emitidos em %{date} enfileirada. Ela roda em segundo plano.
+      unavailable: Não é possível sincronizar este CT-e com a Atua.
   manifests:
     index:
       title: Manifestos

@@ -9,6 +9,17 @@ module TransportDocumentsHelper
     menus
   end
 
+  def transport_document_resync_button(transport_document)
+    return unless can?(:update, :transport_documents) && Atua.enabled?(current_user.tenant) && transport_document.issued_at
+
+    date = l(transport_document.issued_at.to_date)
+    button_to resync_transport_document_path(transport_document), class: 'btn btn-outline-primary btn-round', form_class: 'd-inline-block',
+                                                                  data: { turbo_confirm: t('transport_documents.show.confirm_resync', date:) } do
+      concat icon(:'arrow-repeat', class: 'me-2')
+      concat t('transport_documents.show.resync')
+    end
+  end
+
   def transport_document_customer_options(customers)
     customers.map do |customer|
       [[customer.name, customer.document].compact_blank.join(' - ').presence || customer.code.to_s, customer.code.to_s]

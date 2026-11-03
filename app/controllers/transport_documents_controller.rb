@@ -41,6 +41,20 @@ class TransportDocumentsController < BaseController
     load_net_freight if can?(:read, :freight_expenses)
   end
 
+  def resync
+    authorize!(:update, :transport_documents)
+
+    transport_document = current_tenant.atua_transport_documents.active.find(params.expect(:id))
+    issued_on = transport_document.issued_at&.to_date
+
+    if Atua.enabled?(current_tenant) && issued_on
+      Atua::ImportReportJob.perform_later(current_tenant.id, 'transport_documents', issued_on, issued_on)
+      redirect_to transport_document_path(transport_document), notice: t('.success', date: l(issued_on))
+    else
+      redirect_to transport_document_path(transport_document), alert: t('.unavailable')
+    end
+  end
+
   private
 
   def hidden_sort_columns
