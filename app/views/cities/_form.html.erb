@@ -16,7 +16,7 @@
         <div class="col-12">
           <%= f.input :macro_region_id,
                       collection: city_macro_region_options(city_form),
-                      include_blank: t('cities.no_macro_region'),
+                      include_blank: t('cities.form.remaining_state_region'),
                       hint: t('cities.form.macro_region_hint'),
                       input_html: { class: 'form-select' } %>
         </div>

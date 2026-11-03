@@ -39,15 +39,16 @@ class MacroRegionForm < BaseForm
   end
 
   def available_cities
-    tenant.cities.where(macro_region_id: [nil, macro_region.id].uniq).order(:state, City.sort_text(City.arel_table[:name]))
+    tenant.cities.where(macro_region_id: [nil, macro_region.id, *remaining_region_ids].uniq).order(:state, City.sort_text(City.arel_table[:name]))
   end
 
   def submit
     transaction do
       macro_region.update!(name:, state:, remaining_state:)
-      macro_region.cities = selected_cities.to_a
+      macro_region.cities = selected_cities.to_a unless remaining_state
     end
 
+    MacroRegions::AssignRemainingStateCommand.call(tenant)
     MacroRegions::AssignCommand.call(tenant)
   end
 
@@ -84,9 +85,13 @@ class MacroRegionForm < BaseForm
   end
 
   def cities_must_not_be_in_another_region
-    taken = selected_cities.where.not(macro_region_id: nil).where.not(macro_region_id: macro_region.id).pluck(:name)
+    taken = selected_cities.where.not(macro_region_id: [nil, macro_region.id, *remaining_region_ids]).pluck(:name)
 
     errors.add(:city_ids, :taken, cities: taken.to_sentence) if taken.any?
+  end
+
+  def remaining_region_ids
+    tenant.macro_regions.where(remaining_state: true).ids
   end
 
   def other_regions

@@ -38,6 +38,7 @@ class CityForm < BaseForm
   def submit
     city.update!(name:, state:, macro_region:)
 
+    MacroRegions::AssignRemainingStateCommand.call(tenant)
     MacroRegions::AssignCommand.call(tenant)
   end
 

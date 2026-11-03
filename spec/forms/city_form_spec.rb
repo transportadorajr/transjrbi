@@ -17,12 +17,29 @@ RSpec.describe CityForm do
       expect(ipatinga_document.reload.origin_macro_region).to eq(vale_do_aco)
     end
 
-    it 'creates a city without a macro region' do
+    it 'places a city without a macro region in a new remaining state region of its state' do
       form = described_class.new(tenant:, name: 'Ipatinga', state: 'MG', macro_region_id: '')
 
-      expect(form.save).to be(true)
+      expect { expect(form.save).to be(true) }.to change(MacroRegion, :count).by(1)
+
+      region = MacroRegion.last
+      expect(region).to have_attributes(tenant:, name: 'RESTO DE MINAS GERAIS', state: 'MG', remaining_state: true)
+      expect(City.last.macro_region).to eq(region)
+      expect(ipatinga_document.reload.origin_macro_region).to eq(region)
+    end
+
+    it 'places a city without a macro region in the remaining state region the tenant already has' do
+      form = described_class.new(tenant:, name: 'Cubatão', state: 'SP')
+
+      expect { expect(form.save).to be(true) }.not_to change(MacroRegion, :count)
+      expect(City.last.macro_region).to eq(interior)
+    end
+
+    it 'leaves a foreign city without a macro region' do
+      form = described_class.new(tenant:, name: 'Buenos Aires', state: 'EX')
+
+      expect { expect(form.save).to be(true) }.not_to change(MacroRegion, :count)
       expect(City.last.macro_region).to be_nil
-      expect(ipatinga_document.reload.origin_macro_region).to be_nil
     end
 
     it 'rejects a city without the required fields' do
@@ -67,6 +84,7 @@ RSpec.describe CityForm do
       form.assign_attributes(name: 'Cubatão')
 
       expect { expect(form.save).to be(true) }.not_to change(City, :count)
+      expect(city.reload.macro_region).to eq(interior)
       expect(document.reload.origin_macro_region).to eq(interior)
     end
 
@@ -75,7 +93,7 @@ RSpec.describe CityForm do
       form.assign_attributes(macro_region_id: nil)
 
       expect(form.save).to be(true)
-      expect(City.find_by(name: 'Timóteo').macro_region).to be_nil
+      expect(City.find_by(name: 'Timóteo').macro_region.name).to eq('RESTO DE MINAS GERAIS')
     end
   end
 

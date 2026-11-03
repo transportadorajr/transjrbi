@@ -9,7 +9,7 @@ class CitiesController < BaseController
     authorize!(:read, :cities)
 
     @cities = apply_sort(apply_scopes(current_tenant.cities.preload(:macro_region)), :state, :name, :id).page(params[:page])
-    @macro_regions = current_tenant.macro_regions.where(remaining_state: false).order(:state, :name)
+    @macro_regions = current_tenant.macro_regions.order(:state, :name)
   end
 
   def show

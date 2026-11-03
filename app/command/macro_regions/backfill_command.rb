@@ -14,6 +14,7 @@ module MacroRegions
 
     def call
       regions = ActiveRecord::Base.transaction { defaults.map { |attributes| save_region(attributes) } }
+      AssignRemainingStateCommand.call(tenant)
       AssignCommand.call(tenant)
 
       regions
@@ -52,7 +53,7 @@ module MacroRegions
 
       if city.nil?
         cities_of(region.state)[CustomerGroup.compact(name)] = tenant.cities.create!(name:, state: region.state, macro_region: region)
-      elsif city.macro_region_id.nil?
+      elsif city.macro_region_id.nil? || city.macro_region.remaining_state?
         city.update!(macro_region: region)
       end
     end

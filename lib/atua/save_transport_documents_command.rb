@@ -9,6 +9,7 @@ module Atua
       super.tap do
         DiscardInternalTakerDocumentsCommand.call(tenant)
         DiscardExcludedPlatesCommand.call(tenant)
+        Cities::RegisterOriginsCommand.call(tenant)
         MacroRegions::AssignCommand.call(tenant)
         ProductGroups::AssignCommand.call(tenant)
       end
