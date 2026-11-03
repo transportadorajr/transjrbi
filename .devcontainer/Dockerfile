@@ -2,7 +2,7 @@
 # O Dockerfile da raiz do projeto é o de produção gerado pelo Rails.
 
 # Mantenha alinhado com .ruby-version
-ARG RUBY_VERSION=4.0.7
+ARG RUBY_VERSION=4.0.9
 ARG BUN_VERSION=1.4.2
 
 FROM oven/bun:${BUN_VERSION} AS bun
