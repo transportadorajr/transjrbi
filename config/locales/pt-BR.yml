@@ -174,8 +174,8 @@ pt-BR:
         trip_on: Data da viagem
         departure_point: Saída (última entrega)
         arrival_point: Chegada (coleta)
-        origin: Última entrega da viagem anterior
-        destination: Primeira coleta desta viagem
+        origin: De
+        destination: Para
         distance_km: KM vazio
         precision_type: Precisão
         status_type: Situação
