@@ -1604,11 +1604,6 @@ pt-BR:
       monthly_title: Evolução Mensal
       monthly_subtitle: Frete bruto e líquido por mês de emissão do CT-e, de %{from} a %{to}
       table_title: Detalhamento por %{dimension}
-      table_subtitle: >-
-        Soma os CT-es e CEs emitidos no período, como o relatório da Atua; os CT-es sem MDF-e entram no frete, mas não nas viagens. Cada viagem é um MDF-e: soma o frete e as despesas dos seus CT-es emitidos no período. Frete líquido = frete bruto − despesas
-        de frete (comissão, custo por tonelada, seguro, forro de lona e combustível) − despesas lançadas nos CT-es − pedágio descontado (o vale-pedágio quando existir). O pedágio cobrado fora do frete aparece na coluna Pedágio, mas não é descontado. O frete
-        por km divide pelo KM rodado da viagem e considera só as viagens com KM rodado. Uma viagem com clientes ou produtos de grupos
-        diferentes é rateada pela participação de cada grupo no frete.
   freight_expenses:
     index:
       title: Despesas de frete
