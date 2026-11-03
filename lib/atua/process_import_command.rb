@@ -29,6 +29,7 @@ module Atua
       link_complements
       link_expenses
       calculate_commissions
+      ImportNewDriversCommand.call(import)
       import
     rescue StandardError => e
       FailImportCommand.call(import, e)

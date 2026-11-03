@@ -60,6 +60,14 @@ RSpec.describe Atua::ProcessImportCommand do
 
       expect(Atua::LinkComplementsCommand).to have_received(:call).with(tenant)
     end
+
+    it 'imports the vehicles to pull the registry of the drivers missing from it', flipper: :atua_import do
+      expect { described_class.call(import) }.to have_enqueued_job(Atua::ImportReportJob).with(tenant.id, 'vehicles')
+    end
+  end
+
+  it 'does not import the vehicles after importing manifests', flipper: :atua_import do
+    expect { described_class.call(import) }.not_to have_enqueued_job(Atua::ImportReportJob)
   end
 
   it 'recalculates the freight expenses after importing manifests' do
