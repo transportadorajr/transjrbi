@@ -3,7 +3,6 @@ module Dashboard
     DIMENSIONS = %w[customer_group product_group product_subgroup vehicle driver origin macro_region].freeze
     DEFAULT_DIMENSION = 'customer_group'.freeze
     FREIGHT_LIST_DIMENSIONS = %w[vehicle driver].freeze
-    SLICED_DIMENSIONS = %w[customer_group product_group product_subgroup].freeze
     HISTORY_MONTHS = 6
     MONTH_FORMAT = '%Y-%m'.freeze
     RANKING_LIMIT = 15
@@ -15,7 +14,7 @@ module Dashboard
     COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
     CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
-    COLUMNS = %i[id manifest_code trip_plate issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
+    COLUMNS = %i[id manifest_code issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city
                  origin_state origin_macro_region_id export_origin].freeze
     ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
@@ -230,34 +229,28 @@ module Dashboard
     end
 
     def document_entry(fact)
-      Entry.new(
-        document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), **money_of([fact]),
-        plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
-        product_group_id: fact.product_group_id, product_subgroup_id: fact.product_subgroup_id, origin_city: fact.origin_city,
-        origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin
-      )
+      Entry.new(document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), **money_of([fact]),
+                **attributes_of(fact))
     end
 
     def trip_entries(trip_facts)
       trip = trip_facts.first
-      main = trip_facts.max_by { |fact| [fact.freight_cents.to_i, -fact.id] }
-      first_loading = trip_facts.min_by { |fact| [fact.issued_at.to_i, fact.id] }
 
       slices_of(trip_facts).map do |slice, weight|
-        Entry.new(
-          document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, loaded_km: trip.loaded_km.to_d * weight,
-          **money_of(slice), plate: trip.trip_plate, driver_code: main.driver_code, driver_name: main.driver_name,
-          customer_group_id: slice.first.customer_group_id, product_group_id: slice.first.product_group_id,
-          product_subgroup_id: slice.first.product_subgroup_id, origin_city: first_loading.origin_city,
-          origin_state: first_loading.origin_state, origin_macro_region_id: first_loading.origin_macro_region_id,
-          export_origin: first_loading.export_origin
-        )
+        Entry.new(document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, loaded_km: trip.loaded_km.to_d * weight,
+                  **money_of(slice), **attributes_of(slice.first))
       end
     end
 
-    def slices_of(trip_facts)
-      return { trip_facts => BigDecimal('1') } unless SLICED_DIMENSIONS.include?(dimension)
+    def attributes_of(fact)
+      {
+        plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
+        product_group_id: fact.product_group_id, product_subgroup_id: fact.product_subgroup_id, origin_city: fact.origin_city,
+        origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin
+      }
+    end
 
+    def slices_of(trip_facts)
       slices = trip_facts.group_by { |fact| key_for(fact) }.values
       trip_cents = freight_of(trip_facts)
 
@@ -290,7 +283,6 @@ module Dashboard
       [
         table[:id],
         Arel.sql('first_trips.manifest_code'),
-        Arel.sql('first_trips.plate'),
         table[:issued_at],
         Arel.sql('first_trips.loaded_km'),
         table[:freight_cents],
@@ -314,7 +306,7 @@ module Dashboard
     def first_trip_join
       <<~SQL.squish
         LEFT JOIN LATERAL (
-          SELECT atua_manifests.code AS manifest_code, atua_manifests.plate AS plate,
+          SELECT atua_manifests.code AS manifest_code,
                  (#{Atua::Manifest.loaded_km_sql}) AS loaded_km
           FROM atua_manifest_documents
           INNER JOIN atua_manifests ON atua_manifests.tenant_id = atua_manifest_documents.tenant_id

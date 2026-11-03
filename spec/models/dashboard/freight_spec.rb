@@ -122,7 +122,9 @@ RSpec.describe Dashboard::Freight do
     let!(:canceled) do
       create(:atua_transport_document, tenant:, number: '74006', freight_cents: 600_000, canceled_at: Time.zone.local(2026, 10, 3))
     end
-    let!(:september) { create(:atua_transport_document, tenant:, number: '74007', freight_cents: 700_000, posted_on: Date.new(2026, 10, 1)) }
+    let!(:september) do
+      create(:atua_transport_document, tenant:, number: '74007', freight_cents: 700_000, posted_on: Date.new(2026, 10, 1), plate: 'RVR7H89')
+    end
 
     before do
       create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74001',
@@ -362,8 +364,9 @@ RSpec.describe Dashboard::Freight do
     context 'when grouped by origin' do
       let(:dimension) { 'origin' }
 
-      it 'assigns the whole trip to the city of its first loading' do
-        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['CASCAVEL/PR', 1, 1_500_000]])
+      it 'assigns each CT-e to its own origin city' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.loaded_km, row.gross.cents] })
+          .to eq([['CAMPO MOURAO/PR', BigDecimal('0.6'), BigDecimal('270'), 900_000], ['CASCAVEL/PR', BigDecimal('0.4'), BigDecimal('180'), 600_000]])
       end
     end
 
@@ -375,16 +378,18 @@ RSpec.describe Dashboard::Freight do
         MacroRegions::AssignCommand.call(tenant)
       end
 
-      it 'assigns the whole trip to the region of its first loading' do
-        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['OESTE PARANA', 1, 1_500_000]])
+      it 'assigns each CT-e to the region of its own origin city' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] })
+          .to eq([['Outras Regiões', BigDecimal('0.6'), 900_000], ['OESTE PARANA', BigDecimal('0.4'), 600_000]])
       end
     end
 
     context 'when grouped by driver' do
       let(:dimension) { 'driver' }
 
-      it 'assigns the whole trip to the driver of its largest freight' do
-        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] }).to eq([['PEDRO ROCHA', 1, 1_500_000]])
+      it 'assigns each CT-e to its own driver' do
+        expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] })
+          .to eq([['PEDRO ROCHA', BigDecimal('0.6'), 900_000], ['ANA LIMA', BigDecimal('0.4'), 600_000]])
       end
     end
   end
