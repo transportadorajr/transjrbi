@@ -37,6 +37,18 @@ RSpec.describe ProductGroups::BackfillCommand do
     end
   end
 
+  context 'with beverages and empty bottles' do
+    let!(:beer_document) { create(:atua_transport_document, tenant:, product_name: 'CERVEJA') }
+    let!(:bottle_document) { create(:atua_transport_document, tenant:, product_name: 'VASILHAME') }
+
+    it 'classifies the empty bottles in the BEBIDAS subgroup' do
+      described_class.call(tenant)
+
+      expect(tenant.product_groups.nested.pluck(:name, :product_names)).to eq([['BEBIDAS', %w[CERVEJA VASILHAME]]])
+      expect([beer_document, bottle_document].map { |document| document.reload.product_group.name }).to eq(%w[BEBIDAS BEBIDAS])
+    end
+  end
+
   context 'when every product belongs to a known subgroup' do
     let!(:document) { create(:atua_transport_document, tenant:, product_name: 'BOBINA') }
 

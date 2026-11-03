@@ -17,8 +17,7 @@ module ProductGroups
         'ADITIVOS' => ['ACIDO CITRICO'],
       },
       'BEBIDAS' => {
-        'BEBIDAS' => %w[BEBIDAS CERVEJA REFRIGERANTE],
-        'VASILHAMES' => ['VASILHAME'],
+        'BEBIDAS' => %w[BEBIDAS CERVEJA REFRIGERANTE VASILHAME],
       },
       'CONSTRUÇÃO' => {
         'PISOS' => ['PISOS'],
