@@ -24,7 +24,7 @@
 
     <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.group_by') } do %>
       <% freight_billing_dimensions.each do |dimension| %>
-        <%= link_to freight_billing_dimension_label(dimension), freight_billing_dimension_path(dimension),
+        <%= link_to freight_billing_dimension_shortcut(dimension), freight_billing_dimension_path(dimension),
                     class: freight_billing_dimension_link_class(dimension, @dashboard) %>
       <% end %>
     <% end %>

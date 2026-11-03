@@ -65,7 +65,7 @@ describe 'Clearing the applied filters' do
       week = FreightBillingFilterForm.preset_period(:week)
       expect(page).to have_current_path(freight_billing_path)
       expect(page).to have_text("#{I18n.l(week.first)} a #{I18n.l(week.last)}")
-      expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Grupo de clientes')
+      expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Clientes', exact_text: true)
       within('.page-actions') { expect(page).to have_button('Limpar Filtros', disabled: true) }
     end
 

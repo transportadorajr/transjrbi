@@ -1572,6 +1572,14 @@ pt-BR:
       product_subgroup: Subgrupo de produtos
       origin: Origem
       macro_region: Macro região
+    dimension_shortcuts:
+      vehicle: Veículo
+      driver: Motorista
+      customer_group: Clientes
+      product_group: Produtos
+      product_subgroup: Sub. produtos
+      origin: Origem
+      macro_region: Região
     columns:
       trips: Viagens
       loaded_km: KM rodado
