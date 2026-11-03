@@ -30,6 +30,7 @@ module Cities
       tenant.atua_transport_documents.distinct.pluck(:origin_city, :origin_state)
         .map { |name, state| [name.to_s.squish, state.to_s.strip.upcase] }
         .select { |name, state| CustomerGroup.compact(name).present? && MacroRegion::BRAZILIAN_STATES.include?(state) }
+        .sort
     end
 
     def registered
