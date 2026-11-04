@@ -25,7 +25,7 @@ module Atua
     def months
       issued_dates = manifests.pluck(:issued_on) + inactive_transport_documents.pluck(:issued_at).compact.map(&:to_date)
 
-      issued_dates.compact.map(&:beginning_of_month).uniq.sort
+      issued_dates.compact.map(&:beginning_of_month).uniq.sort.select { |month| month >= PurgeMovementsBeforeCommand::CUTOFF }
     end
 
     def manifests
