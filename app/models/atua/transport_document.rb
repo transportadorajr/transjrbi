@@ -8,6 +8,7 @@ module Atua
     TOLL_TOLERANCE_CENTS = 1
     FREIGHT_PARTS = %i[weight_freight_cents ad_valorem_cents other_charges_cents toll_cents icms_cents].freeze
     INTERNAL_TAKER_DOCUMENTS = %w[10212838000100 10212838000283 10212838000364 51628145000172 27676883000100 39622838000152].freeze
+    CARGO_DESTINATIONS = %i[national export import].freeze
 
     with_options class_name: 'Atua::Customer', primary_key: %i[tenant_id code], optional: true, inverse_of: false do
       belongs_to :sender, foreign_key: %i[tenant_id sender_code]
@@ -48,6 +49,8 @@ module Atua
              :other_charges_cents, :toll_cents, :icms_base_cents, :icms_cents, :icms_st_cents, :federal_tax_cents,
              :ibs_cents, :cbs_cents, :result_cents, :driver_freight_cents, :advance_cents, :commission_cents,
              :insurance_cents, :cost_cents, allow_nil: true
+
+    enum :cargo_destination_type, CARGO_DESTINATIONS.index_with(&:to_s), prefix: :cargo, validate: { allow_nil: true }
 
     sortable :customer_name, -> { sort_text(arel_table[:taker_name]) }
     sortable :driver_name
@@ -316,7 +319,7 @@ end
 #  branch_name                        :string
 #  canceled_at                        :datetime
 #  cancellation_reason                :string
-#  cargo_destination                  :string
+#  cargo_destination_type             :enum
 #  cbs_cents                          :bigint
 #  cfop                               :integer
 #  charged_at                         :datetime

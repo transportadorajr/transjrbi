@@ -42,8 +42,8 @@ RSpec.describe RemoveValidFromFromInsuranceRates do
 
   def insert_rate(tenant, valid_from, percentage)
     ActiveRecord::Base.connection.select_value(<<~SQL.squish)
-      INSERT INTO insurance_rates (tenant_id, valid_from, insurance_percentage, iof_percentage, created_at, updated_at)
-      VALUES (#{tenant.id}, '#{valid_from}', #{percentage}, 7.38, NOW(), NOW()) RETURNING id
+      INSERT INTO insurance_rates (tenant_id, valid_from, insurance_percentage, international_insurance_percentage, iof_percentage, created_at, updated_at)
+      VALUES (#{tenant.id}, '#{valid_from}', #{percentage}, 0.065, 7.38, NOW(), NOW()) RETURNING id
     SQL
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_125336) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_04_171511) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,6 +22,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_125336) do
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles", "toll_vouchers"]
   create_enum "atua_import_source_type", ["mock", "production", "upload"]
   create_enum "atua_import_status_type", ["pending", "running", "succeeded", "failed"]
+  create_enum "atua_transport_document_cargo_destination_type", ["national", "export", "import"]
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
@@ -462,7 +463,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_125336) do
     t.string "manifest_numbers", default: [], null: false, array: true
     t.string "ciot"
     t.string "operational_unit"
-    t.string "cargo_destination"
     t.string "route"
     t.string "shipment_number"
     t.string "billing_number"
@@ -500,6 +500,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_125336) do
     t.bigint "complemented_transport_document_id"
     t.bigint "product_group_id"
     t.boolean "vehicle_sale", default: false, null: false
+    t.enum "cargo_destination_type", enum_type: "atua_transport_document_cargo_destination_type"
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["complemented_transport_document_id"], name: "idx_on_complemented_transport_document_id_6691e9e8ef"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
@@ -843,6 +844,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_125336) do
     t.decimal "iof_percentage", precision: 7, scale: 4, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "international_insurance_percentage", precision: 7, scale: 4, null: false
     t.index ["tenant_id"], name: "index_insurance_rates_on_tenant_id", unique: true
   end
 

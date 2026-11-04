@@ -17,7 +17,9 @@ RSpec.describe InsuranceRates::BackfillCommand do
     it 'creates the default rate and calculates the insurance' do
       expect { described_class.call(tenant) }.to change(InsuranceRate, :count).by(1)
 
-      expect(InsuranceRate.find_by!(tenant:)).to have_attributes(insurance_percentage: BigDecimal('0.022'), iof_percentage: BigDecimal('7.38'))
+      expect(InsuranceRate.find_by!(tenant:)).to have_attributes(
+        insurance_percentage: BigDecimal('0.022'), international_insurance_percentage: BigDecimal('0.065'), iof_percentage: BigDecimal('7.38'),
+      )
       expect(FreightExpense.insurance.find_by!(transport_document: document).amount_cents).to eq(185)
     end
 

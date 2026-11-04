@@ -2,6 +2,7 @@ module Atua
   class MapTransportDocumentsCommand < MapReportCommand
     REPORT = 'rel_ctrc_detalhado'.freeze
     DOCUMENT_KINDS = { 'CTRC' => 'cte', 'CE' => 'ce' }.freeze
+    CARGO_DESTINATIONS = { 'nacional' => 'national', 'exportacao' => 'export', 'importacao' => 'import' }.freeze
     NOT_CHARGED = 'nao cobrado'.freeze
     BILLING_ORIGIN_TAKER = 'ARCELOR'.freeze
     BILLING_DESTINATION = { destination_city: 'FOZ DO IGUACU', destination_state: 'PR' }.freeze
@@ -65,7 +66,6 @@ module Atua
       'nr_mdfe' => [:manifest_numbers, :list, { of: :integer }],
       'nr_ciot' => %i[ciot string],
       'nm_unidade_operacional' => %i[operational_unit string],
-      'id_destino_mercadoria' => %i[cargo_destination string],
       'ds_percurso' => %i[route string],
       'nr_embarque' => %i[shipment_number string],
       'vl_frete_empresa' => %i[freight_cents cents],
@@ -96,7 +96,7 @@ module Atua
       'nr_cnpj_cpf_consignatario' => :consignee_document,
       'nr_cpf_motorista' => :driver_document,
     }.freeze
-    SPECIAL_COLUMNS = %w[id_sintegra id_cobrado id_pendente_emissao_nfse].freeze
+    SPECIAL_COLUMNS = %w[id_sintegra id_cobrado id_pendente_emissao_nfse id_destino_mercadoria].freeze
     RAW_COLUMNS = %w[
       nr_contrato nr_pedido nr_ordem_compra nr_liberacao_embarque dt_mes_emissao
       ds_endereco_remetente ds_uf_remetente nm_cidade_remetente ds_uf_consignatario nm_cidade_consignatario
@@ -158,6 +158,7 @@ module Atua
 
       attributes.merge(
         document_kind: document_kind(row),
+        cargo_destination_type: cargo_destination_type(row),
         billing_number:,
         charged_at: charged ? previous.dig(code, :charged_at) || imported_at : nil,
         nfse_pending_at: yes_no(row, 'id_pendente_emissao_nfse', key: code, attribute: :nfse_pending_at),
@@ -170,6 +171,16 @@ module Atua
       DOCUMENT_KINDS.fetch(kind) do
         raise ConversionError, I18n.t('atua.errors.column_conversion', column: 'id_sintegra', report:,
                                                                        message: I18n.t('atua.errors.unknown_document_kind', value: kind.inspect))
+      end
+    end
+
+    def cargo_destination_type(row)
+      destination = convert(row, 'id_destino_mercadoria', :string)
+      return if destination.nil?
+
+      CARGO_DESTINATIONS.fetch(I18n.transliterate(destination).downcase) do
+        raise ConversionError, I18n.t('atua.errors.column_conversion', column: 'id_destino_mercadoria', report:,
+                                                                       message: I18n.t('atua.errors.unknown_cargo_destination', value: destination.inspect))
       end
     end
 

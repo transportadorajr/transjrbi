@@ -154,6 +154,7 @@ pt-BR:
         calculated_at: Calculada em
       insurance_rate:
         insurance_percentage: Alíquota do seguro
+        international_insurance_percentage: Alíquota do seguro internacional
         iof_percentage: Alíquota do IOF
         freight_expenses: CT-es com o seguro
       customer_group:
@@ -188,6 +189,7 @@ pt-BR:
         number: Número
         series: Série
         document_kind: Tipo do documento
+        cargo_destination_type: Destino da mercadoria
         vehicle_sale: Venda de veículo
         access_key: Chave de acesso
         issued_at: Emitido em
@@ -539,6 +541,7 @@ pt-BR:
         active: Ativo
       insurance_rate_form:
         insurance_percentage: Alíquota do seguro (%)
+        international_insurance_percentage: Alíquota do seguro internacional (%)
         iof_percentage: Alíquota do IOF (%)
       macro_region_form:
         name: Nome
@@ -608,6 +611,8 @@ pt-BR:
         insurance_rate_form:
           attributes:
             insurance_percentage:
+              out_of_range: deve ser maior que 0 e menor que 100
+            international_insurance_percentage:
               out_of_range: deve ser maior que 0 e menor que 100
             iof_percentage:
               out_of_range: deve ser maior ou igual a 0 e menor que 100
@@ -712,6 +717,11 @@ pt-BR:
       integration_type:
         atua: Atua
         tomtom: TomTom
+    atua/transport_document:
+      cargo_destination_type:
+        national: Nacional
+        export: Exportação
+        import: Importação
     atua/device_registration:
       status_type:
         code_sent: Código enviado
@@ -1554,6 +1564,7 @@ pt-BR:
         × alíquota do seguro. Nos CT-es com destino no exterior (UF EX) soma-se o IOF sobre o valor do seguro. CEs,
         complementos de valores, CT-es cancelados e CT-es sem MDF-e válido ficam sem seguro. Ao salvar, o seguro de todos os CT-es é recalculado com a nova alíquota.
       insurance_percentage_hint: 'Ex.: 0,022.'
+      international_insurance_percentage_hint: 'Apólice de viagem internacional (RCTR-VI). Ex.: 0,065.'
       iof_percentage_hint: 'Só para frete internacional. Ex.: 7,38.'
   dashboards:
     freight:
@@ -2055,6 +2066,7 @@ pt-BR:
       column_conversion: 'Coluna %{column} do relatório %{report}: %{message}'
       invalid_value: 'o valor %{value} não pode ser convertido para %{type}.'
       unknown_document_kind: 'tipo de documento %{value} desconhecido.'
+      unknown_cargo_destination: 'destino da mercadoria %{value} desconhecido.'
       unknown_conversion: Conversão desconhecida %{type}.
       missing_file: A importação %{id} não tem arquivo anexado para ler.
     warnings:

@@ -5,10 +5,10 @@ RSpec.describe InsuranceRate do
 
   describe 'validations' do
     it 'requires the percentages' do
-      rate = described_class.new(tenant:, insurance_percentage: 0, iof_percentage: -1)
+      rate = described_class.new(tenant:, insurance_percentage: 0, international_insurance_percentage: 100, iof_percentage: -1)
 
       expect(rate).not_to be_valid
-      expect(rate.errors.attribute_names).to contain_exactly(:insurance_percentage, :iof_percentage)
+      expect(rate.errors.attribute_names).to contain_exactly(:insurance_percentage, :international_insurance_percentage, :iof_percentage)
     end
 
     it 'accepts an IOF of zero' do

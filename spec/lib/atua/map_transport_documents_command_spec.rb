@@ -38,7 +38,7 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
         product_name: 'FERRO (FIO MAQUINA/ VERGALHAO ROLO)', ncm: '7213', goods_value_cents: 818_150,
         goods_invoice_numbers: %w[2082496], goods_invoice_keys: %w[31260812261462006697550000020824961065968228],
         complemented_number: nil, manifest_numbers: [183], ciot: nil, operational_unit: 'FROTA PROPRIA',
-        cargo_destination: 'Nacional', route: 'MG / JOAO MONLEVADE X MS / TRES LAGOAS', shipment_number: 'EMBARQUE 692',
+        cargo_destination_type: 'national', route: 'MG / JOAO MONLEVADE X MS / TRES LAGOAS', shipment_number: 'EMBARQUE 692',
         freight_cents: 54_125, weight_freight_cents: 50_336, value_freight_cents: 45_330, ad_valorem_cents: 0,
         other_charges_cents: 0, toll_cents: 0, icms_base_cents: 54_125, icms_cents: 3788, icms_st_cents: 0,
         federal_tax_cents: 5006, ibs_cents: 45, cbs_cents: 408, result_cents: 0, driver_freight_cents: 0,
@@ -51,6 +51,12 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
     it 'keeps the whole row in raw_data' do
       expect(document(80_842)[:raw_data]).to eq(spreadsheet.rows.first)
       expect(document(80_842)[:raw_data].size).to eq(199)
+    end
+
+    it 'maps the cargo destination into its type' do
+      expect(documents.pluck(:document_kind, :cargo_destination_type).tally).to eq(
+        %w[cte national] => 325, %w[cte export] => 53, %w[ce national] => 42,
+      )
     end
 
     it 'maps a CE without MDF-e, access key or status' do
@@ -226,6 +232,33 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
 
       it 'maps every installment due date into a list' do
         expect(documents.sole[:due_dates]).to eq([Date.new(2025, 1, 31), Date.new(2025, 9, 2), Date.new(2026, 3, 27)])
+      end
+    end
+
+    context 'with cargo destinations written in other ways' do
+      let(:spreadsheet) do
+        fixture = read_atua_fixture(:transport_documents)
+        rows = ['IMPORTAÇÃO', 'exportacao', nil].each_with_index.map do |destination, index|
+          fixture.rows[index].merge('id_destino_mercadoria' => destination)
+        end
+        atua_spreadsheet(headers: fixture.headers, rows:)
+      end
+
+      it 'maps them ignoring accents and case and keeps a blank destination empty' do
+        expect(documents.pluck(:cargo_destination_type)).to eq(['import', 'export', nil])
+      end
+    end
+
+    context 'with an unknown cargo destination' do
+      let(:spreadsheet) do
+        fixture = read_atua_fixture(:transport_documents)
+        atua_spreadsheet(headers: fixture.headers, rows: fixture.rows.first(1).map { |row| row.merge('id_destino_mercadoria' => 'Trânsito') })
+      end
+
+      it 'raises a conversion error naming the column' do
+        expect { documents }.to raise_error(
+          Atua::ConversionError, 'Coluna id_destino_mercadoria do relatório rel_ctrc_detalhado: destino da mercadoria "Trânsito" desconhecido.'
+        )
       end
     end
 
