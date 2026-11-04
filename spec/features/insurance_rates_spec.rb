@@ -36,6 +36,7 @@ describe 'Insurance rate' do
         expect(page).to have_css('#missing_insurance_rate', text: 'Nenhuma alíquota de seguro cadastrada')
         expect(dl_to_hash('#insurance_rate_data')).to eq(
           'Alíquota do seguro' => '-',
+          'Alíquota do seguro internacional' => '-',
           'Alíquota do IOF' => '-',
           'CT-es com o seguro' => '0',
           'Total de seguro calculado' => 'R$ 0,00',
@@ -46,13 +47,16 @@ describe 'Insurance rate' do
         visit edit_insurance_rate_path
 
         expect(page).to have_field('Alíquota do seguro (%)', with: '0,022')
+        expect(page).to have_field('Alíquota do seguro internacional (%)', with: '0,065')
         expect(page).to have_field('Alíquota do IOF (%)', with: '7,38')
 
         expect { click_on 'Salvar Alterações' }.to change(InsuranceRate, :count).by(1)
           .and have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
 
         expect(page).to have_current_path(insurance_rate_path)
-        expect(InsuranceRate.last).to have_attributes(tenant:, insurance_percentage: BigDecimal('0.022'), iof_percentage: BigDecimal('7.38'))
+        expect(InsuranceRate.last).to have_attributes(
+          tenant:, insurance_percentage: BigDecimal('0.022'), international_insurance_percentage: BigDecimal('0.065'), iof_percentage: BigDecimal('7.38'),
+        )
       end
     end
 
@@ -77,6 +81,7 @@ describe 'Insurance rate' do
         expect(page).to have_css('h1.page-title', text: 'Alíquota de seguro')
         expect(dl_to_hash('#insurance_rate_data')).to eq(
           'Alíquota do seguro' => '0,022%',
+          'Alíquota do seguro internacional' => '0,065%',
           'Alíquota do IOF' => '7,38%',
           'CT-es com o seguro' => '2',
           'Total de seguro calculado' => 'R$ 4,09',
@@ -90,9 +95,11 @@ describe 'Insurance rate' do
 
         expect(page).to have_current_path(edit_insurance_rate_path)
         expect(page).to have_field('Alíquota do seguro (%)', with: '0,022')
+        expect(page).to have_field('Alíquota do seguro internacional (%)', with: '0,065')
         expect(page).to have_field('Alíquota do IOF (%)', with: '7,38')
 
         fill_in 'Alíquota do seguro (%)', with: '0,03'
+        fill_in 'Alíquota do seguro internacional (%)', with: '0,07'
         fill_in 'Alíquota do IOF (%)', with: '6,38'
 
         expect { click_on 'Salvar Alterações' }.to not_change(InsuranceRate, :count)
@@ -100,19 +107,23 @@ describe 'Insurance rate' do
 
         expect(page).to have_current_path(insurance_rate_path)
         expect(page).to have_text('Alíquota atualizada com sucesso. O seguro dos CT-es será recalculado em segundo plano.')
-        expect(insurance_rate.reload).to have_attributes(tenant:, insurance_percentage: BigDecimal('0.03'), iof_percentage: BigDecimal('6.38'))
+        expect(insurance_rate.reload).to have_attributes(
+          tenant:, insurance_percentage: BigDecimal('0.03'), international_insurance_percentage: BigDecimal('0.07'), iof_percentage: BigDecimal('6.38'),
+        )
       end
 
       scenario 'shows the errors of the percentages' do
         visit edit_insurance_rate_path
         fill_in 'Alíquota do seguro (%)', with: ''
+        fill_in 'Alíquota do seguro internacional (%)', with: '0'
         fill_in 'Alíquota do IOF (%)', with: '100'
 
         expect { click_on 'Salvar Alterações' }.to not_have_enqueued_job(FreightExpenses::CalculateJob)
 
         expect(page).to have_text('Alíquota do seguro (%) deve ser maior que 0 e menor que 100')
+        expect(page).to have_text('Alíquota do seguro internacional (%) deve ser maior que 0 e menor que 100')
         expect(page).to have_text('Alíquota do IOF (%) deve ser maior ou igual a 0 e menor que 100')
-        expect(insurance_rate.reload.insurance_percentage).to eq(BigDecimal('0.022'))
+        expect(insurance_rate.reload).to have_attributes(insurance_percentage: BigDecimal('0.022'), international_insurance_percentage: BigDecimal('0.065'))
       end
     end
 
@@ -163,9 +174,12 @@ describe 'Insurance rate' do
       scenario 'shows the rate without the edit action' do
         visit insurance_rate_path
 
-        expect(InsuranceRate.find_by!(tenant:)).to have_attributes(insurance_percentage: BigDecimal('0.022'), iof_percentage: BigDecimal('7.38'))
+        expect(InsuranceRate.find_by!(tenant:)).to have_attributes(
+          insurance_percentage: BigDecimal('0.022'), international_insurance_percentage: BigDecimal('0.065'), iof_percentage: BigDecimal('7.38'),
+        )
         expect(dl_to_hash('#insurance_rate_data')).to eq(
           'Alíquota do seguro' => '0,022%',
+          'Alíquota do seguro internacional' => '0,065%',
           'Alíquota do IOF' => '7,38%',
           'CT-es com o seguro' => '0',
           'Total de seguro calculado' => 'R$ 0,00',
@@ -195,6 +209,7 @@ describe 'Insurance rate' do
       use_mobile_screen
 
       expect(page).to have_field('Alíquota do seguro (%)')
+      expect(page).to have_field('Alíquota do seguro internacional (%)')
       expect(page).to have_field('Alíquota do IOF (%)')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end

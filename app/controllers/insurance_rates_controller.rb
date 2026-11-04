@@ -31,6 +31,6 @@ class InsuranceRatesController < BaseController
   private
 
   def insurance_rate_params
-    params.expect(insurance_rate: %i[insurance_percentage iof_percentage])
+    params.expect(insurance_rate: %i[insurance_percentage international_insurance_percentage iof_percentage])
   end
 end

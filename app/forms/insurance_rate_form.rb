@@ -1,8 +1,10 @@
 class InsuranceRateForm < BaseForm
   attribute :insurance_percentage, :string
+  attribute :international_insurance_percentage, :string
   attribute :iof_percentage, :string
 
   validate :insurance_percentage_must_be_in_range
+  validate :international_insurance_percentage_must_be_in_range
   validate :iof_percentage_must_be_in_range
 
   attr_accessor :tenant
@@ -15,11 +17,13 @@ class InsuranceRateForm < BaseForm
       insurance_rate = InsuranceRate.find_by(tenant:) || InsuranceRate.new(
         tenant:,
         insurance_percentage: InsuranceRate::DEFAULT_INSURANCE_PERCENTAGE,
+        international_insurance_percentage: InsuranceRate::DEFAULT_INTERNATIONAL_INSURANCE_PERCENTAGE,
         iof_percentage: InsuranceRate::DEFAULT_IOF_PERCENTAGE,
       )
 
       form = new(
         insurance_percentage: format_percentage(insurance_rate.insurance_percentage),
+        international_insurance_percentage: format_percentage(insurance_rate.international_insurance_percentage),
         iof_percentage: format_percentage(insurance_rate.iof_percentage),
         tenant:,
       )
@@ -50,13 +54,21 @@ class InsuranceRateForm < BaseForm
     self.class.parse_percentage(insurance_percentage)
   end
 
+  def international_insurance_percentage_value
+    self.class.parse_percentage(international_insurance_percentage)
+  end
+
   def iof_percentage_value
     self.class.parse_percentage(iof_percentage)
   end
 
   def submit
     transaction do
-      insurance_rate.update!(insurance_percentage: insurance_percentage_value, iof_percentage: iof_percentage_value)
+      insurance_rate.update!(
+        insurance_percentage: insurance_percentage_value,
+        international_insurance_percentage: international_insurance_percentage_value,
+        iof_percentage: iof_percentage_value,
+      )
     end
 
     FreightExpenses::CalculateJob.perform_later(tenant.id)
@@ -69,6 +81,13 @@ class InsuranceRateForm < BaseForm
     return if value&.positive? && value < 100
 
     errors.add(:insurance_percentage, :out_of_range)
+  end
+
+  def international_insurance_percentage_must_be_in_range
+    value = international_insurance_percentage_value
+    return if value&.positive? && value < 100
+
+    errors.add(:international_insurance_percentage, :out_of_range)
   end
 
   def iof_percentage_must_be_in_range

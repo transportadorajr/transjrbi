@@ -100,6 +100,16 @@ RSpec.describe Atua::TransportDocument do
         expect(build(:atua_transport_document, tenant: other_tenant, code: transport_document.code)).to be_valid
       end
     end
+
+    it 'accepts the known cargo destinations or none' do
+      expect(build(:atua_transport_document, tenant:, cargo_destination_type: :export)).to be_cargo_export
+      expect(build(:atua_transport_document, tenant:, cargo_destination_type: nil)).to be_valid
+      expect(build(:atua_transport_document, tenant:, cargo_destination_type: 'transit')).not_to be_valid
+    end
+
+    it 'translates the cargo destinations' do
+      expect(described_class.human_enum_name(:cargo_destination_type, :export)).to eq('Exportação')
+    end
   end
 
   describe 'money' do

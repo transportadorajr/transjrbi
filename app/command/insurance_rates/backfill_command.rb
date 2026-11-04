@@ -15,6 +15,7 @@ module InsuranceRates
 
       rate = tenant.create_insurance_rate!(
         insurance_percentage: InsuranceRate::DEFAULT_INSURANCE_PERCENTAGE,
+        international_insurance_percentage: InsuranceRate::DEFAULT_INTERNATIONAL_INSURANCE_PERCENTAGE,
         iof_percentage: InsuranceRate::DEFAULT_IOF_PERCENTAGE,
       )
       FreightExpenses::CalculateInsuranceCommand.call(tenant)
