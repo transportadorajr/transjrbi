@@ -84,6 +84,7 @@ describe 'Distance adjustments' do
         fill_in 'Número do CT-e', with: '741'
         click_on 'Aplicar Filtros'
 
+        expect(DistanceAdjustment.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
             ['Número do CT-e', 'KM considerado', 'Situação', 'Aplicado em', 'Ações'],
@@ -101,6 +102,7 @@ describe 'Distance adjustments' do
 
     context 'when the transport document is already imported' do
       let!(:document) { create(:atua_transport_document, tenant:, number: '74120', distance_km: BigDecimal('300')) }
+      let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
 
       scenario 'registers the adjustment and replaces the distance of the transport document' do
         visit distance_adjustments_path
@@ -117,7 +119,6 @@ describe 'Distance adjustments' do
         expect(adjustment.applied_at).to be_present
         expect(document.reload).to have_attributes(distance_km: BigDecimal('450'), original_distance_km: BigDecimal('300'))
 
-        create(:resource, name: 'CT-es', slug: 'transport_documents')
         visit transport_document_path(document)
 
         expect(dl_to_hash('#transport')).to include('Distância (km)' => '450,00 Ajustado manualmente. KM do Atua: 300,00')
@@ -143,7 +144,8 @@ describe 'Distance adjustments' do
           visit distance_adjustments_path
           within("#distance_adjustment_#{adjustment.id} .inline-actions") { click_on 'Alterar' }
           fill_in 'KM considerado', with: '520,5'
-          click_on 'Salvar Alterações'
+
+          expect { click_on 'Salvar Alterações' }.not_to change(DistanceAdjustment, :count)
 
           expect(page).to have_text('Ajuste salvo e aplicado ao CT-e 74120.')
           expect(adjustment.reload.distance_km).to eq(BigDecimal('520.5'))
@@ -260,6 +262,11 @@ describe 'Distance adjustments' do
       expect(page).to have_css('th', text: 'SITUAÇÃO')
       expect(page).to have_no_css('th', text: 'KM CONSIDERADO')
       expect(page).to have_no_css('th', text: 'APLICADO EM')
+
+      click_on 'Ordenar por'
+      within('.table-card-header') { click_on 'KM considerado' }
+
+      expect(page).to have_current_path(distance_adjustments_path(sort: :distance_km, direction: :desc))
 
       within("#distance_adjustment_#{adjustment.id}") do
         click_button 'Opções'

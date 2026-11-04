@@ -16,6 +16,7 @@
         <p class="table-card-title"><%= t('.title') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @distance_adjustments.total_count) %></p>
       </div>
+      <%= sort_menu(distance_adjustment_sort_columns) %>
     </div>
     <div class="table-card-body">
       <% if @distance_adjustments.any? %>

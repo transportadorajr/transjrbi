@@ -21,6 +21,14 @@ module DistanceAdjustmentsHelper
     end
   end
 
+  def distance_adjustment_sort_columns
+    [
+      [DistanceAdjustment.human_attribute_name(:transport_document_number), :transport_document_number],
+      [DistanceAdjustment.human_attribute_name(:distance_km), :distance_km, :desc],
+      [DistanceAdjustment.human_attribute_name(:applied_at), :applied_at, :desc],
+    ]
+  end
+
   def distance_adjustment_form_url(distance_adjustment_form)
     return distance_adjustments_path unless distance_adjustment_form.persisted?
 
