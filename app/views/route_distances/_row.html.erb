@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="fw-semibold"><%= route_distance_customer(item) %></td>
+  <td><%= route_distance_route(item) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= route_distance_km(item.distance_km) %></td>
+  <td class="d-none d-lg-table-cell text-end"><%= item.documents_count %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(route_distances_menu(item)) %>
+  </td>
+</tr>

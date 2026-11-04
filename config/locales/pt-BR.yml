@@ -82,9 +82,9 @@ pt-BR:
       excluded_issuer:
         one: Emissor desconsiderado
         other: Emissores desconsiderados
-      distance_adjustment:
-        one: Ajuste de km
-        other: Ajustes de km
+      route_distance:
+        one: Trecho de km
+        other: Trechos de km
       excluded_driver:
         one: Motorista excluído
         other: Motoristas excluídos
@@ -97,11 +97,16 @@ pt-BR:
         code: Código no Atua
         documents_count: Documentos
         freight: Frete bruto
-      distance_adjustment:
-        transport_document_number: Número do CT-e
+      route_distance:
+        customer: Cliente
+        customer_code: Cliente
+        route: Trecho
+        origin_city: Cidade de origem
+        origin_state: UF de origem
+        destination_city: Cidade de destino
+        destination_state: UF de destino
         distance_km: KM considerado
-        status: Situação
-        applied_at: Aplicado em
+        documents_count: CT-es
       truck_group:
         name: Nome
         axles: Quantidades de eixos
@@ -562,10 +567,14 @@ pt-BR:
         macro_region_id: Macro região
       excluded_issuer_form:
         code: Emissor
-      distance_adjustment_form:
-        transport_document_number: Número do CT-e
+      route_distance_form:
+        customer_code: Cliente
+        origin_city: Cidade de origem
+        origin_state: UF de origem
+        destination_city: Cidade de destino
+        destination_state: UF de destino
         distance_km: KM considerado
-      distance_adjustment_import_form:
+      route_distance_import_form:
         file: Planilha
       driver_form:
         display_name: Nome de exibição
@@ -649,11 +658,13 @@ pt-BR:
             code:
               taken: já está desconsiderado
               inclusion: não emitiu nenhum CT-e ou CE
-        distance_adjustment_form:
+        route_distance_form:
           attributes:
-            transport_document_number:
-              taken: já tem um ajuste de km cadastrado
-        distance_adjustment_import_form:
+            base:
+              taken_route: Este trecho já está cadastrado para o cliente
+            customer_code:
+              inclusion: não foi encontrado no Atua
+        route_distance_import_form:
           attributes:
             file:
               invalid_extension: deve ser uma planilha do Excel (%{extensions})
@@ -822,8 +833,8 @@ pt-BR:
         update: Salvar Alterações
       excluded_issuer:
         create: Desconsiderar Emissor
-      distance_adjustment:
-        create: Cadastrar Ajuste
+      route_distance:
+        create: Cadastrar Trecho
         update: Salvar Alterações
       tonnage_rate:
         create: Cadastrar Custo
@@ -882,7 +893,7 @@ pt-BR:
         destroy: Excluir
       excluded_issuer:
         destroy: Voltar a considerar
-      distance_adjustment:
+      route_distance:
         edit: Alterar
         destroy: Excluir
       atua/vehicle:
@@ -1048,6 +1059,7 @@ pt-BR:
     truck_groups: Grupos de caminhões
     excluded_issuers: Emissores desconsiderados
     distance_adjustments: Ajustes de km
+    route_distances: Trechos de km
     company: Dados da empresa
     freight_billing: Faturamento de fretes
   tax:
@@ -1092,7 +1104,7 @@ pt-BR:
     show:
       title: CT-e %{number}
       back: Voltar para CT-es
-      original_distance: 'Ajustado manualmente. KM do Atua: %{distance}'
+      original_distance: 'KM do trecho cadastrado. KM do Atua: %{distance}'
       document_data: Dados do CT-e
       parties: Envolvidos
       transport: Transporte
@@ -1524,50 +1536,54 @@ pt-BR:
       excluded_issuer_data: Emissor
       excluded_issuer_data_text: >-
         Escolha o usuário do Atua que emitiu os CT-es ou CEs. Só aparecem os usuários que já emitiram algum documento.
-  distance_adjustments:
+  route_distances:
     km: '%{distance} km'
-    index:
-      title: Ajustes de km
-      subtitle: >-
-        KM a considerar em CT-es que tiveram a distância alterada, como nos fretes mínimos. O ajuste substitui o KM
-        do CT-e e é mantido nas próximas importações do Atua.
-      new_distance_adjustment: Novo Ajuste
-      import: Importar Planilha
-      applied: Aplicado
-      pending: Aguardando CT-e
-      confirm_destroy: O CT-e voltará a usar o KM informado pelo Atua. Deseja continuar?
-    filters:
-      number: Número do CT-e
-      status: Situação
-    new:
-      title: Novo Ajuste de KM
-      back: Voltar para ajustes de km
-    edit:
-      title: Alterar Ajuste de KM
-      back: Voltar para ajustes de km
     saved:
-      applied: Ajuste salvo e aplicado ao CT-e %{number}.
-      pending: Ajuste salvo. O CT-e %{number} ainda não foi importado e receberá o KM na próxima importação.
+      zero: Trecho salvo. Nenhum CT-e importado tem este cliente e trecho; o KM será aplicado quando eles chegarem do Atua.
+      one: Trecho salvo e aplicado a 1 CT-e.
+      other: Trecho salvo e aplicado a %{count} CT-es.
+    index:
+      title: Trechos de km
+      subtitle: >-
+        KM a considerar nos CT-es de um cliente com a mesma origem e o mesmo destino, no lugar do KM informado pelo Atua.
+        O KM do trecho é mantido nas próximas importações do Atua.
+      new_route_distance: Novo Trecho
+      import: Importar Planilha
+      confirm_destroy: Os CT-es deste trecho voltarão a usar o KM informado pelo Atua. Deseja continuar?
+    filters:
+      customer_code: Cliente
+      origin: Cidade de origem
+      destination: Cidade de destino
+    new:
+      title: Novo Trecho de KM
+      back: Voltar para trechos de km
+    edit:
+      title: Alterar Trecho de KM
+      back: Voltar para trechos de km
     destroy:
-      success: Ajuste excluído. O CT-e voltou a usar o KM informado pelo Atua.
+      success: Trecho excluído. Os CT-es dele voltaram a usar o KM informado pelo Atua.
     import:
       success: >-
-        Planilha importada: %{created} ajuste(s) criado(s) e %{updated} atualizado(s); %{applied} aplicado(s) e
-        %{pending} aguardando CT-e.
-      duplicated: 'Mais de um CT-e com o mesmo número recebeu o ajuste: %{numbers}.'
+        Planilha importada: %{created} trecho(s) criado(s) e %{updated} atualizado(s); %{documents} CT-e(s) usam o KM
+        desses trechos.
+      unknown_customer: 'nenhum cliente do Atua com o CPF/CNPJ %{document}'
       row_error: 'Linha %{line}: %{message}.'
       unreadable: 'Não foi possível ler a planilha: %{reason}'
     import_modal:
       title: Importar Planilha
       instructions: >-
-        Envie uma planilha do Excel com o número do CT-e na primeira coluna e o KM a considerar na segunda. A primeira
-        linha pode ser um cabeçalho. CT-es já cadastrados têm o KM atualizado.
+        Envie uma planilha do Excel com as colunas: CPF/CNPJ do cliente, cidade de origem, UF de origem, cidade de
+        destino, UF de destino e KM a considerar. A primeira linha pode ser um cabeçalho. Trechos já cadastrados têm o
+        KM atualizado.
       submit: Importar
     form:
-      distance_adjustment_data: Ajuste de KM
-      distance_adjustment_data_text: >-
-        Se o CT-e já foi importado, o KM é alterado na hora; senão, é alterado quando o CT-e chegar do Atua.
-      distance_km_hint: KM que substitui o informado pelo Atua no CT-e.
+      route_distance_data: Trecho de KM
+      route_distance_data_text: >-
+        Todo CT-e do cliente com esta origem e este destino passa a usar o KM informado, inclusive os que chegarem do
+        Atua depois.
+      customer_placeholder: Selecione o cliente
+      customer_hint: Cliente tomador do CT-e.
+      distance_km_hint: KM que substitui o informado pelo Atua nos CT-es do trecho.
   tonnage_rates:
     label: '%{name} – %{origin}'
     origin_with_nickname: '%{origin} (%{nickname})'
@@ -1913,7 +1929,7 @@ pt-BR:
     tax: Fiscal
     transport_documents: CT-es
     manifests: Manifestos
-    distance_adjustments: Ajustes de km
+    route_distances: Trechos de km
     intelligence: Inteligência
     freight_billing: Faturamento de Fretes
     registrations: Cadastros

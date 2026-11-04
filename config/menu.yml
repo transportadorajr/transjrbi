@@ -18,10 +18,10 @@ shared:
           url: /manifests
           controllers:
             - manifests
-        - name: distance_adjustments
-          url: /distance_adjustments
+        - name: route_distances
+          url: /route_distances
           controllers:
-            - distance_adjustments
+            - route_distances
     - name: registrations
       icon: card-list
       menus:

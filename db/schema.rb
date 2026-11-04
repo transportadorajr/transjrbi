@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_192055) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_04_231308) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -503,11 +503,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_192055) do
     t.enum "cargo_destination_type", enum_type: "atua_transport_document_cargo_destination_type"
     t.decimal "original_distance_km", precision: 14, scale: 2
     t.datetime "distance_adjusted_at"
+    t.bigint "route_distance_id"
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["complemented_transport_document_id"], name: "idx_on_complemented_transport_document_id_6691e9e8ef"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
     t.index ["origin_macro_region_id"], name: "index_atua_transport_documents_on_origin_macro_region_id"
     t.index ["product_group_id"], name: "index_atua_transport_documents_on_product_group_id"
+    t.index ["route_distance_id"], name: "index_atua_transport_documents_on_route_distance_id"
     t.index ["tenant_id", "code"], name: "index_atua_transport_documents_on_tenant_id_and_code", unique: true
     t.index ["tenant_id", "consignee_code"], name: "index_atua_transport_documents_on_tenant_id_and_consignee_code"
     t.index ["tenant_id", "cte_status"], name: "index_atua_transport_documents_on_tenant_id_and_cte_status"
@@ -923,6 +925,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_192055) do
     t.index ["origin_id", "destination_id"], name: "index_road_routes_on_origin_id_and_destination_id", unique: true
   end
 
+  create_table "route_distances", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "customer_code", null: false
+    t.string "origin_city", null: false
+    t.string "origin_state", null: false
+    t.string "destination_city", null: false
+    t.string "destination_state", null: false
+    t.decimal "distance_km", precision: 14, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "customer_code", "origin_state", "origin_city", "destination_state", "destination_city"], name: "index_route_distances_on_customer_and_route", unique: true
+    t.index ["tenant_id"], name: "index_route_distances_on_tenant_id"
+  end
+
   create_table "tenants", force: :cascade do |t|
     t.string "name", null: false
     t.string "legal_id", null: false
@@ -1033,6 +1049,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_192055) do
   add_foreign_key "atua_transport_documents", "atua_transport_documents", column: "complemented_transport_document_id", on_delete: :nullify
   add_foreign_key "atua_transport_documents", "macro_regions", column: "origin_macro_region_id", on_delete: :nullify
   add_foreign_key "atua_transport_documents", "product_groups"
+  add_foreign_key "atua_transport_documents", "route_distances", on_delete: :nullify
   add_foreign_key "atua_transport_documents", "tenants"
   add_foreign_key "atua_vehicles", "atua_imports", on_delete: :nullify
   add_foreign_key "atua_vehicles", "tenants"
@@ -1063,6 +1080,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_192055) do
   add_foreign_key "product_groups", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
+  add_foreign_key "route_distances", "tenants"
   add_foreign_key "tonnage_rates", "customer_groups"
   add_foreign_key "tonnage_rates", "tenants"
   add_foreign_key "truck_group_fuel_rates", "truck_groups", on_delete: :cascade

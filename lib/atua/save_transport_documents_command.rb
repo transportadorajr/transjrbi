@@ -12,7 +12,7 @@ module Atua
         Cities::RegisterOriginsCommand.call(tenant)
         MacroRegions::AssignCommand.call(tenant)
         ProductGroups::AssignCommand.call(tenant)
-        DistanceAdjustments::ApplyPendingCommand.call(tenant)
+        RouteDistances::ApplyCommand.call(tenant)
       end
     end
 

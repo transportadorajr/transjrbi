@@ -84,36 +84,48 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
     end
   end
 
-  context 'with a distance adjustment registered before the document arrives' do
+  context 'with a route distance registered before the document arrives' do
     let(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
-    let!(:adjustment) { create(:distance_adjustment, tenant:, transport_document_number: first_record[:number].to_s, distance_km: BigDecimal('1300')) }
-
-    it 'replaces the distance of the imported document keeping the distance from Atua' do
-      described_class.call(import, spreadsheet)
-
-      document = tenant.atua_transport_documents.find_by!(code: first_record[:code])
-      expect(document).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km])
-      expect(document.distance_adjusted_at).to be_present
-      expect(adjustment.reload.applied_at).to be_present
-    end
-  end
-
-  context 'with a document whose distance was adjusted' do
-    let(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
-    let(:adjusted_at) { Time.zone.local(2026, 10, 20, 9, 30) }
-
-    before do
-      described_class.call(import, spreadsheet)
-      tenant.atua_transport_documents.where(code: first_record[:code])
-        .update_all(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km], distance_adjusted_at: adjusted_at)
+    let!(:route_distance) do
+      create(:route_distance, tenant:, customer_code: first_record[:taker_code], distance_km: BigDecimal('1300'),
+                              **first_record.slice(:origin_city, :origin_state, :destination_city, :destination_state))
     end
 
-    it 'keeps the adjusted distance when the document is imported again' do
+    it 'replaces the distance of the imported documents of the route keeping the distance from Atua' do
       described_class.call(import, spreadsheet)
 
       document = tenant.atua_transport_documents.find_by!(code: first_record[:code])
       expect(document).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km],
-                                          distance_adjusted_at: adjusted_at)
+                                          route_distance_id: route_distance.id)
+      expect(document.distance_adjusted_at).to be_present
+    end
+
+    it 'keeps the distance of the route when the document is imported again' do
+      described_class.call(import, spreadsheet)
+      adjusted_at = tenant.atua_transport_documents.find_by!(code: first_record[:code]).distance_adjusted_at
+
+      described_class.call(import, spreadsheet)
+
+      document = tenant.atua_transport_documents.find_by!(code: first_record[:code])
+      expect(document).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km],
+                                          distance_adjusted_at: adjusted_at, route_distance_id: route_distance.id)
+    end
+  end
+
+  context 'with a document adjusted that no longer matches a route' do
+    let(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
+
+    before do
+      described_class.call(import, spreadsheet)
+      tenant.atua_transport_documents.where(code: first_record[:code])
+        .update_all(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km], distance_adjusted_at: 1.day.ago)
+    end
+
+    it 'restores the distance from Atua when the document is imported again' do
+      described_class.call(import, spreadsheet)
+
+      document = tenant.atua_transport_documents.find_by!(code: first_record[:code])
+      expect(document).to have_attributes(distance_km: first_record[:distance_km], original_distance_km: nil, distance_adjusted_at: nil)
     end
   end
 end

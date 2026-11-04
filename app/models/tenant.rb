@@ -28,7 +28,7 @@ class Tenant < ApplicationRecord
   has_many :cities, dependent: :delete_all
   has_many :truck_groups, dependent: :delete_all
   has_many :excluded_issuers, dependent: :delete_all
-  has_many :distance_adjustments, dependent: :delete_all
+  has_many :route_distances, dependent: :delete_all
   has_many :excluded_drivers, dependent: :delete_all
   has_many :drivers, dependent: :delete_all
 

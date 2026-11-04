@@ -1,0 +1,14 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'routeDistanceImportModal', title: t('route_distances.import_modal.title'),
+                     title_icon: :'file-earmark-spreadsheet', dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
+  <p class="text-muted small"><%= t('route_distances.import_modal.instructions') %></p>
+  <%= simple_form_for(route_distance_import_form, url: import_route_distances_path, method: :post) do |f| %>
+    <%= f.input :file, as: :file, required: true,
+                       input_html: { class: 'form-control bg-light', accept: RouteDistanceImportForm::EXTENSIONS.join(',') } %>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button :submit, t('route_distances.import_modal.submit'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= button_tag t('helpers.links.cancel'), type: 'button', class: 'btn btn-light w-100 btn-round', data: { bs_dismiss: 'modal' } %>
+    </div>
+  <% end %>
+<% end %>

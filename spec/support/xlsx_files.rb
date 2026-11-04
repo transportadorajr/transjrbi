@@ -38,7 +38,7 @@ module XlsxFiles
   }.freeze
 
   def xlsx_file(rows)
-    file = Tempfile.new(%w[distance_adjustments .xlsx])
+    file = Tempfile.new(%w[spreadsheet .xlsx])
     file.close
 
     Zip::File.open(file.path, create: true) do |zip|

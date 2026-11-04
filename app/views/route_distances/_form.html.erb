@@ -1,0 +1,41 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('route_distances.form.route_distance_data') %></p>
+    <p class="form-card-subtitle"><%= t('route_distances.form.route_distance_data_text') %></p>
+  </div>
+  <%= simple_form_for(route_distance_form, url: route_distance_form_url(route_distance_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <%= f.label :customer_code, required: true, for: nil, id: 'customer_code_select_label', class: 'form-label' %>
+          <%= render 'components/select2', id: 'customer_code_select', name: "#{f.object_name}[customer_code]",
+                                           options: route_distance_customer_options(@customers), selected: route_distance_form.customer_code,
+                                           placeholder: t('route_distances.form.customer_placeholder') %>
+          <%= tag.div t('route_distances.form.customer_hint'), class: 'form-text' %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :origin_city, required: true, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-2">
+          <%= f.input :origin_state, required: true, input_html: { class: 'form-control text-uppercase', maxlength: 2, autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :destination_city, required: true, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-2">
+          <%= f.input :destination_state, required: true,
+                                          input_html: { class: 'form-control text-uppercase', maxlength: 2, autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :distance_km, as: :string, required: true, hint: t('route_distances.form.distance_km_hint'),
+                                    input_html: { class: 'form-control', inputmode: :decimal, autocomplete: 'off' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, route_distance_submit_label(route_distance_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), route_distances_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>
