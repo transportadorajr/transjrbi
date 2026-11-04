@@ -38,6 +38,7 @@ describe 'Customers' do
 
     context 'when there are customers' do
       let!(:steel_group) { create(:customer_group, tenant:, name: 'ARCELORMITTAL', terms: ['ARCELOR']) }
+      let!(:inactive_group) { create(:customer_group, tenant:, name: 'USIMINAS', activated_at: nil) }
       let!(:steel) do
         create(:atua_customer, tenant:, customer_group: steel_group, name: 'ARCELORMITTAL BRASIL S.A.', trade_name: 'ARCELOR MONLEVADE', document: '17.469.701/0066-12',
                                document_digits: '17469701006612', city: 'JOAO MONLEVADE', state: 'MG', activity: 'INDUSTRIA METALURGICA')
@@ -98,8 +99,10 @@ describe 'Customers' do
         )
       end
 
-      scenario 'filters the customers by group' do
+      scenario 'filters the customers by an active group' do
         visit customers_path
+
+        expect(page).to have_select('Grupo', options: %w[Todos ARCELORMITTAL])
         select 'ARCELORMITTAL', from: 'Grupo'
         click_on 'Aplicar Filtros'
 

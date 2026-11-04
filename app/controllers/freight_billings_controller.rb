@@ -9,8 +9,8 @@ class FreightBillingsController < BaseController
 
   def show
     @drivers = current_tenant.atua_transport_documents.drivers
-    @customer_groups = current_tenant.customer_groups.order(:name)
-    @product_groups = current_tenant.product_groups.groups.order(:name)
+    @customer_groups = current_tenant.customer_groups.activated.order(:name)
+    @product_groups = current_tenant.product_groups.groups.activated.order(:name)
     @macro_regions = current_tenant.macro_regions.order(:name)
     @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
     @rows = Kaminari.paginate_array(@dashboard.sorted_rows(params[:sort], params[:direction])).page(params[:page])
