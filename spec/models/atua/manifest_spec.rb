@@ -191,10 +191,22 @@ RSpec.describe Atua::Manifest do
       add_document('6', 400_000, removed_from_atua_at: Time.current)
       add_transport_document('7', 250_000, series: 50)
       add_document('7', 300_000)
+      add_transport_document('8', 350_000, canceled_at: Time.current, removed_from_atua_at: Time.current)
+      add_document('8', 350_000)
+      create(:atua_customer, tenant:, code: 777, document_digits: Atua::TransportDocument::INTERNAL_TAKER_DOCUMENTS.first)
+      add_transport_document('9', 450_000, taker_code: 777, removed_from_atua_at: Time.current)
+      add_document('9', 450_000)
     end
 
-    it 'sums the transport documents and falls back to the manifest freight of the ones missing from Atua' do
-      expect(described_class.with_freight_totals.find(manifest.id).gross_cents).to eq(600_000 + 801_915 + 300_000)
+    it 'sums the transport documents and falls back to the manifest freight of the ones missing or removed from Atua' do
+      expect(described_class.with_freight_totals.find(manifest.id).gross_cents).to eq(600_000 + 700_000 + 801_915 + 300_000)
+    end
+
+    it 'keeps the manifest freight of a transport document removed from Atua in the trip totals' do
+      totals = described_class.with_trip_totals(described_class.where(id: manifest.id)).first
+
+      expect(totals.gross_cents).to eq(600_000 + 700_000 + 801_915 + 300_000)
+      expect(totals.net_cents).to be_positive
     end
   end
 
