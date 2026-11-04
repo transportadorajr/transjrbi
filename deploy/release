@@ -1,0 +1,26 @@
+#!/bin/bash -e
+
+cd "$(dirname "$0")"
+
+ROLLOUT_VERSION=v0.14
+ROLLOUT_PLUGIN="$HOME/.docker/cli-plugins/docker-rollout"
+
+if [ ! -x "$ROLLOUT_PLUGIN" ]; then
+  mkdir -p "$(dirname "$ROLLOUT_PLUGIN")"
+  curl -fsSL "https://raw.githubusercontent.com/wowu/docker-rollout/$ROLLOUT_VERSION/docker-rollout" -o "$ROLLOUT_PLUGIN"
+  chmod +x "$ROLLOUT_PLUGIN"
+fi
+
+docker compose pull
+docker compose up -d db
+docker compose run --rm --no-deps --label traefik.enable=false web ./bin/rails db:prepare
+
+docker rollout web \
+  --timeout 180 \
+  --wait-after-healthy 60 \
+  --pre-stop-hook "touch /rails/tmp/drain && sleep 20"
+
+docker compose up -d --remove-orphans traefik
+docker compose up -d --no-deps jobs
+
+docker image prune -f
