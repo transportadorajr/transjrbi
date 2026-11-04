@@ -146,6 +146,8 @@ describe 'Manifests' do
       let!(:steel) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
       let!(:coil) { create(:product_subgroup, tenant:, parent: steel, name: 'BOBINA') }
       let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
+      let!(:inactive_customer_group) { create(:customer_group, tenant:, name: 'ARCELOR', activated_at: nil) }
+      let!(:inactive_product_group) { create(:product_group, tenant:, name: 'CELULOSE E PAPEL', activated_at: nil) }
       let!(:ls) { create(:truck_group, :ls, tenant:) }
       let!(:jose_trip) do
         create(:atua_manifest, tenant:, code: 41_401, number: '40801', branch_name: 'JR', issued_on: Date.new(2026, 10, 1), plate: 'RHJ4E07')
@@ -170,7 +172,7 @@ describe 'Manifests' do
                                       freight_cents: 200_000)
       end
 
-      scenario 'offers the drivers, the truck groups, the product groups and the customer groups on the filters' do
+      scenario 'offers the drivers and only the active truck, product and customer groups on the filters' do
         visit manifests_path
 
         expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Rodotrem'])

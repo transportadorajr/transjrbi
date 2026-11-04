@@ -47,8 +47,8 @@ class ManifestsController < BaseController
   def load_filter_options
     @drivers = current_tenant.atua_transport_documents.drivers
     @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
-    @product_groups = current_tenant.product_groups.groups.order(:name)
-    @customer_groups = current_tenant.customer_groups.order(:name)
+    @product_groups = current_tenant.product_groups.groups.activated.order(:name)
+    @customer_groups = current_tenant.customer_groups.activated.order(:name)
   end
 
   def by_truck_group(manifests)

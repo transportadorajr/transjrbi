@@ -22,7 +22,7 @@ class TransportDocumentsController < BaseController
       .page(params[:page])
     @valid_count = transport_documents.not_canceled.count
     @drivers = current_tenant.atua_transport_documents.drivers
-    @customer_groups = current_tenant.customer_groups.order(:name)
+    @customer_groups = current_tenant.customer_groups.activated.order(:name)
   end
 
   def customer_options

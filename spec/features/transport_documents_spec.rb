@@ -795,6 +795,7 @@ describe 'Transport documents' do
       let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
       let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU') }
       let!(:other_group) { create(:customer_group, tenant: other_tenant, name: 'ARCELOR') }
+      let!(:inactive_group) { create(:customer_group, tenant:, name: 'CSN', activated_at: nil) }
       let!(:usiminas_customer) { create(:atua_customer, tenant:, code: 7100, customer_group: usiminas) }
       let!(:maria_trip) do
         create(:atua_transport_document, tenant:, number: '75002', plate: 'RVR8J90', driver_code: 20, driver_name: 'MARIA SOUZA', taker_code: usiminas_customer.code)
@@ -802,7 +803,7 @@ describe 'Transport documents' do
       let!(:jose_trip) { create(:atua_transport_document, tenant:, number: '75001', plate: 'RVR2C34', driver_code: 10, driver_name: 'JOSE SILVA', taker_code: 7200) }
       let!(:stranger_trip) { create(:atua_transport_document, tenant: other_tenant, number: '75003', driver_code: 30, driver_name: 'PEDRO LIMA') }
 
-      scenario 'searches the drivers and the customer groups of the tenant and filters by them' do
+      scenario 'searches the drivers and the active customer groups of the tenant and filters by them' do
         visit transport_documents_path
         find(:link, href: '#filtersModal').click
 

@@ -763,6 +763,7 @@ describe 'Freight billing' do
         let!(:steel_group) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
         let!(:rebar_subgroup) { create(:product_subgroup, tenant:, parent: steel_group, name: 'VERGALHÃO', product_names: ['VERGALHAO DE FERRO']) }
         let!(:coil_subgroup) { create(:product_subgroup, tenant:, parent: steel_group, name: 'BOBINA', product_names: ['BOBINA']) }
+        let!(:inactive_group) { create(:product_group, tenant:, name: 'CELULOSE E PAPEL', activated_at: nil) }
 
         before do
           steel.update!(product_name: 'VERGALHAO DE FERRO')
@@ -799,7 +800,7 @@ describe 'Freight billing' do
           )
         end
 
-        scenario 'filters by a product group offering only the groups' do
+        scenario 'filters by a product group offering only the active groups' do
           visit freight_billing_path(october_by_truck.merge(product_group_id: steel_group.id))
 
           expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
@@ -1395,6 +1396,7 @@ describe 'Freight billing' do
     before do
       create(:atua_customer, tenant:, code: 7100, customer_group: create(:customer_group, tenant:, name: 'USIMINAS'))
       create(:atua_customer, tenant:, code: 7200, customer_group: create(:customer_group, tenant:, name: 'GERDAU'))
+      create(:customer_group, tenant:, name: 'ARCELOR', activated_at: nil)
       create(:atua_customer, tenant: other_tenant, code: 7400, customer_group: create(:customer_group, tenant: other_tenant, name: 'GRUPO DE OUTRA'))
       create(:atua_manifest, tenant:, code: 41_001, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
       create(:atua_manifest, tenant:, code: 41_002, plate: 'RVR8J90', trip_started_at: Time.zone.local(2026, 10, 10, 7))
@@ -1413,7 +1415,7 @@ describe 'Freight billing' do
       login_as(admin, scope: :user)
     end
 
-    scenario 'searches the customer groups and the drivers of the tenant and filters the freight by them on a phone' do
+    scenario 'searches the active customer groups and the drivers of the tenant and filters the freight by them on a phone' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
       find(:link, href: '#filtersModal').click
