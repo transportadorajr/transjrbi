@@ -51,7 +51,11 @@ class FreightExpense < ApplicationRecord
   end
 
   def national_insurance
-    amount - international_insurance - iof
+    amount - international_insurance_with_iof
+  end
+
+  def international_insurance_with_iof
+    international_insurance + iof
   end
 end
 

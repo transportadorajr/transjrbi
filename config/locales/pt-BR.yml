@@ -1039,7 +1039,7 @@ pt-BR:
       total: Total das despesas do frete
       national_insurance: Seguro nacional
       international_insurance: Seguro internacional
-      international_insurance_iof: IOF do seguro internacional
+      international_insurance_detail_html: '%{rate} (inclui IOF de %{iof_percentage} sobre o seguro: %{iof})'
     document_kinds:
       cte: CT-e
       ce: CE
@@ -1699,7 +1699,8 @@ pt-BR:
       freight: Frete bruto
       commission: (−) Comissões
       tonnage: (−) Custos por tonelada
-      insurance: (−) Seguro da carga
+      insurance: (−) Seguro nacional da carga
+      international_insurance: (−) Seguro internacional da carga (com IOF)
       tarp_lining: (−) Forro de lona
       fuel: (−) Combustível
       expenses: (−) Despesas do frete na Atua

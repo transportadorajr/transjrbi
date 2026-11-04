@@ -97,12 +97,13 @@ RSpec.describe FreightExpense do
   end
 
   describe 'export insurance' do
-    it 'splits the national insurance from the international insurance and its IOF' do
+    it 'splits the national insurance from the international insurance with its IOF' do
       expense = build(:freight_expense, :insurance, tenant:, international_percentage: BigDecimal('0.065'), international_insurance_cents: 650,
                                                     iof_percentage: BigDecimal('7.38'), iof_cents: 48, amount_cents: 918)
 
       expect(expense).to be_export_insurance
       expect(expense.national_insurance).to eq(Money.from_cents(220))
+      expect(expense.international_insurance_with_iof).to eq(Money.from_cents(698))
     end
 
     it 'keeps the whole amount as the national insurance of a national cargo' do
