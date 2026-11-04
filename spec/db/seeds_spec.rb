@@ -35,10 +35,11 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(18)
+    expect { run_seeds }.to change(Resource, :count).by(19)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
+    expect(Resource.find_by!(slug: 'distance_adjustments')).to have_attributes(name: 'Ajustes de km', writable: true)
     expect(Resource.find_by!(slug: 'customers')).to have_attributes(name: 'Clientes', writable: false)
     expect(Resource.find_by!(slug: 'product_groups')).to have_attributes(name: 'Grupos de produtos', writable: true)
   end
@@ -53,7 +54,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(17)
+      expect { run_seeds }.to change(Resource, :count).by(18)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end
