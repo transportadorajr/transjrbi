@@ -37,6 +37,19 @@ RSpec.describe Atua::ReimportManifestsWithInactiveDocumentsCommand do
     end
   end
 
+  context 'when the months involved are before the purge cutoff' do
+    let!(:transport_document) do
+      create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 3, 31, 18), removed_from_atua_at: Time.current)
+    end
+
+    before { create_trip(transport_document, issued_on: Date.new(2026, 4, 1)) }
+
+    it 'reimports only the months from the cutoff on' do
+      expect { described_class.call(tenant) }.to have_enqueued_job(Atua::ImportReportJob).exactly(2).times
+      expect(Atua::ImportReportJob).to have_been_enqueued.with(tenant.id, 'manifests', Date.new(2026, 4, 1), Date.new(2026, 4, 30))
+    end
+  end
+
   context 'when every transport document of the manifests is active' do
     before { create_trip(create(:atua_transport_document, tenant:)) }
 
