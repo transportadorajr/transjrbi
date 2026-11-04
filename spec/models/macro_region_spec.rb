@@ -63,4 +63,21 @@ RSpec.describe MacroRegion do
       expect(described_class.for_origin(regions, 'CASCAVEL', 'PR')).to be_nil
     end
   end
+
+  describe '.unassigned_origins' do
+    let(:vale_do_aco) { create(:macro_region, tenant:) }
+
+    before do
+      create_list(:atua_transport_document, 2, tenant:, origin_city: 'CASCAVEL', origin_state: 'PR')
+      create(:atua_transport_document, tenant:, origin_city: 'MARINGA', origin_state: 'PR')
+      create(:atua_transport_document, tenant:, origin_city: 'IPATINGA', origin_state: 'MG', origin_macro_region: vale_do_aco)
+      create(:atua_transport_document, tenant:, origin_city: 'LONDRINA', origin_state: 'PR', vehicle_sale: true)
+      create(:atua_transport_document, tenant:, origin_city: nil, origin_state: nil)
+      create(:atua_transport_document, tenant: create(:tenant), origin_city: 'TOLEDO', origin_state: 'PR')
+    end
+
+    it 'counts the freight documents of the tenant whose origin is in no macro region' do
+      expect(described_class.unassigned_origins(tenant)).to eq([[%w[CASCAVEL PR], 2], [%w[MARINGA PR], 1]])
+    end
+  end
 end

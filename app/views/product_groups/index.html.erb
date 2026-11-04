@@ -8,6 +8,8 @@
 
   <%= render 'filters' %>
 
+  <%= product_group_unclassified_alert(@unclassified_products) %>
+
   <div class="row g-3 mb-4">
     <%= counter_card(:dark, t('.total'), @total_count, col_class: 'col-12 col-md-6 col-xl-3') %>
     <%= counter_card(:success, t('.active_groups'), @active_count, col_class: 'col-12 col-md-6 col-xl-3') %>

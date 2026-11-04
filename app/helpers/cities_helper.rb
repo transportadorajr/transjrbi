@@ -23,6 +23,12 @@ module CitiesHelper
     city_form.available_macro_regions.map { |macro_region| [macro_region_label(macro_region), macro_region.id] }
   end
 
+  def city_unassigned_origins_alert(origins)
+    return if origins.none?
+
+    render 'cities/unassigned_origins_alert', origins:
+  end
+
   def city_form_url(city_form)
     city_form.persisted? ? city_path(city_form.city) : cities_path
   end

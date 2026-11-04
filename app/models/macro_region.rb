@@ -17,6 +17,11 @@ class MacroRegion < ApplicationRecord
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
 
   class << self
+    def unassigned_origins(tenant)
+      tenant.atua_transport_documents.active.freights.where(origin_macro_region_id: nil).where.not(origin_city: [nil, ''])
+        .group(:origin_city, :origin_state).count.sort_by { |(city, state), count| [-count, state.to_s, city] }
+    end
+
     def for_origin(regions, city, state)
       same_state = regions.select { |region| region.state == state.to_s.strip.upcase }
 

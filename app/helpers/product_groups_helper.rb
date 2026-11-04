@@ -27,6 +27,12 @@ module ProductGroupsHelper
     product_group.group? ? 'product_groups/group_detail' : 'product_groups/subgroup_detail'
   end
 
+  def product_group_unclassified_alert(products)
+    return if products.none?
+
+    render 'product_groups/unclassified_alert', products:
+  end
+
   def product_group_create_button
     create_button(t('product_groups.index.new_product_group')) if can?(:create, :product_groups)
   end
