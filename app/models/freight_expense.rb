@@ -14,7 +14,7 @@ class FreightExpense < ApplicationRecord
 
   enum :kind_type, KINDS.index_with(&:to_s), validate: true
 
-  monetize :icms_cents, :iof_cents, :amount_cents
+  monetize :icms_cents, :iof_cents, :international_insurance_cents, :amount_cents
   monetize :base_cents, :rate_cents, allow_nil: true
 
   validates :calculated_at, presence: true
@@ -45,31 +45,45 @@ class FreightExpense < ApplicationRecord
       KINDS.index_by { |kind| human_enum_name(:kind_type, kind) }
     end
   end
+
+  def export_insurance?
+    insurance? && international_insurance_cents.positive?
+  end
+
+  def national_insurance
+    amount - international_insurance_with_iof
+  end
+
+  def international_insurance_with_iof
+    international_insurance + iof
+  end
 end
 
 # == Schema Information
 #
 # Table name: freight_expenses
 #
-#  id                    :bigint           not null, primary key
-#  amount_cents          :bigint           not null
-#  base_cents            :bigint
-#  calculated_at         :datetime         not null
-#  icms_cents            :bigint           default(0), not null
-#  iof_cents             :bigint           default(0), not null
-#  iof_percentage        :decimal(7, 4)
-#  kind_type             :enum             not null
-#  percentage            :decimal(7, 4)
-#  rate_cents            :bigint
-#  weight_tons           :decimal(14, 3)
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  commission_rule_id    :bigint
-#  insurance_rate_id     :bigint
-#  tenant_id             :bigint           not null
-#  tonnage_rate_id       :bigint
-#  transport_document_id :bigint           not null
-#  truck_group_id        :bigint
+#  id                            :bigint           not null, primary key
+#  amount_cents                  :bigint           not null
+#  base_cents                    :bigint
+#  calculated_at                 :datetime         not null
+#  icms_cents                    :bigint           default(0), not null
+#  international_insurance_cents :bigint           default(0), not null
+#  international_percentage      :decimal(7, 4)
+#  iof_cents                     :bigint           default(0), not null
+#  iof_percentage                :decimal(7, 4)
+#  kind_type                     :enum             not null
+#  percentage                    :decimal(7, 4)
+#  rate_cents                    :bigint
+#  weight_tons                   :decimal(14, 3)
+#  created_at                    :datetime         not null
+#  updated_at                    :datetime         not null
+#  commission_rule_id            :bigint
+#  insurance_rate_id             :bigint
+#  tenant_id                     :bigint           not null
+#  tonnage_rate_id               :bigint
+#  transport_document_id         :bigint           not null
+#  truck_group_id                :bigint
 #
 # Indexes
 #

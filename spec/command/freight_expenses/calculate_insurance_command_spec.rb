@@ -22,25 +22,33 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       create(:atua_transport_document, tenant:, number: '76002', goods_value_cents: 838_998, freight_cents: 55_504, destination_state: 'ex',
                                        issued_at: Time.zone.local(2026, 10, 6, 8))
     end
+    let!(:export) do
+      create(:atua_transport_document, tenant:, number: '76011', goods_value_cents: 838_998, freight_cents: 55_504, destination_state: 'PR',
+                                       cargo_destination_type: 'export', issued_at: Time.zone.local(2026, 10, 7, 8))
+    end
 
     before do
       link_to_manifest(national)
       link_to_manifest(international)
+      link_to_manifest(export)
       link_to_manifest(create(:atua_transport_document, tenant:, number: '76003', document_kind: 'ce', goods_value_cents: 100_000))
+      link_to_manifest(create(:atua_transport_document, tenant:, number: '76012', document_kind: 'ce', cargo_destination_type: 'export',
+                                                        destination_state: 'EX', goods_value_cents: 100_000))
       link_to_manifest(create(:atua_transport_document, tenant:, number: '76004', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT,
                                                         goods_value_cents: 100_000))
       link_to_manifest(create(:atua_transport_document, tenant:, number: '76005', canceled_at: Time.current, goods_value_cents: 100_000))
       link_to_manifest(create(:atua_transport_document, tenant: create(:tenant), number: '76006', goods_value_cents: 100_000))
     end
 
-    it 'records the insurance over the goods value only, adding the IOF on the international ones' do
-      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
+    it 'records the insurance over the goods value, adding the international insurance and its IOF on the export cargo' do
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 3, removed: 0))
 
-      expect(FreightExpense.count).to eq(2)
+      expect(FreightExpense.count).to eq(3)
       expect(FreightExpense.order(:transport_document_id).map { |expense| expense_values(expense) }).to eq(
         [
-          ['76001', rate, 838_998, BigDecimal('0.022'), BigDecimal('0'), 0, 185],
-          ['76002', rate, 838_998, BigDecimal('0.022'), BigDecimal('7.38'), 14, 199],
+          ['76001', rate, 838_998, BigDecimal('0.022'), nil, 0, BigDecimal('0'), 0, 185],
+          ['76002', rate, 838_998, BigDecimal('0.022'), BigDecimal('0.065'), 545, BigDecimal('7.38'), 40, 770],
+          ['76011', rate, 838_998, BigDecimal('0.022'), BigDecimal('0.065'), 545, BigDecimal('7.38'), 40, 770],
         ],
       )
       expect(FreightExpense.all).to all(have_attributes(tenant:, kind_type: 'insurance', commission_rule: nil, calculated_at: be_present))
@@ -66,10 +74,21 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       described_class.call(tenant)
       rate.update!(insurance_percentage: BigDecimal('0.03'))
 
-      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 3, removed: 0))
       expect(FreightExpense.find_by!(transport_document: national)).to have_attributes(percentage: BigDecimal('0.03'), amount_cents: 252)
-      expect(FreightExpense.find_by!(transport_document: international)).to have_attributes(percentage: BigDecimal('0.03'), iof_cents: 19,
-                                                                                            amount_cents: 271)
+      expect(FreightExpense.find_by!(transport_document: export)).to have_attributes(percentage: BigDecimal('0.03'), iof_cents: 40,
+                                                                                     amount_cents: 837)
+    end
+
+    it 'recalculates the international insurance and its IOF when the international rate is changed' do
+      described_class.call(tenant)
+      rate.update!(international_insurance_percentage: BigDecimal('0.07'), iof_percentage: BigDecimal('6.38'))
+
+      expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
+      expect(FreightExpense.find_by!(transport_document: national)).to have_attributes(international_insurance_cents: 0, amount_cents: 185)
+      expect(FreightExpense.find_by!(transport_document: export)).to have_attributes(
+        international_percentage: BigDecimal('0.07'), international_insurance_cents: 587, iof_cents: 37, amount_cents: 809,
+      )
     end
 
     it 'removes the insurance of a transport document canceled afterwards' do
@@ -84,7 +103,7 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
       let!(:without_manifest) { create(:atua_transport_document, tenant:, number: '76007', goods_value_cents: 100_000) }
 
       it 'does not record the insurance' do
-        expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 2, removed: 0))
+        expect(described_class.call(tenant)).to eq(described_class::Result.new(saved: 3, removed: 0))
         expect(FreightExpense.exists?(transport_document: without_manifest)).to be(false)
       end
 
@@ -138,7 +157,7 @@ RSpec.describe FreightExpenses::CalculateInsuranceCommand do
   end
 
   def expense_values(expense)
-    [expense.transport_document.number, expense.insurance_rate, expense.base_cents, expense.percentage, expense.iof_percentage,
-     expense.iof_cents, expense.amount_cents]
+    [expense.transport_document.number, expense.insurance_rate, expense.base_cents, expense.percentage, expense.international_percentage,
+     expense.international_insurance_cents, expense.iof_percentage, expense.iof_cents, expense.amount_cents]
   end
 end

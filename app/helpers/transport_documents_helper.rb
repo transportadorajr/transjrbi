@@ -104,6 +104,12 @@ module TransportDocumentsHelper
     render 'transport_documents/freight_expenses/card', freight_expenses:, total:
   end
 
+  def transport_document_freight_expense_row(freight_expense)
+    return render('transport_documents/freight_expenses/export_insurance_rows', freight_expense:) if freight_expense.export_insurance?
+
+    render 'transport_documents/freight_expenses/expense_row', freight_expense:
+  end
+
   def transport_document_manifests_table(manifests)
     return render('shared/no_content') if manifests.none?
 

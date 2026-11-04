@@ -1,0 +1,20 @@
+<tr id="<%= dom_id(freight_expense) %>">
+  <td><%= t('transport_documents.freight_expenses.national_insurance') %></td>
+  <td class="d-none d-md-table-cell"><%= freight_expense_insurance_rate(freight_expense.insurance_rate) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(freight_expense.base) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= t('tax.blank') %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= insurance_percentage(freight_expense.percentage) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(freight_expense.national_insurance) %></td>
+</tr>
+<tr id="<%= dom_id(freight_expense, :international) %>">
+  <td><%= t('transport_documents.freight_expenses.international_insurance') %></td>
+  <td class="d-none d-md-table-cell">
+    <%= t('transport_documents.freight_expenses.international_insurance_detail_html',
+          rate: freight_expense_insurance_rate(freight_expense.insurance_rate),
+          iof_percentage: insurance_percentage(freight_expense.iof_percentage), iof: tax_money(freight_expense.iof)) %>
+  </td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(freight_expense.base) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= t('tax.blank') %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= insurance_percentage(freight_expense.international_percentage) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(freight_expense.international_insurance_with_iof) %></td>
+</tr>

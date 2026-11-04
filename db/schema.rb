@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_171511) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_04_183622) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -712,6 +712,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_171511) do
     t.decimal "iof_percentage", precision: 7, scale: 4
     t.bigint "iof_cents", default: 0, null: false
     t.bigint "truck_group_id"
+    t.decimal "international_percentage", precision: 7, scale: 4
+    t.bigint "international_insurance_cents", default: 0, null: false
     t.index ["commission_rule_id"], name: "index_freight_expenses_on_commission_rule_id"
     t.index ["insurance_rate_id"], name: "index_freight_expenses_on_insurance_rate_id"
     t.index ["tenant_id"], name: "index_freight_expenses_on_tenant_id"

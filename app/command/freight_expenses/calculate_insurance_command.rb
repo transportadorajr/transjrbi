@@ -1,6 +1,8 @@
 module FreightExpenses
   class CalculateInsuranceCommand
-    COMPARED_ATTRIBUTES = %i[insurance_rate_id base_cents percentage iof_percentage iof_cents amount_cents].freeze
+    COMPARED_ATTRIBUTES = %i[
+      insurance_rate_id base_cents percentage international_percentage international_insurance_cents iof_percentage iof_cents amount_cents
+    ].freeze
 
     Result = Data.define(:saved, :removed)
 
@@ -40,28 +42,31 @@ module FreightExpenses
       rate = InsuranceRate.find_by(tenant:)
       return {} unless rate
 
-      documents.each_with_object({}) do |(document_id, goods_value_cents, state), expenses|
-        expenses[document_id] = expense_attributes(rate, goods_value_cents.to_i, state)
+      documents.each_with_object({}) do |(document_id, goods_value_cents, state, cargo_destination), expenses|
+        export = cargo_destination == 'export' || CommissionRule.foreign_destination?(state)
+        expenses[document_id] = expense_attributes(rate, goods_value_cents.to_i, export)
       end
     end
 
     def documents
       tenant.atua_transport_documents.commissionable.with_valid_manifest
-        .pluck(:id, :goods_value_cents, :destination_state)
+        .pluck(:id, :goods_value_cents, :destination_state, :cargo_destination_type)
     end
 
-    def expense_attributes(rate, base_cents, state)
+    def expense_attributes(rate, base_cents, export)
       insurance_cents = rate.insurance_cents(base_cents)
-      iof_percentage = CommissionRule.foreign_destination?(state) ? rate.iof_percentage : 0
-      iof_cents = CommissionRule.foreign_destination?(state) ? rate.iof_cents(insurance_cents) : 0
+      international_insurance_cents = export ? rate.international_insurance_cents(base_cents) : 0
+      iof_cents = rate.iof_cents(international_insurance_cents)
 
       {
         insurance_rate_id: rate.id,
         base_cents:,
         percentage: rate.insurance_percentage,
-        iof_percentage:,
+        international_percentage: export ? rate.international_insurance_percentage : nil,
+        international_insurance_cents:,
+        iof_percentage: export ? rate.iof_percentage : 0,
         iof_cents:,
-        amount_cents: insurance_cents + iof_cents,
+        amount_cents: insurance_cents + international_insurance_cents + iof_cents,
       }
     end
 

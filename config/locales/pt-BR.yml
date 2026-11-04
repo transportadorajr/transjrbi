@@ -1037,6 +1037,9 @@ pt-BR:
       complement_kind: Crédito de complemento
     freight_expenses:
       total: Total das despesas do frete
+      national_insurance: Seguro nacional
+      international_insurance: Seguro internacional
+      international_insurance_detail_html: '%{rate} (inclui IOF de %{iof_percentage} sobre o seguro: %{iof})'
     document_kinds:
       cte: CT-e
       ce: CE
@@ -1561,11 +1564,13 @@ pt-BR:
       insurance_rate_data: Dados da Alíquota
       insurance_rate_data_text: >-
         O seguro da carga é calculado para os CT-es normais vinculados a um MDF-e válido: valor da carga
-        × alíquota do seguro. Nos CT-es com destino no exterior (UF EX) soma-se o IOF sobre o valor do seguro. CEs,
+        × alíquota do seguro. Nos CT-es de mercadoria destinada à exportação (ou com destino no exterior, UF EX) soma-se
+        o seguro internacional (valor da carga × alíquota do seguro internacional) e o IOF sobre o valor do seguro
+        internacional. CEs,
         complementos de valores, CT-es cancelados e CT-es sem MDF-e válido ficam sem seguro. Ao salvar, o seguro de todos os CT-es é recalculado com a nova alíquota.
       insurance_percentage_hint: 'Ex.: 0,022.'
       international_insurance_percentage_hint: 'Apólice de viagem internacional (RCTR-VI). Ex.: 0,065.'
-      iof_percentage_hint: 'Só para frete internacional. Ex.: 7,38.'
+      iof_percentage_hint: 'Incide só sobre o seguro internacional. Ex.: 7,38.'
   dashboards:
     freight:
       total: Total
@@ -1681,7 +1686,7 @@ pt-BR:
     missing_insurance_rate_alert:
       title: Nenhuma alíquota de seguro cadastrada
       text: Sem alíquota, o seguro da carga não é calculado nos CT-es.
-    insurance_detail_html: '%{rate} (internacional, com IOF de %{iof})'
+    insurance_detail_html: '%{rate} (exportação, com seguro internacional de %{international} e IOF de %{iof})'
     tarp_lining_detail: Moinho Regio — valor fixo por CT-e
     per_transport_document: '%{rate} por CT-e'
     outdated_alert:
@@ -1694,7 +1699,8 @@ pt-BR:
       freight: Frete bruto
       commission: (−) Comissões
       tonnage: (−) Custos por tonelada
-      insurance: (−) Seguro da carga
+      insurance: (−) Seguro nacional da carga
+      international_insurance: (−) Seguro internacional da carga (com IOF)
       tarp_lining: (−) Forro de lona
       fuel: (−) Combustível
       expenses: (−) Despesas do frete na Atua

@@ -14,6 +14,10 @@ class InsuranceRate < ApplicationRecord
     percentage_of(base_cents, insurance_percentage)
   end
 
+  def international_insurance_cents(base_cents)
+    percentage_of(base_cents, international_insurance_percentage)
+  end
+
   def iof_cents(insurance_cents)
     percentage_of(insurance_cents, iof_percentage)
   end
