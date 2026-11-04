@@ -252,9 +252,14 @@ describe 'Freight expenses' do
       create(:atua_transport_document, tenant:, number: '76002', taker_code: 501, taker_name: 'USIMINAS CUBATAO', destination_state: 'EX',
                                        issued_at: Time.zone.local(2026, 10, 4, 8), goods_value_cents: 838_998, freight_cents: 55_504)
     end
+    let!(:to_foz) do
+      create(:atua_transport_document, tenant:, number: '76003', taker_code: 501, taker_name: 'USIMINAS CUBATAO', destination_state: 'PR',
+                                       cargo_destination_type: 'export', issued_at: Time.zone.local(2026, 10, 3, 8),
+                                       goods_value_cents: 1_000_000, freight_cents: 55_504)
+    end
 
     before do
-      [to_minas, to_rosario].each do |document|
+      [to_minas, to_rosario, to_foz].each do |document|
         manifest = create(:atua_manifest, tenant:)
         create(:atua_transport_document_manifest, tenant:, transport_document_code: document.code, manifest_number: manifest.number,
                                                   branch_name: manifest.branch_name)
@@ -263,22 +268,26 @@ describe 'Freight expenses' do
       login_as(admin, scope: :user)
     end
 
-    scenario 'lists the cargo insurance of each transport document with the IOF of the international freight' do
+    scenario 'lists the cargo insurance of each transport document with the international insurance and IOF of the export cargo' do
       visit freight_expenses_path
       select 'Seguro da carga', from: 'Tipo'
       click_on 'Aplicar Filtros'
 
-      expect(tenant.freight_expenses.insurance.count).to eq(2)
+      expect(tenant.freight_expenses.insurance.count).to eq(3)
       expect(html_table_to_rows).to eq(
         [
           ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
           ['76001', '05/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga', 'Alíquota de seguro', 'R$ 8.389,98', '0,022%',
            'R$ 1,85', ''],
           ['76002', '04/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga',
-           'Alíquota de seguro (internacional, com IOF de R$ 0,14)', 'R$ 8.389,98', '0,022%', 'R$ 1,99', ''],
+           'Alíquota de seguro (exportação, com seguro internacional de R$ 5,45 e IOF de R$ 0,40)', 'R$ 8.389,98', '0,022%',
+           'R$ 7,70', ''],
+          ['76003', '03/10/2026 08:00', 'USIMINAS CUBATAO', 'Seguro da carga',
+           'Alíquota de seguro (exportação, com seguro internacional de R$ 6,50 e IOF de R$ 0,48)', 'R$ 10.000,00', '0,022%',
+           'R$ 9,18', ''],
         ],
       )
-      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 3,84')
+      expect(dl_to_hash('#freight_expenses_totals')).to eq('Total das despesas' => 'R$ 18,73')
       expect(page).to have_no_css('#missing_insurance_rate')
     end
 

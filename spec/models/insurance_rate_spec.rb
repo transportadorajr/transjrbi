@@ -31,6 +31,11 @@ RSpec.describe InsuranceRate do
       expect(rate.insurance_cents(227_273)).to eq(50)
     end
 
+    it 'calculates the international insurance over the base rounding half up to cents' do
+      expect(rate.international_insurance_cents(894_502)).to eq(581)
+      expect(rate.international_insurance_cents(0)).to eq(0)
+    end
+
     it 'calculates the IOF over the insurance' do
       expect(rate.iof_cents(197)).to eq(15)
       expect(rate.iof_cents(0)).to eq(0)
