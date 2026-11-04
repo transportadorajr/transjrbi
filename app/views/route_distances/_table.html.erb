@@ -1,0 +1,23 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(RouteDistance.human_attribute_name(:customer), :customer_name) %>
+        <%= sortable_header(RouteDistance.human_attribute_name(:route), :origin_city) %>
+        <%= sortable_header(RouteDistance.human_attribute_name(:distance_km), :distance_km, first_direction: :desc,
+                                                                                            class: 'd-none d-md-table-cell text-end') %>
+        <th class="d-none d-lg-table-cell text-end"><%= RouteDistance.human_attribute_name(:documents_count) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

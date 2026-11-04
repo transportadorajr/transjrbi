@@ -39,7 +39,7 @@ RSpec.describe 'db/seeds.rb' do
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
-    expect(Resource.find_by!(slug: 'distance_adjustments')).to have_attributes(name: 'Ajustes de km', writable: true)
+    expect(Resource.find_by!(slug: 'route_distances')).to have_attributes(name: 'Trechos de km', writable: true)
     expect(Resource.find_by!(slug: 'customers')).to have_attributes(name: 'Clientes', writable: false)
     expect(Resource.find_by!(slug: 'product_groups')).to have_attributes(name: 'Grupos de produtos', writable: true)
   end

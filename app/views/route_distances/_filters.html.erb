@@ -1,0 +1,31 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
+                     dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
+  <%= form_with url: route_distances_path, method: :get do |f| %>
+    <%= sort_fields %>
+    <div class="row g-3">
+      <div class="col-12">
+        <%= f.label :customer_code, t('route_distances.filters.customer_code'), id: 'filter_customer_code_select_label',
+                                                                                class: 'form-label fw-medium' %>
+        <%= render 'components/select2', id: 'filter_customer_code_select', name: :customer_code,
+                                         options: route_distance_customer_options(@customers), selected: params[:customer_code],
+                                         placeholder: t('shared.all') %>
+      </div>
+      <div class="col-12">
+        <%= f.label :origin, t('route_distances.filters.origin'), class: 'form-label fw-medium' %>
+        <%= f.text_field :origin, value: params[:origin], class: 'form-control bg-light', autocomplete: :off,
+                                  placeholder: t('route_distances.filters.origin') %>
+      </div>
+      <div class="col-12">
+        <%= f.label :destination, t('route_distances.filters.destination'), class: 'form-label fw-medium' %>
+        <%= f.text_field :destination, value: params[:destination], class: 'form-control bg-light', autocomplete: :off,
+                                       placeholder: t('route_distances.filters.destination') %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button t('shared.apply_filters'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= link_to t('shared.clear_filters'), route_distances_path, class: 'btn btn-light w-100 btn-round' %>
+    </div>
+  <% end %>
+<% end %>

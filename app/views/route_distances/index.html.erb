@@ -1,0 +1,29 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= route_distance_import_button %>
+    <%= route_distance_create_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+  <%= render 'import', route_distance_import_form: @route_distance_import_form %>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @route_distances.total_count) %></p>
+      </div>
+      <%= sort_menu(route_distance_sort_columns) %>
+    </div>
+    <div class="table-card-body">
+      <% if @route_distances.any? %>
+        <%= render 'table', collection: @route_distances %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

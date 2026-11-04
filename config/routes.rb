@@ -69,7 +69,7 @@ Rails.application.routes.draw do
     resources :cities
     resources :truck_groups
     resources :excluded_issuers, only: %i[index new create destroy]
-    resources :distance_adjustments, except: :show do
+    resources :route_distances, except: :show do
       post :import, on: :collection
     end
     resources :tonnage_rates

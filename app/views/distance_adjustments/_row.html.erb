@@ -1,9 +1,0 @@
-<tr id="<%= dom_id(item) %>">
-  <td class="fw-semibold text-nowrap"><%= item.transport_document_number %></td>
-  <td class="d-none d-md-table-cell text-end text-nowrap"><%= distance_adjustment_km(item.distance_km) %></td>
-  <td><%= distance_adjustment_status_badge(item) %></td>
-  <td class="d-none d-lg-table-cell text-nowrap"><%= tax_time(item.applied_at) %></td>
-  <td class="text-end text-nowrap">
-    <%= responsive_actions_menu(distance_adjustments_menu(item)) %>
-  </td>
-</tr>
