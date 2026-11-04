@@ -1037,6 +1037,9 @@ pt-BR:
       complement_kind: Crédito de complemento
     freight_expenses:
       total: Total das despesas do frete
+      national_insurance: Seguro nacional
+      international_insurance: Seguro internacional
+      international_insurance_iof: IOF do seguro internacional
     document_kinds:
       cte: CT-e
       ce: CE

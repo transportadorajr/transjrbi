@@ -53,7 +53,7 @@ module FreightExpensesHelper
 
   def freight_expense_insurance(freight_expense)
     rate = freight_expense_insurance_rate(freight_expense.insurance_rate)
-    return rate unless freight_expense.international_insurance_cents.positive?
+    return rate unless freight_expense.export_insurance?
 
     t('freight_expenses.insurance_detail_html', rate:, international: tax_money(freight_expense.international_insurance),
                                                 iof: tax_money(freight_expense.iof))

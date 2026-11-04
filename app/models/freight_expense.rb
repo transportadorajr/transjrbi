@@ -45,6 +45,14 @@ class FreightExpense < ApplicationRecord
       KINDS.index_by { |kind| human_enum_name(:kind_type, kind) }
     end
   end
+
+  def export_insurance?
+    insurance? && international_insurance_cents.positive?
+  end
+
+  def national_insurance
+    amount - international_insurance - iof
+  end
 end
 
 # == Schema Information

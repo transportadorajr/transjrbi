@@ -488,7 +488,7 @@ describe 'Transport documents' do
             )
           end
 
-          scenario 'lists the commission, the tonnage cost and the cargo insurance of the freight with the total' do
+          scenario 'lists the commission, the tonnage cost and the national and international insurance of the export cargo apart' do
             visit transport_document_path(transport_document)
 
             expect(transport_document.freight_expenses.count).to eq(3)
@@ -497,8 +497,9 @@ describe 'Transport documents' do
                 ['Tipo', 'Regra ou custo', 'Base de cálculo', 'ICMS deduzido da base', 'Taxa', 'Valor'],
                 ['Comissão', 'Nacional', 'R$ 4.884,35', 'R$ 666,05', '2,00%', 'R$ 97,69'],
                 ['Custo por tonelada', 'Brasiltec – Cubatão/SP (Cubatão)', '32,500 t', '-', 'R$ 12,57/t', 'R$ 408,53'],
-                ['Seguro da carga', 'Alíquota de seguro (exportação, com seguro internacional de R$ 9,06 e IOF de R$ 0,67)', 'R$ 13.935,02',
-                 '-', '0,022%', 'R$ 12,80'],
+                ['Seguro nacional', 'Alíquota de seguro', 'R$ 13.935,02', '-', '0,022%', 'R$ 3,07'],
+                ['Seguro internacional', 'Alíquota de seguro', 'R$ 13.935,02', '-', '0,065%', 'R$ 9,06'],
+                ['IOF do seguro internacional', 'Alíquota de seguro', 'R$ 9,06', '-', '7,38%', 'R$ 0,67'],
               ],
             )
             expect(page).to have_css('#transport_document_freight_expenses_total', text: 'Total das despesas do frete R$ 519,02')
