@@ -1,0 +1,26 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('distance_adjustments.form.distance_adjustment_data') %></p>
+    <p class="form-card-subtitle"><%= t('distance_adjustments.form.distance_adjustment_data_text') %></p>
+  </div>
+  <%= simple_form_for(distance_adjustment_form, url: distance_adjustment_form_url(distance_adjustment_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :transport_document_number, required: true,
+                                                  input_html: { class: 'form-control', inputmode: :numeric, autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :distance_km, as: :string, required: true, hint: t('distance_adjustments.form.distance_km_hint'),
+                                    input_html: { class: 'form-control', inputmode: :decimal, autocomplete: 'off' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, distance_adjustment_submit_label(distance_adjustment_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), distance_adjustments_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

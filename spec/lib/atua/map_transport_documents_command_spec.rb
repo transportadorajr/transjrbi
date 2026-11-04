@@ -44,7 +44,8 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
         federal_tax_cents: 5006, ibs_cents: 45, cbs_cents: 408, result_cents: 0, driver_freight_cents: 0,
         advance_cents: nil, commission_cents: 0, insurance_cents: 0, cost_cents: 0,
         result_margin_percentage: BigDecimal('83.75'), distance_km: BigDecimal('1055'),
-        document_kind: 'cte', billing_number: 131_391, charged_at: now, nfse_pending_at: nil, vehicle_sale: false
+        document_kind: 'cte', billing_number: 131_391, charged_at: now, nfse_pending_at: nil, vehicle_sale: false,
+        original_distance_km: nil, distance_adjusted_at: nil
       )
     end
 
@@ -94,6 +95,20 @@ RSpec.describe Atua::MapTransportDocumentsCommand do
       it 'keeps the stored charged_at while it is still charged and clears it when it is not' do
         expect(document(80_842)[:charged_at]).to eq(charged_on)
         expect(document(80_848)[:charged_at]).to be_nil
+      end
+    end
+
+    context 'when a document with an adjusted distance is imported again' do
+      let(:adjusted_at) { Time.zone.local(2026, 10, 2, 9, 0) }
+      let(:previous) { { 80_842 => { distance_km: BigDecimal('1300'), distance_adjusted_at: adjusted_at }, 80_848 => { distance_km: BigDecimal('90') } } }
+
+      it 'keeps the adjusted distance and stores the distance from Atua as the original one' do
+        expect(document(80_842)).to include(distance_km: BigDecimal('1300'), original_distance_km: BigDecimal('1055'), distance_adjusted_at: adjusted_at)
+      end
+
+      it 'takes the distance from Atua for a document that was not adjusted' do
+        expect(document(80_848)).to include(original_distance_km: nil, distance_adjusted_at: nil)
+        expect(document(80_848)[:distance_km]).to eq(BigDecimal('1055'))
       end
     end
 

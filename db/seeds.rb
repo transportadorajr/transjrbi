@@ -34,6 +34,7 @@ end
   'macro_regions' => { name: 'Macro regiões', writable: true },
   'truck_groups' => { name: 'Grupos de caminhões', writable: true },
   'excluded_issuers' => { name: 'Emissores desconsiderados', writable: true },
+  'distance_adjustments' => { name: 'Ajustes de km', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)

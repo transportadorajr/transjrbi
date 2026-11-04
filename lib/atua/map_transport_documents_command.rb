@@ -162,8 +162,16 @@ module Atua
         billing_number:,
         charged_at: charged ? previous.dig(code, :charged_at) || imported_at : nil,
         nfse_pending_at: yes_no(row, 'id_pendente_emissao_nfse', key: code, attribute: :nfse_pending_at),
+        **distance(attributes[:distance_km], previous[code]),
         raw_data: row,
       )
+    end
+
+    def distance(atua_distance_km, previous_attributes)
+      adjusted_at = previous_attributes&.dig(:distance_adjusted_at)
+      return { original_distance_km: nil, distance_adjusted_at: nil } unless adjusted_at
+
+      { distance_km: previous_attributes[:distance_km], original_distance_km: atua_distance_km, distance_adjusted_at: adjusted_at }
     end
 
     def document_kind(row)

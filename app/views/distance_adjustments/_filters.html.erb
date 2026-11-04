@@ -1,0 +1,24 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
+                     dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
+  <%= form_with url: distance_adjustments_path, method: :get do |f| %>
+    <%= sort_fields %>
+    <div class="row g-3">
+      <div class="col-12">
+        <%= f.label :number, t('distance_adjustments.filters.number'), class: 'form-label fw-medium' %>
+        <%= f.text_field :number, value: params[:number], class: 'form-control bg-light', autocomplete: :off,
+                                  inputmode: :numeric, placeholder: t('distance_adjustments.filters.number') %>
+      </div>
+      <div class="col-12">
+        <%= f.label :status, t('distance_adjustments.filters.status'), class: 'form-label fw-medium' %>
+        <%= f.select :status, DistanceAdjustment.statuses, { include_blank: t('shared.all'), selected: params[:status] },
+                     class: 'form-select bg-light' %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button t('shared.apply_filters'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= link_to t('shared.clear_filters'), distance_adjustments_path, class: 'btn btn-light w-100 btn-round' %>
+    </div>
+  <% end %>
+<% end %>

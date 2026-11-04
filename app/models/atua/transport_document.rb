@@ -336,6 +336,7 @@ end
 #  destination_city                   :string
 #  destination_city_code              :bigint
 #  destination_state                  :string
+#  distance_adjusted_at               :datetime
 #  distance_km                        :decimal(14, 2)
 #  document_kind                      :string
 #  driver_code                        :bigint
@@ -369,6 +370,7 @@ end
 #  origin_city                        :string
 #  origin_city_code                   :bigint
 #  origin_state                       :string
+#  original_distance_km               :decimal(14, 2)
 #  other_charges_cents                :bigint
 #  payer_code                         :bigint
 #  payer_document                     :string

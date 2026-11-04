@@ -1,0 +1,28 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= distance_adjustment_import_button %>
+    <%= distance_adjustment_create_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+  <%= render 'import', distance_adjustment_import_form: @distance_adjustment_import_form %>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @distance_adjustments.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @distance_adjustments.any? %>
+        <%= render 'table', collection: @distance_adjustments %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

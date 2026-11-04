@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_183622) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_04_192055) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -501,6 +501,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_183622) do
     t.bigint "product_group_id"
     t.boolean "vehicle_sale", default: false, null: false
     t.enum "cargo_destination_type", enum_type: "atua_transport_document_cargo_destination_type"
+    t.decimal "original_distance_km", precision: 14, scale: 2
+    t.datetime "distance_adjusted_at"
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["complemented_transport_document_id"], name: "idx_on_complemented_transport_document_id_6691e9e8ef"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin
@@ -614,6 +616,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_183622) do
     t.datetime "updated_at", null: false
     t.index ["tenant_id", "name"], name: "index_customer_groups_on_tenant_id_and_name", unique: true
     t.index ["tenant_id"], name: "index_customer_groups_on_tenant_id"
+  end
+
+  create_table "distance_adjustments", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "transport_document_number", null: false
+    t.decimal "distance_km", precision: 14, scale: 2, null: false
+    t.datetime "applied_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "transport_document_number"], name: "idx_on_tenant_id_transport_document_number_430c6a051e", unique: true
+    t.index ["tenant_id"], name: "index_distance_adjustments_on_tenant_id"
   end
 
   create_table "drivers", force: :cascade do |t|
@@ -1028,6 +1041,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_183622) do
   add_foreign_key "commission_rules", "customer_groups"
   add_foreign_key "commission_rules", "tenants"
   add_foreign_key "customer_groups", "tenants"
+  add_foreign_key "distance_adjustments", "tenants"
   add_foreign_key "drivers", "tenants"
   add_foreign_key "empty_leg_transport_documents", "empty_legs", on_delete: :cascade
   add_foreign_key "empty_leg_transport_documents", "tenants"

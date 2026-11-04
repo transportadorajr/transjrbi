@@ -83,4 +83,37 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
       expect(documents.where.not(product_name:).where.not(product_group_id: nil)).to be_empty
     end
   end
+
+  context 'with a distance adjustment registered before the document arrives' do
+    let(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
+    let!(:adjustment) { create(:distance_adjustment, tenant:, transport_document_number: first_record[:number].to_s, distance_km: BigDecimal('1300')) }
+
+    it 'replaces the distance of the imported document keeping the distance from Atua' do
+      described_class.call(import, spreadsheet)
+
+      document = tenant.atua_transport_documents.find_by!(code: first_record[:code])
+      expect(document).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km])
+      expect(document.distance_adjusted_at).to be_present
+      expect(adjustment.reload.applied_at).to be_present
+    end
+  end
+
+  context 'with a document whose distance was adjusted' do
+    let(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
+    let(:adjusted_at) { Time.zone.local(2026, 10, 20, 9, 30) }
+
+    before do
+      described_class.call(import, spreadsheet)
+      tenant.atua_transport_documents.where(code: first_record[:code])
+        .update_all(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km], distance_adjusted_at: adjusted_at)
+    end
+
+    it 'keeps the adjusted distance when the document is imported again' do
+      described_class.call(import, spreadsheet)
+
+      document = tenant.atua_transport_documents.find_by!(code: first_record[:code])
+      expect(document).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: first_record[:distance_km],
+                                          distance_adjusted_at: adjusted_at)
+    end
+  end
 end

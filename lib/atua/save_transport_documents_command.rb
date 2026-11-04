@@ -2,7 +2,7 @@ module Atua
   class SaveTransportDocumentsCommand < SaveReportCommand
     MODEL = TransportDocument
     MAPPER = MapTransportDocumentsCommand
-    PREVIOUS_ATTRIBUTES = %i[charged_at nfse_pending_at].freeze
+    PREVIOUS_ATTRIBUTES = %i[charged_at nfse_pending_at distance_km distance_adjusted_at].freeze
     MANIFEST_COLUMN = 'nr_mdfe'.freeze
 
     def call
@@ -12,6 +12,7 @@ module Atua
         Cities::RegisterOriginsCommand.call(tenant)
         MacroRegions::AssignCommand.call(tenant)
         ProductGroups::AssignCommand.call(tenant)
+        DistanceAdjustments::ApplyPendingCommand.call(tenant)
       end
     end
 
