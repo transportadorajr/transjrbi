@@ -71,26 +71,26 @@ module Atua
       def gross_freight
         Arel::Nodes::Addition.new(
           Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel),
-          Arel::Nodes::Grouping.new(documents_without_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
+          Arel::Nodes::Grouping.new(documents_without_active_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
         )
       end
 
       def net_freight
         Arel::Nodes::Addition.new(
           Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.net_freight)).arel),
-          Arel::Nodes::Grouping.new(documents_without_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
+          Arel::Nodes::Grouping.new(documents_without_active_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
         )
       end
 
-      def documents_without_transport_document
+      def documents_without_active_transport_document
         documents = ManifestDocument.arel_table
         transport_documents = TransportDocument.arel_table
-        transport_document = TransportDocument.where(transport_documents[:tenant_id].eq(documents[:tenant_id]))
+        transport_document = TransportDocument.active.or(TransportDocument.canceled).where(transport_documents[:tenant_id].eq(documents[:tenant_id]))
           .where(transport_documents[:number].eq(documents[:transport_document_number]))
           .where(transport_documents[:series].eq(documents[:transport_document_series]))
           .where(transport_documents[:branch_name].eq(documents[:branch_name]))
 
-        ManifestDocument.active
+        ManifestDocument.active.without_internal_taker
           .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
           .where(documents[:manifest_code].eq(arel_table[:code]))
           .where(transport_document.arel.exists.not)
