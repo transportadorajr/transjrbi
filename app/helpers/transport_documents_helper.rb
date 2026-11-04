@@ -9,6 +9,14 @@ module TransportDocumentsHelper
     menus
   end
 
+  def transport_document_distance(transport_document)
+    distance = tax_decimal(transport_document.distance_km)
+    return distance unless transport_document.distance_adjusted_at
+
+    original = t('transport_documents.show.original_distance', distance: tax_decimal(transport_document.original_distance_km))
+    safe_join([distance, content_tag(:small, original, class: 'd-block text-muted')], ' ')
+  end
+
   def transport_document_resync_button(transport_document)
     return unless can?(:update, :transport_documents) && Atua.enabled?(current_user.tenant) && transport_document.issued_at
 

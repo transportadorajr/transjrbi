@@ -107,7 +107,7 @@
             <dd class="col-12 col-md-7 text-break"><%= tax_value(@transport_document.driver_name) %></dd>
 
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:distance_km) %></dt>
-            <dd class="col-12 col-md-7"><%= tax_decimal(@transport_document.distance_km) %></dd>
+            <dd class="col-12 col-md-7"><%= transport_document_distance(@transport_document) %></dd>
 
             <dt class="col-12 col-md-5"><%= Atua::TransportDocument.human_attribute_name(:weight_kg) %></dt>
             <dd class="col-12 col-md-7"><%= tax_decimal(@transport_document.weight_kg) %></dd>

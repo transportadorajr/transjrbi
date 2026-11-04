@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(DistanceAdjustment.human_attribute_name(:transport_document_number), :transport_document_number) %>
+        <%= sortable_header(DistanceAdjustment.human_attribute_name(:distance_km), :distance_km, first_direction: :desc,
+                                                                                                 class: 'd-none d-md-table-cell text-end') %>
+        <th><%= DistanceAdjustment.human_attribute_name(:status) %></th>
+        <%= sortable_header(DistanceAdjustment.human_attribute_name(:applied_at), :applied_at, first_direction: :desc,
+                                                                                               class: 'd-none d-lg-table-cell') %>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

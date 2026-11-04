@@ -69,6 +69,9 @@ Rails.application.routes.draw do
     resources :cities
     resources :truck_groups
     resources :excluded_issuers, only: %i[index new create destroy]
+    resources :distance_adjustments, except: :show do
+      post :import, on: :collection
+    end
     resources :tonnage_rates
     resource :insurance_rate, only: %i[show edit update]
     resource :freight_billing, only: :show do
