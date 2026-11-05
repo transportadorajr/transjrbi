@@ -105,6 +105,11 @@ module Atua
       active.not_canceled.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'])
         .where(arel_table[:issue_kind].is_distinct_from(VALUE_COMPLEMENT))
     }
+    scope :icms_complements, -> {
+      freight = Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:freight_cents], Arel::Nodes.build_quoted(0)])
+
+      where(issue_kind: VALUE_COMPLEMENT).where(arel_table[:icms_cents].gt(0)).where(freight.lteq(arel_table[:icms_cents]))
+    }
     scope :with_valid_manifest, -> {
       where(id: joins(:manifests).merge(TransportDocumentManifest.active).merge(Manifest.active.not_canceled).select(:id))
     }
