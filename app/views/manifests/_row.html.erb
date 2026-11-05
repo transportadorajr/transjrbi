@@ -11,7 +11,7 @@
   <td class="d-none d-lg-table-cell text-break"><%= manifest_cities(item.origins) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= manifest_cities(item.destinations) %></td>
   <td class="d-none d-xl-table-cell text-nowrap"><%= tax_decimal(item.weight_kg) %></td>
-  <td class="d-none d-xl-table-cell text-break"><%= manifest_names(item.customers) %></td>
+  <td class="d-none d-xl-table-cell text-break"><%= manifest_names(item.customer_groups) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= freight_money(item.gross_per_km_cents) %></td>
   <%= manifest_net_per_km_cell(item) %>
   <td class="text-end text-nowrap">

@@ -30,7 +30,7 @@ module ManifestsHelper
     details = [[Atua::Manifest.human_attribute_name(:gross_per_km), freight_money(manifest.gross_per_km_cents)]]
     details << [Atua::Manifest.human_attribute_name(:net_per_km), freight_money(manifest.net_per_km_cents)] if can?(:read, :freight_expenses)
 
-    details + [[Atua::Manifest.human_attribute_name(:customer), manifest_names(manifest.customers)],
+    details + [[Atua::Manifest.human_attribute_name(:customer_group), manifest_names(manifest.customer_groups)],
                [Atua::Manifest.human_attribute_name(:origin), manifest_cities(manifest.origins)],
                [Atua::Manifest.human_attribute_name(:destination), manifest_cities(manifest.destinations)]]
   end

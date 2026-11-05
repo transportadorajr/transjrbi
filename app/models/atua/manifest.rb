@@ -162,8 +162,8 @@ module Atua
       route_documents.select(&:on_route?).filter_map { |document| document.transport_document&.driver_name.presence }.uniq
     end
 
-    def customers
-      route_documents.select(&:on_route?).filter_map { |document| document.transport_document&.taker_name.presence }.uniq
+    def customer_groups
+      route_documents.select(&:on_route?).filter_map { |document| document.transport_document&.customer_group_name.presence }.uniq
     end
 
     def weight_kg

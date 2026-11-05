@@ -53,7 +53,7 @@ module Atua
 
     enum :cargo_destination_type, CARGO_DESTINATIONS.index_with(&:to_s), prefix: :cargo, validate: { allow_nil: true }
 
-    sortable :customer_name, -> { sort_text(arel_table[:taker_name]) }
+    sortable :customer_name, -> { sort_text(customer_group_name) }
     sortable :driver_name
     sortable :gross, -> { arel_table[:freight_cents] }
     sortable :net, -> { Arel.sql('net_cents') }
@@ -193,6 +193,14 @@ module Atua
           .select(sum_or_zero(Atua::Expense.arel_table[:total_cents]))
       end
 
+      def customer_group_name
+        customers = Customer.arel_table
+        group_name = Customer.joins(:customer_group).where(customers[:tenant_id].eq(arel_table[:tenant_id]))
+          .where(customers[:code].eq(arel_table[:taker_code])).select(CustomerGroup.arel_table[:name]).limit(1)
+
+        Arel::Nodes::NamedFunction.new('COALESCE', [Arel::Nodes::Grouping.new(group_name.arel), arel_table[:taker_name]])
+      end
+
       def sum_or_zero(column)
         Arel::Nodes::NamedFunction.new('COALESCE', [column.sum, Arel::Nodes.build_quoted(0)])
       end
@@ -254,6 +262,10 @@ module Atua
       def zero_if_null(column)
         Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[column], Arel::Nodes.build_quoted(0)])
       end
+    end
+
+    def customer_group_name
+      taker&.customer_group&.name.presence || taker_name
     end
 
     def canceled?

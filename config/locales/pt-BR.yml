@@ -197,6 +197,7 @@ pt-BR:
       atua/transport_document:
         complemented_transport_document: CT-e complementado
         customer_name: Cliente
+        customer_group: Grupo de clientes
         gross: Frete bruto
         net: Frete líquido
         number: Número
@@ -257,6 +258,7 @@ pt-BR:
         driver: Motorista
         weight_kg: Peso (kg)
         customer: Cliente
+        customer_group: Grupo de clientes
         gross_per_km: Bruto/km
         net_per_km: Líquido/km
       atua/manifest_document:
