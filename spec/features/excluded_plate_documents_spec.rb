@@ -16,6 +16,10 @@ describe 'Records of an excluded plate' do
   let!(:fleet_manifest) { create(:atua_manifest, tenant:, number: '9002', plate: 'RHJ4E07') }
 
   before do
+    create(:atua_manifest_document, tenant:, manifest_code: favor_manifest.code, transport_document_number: favor_document.number,
+                                    transport_document_series: favor_document.series, branch_name: favor_document.branch_name)
+    create(:atua_manifest_document, tenant:, manifest_code: fleet_manifest.code, transport_document_number: fleet_document.number,
+                                    transport_document_series: fleet_document.series, branch_name: fleet_document.branch_name)
     Atua::DiscardExcludedPlatesCommand.call(tenant)
     login_as(admin, scope: :user)
   end

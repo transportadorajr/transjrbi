@@ -283,6 +283,7 @@ describe 'Table sorting' do
       add_document(large, '9002', taker_name: 'ZETA', driver_name: 'ANA', freight_cents: 500_000)
       add_document(small, '9003', taker_name: 'ÁGUA', driver_name: 'ZECA', freight_cents: 200_000, distance_km: BigDecimal('500'))
       add_document(small, '9004', taker_name: 'MAIOR CANCELADO', driver_name: 'OUTRO', freight_cents: 900_000, canceled_at: Time.current)
+      add_document(empty, '9005', taker_name: 'SEM KM', driver_name: 'BETO', freight_cents: 300_000)
     end
 
     scenario 'sorts by the gross freight per loaded km of the valid transport documents' do

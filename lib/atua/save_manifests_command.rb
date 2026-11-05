@@ -6,10 +6,7 @@ module Atua
     DOCUMENT_KEY = %i[transport_document_number transport_document_series].freeze
 
     def call
-      super.tap do
-        DiscardExcludedPlatesCommand.call(tenant)
-        DiscardManifestsBeforeCutoffCommand.call(tenant)
-      end
+      super.tap { DiscardExcludedPlatesCommand.call(tenant) }
     end
 
     private

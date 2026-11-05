@@ -29,7 +29,7 @@ module Atua
     end
 
     def manifests
-      tenant.atua_manifests.trips.where(code: documents.select(:manifest_code))
+      tenant.atua_manifests.active.not_canceled.where.not(plate: [nil, '']).where(code: documents.select(:manifest_code))
     end
 
     def documents

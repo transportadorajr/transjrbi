@@ -37,7 +37,14 @@ module Atua
     scope :by_status, ->(status) { where(status:) }
     scope :not_canceled, -> { where.not(status: CANCELED_STATUS).or(where(status: nil)) }
     scope :canceled, -> { where(status: CANCELED_STATUS) }
-    scope :trips, -> { active.not_canceled.where.not(plate: [nil, '']) }
+    scope :with_transport_documents, -> {
+      documents = ManifestDocument.arel_table
+
+      where(ManifestDocument.active.joins(:transport_document)
+        .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
+        .where(documents[:manifest_code].eq(arel_table[:code])).arel.exists)
+    }
+    scope :trips, -> { active.not_canceled.with_transport_documents.where.not(plate: [nil, '']) }
     scope :by_transport_documents, ->(transport_documents) {
       documents = ManifestDocument.arel_table
 
