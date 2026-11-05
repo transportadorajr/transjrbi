@@ -204,22 +204,22 @@ describe 'Table sorting' do
         visit transport_documents_path(sort: 'net', direction: 'desc')
 
         expect(Atua::TransportDocument.count).to eq(3)
-        expect(numbers).to eq(%w[1001 1002 1003])
-        expect(column('Frete líquido')).to eq(['R$ 1.000,00', 'R$ 500,00', '-'])
+        expect(numbers).to eq(%w[1001 1002])
+        expect(column('Frete líquido')).to eq(['R$ 1.000,00', 'R$ 500,00'])
         expect(NetFreight.for(Atua::TransportDocument.where(id: dear.id)).net).to eq(Money.from_cents(50_000))
       end
 
-      scenario 'keeps a canceled document last in both directions of the net freight' do
+      scenario 'sorts the net freight from the lowest value' do
         visit transport_documents_path(sort: 'net', direction: 'asc')
 
-        expect(numbers).to eq(%w[1002 1001 1003])
+        expect(numbers).to eq(%w[1002 1001])
       end
 
       scenario 'starts the net freight sort from the highest value' do
         visit transport_documents_path
         within('thead') { click_on 'Frete líquido' }
 
-        expect(numbers).to eq(%w[1001 1002 1003])
+        expect(numbers).to eq(%w[1001 1002])
       end
     end
 
@@ -227,7 +227,7 @@ describe 'Table sorting' do
       scenario 'hides the net freight and ignores its sort' do
         visit transport_documents_path(sort: 'net', direction: 'asc')
 
-        expect(numbers).to eq(%w[1003 1002 1001])
+        expect(numbers).to eq(%w[1002 1001])
         expect(page).to have_no_css('th', text: 'Frete líquido')
       end
     end
@@ -236,13 +236,13 @@ describe 'Table sorting' do
       visit transport_documents_path
 
       within('thead') { click_on 'Grupo de clientes' }
-      expect(column('Grupo de clientes')).to eq(%w[ÁGUA BETA CARLOS])
+      expect(column('Grupo de clientes')).to eq(%w[ÁGUA BETA])
 
       within('thead') { click_on 'Motorista' }
-      expect(column('Motorista')).to eq(%w[ANA MARIA ZECA])
+      expect(column('Motorista')).to eq(%w[ANA ZECA])
 
       within('thead') { click_on 'Frete bruto' }
-      expect(numbers).to eq(%w[1003 1002 1001])
+      expect(numbers).to eq(%w[1002 1001])
     end
 
     context 'when the taker of a document belongs to a customer group' do
@@ -256,7 +256,7 @@ describe 'Table sorting' do
         visit transport_documents_path(sort: 'customer_name', direction: 'asc')
 
         expect(Atua::TransportDocument.count).to eq(3)
-        expect(column('Grupo de clientes')).to eq(%w[BETA CARLOS ZINCO])
+        expect(column('Grupo de clientes')).to eq(%w[BETA ZINCO])
       end
     end
   end

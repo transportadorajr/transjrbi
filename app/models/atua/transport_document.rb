@@ -101,7 +101,6 @@ module Atua
     scope :without_issuers, ->(codes) { where.not(issuer_code: codes).or(where(issuer_code: nil)) }
     scope :canceled, -> { where.not(canceled_at: nil) }
     scope :without_ce, -> { where(arel_table[:document_kind].is_distinct_from(MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'])) }
-    scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
     scope :commissionable, -> {
       active.not_canceled.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'])
         .where(arel_table[:issue_kind].is_distinct_from(VALUE_COMPLEMENT))
@@ -240,13 +239,6 @@ module Atua
       def taker_names_by_code
         where.not(taker_name: [nil, '']).distinct.pluck(:taker_code, :taker_name)
           .group_by(&:first).transform_values { |rows| rows.map(&:last) }
-      end
-
-      def statuses
-        {
-          I18n.t('tax.situations.valid') => :valid,
-          I18n.t('tax.situations.canceled') => :canceled,
-        }
       end
 
       private

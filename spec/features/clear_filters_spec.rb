@@ -52,6 +52,26 @@ describe 'Clearing the applied filters' do
       within('.page-actions') { expect(page).to have_link('Limpar Filtros') }
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
+
+    scenario 'shows only the icon on a phone screen, matching the filters button', :js do
+      use_mobile_screen
+      visit macro_regions_path(name: 'Santos')
+
+      within('.page-actions') do
+        expect(page).to have_link(title: 'Limpar Filtros', exact_text: '')
+        expect(page).to have_css('a[title="Limpar Filtros"] .bi-x-circle')
+      end
+      widths = page.evaluate_script(<<~JS)
+        [...document.querySelectorAll('.page-actions a')].slice(0, 2).map((link) => Math.round(link.getBoundingClientRect().width))
+      JS
+      expect(widths.first).to eq(widths.last)
+    end
+
+    scenario 'shows the label next to the icon on a desktop screen', :js do
+      visit macro_regions_path(name: 'Santos')
+
+      within('.page-actions') { expect(page).to have_link('Limpar Filtros', exact_text: 'Limpar Filtros') }
+    end
   end
 
   context 'when viewing the freight billing' do

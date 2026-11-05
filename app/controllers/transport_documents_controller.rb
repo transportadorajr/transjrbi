@@ -8,19 +8,18 @@ class TransportDocumentsController < BaseController
   has_scope :by_taker, as: :customer_code
   has_scope :by_period_start, as: :start_date
   has_scope :by_period_end, as: :end_date
-  has_scope :by_situation, as: :status
 
   def index
     authorize!(:read, :transport_documents)
 
-    transport_documents = apply_scopes(current_tenant.atua_transport_documents.active.freights)
+    transport_documents = apply_scopes(current_tenant.atua_transport_documents.active.freights.not_canceled)
 
     @transport_documents = apply_sort(transport_documents.with_freight_totals,
                                       Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
                                       Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
                                       id: :desc, except: hidden_sort_columns)
       .preload(taker: :customer_group).page(params[:page])
-    @valid_count = transport_documents.not_canceled.count
+    @valid_count = transport_documents.count
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
   end
