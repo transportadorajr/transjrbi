@@ -106,7 +106,7 @@ describe 'Freight billing' do
 
     context 'when there are trips and complements' do
       def ranking_bar_labels
-        expect(page).to have_css('.chart-card canvas', count: 2)
+        expect(page).to have_css('.chart-card canvas', minimum: 2)
 
         page.document.synchronize do
           page.evaluate_script(
@@ -118,7 +118,7 @@ describe 'Freight billing' do
       end
 
       def monthly_bar_labels
-        expect(page).to have_css('.chart-card canvas', count: 2)
+        expect(page).to have_css('.chart-card canvas', minimum: 2)
 
         page.document.synchronize do
           page.evaluate_script(
@@ -374,6 +374,30 @@ describe 'Freight billing' do
             ['Total', 'R$ 20.000,00'],
           ],
         )
+      end
+
+      scenario 'plots the gross freight per km of the customer groups below the freight ranking', :js do
+        visit freight_billing_path(october.merge(dimension: 'customer_group'))
+
+        expect(page).to have_css('.chart-card canvas', count: 3)
+        expect(page).to have_text('Frete bruto por km por Grupo de clientes')
+        expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens')
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.labels')).to eq(['USIMINAS', 'Sem grupo'])
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[25.61, 28.85]])
+      end
+
+      scenario 'plots the gross freight per km of the macro regions', :js do
+        visit freight_billing_path(october.merge(dimension: 'macro_region'))
+
+        expect(page).to have_css('.chart-card canvas', count: 3)
+        expect(page).to have_text('Frete bruto por km por Macro região')
+      end
+
+      scenario 'plots the gross freight per km only for the customer groups and the macro regions', :js do
+        visit freight_billing_path(october_by_truck)
+
+        expect(page).to have_css('.chart-card canvas', count: 2)
+        expect(page).to have_no_text('Frete bruto por km por')
       end
 
       scenario 'groups the freight by origin' do
@@ -1253,11 +1277,11 @@ describe 'Freight billing' do
       login_as(admin, scope: :user)
     end
 
-    scenario 'draws both charts and keeps only the essential columns without scrolling sideways' do
+    scenario 'draws the charts and keeps only the essential columns without scrolling sideways' do
       use_mobile_screen
       visit freight_billing_path(october)
 
-      expect(page).to have_css('canvas', count: 2)
+      expect(page).to have_css('canvas', count: 3)
       expect(page).to have_css('th', text: /\AFrete líquido\z/i)
       expect(page).to have_css('th', text: /\AFrete bruto\z/i)
       expect(page).to have_css('th', text: /\AParticipação\z/i)
