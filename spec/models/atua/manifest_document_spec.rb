@@ -109,4 +109,27 @@ RSpec.describe Atua::ManifestDocument do
       expect(document.reload.gross_cents).to be_nil
     end
   end
+
+  describe '#net_cents' do
+    let!(:document) do
+      create(:atua_manifest_document, tenant:, manifest_code: 41_520, transport_document_number: '74130', transport_document_series: 1,
+                                      branch_name: 'JR', freight_cents: 321_720)
+    end
+
+    it 'uses the freight of the manifest document when the transport document was not imported' do
+      expect(document.net_cents({})).to eq(321_720)
+    end
+
+    it 'uses the net freight of the transport document' do
+      transport_document = create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR', freight_cents: 55_504)
+
+      expect(document.reload.net_cents(transport_document.id => 44_000)).to eq(44_000)
+    end
+
+    it 'returns no freight for a canceled transport document' do
+      transport_document = create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: 'JR', canceled_at: Time.current)
+
+      expect(document.reload.net_cents(transport_document.id => 44_000)).to be_nil
+    end
+  end
 end

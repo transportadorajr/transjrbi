@@ -209,6 +209,10 @@ RSpec.describe Atua::Manifest do
       expect(described_class.with_freight_totals.find(manifest.id).gross_cents).to eq(600_000 + 700_000 + 801_915 + 300_000)
     end
 
+    it 'exposes the manifest freight of the transport documents missing or removed from Atua' do
+      expect(manifest.missing_documents_freight).to eq(Money.from_cents(700_000 + 801_915 + 300_000))
+    end
+
     it 'keeps the manifest freight of a transport document removed from Atua in the trip totals' do
       totals = described_class.with_trip_totals(described_class.where(id: manifest.id)).first
 
@@ -281,16 +285,38 @@ RSpec.describe Atua::Manifest do
     end
   end
 
-  describe '#previous_trip' do
-    let!(:first_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 1, 8)) }
-    let!(:second_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 3, 8)) }
-    let!(:third_trip) { create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 5, 8)) }
+  describe '.with_transport_documents and .trips' do
+    let!(:linked) { create(:atua_manifest, :with_transport_document, tenant:) }
+    let!(:unlinked) { create(:atua_manifest, tenant:) }
+    let!(:removed_link) { create(:atua_manifest, :with_transport_document, tenant:) }
+    let!(:canceled_document) { create(:atua_manifest, tenant:) }
 
     before do
-      create(:atua_manifest, tenant:, plate: 'RHJ4E07', status: 'Cancelado', trip_started_at: Time.zone.local(2026, 10, 4, 8))
-      create(:atua_manifest, tenant:, plate: 'RHJ4E07', removed_from_atua_at: Time.current, trip_started_at: Time.zone.local(2026, 10, 4, 9))
-      create(:atua_manifest, tenant:, plate: 'QWE1A23', trip_started_at: Time.zone.local(2026, 10, 4, 10))
-      create(:atua_manifest, tenant: other_tenant, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 4, 11))
+      create(:atua_manifest_document, tenant:, manifest_code: unlinked.code, transport_document_number: '69674')
+      removed_link.documents.update_all(removed_from_atua_at: Time.current)
+      transport_document = create(:atua_transport_document, tenant:, canceled_at: Time.current)
+      create(:atua_manifest_document, tenant:, manifest_code: canceled_document.code, transport_document_number: transport_document.number)
+      create(:atua_transport_document, tenant: other_tenant, number: '69674')
+    end
+
+    it 'keeps only the manifests linked to a transport document' do
+      expect(described_class.where(tenant:).with_transport_documents).to contain_exactly(linked, canceled_document)
+      expect(described_class.where(tenant:).trips).to contain_exactly(linked, canceled_document)
+      expect(described_class.where(tenant:).count).to eq(4)
+    end
+  end
+
+  describe '#previous_trip' do
+    let!(:first_trip) { create(:atua_manifest, :with_transport_document, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 1, 8)) }
+    let!(:second_trip) { create(:atua_manifest, :with_transport_document, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 3, 8)) }
+    let!(:third_trip) { create(:atua_manifest, :with_transport_document, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 5, 8)) }
+
+    before do
+      create(:atua_manifest, :with_transport_document, tenant:, plate: 'RHJ4E07', status: 'Cancelado', trip_started_at: Time.zone.local(2026, 10, 4, 8))
+      create(:atua_manifest, :with_transport_document, tenant:, plate: 'RHJ4E07', removed_from_atua_at: Time.current, trip_started_at: Time.zone.local(2026, 10, 4, 9))
+      create(:atua_manifest, :with_transport_document, tenant:, plate: 'QWE1A23', trip_started_at: Time.zone.local(2026, 10, 4, 10))
+      create(:atua_manifest, :with_transport_document, tenant: other_tenant, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 4, 11))
+      create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: Time.zone.local(2026, 10, 4, 12))
     end
 
     it 'returns the latest valid trip of the same plate that started before' do
@@ -303,7 +329,7 @@ RSpec.describe Atua::Manifest do
     end
 
     it 'falls back to the departure date when the trip start is missing' do
-      trip = create(:atua_manifest, tenant:, plate: 'RHJ4E07', trip_started_at: nil, departure_on: Date.new(2026, 10, 2), issued_on: Date.new(2026, 10, 2))
+      trip = create(:atua_manifest, :with_transport_document, tenant:, plate: 'RHJ4E07', trip_started_at: nil, departure_on: Date.new(2026, 10, 2), issued_on: Date.new(2026, 10, 2))
 
       expect(second_trip.previous_trip).to eq(trip)
       expect(trip.previous_trip).to eq(first_trip)

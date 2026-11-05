@@ -2,13 +2,13 @@ class NetFreight
   attr_reader :freight, :commission, :tonnage, :insurance, :international_insurance, :tarp_lining, :fuel, :expenses, :complement_credit, :complement_transfer, :toll
 
   class << self
-    def for(transport_documents)
+    def for(transport_documents, missing_documents_freight: Money.zero)
       documents = transport_documents.active.not_canceled
       document_ids = documents.select(:id)
       insurance, international_insurance = insurances_of(document_ids)
 
       new(
-        freight: Money.from_cents(documents.sum(:freight_cents)),
+        freight: Money.from_cents(documents.sum(:freight_cents)) + missing_documents_freight,
         commission: Money.from_cents(FreightExpense.commission.where(transport_document_id: document_ids).sum(:amount_cents)),
         tonnage: Money.from_cents(FreightExpense.tonnage.where(transport_document_id: document_ids).sum(:amount_cents)),
         insurance:,
