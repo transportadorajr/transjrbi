@@ -1,8 +1,13 @@
-<tr id="<%= dom_id(item.record, item.kind) %>">
-  <td><%= manifest_expense_name(item) %></td>
+<%# locals: (item:, trip_expenses:) %>
+
+<%= tag.tr id: dom_id(item.record, item.kind), class: manifest_expense_row_class(item, trip_expenses) do %>
+  <td>
+    <%= manifest_expense_name(item) %>
+    <%= manifest_expense_duplicate_badge(item, trip_expenses) %>
+  </td>
   <td class="d-none d-md-table-cell text-nowrap"><%= manifest_expense_kind(item) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= freight_expense_transport_document(item.transport_document) %></td>
   <td class="d-none d-lg-table-cell text-nowrap"><%= tax_date(item.posted_on) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= manifest_expense_detail(item) %></td>
   <td class="text-end text-nowrap"><%= manifest_expense_amount(item) %></td>
-</tr>
+<% end %>

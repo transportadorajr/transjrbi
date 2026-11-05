@@ -26,6 +26,15 @@ module ManifestsHelper
     content_tag(:td, freight_money(manifest.net_per_km_cents), class: 'd-none d-md-table-cell text-nowrap')
   end
 
+  def manifest_mobile_details(manifest)
+    details = [[Atua::Manifest.human_attribute_name(:gross_per_km), freight_money(manifest.gross_per_km_cents)]]
+    details << [Atua::Manifest.human_attribute_name(:net_per_km), freight_money(manifest.net_per_km_cents)] if can?(:read, :freight_expenses)
+
+    details + [[Atua::Manifest.human_attribute_name(:customer_group), manifest_names(manifest.customer_groups)],
+               [Atua::Manifest.human_attribute_name(:origin), manifest_cities(manifest.origins)],
+               [Atua::Manifest.human_attribute_name(:destination), manifest_cities(manifest.destinations)]]
+  end
+
   def manifest_cities(cities)
     return t('tax.blank') if cities.empty?
 
@@ -90,6 +99,23 @@ module ManifestsHelper
     when :toll then t(item.record.toll_voucher_paid.positive? ? 'toll_voucher' : 'toll_in_freight', scope: 'manifests.expenses')
     else item.record.kind_type_name
     end
+  end
+
+  def manifest_duplicate_expenses_alert(trip_expenses)
+    count = trip_expenses.duplicates_count
+    return if count.zero?
+
+    content_tag(:div, t('manifests.show.duplicate_alert', count:), class: 'alert alert-warning mb-3', role: :alert, id: 'duplicate_expenses')
+  end
+
+  def manifest_expense_row_class(item, trip_expenses)
+    'table-warning' if trip_expenses.duplicate?(item)
+  end
+
+  def manifest_expense_duplicate_badge(item, trip_expenses)
+    return unless trip_expenses.duplicate?(item)
+
+    status_badge(t('manifests.expenses.duplicate'), kind: :warning)
   end
 
   def manifest_expense_kind(item)

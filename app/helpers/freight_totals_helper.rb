@@ -16,7 +16,7 @@ module FreightTotalsHelper
   end
 
   def freight_sort_columns(model)
-    columns = [[model.human_attribute_name(:customer_name), :customer_name], [model.human_attribute_name(:driver_name), :driver_name],
+    columns = [[model.human_attribute_name(:customer_group), :customer_name], [model.human_attribute_name(:driver_name), :driver_name],
                [model.human_attribute_name(:gross), :gross, :desc]]
     columns << [model.human_attribute_name(:net), :net, :desc] if can?(:read, :freight_expenses)
 

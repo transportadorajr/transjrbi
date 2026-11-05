@@ -1,6 +1,7 @@
 class TripsController < BaseController
   has_scope :by_plate, as: :plate
   has_scope :by_driver, as: :driver_code
+  has_scope :by_product_group, as: :product_group_id
 
   before_action :require_trips_dashboard
 
@@ -13,6 +14,7 @@ class TripsController < BaseController
     load_filter_options
     @dashboard = Dashboard::Trip.new(manifests, dimension: @filter_form.dimension, period: @filter_form.period)
     @rows = Kaminari.paginate_array(@dashboard.sorted_rows(params[:sort], params[:direction])).page(params[:page])
+    @highlights = @dashboard.highlights(params[:sort])
   end
 
   private
@@ -24,6 +26,7 @@ class TripsController < BaseController
   def load_filter_options
     @drivers = current_tenant.atua_transport_documents.drivers
     @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
+    @product_groups = current_tenant.product_groups.groups.activated.order(:name)
     @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
   end
 
@@ -37,6 +40,6 @@ class TripsController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :truck_group_id)
+    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :truck_group_id, :product_group_id)
   end
 end

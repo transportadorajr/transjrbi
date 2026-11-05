@@ -6,10 +6,11 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
   let!(:resource) { create(:resource, name: 'Viagens', slug: 'trips', writable: false) }
   let(:october) { { start_date: '2026-10-01', end_date: '2026-10-31' } }
 
-  def create_trip(code:, plate:, started_at:, distance_km:, documents:, tenant: self.tenant)
-    create(:atua_manifest, tenant:, code:, plate:, trip_started_at: started_at)
+  def create_trip(code:, plate:, started_at:, distance_km:, documents:, tenant: self.tenant, **document_attributes)
+    create(:atua_manifest, tenant:, code:, number: code.to_s, plate:, trip_started_at: started_at)
     documents.each do |number, freight_cents, driver_code, driver_name|
-      create(:atua_transport_document, tenant:, number:, freight_cents:, plate:, driver_code:, driver_name:, issued_at: started_at)
+      create(:atua_transport_document, tenant:, number:, freight_cents:, plate:, driver_code:, driver_name:, issued_at: started_at,
+                                       **document_attributes)
       create(:atua_manifest_document, tenant:, manifest_code: code, transport_document_number: number, calculated_distance_km: distance_km)
     end
   end
@@ -83,13 +84,66 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_css('.chart-card', count: 6)
         expect(html_table_to_rows(table: find('.trips-table'))).to eq(
           [
-            ['Motorista', 'Viagens', 'KM rodado', 'Frete bruto', 'Frete líquido', 'Média por viagem', 'Bruto/km', 'Líquido/km'],
-            ['JOSE SILVA', '2', '650 km', 'R$ 9.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 13,85', 'R$ 12,31'],
-            ['MARIA SOUZA', '1', '0 km', 'R$ 2.000,00', 'R$ 2.000,00', 'R$ 2.000,00', '-', '-'],
-            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31'],
+            ['Motorista', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas', 'Frete líquido', 'Média por viagem', 'Bruto/km', 'Líquido/km'],
+            ['JOSE SILVA', '2', '650 km', 'R$ 9.000,00', 'R$ 1.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 13,85', 'R$ 12,31'],
+            ['MARIA SOUZA', '1', '0 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', '-', '-'],
+            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 1.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31'],
           ],
         )
         expect(page).to have_no_text('PEDRO OUTRO')
+      end
+
+      context 'with access to the manifests' do
+        let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
+        let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+
+        scenario 'warns about the manifest without km linking to it for the correction' do
+          visit trips_path(october)
+
+          within('#unmeasured_trips') do
+            expect(page).to have_text('1 MDF-e sem km ou com km inválido')
+            expect(page).to have_text('acima de 5.000 km')
+            expect(all('li').map { |item| item.text.squish }).to eq(['41002 AAA1A11 · 20/10/2026 · 0 km'])
+            click_on '41002'
+          end
+
+          expect(page).to have_current_path(manifest_path(Atua::Manifest.find_by!(code: 41_002)))
+        end
+
+        scenario 'sorts the manifests from the worst net per km and opens one to check its expenses' do
+          visit trips_path(october.merge(dimension: 'manifest'))
+          within('.trips-table thead') { click_on 'Líquido/km' }
+          within('.trips-table thead') { click_on 'Líquido/km' }
+
+          expect(page).to have_current_path(/direction=asc/)
+          expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(
+            ['41001 AAA1A11 · 02/10/2026 Pior', '41003 BBB2B22 · 21/10/2026 Melhor', 'Total'],
+          )
+
+          click_on '41003'
+
+          expect(page).to have_current_path(manifest_path(Atua::Manifest.find_by!(code: 41_003)))
+          expect(page).to have_text('Despesas da viagem')
+        end
+      end
+
+      scenario 'ranks the manifests by the net per km highlighting the best and the worst' do
+        visit trips_path(october)
+        click_on 'MDF-e'
+
+        expect(Atua::Manifest.count).to eq(4)
+        expect(page).to have_current_path(/dimension=manifest/)
+        expect(html_table_to_rows(table: find('.trips-table'))).to eq(
+          [
+            ['MDF-e', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas', 'Frete líquido', 'Média por viagem', 'Bruto/km', 'Líquido/km'],
+            ['41003 BBB2B22 · 21/10/2026 Melhor', '1', '250 km', 'R$ 5.000,00', 'R$ 1.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00'],
+            ['41001 AAA1A11 · 02/10/2026 Pior', '1', '400 km', 'R$ 4.000,00', 'R$ 0,00', 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00'],
+            ['Total', '2', '650 km', 'R$ 9.000,00', 'R$ 1.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 13,85', 'R$ 12,31'],
+          ],
+        )
+        expect(page).to have_css('.trips-table tbody tr.table-success', text: '41003')
+        expect(page).to have_css('.trips-table tbody tr.table-danger', text: '41001')
+        expect(page).to have_css('#unmeasured_trips', text: '41002')
       end
 
       scenario 'groups the trips by vehicle keeping the period' do
@@ -100,9 +154,9 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_current_path(/dimension=vehicle/)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
           [
-            ['AAA1A11', '2', '400 km', 'R$ 6.000,00', 'R$ 6.000,00', 'R$ 3.000,00', 'R$ 10,00', 'R$ 10,00'],
-            ['BBB2B22', '1', '250 km', 'R$ 5.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00'],
-            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31'],
+            ['BBB2B22 Melhor', '1', '250 km', 'R$ 5.000,00', 'R$ 1.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00'],
+            ['AAA1A11 Pior', '2', '400 km', 'R$ 6.000,00', 'R$ 0,00', 'R$ 6.000,00', 'R$ 3.000,00', 'R$ 10,00', 'R$ 10,00'],
+            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 1.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31'],
           ],
         )
       end
@@ -112,7 +166,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         within('.trips-table thead') { click_on 'Bruto/km' }
 
         expect(Atua::Manifest.count).to eq(4)
-        expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[BBB2B22 AAA1A11 Total])
+        expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(['BBB2B22 Melhor', 'AAA1A11 Pior', 'Total'])
       end
 
       scenario 'filters the trips by plate' do
@@ -120,6 +174,53 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
         expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[BBB2B22 Total])
+      end
+
+      context 'when the trips carry different products' do
+        let!(:flour) { create(:product_group, tenant:, name: 'FARINHA') }
+        let!(:wheat_flour) { create(:product_subgroup, tenant:, parent: flour, name: 'FARINHA DE TRIGO') }
+
+        before do
+          create_trip(code: 41_010, plate: 'DDD4D44', started_at: Time.zone.local(2026, 10, 23, 8), distance_km: 300,
+                      documents: [['74010', 600_000, 40, 'ANA FARIAS']], product_group_id: wheat_flour.id)
+        end
+
+        scenario 'compares only the trips of the chosen product combined with the other filters' do
+          visit trips_path(october.merge(dimension: 'manifest'))
+
+          expect(all('#product_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['FARINHA'])
+
+          visit trips_path(october.merge(dimension: 'manifest', product_group_id: flour.id))
+
+          expect(Atua::Manifest.count).to eq(5)
+          expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(['41010 DDD4D44 · 23/10/2026', 'Total'])
+          expect(page).to have_no_css('#unmeasured_trips')
+
+          visit trips_path(october.merge(dimension: 'manifest', product_group_id: flour.id, plate: 'AAA1A11'))
+
+          expect(page).to have_text('Nenhum registro encontrado')
+        end
+      end
+
+      context 'when a trip carries a CE' do
+        before do
+          create_trip(code: 41_011, plate: 'EEE5E55', started_at: Time.zone.local(2026, 10, 24, 8), distance_km: 200,
+                      documents: [['74011', 300_000, 50, 'LUIZ CE']], document_kind: 'ce')
+          create(:atua_transport_document, tenant:, number: '74012', freight_cents: 200_000, plate: 'EEE5E55', driver_code: 50,
+                                           driver_name: 'LUIZ CE', issued_at: Time.zone.local(2026, 10, 24, 8))
+          create(:atua_manifest_document, tenant:, manifest_code: 41_011, transport_document_number: '74012', calculated_distance_km: 200)
+        end
+
+        scenario 'leaves the CE out of the freight of the manifest' do
+          visit trips_path(october.merge(dimension: 'manifest', plate: 'EEE5E55'))
+
+          expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
+            [
+              ['41011 EEE5E55 · 24/10/2026', '1', '200 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00'],
+              ['Total', '1', '200 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00'],
+            ],
+          )
+        end
       end
     end
 
@@ -244,6 +345,16 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
       expect(page.evaluate_script(
         'Object.values(Chartkick.charts).map((chart) => chart.getChartObject().data.datasets.map((dataset) => dataset.backgroundColor))',
       ).uniq).to eq([['#2563eb', '#dc3545']])
+    end
+
+    scenario 'keeps the net per km of each manifest on the phone without scrolling sideways' do
+      use_mobile_screen(width: 360)
+      visit trips_path(october.merge(dimension: 'manifest'))
+
+      expect(page).to have_css('th', text: %r{\ALíquido/km\z}i)
+      expect(page).to have_css('td', text: 'AAA1A11 · 02/10/2026')
+      expect(page).to have_no_css('th', text: /\ADespesas\z/i)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end
 end

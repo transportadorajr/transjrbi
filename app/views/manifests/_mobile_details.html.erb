@@ -1,0 +1,8 @@
+<%# locals: (item:) %>
+
+<dl class="row g-0 small mb-0 mt-2 manifest-mobile-details d-md-none">
+  <% manifest_mobile_details(item).each do |label, value| %>
+    <dt class="col-5 fw-medium text-body-secondary"><%= label %></dt>
+    <dd class="col-7 mb-1 text-break"><%= value %></dd>
+  <% end %>
+</dl>

@@ -235,14 +235,29 @@ describe 'Table sorting' do
     scenario 'sorts by customer, driver and gross freight' do
       visit transport_documents_path
 
-      within('thead') { click_on 'Cliente' }
-      expect(column('Cliente')).to eq(%w[ÁGUA BETA CARLOS])
+      within('thead') { click_on 'Grupo de clientes' }
+      expect(column('Grupo de clientes')).to eq(%w[ÁGUA BETA CARLOS])
 
       within('thead') { click_on 'Motorista' }
       expect(column('Motorista')).to eq(%w[ANA MARIA ZECA])
 
       within('thead') { click_on 'Frete bruto' }
       expect(numbers).to eq(%w[1003 1002 1001])
+    end
+
+    context 'when the taker of a document belongs to a customer group' do
+      before do
+        group = create(:customer_group, tenant:, name: 'ZINCO')
+        create(:atua_customer, tenant:, code: 7300, name: 'ÁGUA', customer_group: group)
+        dear.update!(taker_code: 7300)
+      end
+
+      scenario 'shows and sorts by the name of the customer group' do
+        visit transport_documents_path(sort: 'customer_name', direction: 'asc')
+
+        expect(Atua::TransportDocument.count).to eq(3)
+        expect(column('Grupo de clientes')).to eq(%w[BETA CARLOS ZINCO])
+      end
     end
   end
 
