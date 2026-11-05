@@ -10,6 +10,7 @@ class FreightBillingFilterForm < BaseForm
   attribute :driver_code, :integer
   attribute :customer_group_id, :integer
   attribute :product_group_id, :integer
+  attribute :product_id, :integer
   attribute :macro_region_id, :string
   attribute :truck_group_id, :string
 
@@ -44,7 +45,7 @@ class FreightBillingFilterForm < BaseForm
 
   def filtered?
     dimension != Dashboard::Freight::DEFAULT_DIMENSION || period != self.class.preset_period(:week) ||
-      [plate, driver_code, customer_group_id, product_group_id, macro_region_id, truck_group_id].any?(&:present?)
+      [plate, driver_code, customer_group_id, product_group_id, product_id, macro_region_id, truck_group_id].any?(&:present?)
   end
 
   private

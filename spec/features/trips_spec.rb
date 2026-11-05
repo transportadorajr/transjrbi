@@ -200,6 +200,89 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
           expect(page).to have_text('Nenhum registro encontrado')
         end
+
+        context 'when other trips carry the same product and another product of the same group' do
+          let!(:corn_flour) { create(:product_subgroup, tenant:, parent: flour, name: 'FARINHA DE MILHO') }
+          let!(:steel) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
+          let!(:coil) { create(:product_subgroup, tenant:, parent: steel, name: 'BOBINA') }
+
+          def product_options
+            all('#product_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }
+          end
+
+          before do
+            create_trip(code: 41_012, plate: 'FFF6F66', started_at: Time.zone.local(2026, 10, 25, 8), distance_km: 100,
+                        documents: [['74013', 300_000, 60, 'RITA LIMA']], product_group_id: wheat_flour.id)
+            create_trip(code: 41_013, plate: 'GGG7G77', started_at: Time.zone.local(2026, 10, 26, 8), distance_km: 100,
+                        documents: [['74014', 500_000, 70, 'JOAO MELO']], product_group_id: corn_flour.id)
+          end
+
+          scenario 'offers every product without a product group and only the products of the selected group' do
+            visit trips_path(october.merge(dimension: 'manifest'))
+
+            expect(product_options).to eq(['BOBINA (SIDERÚRGICO)', 'FARINHA DE MILHO (FARINHA)', 'FARINHA DE TRIGO (FARINHA)'])
+
+            visit trips_path(october.merge(dimension: 'manifest', product_group_id: flour.id, product_id: wheat_flour.id))
+
+            expect(product_options).to eq(['FARINHA DE MILHO (FARINHA)', 'FARINHA DE TRIGO (FARINHA)'])
+            expect(page).to have_field('product_id', type: :hidden, with: wheat_flour.id.to_s)
+            expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
+              .to eq(['41012 FFF6F66 · 25/10/2026 Melhor', '41010 DDD4D44 · 23/10/2026 Pior', 'Total'])
+          end
+
+          scenario 'drops a product that is not of the selected product group from the product options' do
+            visit product_options_trips_path(product_group_id: steel.id, product_id: wheat_flour.id)
+
+            expect(product_options).to eq(['BOBINA (SIDERÚRGICO)'])
+            expect(page).to have_no_field('product_id', type: :hidden, with: wheat_flour.id.to_s)
+          end
+
+          scenario 'reloads the products when another product group is chosen', :js do
+            visit trips_path(october.merge(dimension: 'manifest', product_id: coil.id))
+            find(:link, href: '#filtersModal').click
+
+            expect(page).to have_css('#product_id_select .select2-single-value', text: 'BOBINA (SIDERÚRGICO)', visible: :all)
+
+            within('#product_group_id_select') do
+              find('.select2-trigger').click
+              find('.select2-option', text: 'FARINHA').click
+            end
+
+            expect(page).to have_no_css('#product_id_select .select2-single-value', visible: :all)
+
+            within('#product_id_select') do
+              find('.select2-trigger').click
+              expect(all('.select2-option').map(&:text)).to eq(['FARINHA DE MILHO (FARINHA)', 'FARINHA DE TRIGO (FARINHA)'])
+              find('.select2-option', text: 'FARINHA DE TRIGO').click
+            end
+
+            click_on 'Aplicar Filtros'
+
+            expect(page).to have_current_path(/product_group_id=#{flour.id}&product_id=#{wheat_flour.id}/)
+            expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
+              .to eq(['41012 FFF6F66 · 25/10/2026 Melhor', '41010 DDD4D44 · 23/10/2026 Pior', 'Total'])
+          end
+
+          scenario 'compares the best and the worst trips of the chosen product by gross freight per km' do
+            visit trips_path(october.merge(dimension: 'manifest', product_id: wheat_flour.id, sort: 'gross_per_km', direction: 'desc'))
+
+            expect(Atua::Manifest.count).to eq(7)
+            expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
+              .to eq(['41012 FFF6F66 · 25/10/2026 Melhor', '41010 DDD4D44 · 23/10/2026 Pior', 'Total'])
+            expect(page).to have_field('product_id', type: :hidden, with: wheat_flour.id.to_s)
+
+            visit trips_path(october.merge(dimension: 'manifest', product_id: wheat_flour.id, sort: 'gross_per_km', direction: 'asc'))
+
+            expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
+              .to eq(['41010 DDD4D44 · 23/10/2026 Pior', '41012 FFF6F66 · 25/10/2026 Melhor', 'Total'])
+          end
+
+          scenario 'lists no trip for a product group passed as the product' do
+            visit trips_path(october.merge(dimension: 'manifest', product_id: flour.id))
+
+            expect(page).to have_text('Nenhum registro encontrado')
+          end
+        end
       end
 
       context 'when a trip carries a CE' do

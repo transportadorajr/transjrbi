@@ -31,12 +31,18 @@
         <%= tag.div t('manifests.filters.truck_group_hint'), id: 'truck_group_hint', class: 'form-text' %>
       </div>
 
-      <div class="col-12">
+      <%= tag.div class: 'col-12', data: { controller: 'dependent-frame', dependent_frame_url_value: product_options_manifests_path,
+                                           dependent_frame_param_value: 'product_group_id', dependent_frame_selected_param_value: 'product_id' } do %>
         <%= f.label :product_group_id, t('manifests.filters.product_group_id'), for: nil, id: 'product_group_id_select_label', class: 'form-label fw-medium' %>
-        <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
-                                         options: freight_billing_product_group_options(@product_groups),
-                                         selected: params[:product_group_id], placeholder: t('shared.all') %>
-      </div>
+        <%= tag.div data: { action: 'change->dependent-frame#reload' }, class: 'mb-3' do %>
+          <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
+                                           options: freight_billing_product_group_options(@product_groups),
+                                           selected: params[:product_group_id], placeholder: t('shared.all') %>
+        <% end %>
+
+        <%= f.label :product_id, t('manifests.filters.product_id'), for: nil, id: 'product_id_select_label', class: 'form-label fw-medium' %>
+        <%= render 'product_options/select', products: @products, selected: @selected_product_id %>
+      <% end %>
 
       <%= tag.div class: 'col-12', data: { controller: 'dependent-frame', dependent_frame_url_value: customer_options_manifests_path,
                                            dependent_frame_param_value: 'customer_group_id', dependent_frame_selected_param_value: 'customer_code' } do %>

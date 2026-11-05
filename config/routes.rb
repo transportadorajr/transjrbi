@@ -55,6 +55,7 @@ Rails.application.routes.draw do
     end
     resources :manifests, only: %i[index show] do
       get :customer_options, on: :collection
+      get :product_options, on: :collection
     end
     resources :customers, only: %i[index show]
     resources :customer_groups do
@@ -78,8 +79,11 @@ Rails.application.routes.draw do
       get :detail
       get :freights
       get :month
+      get :product_options
     end
-    resources :trips, only: :index
+    resources :trips, only: :index do
+      get :product_options, on: :collection
+    end
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection
     end

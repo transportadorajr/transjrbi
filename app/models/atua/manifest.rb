@@ -56,6 +56,7 @@ module Atua
     scope :by_customer_group, ->(customer_group_id) { by_transport_documents(TransportDocument.by_customer_group(customer_group_id)) }
     scope :by_taker, ->(code) { by_transport_documents(TransportDocument.by_taker(code)) }
     scope :by_product_group, ->(product_group_id) { by_transport_documents(TransportDocument.by_product_group(product_group_id)) }
+    scope :by_product, ->(product_id) { by_transport_documents(TransportDocument.by_product(product_id)) }
     scope :by_truck_group, ->(truck_group, grouped_plates) {
       by_transport_documents(TransportDocument.by_truck_group(truck_group, grouped_plates))
     }

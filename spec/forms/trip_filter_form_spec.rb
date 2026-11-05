@@ -29,6 +29,10 @@ RSpec.describe TripFilterForm do
     it 'is filtered by the product group' do
       expect(described_class.new(product_group_id: '7')).to be_filtered
     end
+
+    it 'is filtered by the product' do
+      expect(described_class.new(product_id: '8')).to be_filtered
+    end
   end
 
   describe '.preset_period' do
@@ -55,6 +59,10 @@ RSpec.describe TripFilterForm do
 
     it 'rejects a product group that is not a number' do
       expect(described_class.new(product_group_id: 'abc')).not_to be_valid
+    end
+
+    it 'rejects a product that is not a number' do
+      expect(described_class.new(product_id: 'abc')).not_to be_valid
     end
   end
 end

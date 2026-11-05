@@ -9,6 +9,10 @@ module ProductGroupsHelper
     menus
   end
 
+  def product_filter_options(products)
+    products.map { |product| [t('shared.product_option', product: product.name, group: product.parent.name), product.id.to_s] }
+  end
+
   def product_group_status_badge(product_group)
     return status_badge(t('product_groups.index.active'), kind: :success) if product_group.activated?
 

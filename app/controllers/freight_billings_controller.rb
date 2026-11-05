@@ -1,16 +1,20 @@
 class FreightBillingsController < BaseController
+  include ProductOptions
+
   has_scope :by_plate, as: :plate
   has_scope :by_driver, as: :driver_code
   has_scope :by_customer_group, as: :customer_group_id
   has_scope :by_product_group, as: :product_group_id
+  has_scope :by_product, as: :product_id
   has_scope :by_origin_macro_region, as: :macro_region_id
 
-  before_action :load_dashboard
+  before_action :load_dashboard, except: :product_options
 
   def show
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
     @product_groups = current_tenant.product_groups.groups.activated.order(:name)
+    load_product_options
     @macro_regions = current_tenant.macro_regions.order(:name)
     @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
     @rows = Kaminari.paginate_array(@dashboard.sorted_rows(params[:sort], params[:direction])).page(params[:page])
@@ -34,6 +38,13 @@ class FreightBillingsController < BaseController
     return redirect_to(freight_billing_path(filter_params), alert: t('.month_not_found')) unless @row
 
     @transport_documents = @dashboard.month_freights(@row.month)
+  end
+
+  def product_options
+    authorize!(:read, :freight_billing)
+
+    load_product_options
+    render 'product_options/show'
   end
 
   private
@@ -61,7 +72,7 @@ class FreightBillingsController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :customer_group_id, :product_group_id, :macro_region_id,
+    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :customer_group_id, :product_group_id, :product_id, :macro_region_id,
                   :truck_group_id)
   end
 end

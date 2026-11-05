@@ -1,0 +1,4 @@
+<%= turbo_frame_tag 'product_options', data: { dependent_frame_target: 'frame' } do %>
+  <%= render 'components/select2', id: 'product_id_select', name: :product_id, options: product_filter_options(products),
+                                   selected:, placeholder: t('shared.all') %>
+<% end %>

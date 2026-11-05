@@ -1,10 +1,12 @@
 class ManifestsController < BaseController
   include CustomerOptions
+  include ProductOptions
 
   has_scope :by_number, as: :number
   has_scope :by_plate, as: :plate
   has_scope :by_driver, as: :driver_code
   has_scope :by_product_group, as: :product_group_id
+  has_scope :by_product, as: :product_id
   has_scope :by_customer_group, as: :customer_group_id
   has_scope :by_taker, as: :customer_code
   has_scope :by_period_start, as: :start_date
@@ -28,6 +30,13 @@ class ManifestsController < BaseController
     render 'transport_documents/customer_options'
   end
 
+  def product_options
+    authorize!(:read, :manifests)
+
+    load_product_options
+    render 'product_options/show'
+  end
+
   def show
     authorize!(:read, :manifests)
 
@@ -48,6 +57,7 @@ class ManifestsController < BaseController
     @drivers = current_tenant.atua_transport_documents.drivers
     @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
     @product_groups = current_tenant.product_groups.groups.activated.order(:name)
+    load_product_options
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
   end
 

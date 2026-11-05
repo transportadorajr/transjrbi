@@ -146,6 +146,7 @@ describe 'Manifests' do
       let!(:gerdau_customer) { create(:atua_customer, tenant:, code: 7200, name: 'GERDAU OURO BRANCO', customer_group: gerdau) }
       let!(:steel) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
       let!(:coil) { create(:product_subgroup, tenant:, parent: steel, name: 'BOBINA') }
+      let!(:rebar) { create(:product_subgroup, tenant:, parent: steel, name: 'VERGALHÃO') }
       let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
       let!(:inactive_customer_group) { create(:customer_group, tenant:, name: 'ARCELOR', activated_at: nil) }
       let!(:inactive_product_group) { create(:product_group, tenant:, name: 'CELULOSE E PAPEL', activated_at: nil) }
@@ -170,7 +171,7 @@ describe 'Manifests' do
         add_document(jose_trip, '1', driver_code: 10, driver_name: 'JOSE SILVA', axles: 9, taker_code: usiminas_customer.code,
                                      product_group_id: coil.id, freight_cents: 100_000)
         add_document(maria_trip, '2', driver_code: 20, driver_name: 'MARIA SOUZA', axles: 6, taker_code: gerdau_customer.code,
-                                      freight_cents: 200_000)
+                                      product_group_id: rebar.id, freight_cents: 200_000)
       end
 
       scenario 'offers the drivers and only the active truck, product and customer groups on the filters' do
@@ -179,6 +180,8 @@ describe 'Manifests' do
         expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Rodotrem'])
         expect(all('#driver_code_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['JOSE SILVA', 'MARIA SOUZA'])
         expect(all('#product_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['SIDERÚRGICO'])
+        expect(all('#product_id_select [role="option"]', visible: :all).map { |option| option.text(:all) })
+          .to eq(['BOBINA (SIDERÚRGICO)', 'VERGALHÃO (SIDERÚRGICO)'])
         expect(all('#customer_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(%w[GERDAU USIMINAS])
       end
 
@@ -207,7 +210,15 @@ describe 'Manifests' do
       scenario 'filters the manifests by the product group of the transport documents' do
         visit manifests_path(product_group_id: steel.id)
 
-        expect(html_table_to_rows).to eq([table_header, jose_row])
+        expect(html_table_to_rows).to eq([table_header, maria_row, jose_row])
+      end
+
+      scenario 'filters the manifests by the product of the transport documents' do
+        visit manifests_path(product_id: rebar.id, sort: 'gross_per_km', direction: 'desc')
+
+        expect(Atua::Manifest.count).to eq(2)
+        expect(html_table_to_rows).to eq([table_header, maria_row])
+        expect(page).to have_field('product_id', type: :hidden, with: rebar.id.to_s)
       end
 
       scenario 'filters the manifests by the customer group and by the customer of the transport documents' do
@@ -221,9 +232,24 @@ describe 'Manifests' do
       end
 
       scenario 'ignores the blank filters' do
-        visit manifests_path(driver_code: '', truck_group_id: '', product_group_id: '', customer_group_id: '', customer_code: '')
+        visit manifests_path(driver_code: '', truck_group_id: '', product_group_id: '', product_id: '', customer_group_id: '', customer_code: '')
 
         expect(html_table_to_rows).to eq([table_header, maria_row, jose_row])
+      end
+
+      scenario 'lists only the products of the selected product group' do
+        create(:product_subgroup, tenant:, parent: create(:product_group, tenant:, name: 'FARINHA'), name: 'FARINHA DE TRIGO')
+
+        visit manifests_path(product_group_id: steel.id)
+
+        expect(all('#product_id_select [role="option"]', visible: :all).map { |option| option.text(:all) })
+          .to eq(['BOBINA (SIDERÚRGICO)', 'VERGALHÃO (SIDERÚRGICO)'])
+
+        visit product_options_manifests_path(product_group_id: steel.id, product_id: rebar.id)
+
+        expect(all('#product_id_select [role="option"]', visible: :all).map { |option| option.text(:all) })
+          .to eq(['BOBINA (SIDERÚRGICO)', 'VERGALHÃO (SIDERÚRGICO)'])
+        expect(page).to have_field('product_id', type: :hidden, with: rebar.id.to_s)
       end
 
       scenario 'lists only the customers of the selected group' do

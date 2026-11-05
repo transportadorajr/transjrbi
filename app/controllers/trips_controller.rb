@@ -1,7 +1,10 @@
 class TripsController < BaseController
+  include ProductOptions
+
   has_scope :by_plate, as: :plate
   has_scope :by_driver, as: :driver_code
   has_scope :by_product_group, as: :product_group_id
+  has_scope :by_product, as: :product_id
 
   before_action :require_trips_dashboard
 
@@ -17,6 +20,13 @@ class TripsController < BaseController
     @highlights = @dashboard.highlights(params[:sort])
   end
 
+  def product_options
+    authorize!(:read, :trips)
+
+    load_product_options
+    render 'product_options/show'
+  end
+
   private
 
   def require_trips_dashboard
@@ -27,6 +37,7 @@ class TripsController < BaseController
     @drivers = current_tenant.atua_transport_documents.drivers
     @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
     @product_groups = current_tenant.product_groups.groups.activated.order(:name)
+    load_product_options
     @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
   end
 
@@ -40,6 +51,6 @@ class TripsController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :truck_group_id, :product_group_id)
+    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :truck_group_id, :product_group_id, :product_id)
   end
 end
