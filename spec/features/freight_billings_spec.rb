@@ -3,7 +3,7 @@ require 'rails_helper'
 describe 'Freight billing' do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
-  let!(:resource) { create(:resource, name: 'Faturamento de fretes', slug: 'freight_billing', writable: false) }
+  let!(:resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
   let(:october) { { start_date: '2026-10-01', end_date: '2026-10-31' } }
   let(:october_by_truck) { october.merge(dimension: 'vehicle') }
 
@@ -176,11 +176,11 @@ describe 'Freight billing' do
           visit root_path
           within('.sidebar-desktop') do
             click_on 'Inteligência'
-            click_on 'Faturamento de Fretes'
+            click_on 'Faturamento'
           end
 
           expect(page).to have_current_path(freight_billing_path)
-          expect(page).to have_css('h1', text: 'Faturamento de Fretes')
+          expect(page).to have_css('h1', exact_text: 'Faturamento')
           expect(page).to have_text('CT-es emitidos de 18/10/2026 a 24/10/2026')
           expect(page).to have_field('Emitidos a partir de', with: '2026-10-18', visible: :all)
           expect(page).to have_field('Emitidos até', with: '2026-10-24', visible: :all)
@@ -1237,7 +1237,7 @@ describe 'Freight billing' do
       scenario 'opens the freight billing' do
         visit freight_billing_path(october)
 
-        expect(page).to have_css('h1', text: 'Faturamento de Fretes')
+        expect(page).to have_css('h1', exact_text: 'Faturamento')
         expect(page).to have_text('Nenhum registro encontrado')
       end
     end

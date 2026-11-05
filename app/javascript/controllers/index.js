@@ -27,3 +27,6 @@ application.register('dependent-frame', DependentFrameController);
 
 import RankingChartController from './ranking_chart_controller';
 application.register('ranking-chart', RankingChartController);
+
+import RevealController from './reveal_controller';
+application.register('reveal', RevealController);

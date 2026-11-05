@@ -1,0 +1,12 @@
+<%# locals: (row:) %>
+
+<tr>
+  <td class="fw-semibold"><%= row.label %></td>
+  <td class="text-end text-nowrap"><%= row.trips_count %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= trips_km(row.loaded_km) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(row.net) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(row.average) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.gross_per_km) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.net_per_km) %></td>
+</tr>

@@ -7,6 +7,10 @@ shared:
           url: /freight_billing
           controllers:
             - freight_billings
+        - name: trips
+          url: /trips
+          controllers:
+            - trips
     - name: tax
       icon: receipt
       menus:

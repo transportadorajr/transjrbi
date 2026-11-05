@@ -1,0 +1,57 @@
+<% content_for :title, t('.title') %>
+
+<%= tag.div class: 'page-shell', data: trips_evolution_reveal_data do %>
+  <%= page_header_tag t('.title'), subtitle: trips_period_label(@filter_form),
+                                   note: trips_last_sync_label(@last_synced_at), wrapper_class: 'page-header-inline' do %>
+    <%= link_to_filters('#filtersModal', applied: @filter_form.filtered?, class: 'btn btn-outline-secondary btn-round') %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="dashboard-filter-bar mb-4">
+    <span class="dashboard-filter-label"><%= t('.period_label') %></span>
+
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.period_label') } do %>
+      <% trips_period_presets.each do |preset| %>
+        <%= link_to trips_period_preset_label(preset), trips_period_preset_path(preset),
+                    class: trips_period_preset_link_class(preset, @filter_form) %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="dashboard-filter-bar mb-4">
+    <span class="dashboard-filter-label"><%= t('.group_by') %></span>
+
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.group_by') } do %>
+      <% trips_dimensions.each do |dimension| %>
+        <%= link_to trips_dimension_label(dimension), trips_dimension_path(dimension),
+                    class: trips_dimension_link_class(dimension, @dashboard) %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="dashboard-filter-bar mb-4">
+    <span class="dashboard-filter-label"><%= t('.evolution_label') %></span>
+
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.evolution_label') } do %>
+      <% trips_evolutions.each do |evolution| %>
+        <%= trips_evolution_button(evolution) %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <p class="net-freight-discounts small fst-italic fw-bold text-success mb-2"><%= t('.net_discounts') %></p>
+
+  <div class="row g-2 g-md-3 mb-4 counter-grid-compact">
+    <%= counter_card(:dark, t('.trips'), @dashboard.total.trips_count, col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.gross'), tax_money(@dashboard.total.gross), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.average'), tax_money(@dashboard.total.average), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.gross_per_km'), tax_money(@dashboard.total.gross_per_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:dark, t('.loaded_km'), trips_km(@dashboard.total.loaded_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:success, t('.net'), tax_money(@dashboard.total.net), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:success, t('.net_average'), tax_money(@dashboard.total.net_average), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-6 col-xl-3') %>
+  </div>
+
+  <%= render trips_content_partial(@dashboard), dashboard: @dashboard %>
+<% end %>

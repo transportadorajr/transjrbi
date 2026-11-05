@@ -3,7 +3,7 @@ require 'rails_helper'
 describe 'Records of an excluded plate' do
   let!(:tenant) { create(:tenant) }
   let!(:admin) { create(:user, tenant:, user_type: :admin) }
-  let!(:freight_billing_resource) { create(:resource, name: 'Faturamento de fretes', slug: 'freight_billing', writable: false) }
+  let!(:freight_billing_resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
   let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
   let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
   let!(:favor_document) do
