@@ -9,6 +9,7 @@ shared:
             - freight_billings
         - name: trips
           url: /trips
+          feature: trips_dashboard
           controllers:
             - trips
     - name: tax

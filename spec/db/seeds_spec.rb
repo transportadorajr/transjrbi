@@ -46,6 +46,13 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'trips')).to have_attributes(name: 'Viagens', writable: false)
   end
 
+  it 'registers the trips dashboard flag turned off' do
+    run_seeds
+
+    expect(Flipper.features.map(&:key)).to include('trips_dashboard')
+    expect(Flipper.enabled?(:trips_dashboard, tenant)).to be(false)
+  end
+
   it 'does not duplicate the access resources when run again' do
     run_seeds
 
