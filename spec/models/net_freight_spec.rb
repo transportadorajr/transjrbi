@@ -53,6 +53,13 @@ RSpec.describe NetFreight do
     expect(net_freight.net).to eq(Money.from_cents(722_413))
   end
 
+  it 'adds the manifest freight of the transport documents missing from Atua to the gross and the net freight' do
+    net_freight = described_class.for(tenant.atua_transport_documents, missing_documents_freight: Money.from_cents(225_105))
+
+    expect(net_freight.freight).to eq(Money.from_cents(1_425_105))
+    expect(net_freight.net).to eq(Money.from_cents(947_518))
+  end
+
   context 'with value complements of the transport documents' do
     let!(:complement) do
       create(:atua_transport_document, tenant:, issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, freight_cents: 45_000,

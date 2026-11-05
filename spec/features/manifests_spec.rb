@@ -38,8 +38,8 @@ describe 'Manifests' do
 
     context 'when there are manifests' do
       let!(:closed) do
-        create(:atua_manifest, tenant:, number: '40772', branch_name: 'JR TRANSPORTES', issued_on: Date.new(2026, 10, 1),
-                               departure_on: Date.new(2026, 10, 2), plate: 'RHJ4E07', status: 'Encerrado', goods_value_cents: 11_259_672)
+        create(:atua_manifest, :with_transport_document, tenant:, number: '40772', branch_name: 'JR TRANSPORTES', issued_on: Date.new(2026, 10, 1),
+                                                         departure_on: Date.new(2026, 10, 2), plate: 'RHJ4E07', status: 'Encerrado', goods_value_cents: 11_259_672)
       end
       let!(:canceled) do
         create(:atua_manifest, tenant:, number: '40780', branch_name: 'TRANSJR SABARA', issued_on: Date.new(2026, 10, 6),
@@ -57,6 +57,7 @@ describe 'Manifests' do
 
         expect(page).to have_current_path(manifests_path)
         expect(Atua::Manifest.count).to eq(4)
+        expect(Atua::TransportDocument.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
             ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'Bruto/km', 'Ações'],
@@ -72,7 +73,7 @@ describe 'Manifests' do
       end
 
       scenario 'filters the manifests by number' do
-        create(:atua_manifest, tenant:, number: '40773', plate: 'EXU0F72')
+        create(:atua_manifest, :with_transport_document, tenant:, number: '40773', plate: 'EXU0F72')
 
         visit manifests_path
         fill_in 'Número do manifesto', with: '40772'
@@ -87,7 +88,7 @@ describe 'Manifests' do
       end
 
       scenario 'filters the manifests by plate and period without offering the situation' do
-        create(:atua_manifest, tenant:, number: '40773', branch_name: 'TRANSJR SABARA', issued_on: Date.new(2026, 10, 6), plate: 'EXU0F72')
+        create(:atua_manifest, :with_transport_document, tenant:, number: '40773', branch_name: 'TRANSJR SABARA', issued_on: Date.new(2026, 10, 6), plate: 'EXU0F72')
 
         visit manifests_path
         expect(page).to have_field('Placa')
@@ -346,21 +347,47 @@ describe 'Manifests' do
       end
     end
 
-    context 'when the transport document of a manifest was not imported from Atua' do
-      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_625, number: '41149', branch_name: 'JR TRANSPORTES', plate: 'BDC8D26') }
-      let!(:document) do
-        create(:atua_manifest_document, tenant:, manifest_code: 41_625, transport_document_number: '74764', transport_document_series: 1,
+    context 'when no transport document of a manifest was imported from Atua' do
+      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_625, number: '38075', branch_name: 'JR TRANSPORTES', plate: 'BEC3D14') }
+
+      before do
+        create(:atua_manifest_document, tenant:, manifest_code: 41_625, transport_document_number: '69674', transport_document_series: 1,
+                                        branch_name: 'JR TRANSPORTES', freight_cents: 225_105, document_distance_km: BigDecimal('24'))
+      end
+
+      scenario 'leaves the manifest out of the listing and of the details' do
+        visit manifests_path
+
+        expect(Atua::Manifest.count).to eq(1)
+        expect(Atua::TransportDocument.count).to eq(0)
+        expect(page).to have_text('Nenhum registro encontrado')
+        expect(page).to have_no_text('38075')
+
+        visit manifest_path(manifest)
+
+        expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when one of the transport documents of a manifest was not imported from Atua' do
+      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_626, number: '41149', branch_name: 'JR TRANSPORTES', plate: 'BDC8D26') }
+
+      before do
+        create(:atua_transport_document, tenant:, number: '74763', series: 1, branch_name: 'JR TRANSPORTES', freight_cents: 198_085)
+        create(:atua_manifest_document, tenant:, manifest_code: 41_626, transport_document_number: '74763', transport_document_series: 1,
+                                        branch_name: 'JR TRANSPORTES', freight_cents: 198_085, document_distance_km: BigDecimal('500'))
+        create(:atua_manifest_document, tenant:, manifest_code: 41_626, transport_document_number: '74764', transport_document_series: 1,
                                         branch_name: 'JR TRANSPORTES', freight_cents: 801_915, document_distance_km: BigDecimal('500'))
       end
 
-      scenario 'divides the freight of the manifest by the loaded km instead of showing zero' do
+      scenario 'adds the freight of the manifest to the gross freight per loaded km' do
         visit manifests_path
 
-        expect(Atua::TransportDocument.count).to eq(0)
+        expect(Atua::TransportDocument.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
             ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'Bruto/km', 'Ações'],
-            ['41149 JR TRANSPORTES Bruto/km R$ 16,04 Grupo de clientes - Origem - Destino -', 'BDC8D26', '-', '-', '-', '-', '-', 'R$ 16,04', ''],
+            ['41149 JR TRANSPORTES Bruto/km R$ 20,00 Grupo de clientes - Origem - Destino -', 'BDC8D26', '-', '-', '-', '-', '-', 'R$ 20,00', ''],
           ],
         )
 
@@ -369,9 +396,31 @@ describe 'Manifests' do
         expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
           [
             ['CT-e', 'Cliente', 'Bruto/km'],
+            ['74763', '-', 'R$ 3,96'],
             ['74764', '-', 'R$ 16,04'],
           ],
         )
+      end
+
+      context 'with access to the freight expenses' do
+        let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+
+        scenario 'adds the freight of the manifest to the net freight of the details' do
+          visit manifests_path
+
+          expect(html_table_to_rows.second.last(3)).to eq(['R$ 20,00', 'R$ 20,00', ''])
+
+          visit manifest_path(manifest)
+
+          expect(dl_to_hash('#manifest_net_freight')).to include('Frete bruto' => 'R$ 10.000,00', '(=) Frete líquido' => 'R$ 10.000,00')
+          expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
+            [
+              ['CT-e', 'Cliente', 'Bruto/km', 'Líquido/km'],
+              ['74763', '-', 'R$ 3,96', 'R$ 3,96'],
+              ['74764', '-', 'R$ 16,04', 'R$ 16,04'],
+            ],
+          )
+        end
       end
     end
 
@@ -645,8 +694,8 @@ describe 'Manifests' do
     end
 
     context 'when the manifest has an empty leg from the previous trip of the truck' do
-      let!(:previous_manifest) { create(:atua_manifest, tenant:, code: 41_100, number: '40700', plate: 'RHJ4E07') }
-      let!(:manifest) { create(:atua_manifest, tenant:, code: 41_200, number: '40772', plate: 'RHJ4E07') }
+      let!(:previous_manifest) { create(:atua_manifest, :with_transport_document, tenant:, code: 41_100, number: '40700', plate: 'RHJ4E07') }
+      let!(:manifest) { create(:atua_manifest, :with_transport_document, tenant:, code: 41_200, number: '40772', plate: 'RHJ4E07') }
       let!(:origin) do
         create(:location, lookup_key: 'RUA DAS FLORES 10|BETIM|MG', street: 'RUA DAS FLORES 10', city: 'BETIM', state: 'MG', precision_type: 'address')
       end
@@ -696,7 +745,7 @@ describe 'Manifests' do
 
   context 'when an operator is signed in' do
     let!(:operator) { create(:user, tenant:, name: 'Carla Operadora') }
-    let!(:manifest) { create(:atua_manifest, tenant:, number: '40772') }
+    let!(:manifest) { create(:atua_manifest, :with_transport_document, tenant:, number: '40772') }
 
     before { login_as(operator, scope: :user) }
 
@@ -841,12 +890,20 @@ describe 'Manifests' do
       end
     end
 
-    scenario 'keeps only the essential columns without horizontal scroll' do
-      visit manifests_path
+    context 'when the manifest is linked to a transport document' do
+      before do
+        create(:atua_transport_document, tenant:, number: '74130', series: 1, branch_name: manifest.branch_name)
+        create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: '74130',
+                                        transport_document_series: 1, branch_name: manifest.branch_name)
+      end
 
-      expect(page).to have_link('40772')
-      expect(page).to have_no_css('th', text: 'Placa')
-      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      scenario 'keeps only the essential columns without horizontal scroll' do
+        visit manifests_path
+
+        expect(page).to have_link('40772')
+        expect(page).to have_no_css('th', text: 'Placa')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
     end
   end
 

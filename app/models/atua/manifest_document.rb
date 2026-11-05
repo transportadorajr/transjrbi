@@ -31,6 +31,12 @@ module Atua
       transport_document ? transport_document.freight_cents : freight_cents
     end
 
+    def net_cents(net_cents_by_transport_document)
+      return unless on_route?
+
+      transport_document ? net_cents_by_transport_document[transport_document.id] : freight_cents
+    end
+
     def per_km(cents)
       distance = loaded_km
       Money.from_cents((cents / distance).round(0, BigDecimal::ROUND_HALF_UP)) if cents && distance

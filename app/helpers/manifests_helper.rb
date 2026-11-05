@@ -62,8 +62,7 @@ module ManifestsHelper
   def manifest_document_net_per_km_cell(document, net_cents_by_document)
     return unless net_cents_by_document
 
-    net_cents = net_cents_by_document[document.transport_document&.id] if document.on_route?
-    content_tag(:td, tax_money(document.per_km(net_cents)), class: 'text-nowrap')
+    content_tag(:td, tax_money(document.per_km(document.net_cents(net_cents_by_document))), class: 'text-nowrap')
   end
 
   def manifest_document_number(document)
