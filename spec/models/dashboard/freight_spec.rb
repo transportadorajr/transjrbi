@@ -245,6 +245,10 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.freights_for('OUT1A11')).to be_empty
     end
 
+    it 'plots the gross freight per km only for the customer groups and the macro regions' do
+      expect(dashboard.per_km_ranking?).to be(false)
+    end
+
     it 'lists the freights of the trucks but not of the total' do
       expect(dashboard.lists_freights?('RVR2C34')).to be(true)
       expect(dashboard.lists_freights?('total')).to be(false)
@@ -281,6 +285,11 @@ RSpec.describe Dashboard::Freight do
           ],
         )
         expect(dashboard.total).to have_attributes(trips_count: 3, loaded_km: BigDecimal('820'))
+      end
+
+      it 'plots the gross freight per km of the same groups of the ranking, in its order' do
+        expect(dashboard.per_km_ranking?).to be(true)
+        expect(dashboard.per_km_ranking_data).to eq([{ name: 'Frete bruto por km', data: { 'Sem grupo' => 43.9, 'USIMINAS' => 25.61 } }])
       end
     end
 

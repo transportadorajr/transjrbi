@@ -87,6 +87,10 @@ module FreightBillingsHelper
     t('freight_billings.show.ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
   end
 
+  def freight_billing_per_km_ranking_title(dashboard)
+    t('freight_billings.show.per_km_ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
+  end
+
   def freight_billing_table_title(dashboard)
     t('freight_billings.show.table_title', dimension: freight_billing_dimension_label(dashboard.dimension))
   end
@@ -148,6 +152,21 @@ module FreightBillingsHelper
     end
   end
 
+  def freight_billing_per_km_ranking_card(dashboard)
+    return unless dashboard.per_km_ranking?
+
+    data = dashboard.per_km_ranking_data
+    return if data.first[:data].empty?
+
+    tag.div(class: 'row g-3 mb-4') do
+      tag.div(class: 'col-12 col-xl-7') do
+        render('freight_billings/chart_card', title: freight_billing_per_km_ranking_title(dashboard),
+                                              subtitle: t('freight_billings.show.per_km_ranking_subtitle'),
+                                              chart: freight_billing_per_km_ranking_chart(data))
+      end
+    end
+  end
+
   def freight_billing_monthly_chart(dashboard)
     tag.div(data: freight_billing_monthly_chart_data(dashboard)) do
       bar_chart(freight_billing_series(dashboard.monthly_data),
@@ -169,6 +188,14 @@ module FreightBillingsHelper
 
   def freight_billing_freights_path(row)
     freights_freight_billing_path(**request.query_parameters.symbolize_keys, key: row.key)
+  end
+
+  def freight_billing_per_km_ranking_chart(data)
+    bar_chart(freight_billing_series(data),
+              height: "#{[data.first[:data].size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
+              legend: 'bottom',
+              **chart_money_options,
+              library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
   end
 
   def freight_billing_ranking_chart_data(dashboard)

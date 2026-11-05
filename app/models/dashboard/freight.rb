@@ -9,6 +9,7 @@ module Dashboard
     FOZ_ORIGIN_KEYS = ['FOZ DO IGUACU|PR|export', 'FOZ DO IGUACU|PR|national'].freeze
     TOTAL_KEY = 'total'.freeze
     ABBREVIATED_DIMENSIONS = %w[driver customer_group].freeze
+    PER_KM_RANKING_DIMENSIONS = %w[customer_group macro_region].freeze
     NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
     NAME_PARTICLES = %w[DA DAS DE DO DOS E].freeze
     COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
@@ -124,6 +125,16 @@ module Dashboard
         { name: I18n.t('dashboards.freight.gross'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.gross.to_f] } },
         { name: I18n.t('dashboards.freight.net'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.net.to_f] } },
       ]
+    end
+
+    def per_km_ranking?
+      PER_KM_RANKING_DIMENSIONS.include?(dimension)
+    end
+
+    def per_km_ranking_data
+      measured = ranking_rows.zip(ranking_labels).select { |row, _| row.gross_per_km }
+
+      [{ name: I18n.t('dashboards.freight.gross_per_km'), data: measured.to_h { |row, label| [label, row.gross_per_km.to_f] } }]
     end
 
     def history_period
