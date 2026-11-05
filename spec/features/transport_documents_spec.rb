@@ -49,7 +49,7 @@ describe 'Transport documents' do
       let!(:removed) { create(:atua_transport_document, tenant:, number: '74132', removed_from_atua_at: Time.current) }
       let!(:stranger) { create(:atua_transport_document, tenant: other_tenant, number: '74133') }
 
-      scenario 'lists the active transport documents of the tenant from the tax menu' do
+      scenario 'lists the active and valid transport documents of the tenant from the tax menu' do
         visit root_path
         within('.sidebar-desktop') do
           click_on 'Fiscal'
@@ -61,13 +61,13 @@ describe 'Transport documents' do
         expect(html_table_to_rows).to eq(
           [
             ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['74131 GERDAU', '05/10/2026', '- → -', 'RHJ4E07', '-', '-', 'R$ 1.200,00', 'Cancelado', ''],
             ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', 'Válido', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
-        expect(page).to have_text('2 registros')
+        expect(page).to have_text('1 registro')
         expect(page).to have_link(href: transport_document_path(authorized), title: 'Visualizar')
+        expect(page).to have_no_text('74131')
         expect(page).to have_no_text('74132')
         expect(page).to have_no_text('74133')
         expect(page).to have_no_link('Novo')
@@ -88,17 +88,24 @@ describe 'Transport documents' do
 
       scenario 'filters the transport documents by plate and period' do
         visit transport_documents_path
-        fill_in 'Placa', with: 'rhj-4e07'
-        fill_in 'Lançados a partir de', with: '2026-10-02'
+        fill_in 'Placa', with: 'exu-0f72'
+        fill_in 'Lançados a partir de', with: '2026-10-01'
         fill_in 'Lançados até', with: '2026-10-31'
         click_on 'Aplicar Filtros'
 
         expect(html_table_to_rows).to eq(
           [
             ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['74131 GERDAU', '05/10/2026', '- → -', 'RHJ4E07', '-', '-', 'R$ 1.200,00', 'Cancelado', ''],
+            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', 'Válido', ''],
           ],
         )
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
+      end
+
+      scenario 'does not list a canceled transport document even when the filters match it' do
+        visit transport_documents_path(plate: 'RHJ4E07')
+
+        expect(page).to have_text('Nenhum registro encontrado')
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 0'])
       end
 
