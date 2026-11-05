@@ -129,6 +129,21 @@ RSpec.describe Dashboard::Trip do
     end
   end
 
+  describe '.enabled?' do
+    let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
+
+    it 'is turned off by default' do
+      expect(described_class.enabled?(tenant)).to be(false)
+    end
+
+    context 'when the trips dashboard is enabled for the tenant', flipper: { trips_dashboard: :tenant } do
+      it 'is turned on only for that tenant' do
+        expect(described_class.enabled?(tenant)).to be(true)
+        expect(described_class.enabled?(other_tenant)).to be(false)
+      end
+    end
+  end
+
   context 'with an unknown dimension' do
     let(:dimension) { 'customer_group' }
 

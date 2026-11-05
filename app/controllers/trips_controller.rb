@@ -2,6 +2,8 @@ class TripsController < BaseController
   has_scope :by_plate, as: :plate
   has_scope :by_driver, as: :driver_code
 
+  before_action :require_trips_dashboard
+
   def index
     authorize!(:read, :trips)
 
@@ -14,6 +16,10 @@ class TripsController < BaseController
   end
 
   private
+
+  def require_trips_dashboard
+    raise ActionController::RoutingError, 'Not Found' unless Dashboard::Trip.enabled?(current_tenant)
+  end
 
   def load_filter_options
     @drivers = current_tenant.atua_transport_documents.drivers

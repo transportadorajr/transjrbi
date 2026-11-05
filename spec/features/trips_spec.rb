@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Trips' do
+describe 'Trips', flipper: { trips_dashboard: :tenant } do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Viagens', slug: 'trips', writable: false) }
@@ -96,6 +96,7 @@ describe 'Trips' do
         visit trips_path(october)
         click_on 'Veículo'
 
+        expect(Atua::Manifest.count).to eq(4)
         expect(page).to have_current_path(/dimension=vehicle/)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
           [
@@ -110,13 +111,40 @@ describe 'Trips' do
         visit trips_path(october.merge(dimension: 'vehicle'))
         within('.trips-table thead') { click_on 'Bruto/km' }
 
+        expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[BBB2B22 AAA1A11 Total])
       end
 
       scenario 'filters the trips by plate' do
         visit trips_path(october.merge(dimension: 'vehicle', plate: 'bbb2b22'))
 
+        expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[BBB2B22 Total])
+      end
+    end
+
+    context 'when the trips dashboard is turned off for the tenant' do
+      before do
+        Flipper.disable(:trips_dashboard)
+        Flipper.enable_actor(:trips_dashboard, other_tenant)
+      end
+
+      scenario 'hides the trips from the intelligence menu' do
+        visit root_path
+
+        within('.sidebar-desktop') do
+          click_on 'Inteligência'
+
+          expect(page).to have_link('Faturamento')
+          expect(page).to have_no_link('Viagens')
+        end
+      end
+
+      scenario 'answers not found for the trips screen' do
+        visit trips_path(october)
+
+        expect(page.status_code).to eq(404)
+        expect(page).to have_no_css('h1', exact_text: 'Viagens')
       end
     end
 

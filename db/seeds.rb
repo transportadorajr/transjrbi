@@ -42,6 +42,8 @@ end
   end
 end
 
+Flipper.add(Dashboard::Trip::FEATURE)
+
 Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?
 
 Tenant.find_each do |tenant|

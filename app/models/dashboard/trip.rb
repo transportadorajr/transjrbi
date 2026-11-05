@@ -7,6 +7,7 @@ module Dashboard
     WEEK_START = :sunday
     RANKING_LIMIT = 15
     TOTAL_KEY = 'total'.freeze
+    FEATURE = :trips_dashboard
 
     Fact = Data.define(:code, :trip_on, :plate, :driver_code, :driver_name, :gross_cents, :net_cents, :loaded_km) do
       def measured?
@@ -31,6 +32,10 @@ module Dashboard
     attr_reader :dimension, :period
 
     class << self
+      def enabled?(tenant)
+        Flipper.enabled?(FEATURE, tenant)
+      end
+
       def sanitize_dimension(dimension)
         DIMENSIONS.include?(dimension.to_s) ? dimension.to_s : DEFAULT_DIMENSION
       end

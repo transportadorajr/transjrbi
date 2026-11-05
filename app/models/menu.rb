@@ -50,7 +50,17 @@ class Menu < SimpleDelegator
     self[:data]
   end
 
+  def feature
+    self[:feature]
+  end
+
   def show?
-    menus.empty? || menus.any?(&:show?)
+    feature_enabled? && (menus.empty? || menus.any?(&:show?))
+  end
+
+  private
+
+  def feature_enabled?
+    feature.blank? || Flipper.enabled?(feature, Current.tenant)
   end
 end

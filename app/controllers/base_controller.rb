@@ -4,6 +4,7 @@ class BaseController < ApplicationController
   before_action :require_signed_in_user
   before_action :require_password_change
   before_action :set_error_tracking_context
+  before_action :set_current_tenant
 
   private
 
@@ -17,6 +18,10 @@ class BaseController < ApplicationController
 
   def require_password_change
     redirect_to edit_password_change_path, status: :see_other if current_user.password_change_required?
+  end
+
+  def set_current_tenant
+    Current.tenant = current_tenant
   end
 
   def set_error_tracking_context
