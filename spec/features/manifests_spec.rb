@@ -373,6 +373,27 @@ describe 'Manifests' do
           ],
         )
       end
+
+      context 'with access to the freight expenses' do
+        let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+
+        scenario 'shows the freight of the manifest on the details instead of zero' do
+          visit manifests_path
+
+          expect(html_table_to_rows.second.last(3)).to eq(['R$ 16,04', 'R$ 16,04', ''])
+
+          visit manifest_path(manifest)
+
+          expect(Atua::TransportDocument.count).to eq(0)
+          expect(dl_to_hash('#manifest_net_freight')).to include('Frete bruto' => 'R$ 8.019,15', '(=) Frete líquido' => 'R$ 8.019,15')
+          expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
+            [
+              ['CT-e', 'Cliente', 'Bruto/km', 'Líquido/km'],
+              ['74764', '-', 'R$ 16,04', 'R$ 16,04'],
+            ],
+          )
+        end
+      end
     end
 
     context 'when a manifest has every detail and transport documents' do

@@ -209,6 +209,10 @@ RSpec.describe Atua::Manifest do
       expect(described_class.with_freight_totals.find(manifest.id).gross_cents).to eq(600_000 + 700_000 + 801_915 + 300_000)
     end
 
+    it 'exposes the manifest freight of the transport documents missing or removed from Atua' do
+      expect(manifest.missing_documents_freight).to eq(Money.from_cents(700_000 + 801_915 + 300_000))
+    end
+
     it 'keeps the manifest freight of a transport document removed from Atua in the trip totals' do
       totals = described_class.with_trip_totals(described_class.where(id: manifest.id)).first
 

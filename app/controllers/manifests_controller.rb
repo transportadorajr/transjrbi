@@ -69,7 +69,7 @@ class ManifestsController < BaseController
   def load_net_freight
     return unless can?(:read, :freight_expenses)
 
-    @net_freight = NetFreight.for(manifest_transport_documents)
+    @net_freight = NetFreight.for(manifest_transport_documents, missing_documents_freight: @manifest.missing_documents_freight)
     @net_cents_by_document = manifest_transport_documents.with_freight_totals.to_h { |document| [document.id, document.net_cents] }
   end
 

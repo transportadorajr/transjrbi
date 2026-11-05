@@ -71,15 +71,19 @@ module Atua
       def gross_freight
         Arel::Nodes::Addition.new(
           Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel),
-          Arel::Nodes::Grouping.new(documents_without_active_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
+          missing_documents_freight,
         )
       end
 
       def net_freight
         Arel::Nodes::Addition.new(
           Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.net_freight)).arel),
-          Arel::Nodes::Grouping.new(documents_without_active_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel),
+          missing_documents_freight,
         )
+      end
+
+      def missing_documents_freight
+        Arel::Nodes::Grouping.new(documents_without_active_transport_document.select(TransportDocument.sum_or_zero(ManifestDocument.arel_table[:freight_cents])).arel)
       end
 
       def documents_without_active_transport_document
@@ -140,6 +144,10 @@ module Atua
 
     def trip?
       active? && !canceled? && plate.present?
+    end
+
+    def missing_documents_freight
+      Money.from_cents(self.class.where(id:).pick(self.class.missing_documents_freight))
     end
 
     def previous_trip
