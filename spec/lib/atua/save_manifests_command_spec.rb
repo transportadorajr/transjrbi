@@ -36,6 +36,29 @@ RSpec.describe Atua::SaveManifestsCommand do
     end
   end
 
+  context 'with a manifest whose transport documents were all issued before the purge cutoff' do
+    let!(:first_record) { Atua::MapManifestsCommand.call(tenant, spreadsheet).first }
+
+    before do
+      keys = first_record[:documents].map do |document|
+        format('41260310212838000100' \
+               '57%<series>03d%<number>09d1266098980', series: document[:transport_document_series].to_i, number: document[:transport_document_number].to_i)
+      end
+
+      allow(Atua::MapManifestsCommand).to receive(:call).and_wrap_original do |original, *args, **options|
+        original.call(*args, **options).map { |attributes| attributes[:code] == first_record[:code] ? attributes.merge(notes: "CT-e #{keys.join(' ')}") : attributes }
+      end
+    end
+
+    it 'leaves the manifest and its documents out of the active ones' do
+      described_class.call(import, spreadsheet)
+
+      expect(tenant.atua_manifests.find_by!(code: first_record[:code]).removed_from_atua_at).to be_present
+      expect(tenant.atua_manifest_documents.active.where(manifest_code: first_record[:code])).to be_empty
+      expect(tenant.atua_manifests.removed_from_atua.count).to eq(1)
+    end
+  end
+
   context 'with a manifest of the period that is no longer in the file' do
     let!(:manifest) { create(:atua_manifest, tenant:, code: 1) }
     let!(:document) { create(:atua_manifest_document, tenant:, manifest_code: 1, transport_document_number: '1') }
