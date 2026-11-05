@@ -472,6 +472,7 @@ pt-BR:
         driver_code: Motorista
         customer_group_id: Grupo de clientes
         product_group_id: Grupo de produtos
+        product_id: Produto
         macro_region_id: Macro região de origem
         truck_group_id: Tipo de conjunto
       trip_filter_form:
@@ -482,6 +483,7 @@ pt-BR:
         driver_code: Motorista
         truck_group_id: Tipo de conjunto
         product_group_id: Grupo de produtos
+        product_id: Produto
       admin/login_form:
         email: E-mail
         password: Senha
@@ -942,6 +944,7 @@ pt-BR:
     clear_filters: Limpar Filtros
     close: Fechar
     filters: Filtros
+    product_option: '%{product} (%{group})'
     sort_by: Ordenar por
     select2:
       clear: Limpar seleção
@@ -1149,6 +1152,7 @@ pt-BR:
       truck_group_id: Tipo de conjunto
       truck_group_hint: Pela placa do veículo ou pela quantidade de eixos informada nos CT-es do manifesto.
       product_group_id: Grupo de produtos
+      product_id: Produto
       customer_group_id: Grupo de clientes
       customer_code: Cliente
       start_date: Emitidos a partir de

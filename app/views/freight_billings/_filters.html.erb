@@ -30,13 +30,19 @@
                                          selected: @filter_form.customer_group_id, placeholder: t('shared.all') %>
       </div>
 
-      <div class="col-12">
+      <%= tag.div class: 'col-12', data: { controller: 'dependent-frame', dependent_frame_url_value: product_options_freight_billing_path,
+                                           dependent_frame_param_value: 'product_group_id', dependent_frame_selected_param_value: 'product_id' } do %>
         <%= f.label :product_group_id, FreightBillingFilterForm.human_attribute_name(:product_group_id), for: nil, id: 'product_group_id_select_label',
                                                                                                          class: 'form-label fw-medium' %>
-        <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
-                                         options: freight_billing_product_group_options(@product_groups),
-                                         selected: @filter_form.product_group_id, placeholder: t('shared.all') %>
-      </div>
+        <%= tag.div data: { action: 'change->dependent-frame#reload' }, class: 'mb-3' do %>
+          <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
+                                           options: freight_billing_product_group_options(@product_groups),
+                                           selected: @filter_form.product_group_id, placeholder: t('shared.all') %>
+        <% end %>
+
+        <%= f.label :product_id, FreightBillingFilterForm.human_attribute_name(:product_id), for: nil, id: 'product_id_select_label', class: 'form-label fw-medium' %>
+        <%= render 'product_options/select', products: @products, selected: @selected_product_id %>
+      <% end %>
 
       <div class="col-12">
         <%= f.label :driver_code, FreightBillingFilterForm.human_attribute_name(:driver_code), for: nil, id: 'driver_code_select_label', class: 'form-label fw-medium' %>

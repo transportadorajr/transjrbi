@@ -809,6 +809,33 @@ describe 'Freight billing' do
           expect(all('#product_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['SIDERÚRGICO'])
         end
 
+        scenario 'filters by a product offering only the subgroups of the active groups' do
+          create(:product_subgroup, tenant:, parent: inactive_group, name: 'PAPEL')
+
+          visit freight_billing_path(october_by_truck.merge(product_id: coil_subgroup.id))
+
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+          expect(page).to have_field('product_id', type: :hidden, with: coil_subgroup.id.to_s)
+          expect(all('#product_id_select [role="option"]', visible: :all).map { |option| option.text(:all) })
+            .to eq(['BOBINA (SIDERÚRGICO)', 'VERGALHÃO (SIDERÚRGICO)'])
+        end
+
+        scenario 'lists only the products of the selected product group' do
+          create(:product_subgroup, tenant:, parent: create(:product_group, tenant:, name: 'FARINHA'), name: 'FARINHA DE TRIGO')
+
+          visit freight_billing_path(october_by_truck.merge(product_group_id: steel_group.id))
+
+          expect(all('#product_id_select [role="option"]', visible: :all).map { |option| option.text(:all) })
+            .to eq(['BOBINA (SIDERÚRGICO)', 'VERGALHÃO (SIDERÚRGICO)'])
+
+          visit product_options_freight_billing_path(product_group_id: steel_group.id, product_id: coil_subgroup.id)
+
+          expect(all('#product_id_select [role="option"]', visible: :all).map { |option| option.text(:all) })
+            .to eq(['BOBINA (SIDERÚRGICO)', 'VERGALHÃO (SIDERÚRGICO)'])
+          expect(page).to have_field('product_id', type: :hidden, with: coil_subgroup.id.to_s)
+        end
+
         scenario 'does not filter by a product subgroup' do
           visit freight_billing_path(october_by_truck.merge(product_group_id: coil_subgroup.id))
 
@@ -1439,7 +1466,7 @@ describe 'Freight billing' do
       click_on 'Aplicar Filtros'
 
       expect(Atua::TransportDocument.where(tenant:).count).to eq(3)
-      expect(page).to have_current_path(/customer_group_id=\d+&product_group_id=&driver_code=20/)
+      expect(page).to have_current_path(/customer_group_id=\d+&product_group_id=&product_id=&driver_code=20/)
       expect(first('.counter-value')).to have_text('R$ 4.000,00')
       expect(page).to have_css('#customer_group_id_select .select2-single-value', text: 'USIMINAS', visible: :all)
       expect(page).to have_css('#driver_code_select .select2-single-value', text: 'MARIA SOUZA', visible: :all)

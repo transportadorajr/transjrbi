@@ -36,13 +36,18 @@
                      { class: 'form-select bg-light' } %>
       </div>
 
-      <div class="col-12">
-        <%= f.label :product_group_id, TripFilterForm.human_attribute_name(:product_group_id),
-                    for: nil, id: 'product_group_id_select_label', class: 'form-label fw-medium' %>
-        <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
-                                         options: trips_product_group_options(@product_groups),
-                                         selected: @filter_form.product_group_id, placeholder: t('shared.all') %>
-      </div>
+      <%= tag.div class: 'col-12', data: { controller: 'dependent-frame', dependent_frame_url_value: product_options_trips_path,
+                                           dependent_frame_param_value: 'product_group_id', dependent_frame_selected_param_value: 'product_id' } do %>
+        <%= f.label :product_group_id, TripFilterForm.human_attribute_name(:product_group_id), for: nil, id: 'product_group_id_select_label', class: 'form-label fw-medium' %>
+        <%= tag.div data: { action: 'change->dependent-frame#reload' }, class: 'mb-3' do %>
+          <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
+                                           options: trips_product_group_options(@product_groups),
+                                           selected: @filter_form.product_group_id, placeholder: t('shared.all') %>
+        <% end %>
+
+        <%= f.label :product_id, TripFilterForm.human_attribute_name(:product_id), for: nil, id: 'product_id_select_label', class: 'form-label fw-medium' %>
+        <%= render 'product_options/select', products: @products, selected: @selected_product_id %>
+      <% end %>
     </div>
 
     <div class="d-flex flex-column gap-2 mt-4">

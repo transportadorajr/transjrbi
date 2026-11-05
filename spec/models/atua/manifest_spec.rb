@@ -158,6 +158,11 @@ RSpec.describe Atua::Manifest do
       expect(described_class.where(tenant:).by_product_group(steel.id)).to eq([jose_trip])
     end
 
+    it 'keeps only the manifests with a transport document of the product' do
+      expect(described_class.where(tenant:).by_product(coil.id)).to eq([jose_trip])
+      expect(described_class.where(tenant:).by_product(steel.id)).to eq([])
+    end
+
     it 'keeps only the manifests with a transport document of the truck group' do
       expect(described_class.where(tenant:).by_truck_group(rodotrem, [])).to eq([jose_trip])
     end

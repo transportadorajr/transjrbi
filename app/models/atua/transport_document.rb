@@ -92,6 +92,7 @@ module Atua
       where(taker_code: Customer.where(customer_group_id:).select(:code))
     }
     scope :by_product_group, ->(product_group_id) { where(product_group_id: ProductGroup.where(parent_id: product_group_id).select(:id)) }
+    scope :by_product, ->(product_id) { where(product_group_id: product_id) }
     scope :by_branch, ->(code) { where(branch_code: code) }
     scope :recently_issued, -> { where(issued_at: INACTIVITY_PERIOD.ago..) }
     scope :by_origin_macro_region, ->(macro_region_id) {
