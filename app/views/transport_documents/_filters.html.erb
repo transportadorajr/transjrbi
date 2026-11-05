@@ -39,14 +39,6 @@
         <% end %>
       <% end %>
 
-      <div class="col-12">
-        <%= f.label :status, t('transport_documents.filters.status'), class: 'form-label fw-medium' %>
-        <%= f.select :status,
-                     Atua::TransportDocument.statuses,
-                     { include_blank: t('shared.all'), selected: params[:status] },
-                     { class: 'form-select bg-light' } %>
-      </div>
-
       <div class="col-12 col-lg-6">
         <%= f.label :start_date, t('transport_documents.filters.start_date'), class: 'form-label fw-medium' %>
         <%= f.date_field :start_date, value: params[:start_date], class: 'form-control bg-light' %>

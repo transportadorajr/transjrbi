@@ -83,10 +83,11 @@ module ApplicationHelper
   private
 
   def clear_filters_button(css_class, applied:)
-    label = safe_join([icon(:'x-circle', class: 'me-1'), t('shared.clear_filters')])
-    return link_to(label, url_for(only_path: true), class: css_class) if applied
+    title = t('shared.clear_filters')
+    label = safe_join([icon(:'x-circle', class: 'me-md-1'), content_tag(:span, title, class: 'd-none d-md-inline')])
+    return link_to(label, url_for(only_path: true), class: css_class, title:, aria: { label: title }) if applied
 
-    button_tag(label, type: :button, disabled: true, class: css_class)
+    button_tag(label, type: :button, disabled: true, class: css_class, title:, aria: { label: title })
   end
 
   def filters_applied?

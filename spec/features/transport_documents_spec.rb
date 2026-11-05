@@ -86,12 +86,11 @@ describe 'Transport documents' do
         )
       end
 
-      scenario 'filters the transport documents by plate, period and situation' do
+      scenario 'filters the transport documents by plate and period' do
         visit transport_documents_path
         fill_in 'Placa', with: 'rhj-4e07'
         fill_in 'Lançados a partir de', with: '2026-10-02'
         fill_in 'Lançados até', with: '2026-10-31'
-        select 'Cancelado', from: 'Situação'
         click_on 'Aplicar Filtros'
 
         expect(html_table_to_rows).to eq(
@@ -101,6 +100,12 @@ describe 'Transport documents' do
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 0'])
+      end
+
+      scenario 'does not offer a filter by situation' do
+        visit transport_documents_path
+
+        within('#filtersModal') { expect(page).to have_no_select('Situação') }
       end
 
       scenario 'does not show a transport document removed from Atua' do

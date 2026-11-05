@@ -246,11 +246,6 @@ RSpec.describe Atua::TransportDocument do
         expect(described_class.by_number(" #{last.number} ")).to eq([last])
       end
 
-      it 'filters by the situation' do
-        expect(described_class.by_situation('canceled')).to eq([canceled])
-        expect(described_class.by_situation('valid')).to contain_exactly(first, last, outside, removed)
-      end
-
       it 'keeps out documents removed from Atua' do
         expect(described_class.active).to contain_exactly(first, last, outside, canceled)
         expect(described_class.removed_from_atua).to eq([removed])
@@ -465,12 +460,6 @@ RSpec.describe Atua::TransportDocument do
         expect(result[501]).to contain_exactly('USIMINAS CUBATAO', 'USIMINAS IPATINGA')
         expect(result[777]).to eq(['FIAT'])
       end
-    end
-  end
-
-  describe '.statuses' do
-    it 'maps the translated situations to the filter keys' do
-      expect(described_class.statuses).to eq('Válido' => :valid, 'Cancelado' => :canceled)
     end
   end
 end

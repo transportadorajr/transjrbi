@@ -8,7 +8,6 @@ class TransportDocumentsController < BaseController
   has_scope :by_taker, as: :customer_code
   has_scope :by_period_start, as: :start_date
   has_scope :by_period_end, as: :end_date
-  has_scope :by_situation, as: :status
 
   def index
     authorize!(:read, :transport_documents)
