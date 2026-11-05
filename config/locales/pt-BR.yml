@@ -207,7 +207,7 @@ pt-BR:
         vehicle_sale: Venda de veículo
         access_key: Chave de acesso
         issued_at: Emitido em
-        posted_on: Lançado em
+        posted_on: Dt Emissão
         situation: Situação
         cte_status: Situação na SEFAZ
         canceled_at: Cancelado em
@@ -259,11 +259,13 @@ pt-BR:
         weight_kg: Peso (kg)
         customer: Cliente
         customer_group: Grupo de clientes
+        loaded_km: KM rodado
         gross_per_km: Bruto/km
         net_per_km: Líquido/km
       atua/manifest_document:
         transport_document_number: CT-e
         customer_name: Cliente
+        loaded_km: KM rodado
         gross_per_km: Bruto/km
         net_per_km: Líquido/km
       atua/customer:
@@ -1135,6 +1137,7 @@ pt-BR:
       success: Sincronização dos CT-es emitidos em %{date} enfileirada. Ela roda em segundo plano.
       unavailable: Não é possível sincronizar este CT-e com a Atua.
   manifests:
+    km: '%{distance} km'
     index:
       title: Manifestos
       subtitle: Manifestos eletrônicos (MDF-e) válidos emitidos na Atua.

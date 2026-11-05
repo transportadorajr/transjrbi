@@ -27,12 +27,26 @@ module ManifestsHelper
   end
 
   def manifest_mobile_details(manifest)
-    details = [[Atua::Manifest.human_attribute_name(:gross_per_km), freight_money(manifest.gross_per_km_cents)]]
+    details = [[Atua::Manifest.human_attribute_name(:loaded_km), manifest_km(manifest.loaded_km)],
+               [Atua::Manifest.human_attribute_name(:gross_per_km), freight_money(manifest.gross_per_km_cents)]]
     details << [Atua::Manifest.human_attribute_name(:net_per_km), freight_money(manifest.net_per_km_cents)] if can?(:read, :freight_expenses)
 
     details + [[Atua::Manifest.human_attribute_name(:customer_group), manifest_names(manifest.customer_groups)],
                [Atua::Manifest.human_attribute_name(:origin), manifest_cities(manifest.origins)],
                [Atua::Manifest.human_attribute_name(:destination), manifest_cities(manifest.destinations)]]
+  end
+
+  def manifest_km(distance)
+    return t('tax.blank') unless distance&.positive?
+
+    t('manifests.km', distance: number_with_precision(distance, precision: 2))
+  end
+
+  def manifest_net_per_km_details(manifest)
+    return unless can?(:read, :freight_expenses)
+
+    safe_join([content_tag(:dt, Atua::Manifest.human_attribute_name(:net_per_km), class: 'col-12 col-md-3'),
+               content_tag(:dd, freight_money(manifest.net_per_km_cents), class: 'col-12 col-md-9')])
   end
 
   def manifest_cities(cities)
