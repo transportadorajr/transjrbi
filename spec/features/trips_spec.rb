@@ -96,6 +96,7 @@ describe 'Trips' do
         visit trips_path(october)
         click_on 'Veículo'
 
+        expect(Atua::Manifest.count).to eq(4)
         expect(page).to have_current_path(/dimension=vehicle/)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
           [
@@ -110,12 +111,14 @@ describe 'Trips' do
         visit trips_path(october.merge(dimension: 'vehicle'))
         within('.trips-table thead') { click_on 'Bruto/km' }
 
+        expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[BBB2B22 AAA1A11 Total])
       end
 
       scenario 'filters the trips by plate' do
         visit trips_path(october.merge(dimension: 'vehicle', plate: 'bbb2b22'))
 
+        expect(Atua::Manifest.count).to eq(4)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[BBB2B22 Total])
       end
     end
