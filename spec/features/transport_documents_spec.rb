@@ -60,8 +60,8 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
@@ -80,8 +80,8 @@ describe 'Transport documents' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
           ],
         )
       end
@@ -95,8 +95,8 @@ describe 'Transport documents' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
@@ -113,6 +113,7 @@ describe 'Transport documents' do
         visit transport_documents_path
 
         within('#filtersModal') { expect(page).to have_no_select('Situação') }
+        expect(page).to have_no_css('th', text: 'Situação')
       end
 
       scenario 'does not show a transport document removed from Atua' do
@@ -202,8 +203,8 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Frete líquido', 'Situação', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', '- → -', 'EXU0F72', '-', '-', 'R$ 555,04', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Frete líquido', 'Ações'],
+            ['74130 USIMINAS', '01/10/2026', '- → -', 'EXU0F72', '-', '-', 'R$ 555,04', 'R$ 555,04', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
@@ -237,10 +238,10 @@ describe 'Transport documents' do
                                          driver_code: 20, driver_name: 'MARIA SOUZA', taker_code: gerdau_customer.code)
       end
 
-      let(:table_header) { ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'] }
-      let(:jose_row) { ['75001 -', '03/10/2026', '- → -', 'RVR2C34', '-', 'JOSE SILVA', 'R$ 100,00', 'Válido', ''] }
-      let(:maria_usiminas_row) { ['75002 -', '02/10/2026', '- → -', 'RVR8J90', '-', 'MARIA SOUZA', 'R$ 200,00', 'Válido', ''] }
-      let(:maria_gerdau_row) { ['75003 -', '01/10/2026', '- → -', 'RVR8J90', '-', 'MARIA SOUZA', 'R$ 300,00', 'Válido', ''] }
+      let(:table_header) { ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Ações'] }
+      let(:jose_row) { ['75001 -', '03/10/2026', '- → -', 'RVR2C34', '-', 'JOSE SILVA', 'R$ 100,00', ''] }
+      let(:maria_usiminas_row) { ['75002 -', '02/10/2026', '- → -', 'RVR8J90', '-', 'MARIA SOUZA', 'R$ 200,00', ''] }
+      let(:maria_gerdau_row) { ['75003 -', '01/10/2026', '- → -', 'RVR8J90', '-', 'MARIA SOUZA', 'R$ 300,00', ''] }
 
       scenario 'filters the transport documents by driver' do
         visit transport_documents_path(driver_code: 20)
@@ -293,10 +294,10 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['74140 -', '20/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', 'Válido', ''],
-            ['74142 -', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', 'Válido', ''],
-            ['74141 -', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74140 -', '20/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['74142 -', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['74141 -', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
           ],
         )
       end
@@ -310,9 +311,9 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Situação', 'Ações'],
-            ['74142 -', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', 'Válido', ''],
-            ['74141 -', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', 'Válido', ''],
+            ['Número', 'Lançado em', 'Origem / Destino', 'Placa', 'Cliente', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74142 -', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['74141 -', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
           ],
         )
       end

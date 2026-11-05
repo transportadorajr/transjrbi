@@ -10,7 +10,6 @@
         <%= sortable_header(Atua::TransportDocument.human_attribute_name(:driver_name), :driver_name, class: 'd-none d-lg-table-cell') %>
         <%= sortable_header(Atua::TransportDocument.human_attribute_name(:gross), :gross, first_direction: :desc, class: 'd-none d-md-table-cell') %>
         <%= freight_net_header(Atua::TransportDocument, class: 'd-none d-md-table-cell') %>
-        <th><%= Atua::TransportDocument.human_attribute_name(:situation) %></th>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>
