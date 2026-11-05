@@ -99,7 +99,7 @@ module Atua
       def trip_documents
         documents = ManifestDocument.arel_table
 
-        TransportDocument.active.not_canceled.joins(:manifest_documents).merge(ManifestDocument.active)
+        TransportDocument.active.not_canceled.without_ce.joins(:manifest_documents).merge(ManifestDocument.active)
           .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
           .where(documents[:manifest_code].eq(arel_table[:code]))
       end

@@ -8,6 +8,8 @@
 
   <%= render 'filters' %>
 
+  <%= trips_unmeasured_alert(@dashboard.unmeasured_trips) %>
+
   <div class="dashboard-filter-bar mb-4">
     <span class="dashboard-filter-label"><%= t('.period_label') %></span>
 

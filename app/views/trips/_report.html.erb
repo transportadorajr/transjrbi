@@ -30,6 +30,6 @@
     <%= sort_menu(trips_sort_columns(dashboard)) %>
   </div>
   <div class="table-card-body">
-    <%= render 'table', dashboard:, rows: @rows %>
+    <%= render 'table', dashboard:, rows: @rows, highlights: @highlights %>
   </div>
 </div>

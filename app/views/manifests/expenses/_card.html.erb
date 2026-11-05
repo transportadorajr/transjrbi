@@ -3,6 +3,7 @@
     <p class="detail-card-title"><%= t('manifests.show.expenses') %></p>
   </div>
   <div class="detail-card-body">
+    <%= manifest_duplicate_expenses_alert(trip_expenses) %>
     <%= manifest_expenses_table(trip_expenses) %>
   </div>
 </div>

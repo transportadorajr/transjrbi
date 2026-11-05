@@ -477,6 +477,7 @@ pt-BR:
         plate: Placa
         driver_code: Motorista
         truck_group_id: Tipo de conjunto
+        product_group_id: Grupo de produtos
       admin/login_form:
         email: E-mail
         password: Senha
@@ -1157,6 +1158,9 @@ pt-BR:
       no_empty_leg: Sem KM vazio, porque não há viagem anterior desta placa.
       expenses: Despesas da viagem
       no_expenses: Nenhuma despesa vinculada aos CT-es deste manifesto.
+      duplicate_alert:
+        one: 1 despesa da Atua parece lançada em duplicidade (mesmo favorecido, documento, valor e data). Confira antes de considerar o frete líquido.
+        other: '%{count} despesas da Atua parecem lançadas em duplicidade (mesmo favorecido, documento, valor e data). Confira antes de considerar o frete líquido.'
     expenses:
       name: Despesa
       kind: Tipo
@@ -1169,6 +1173,7 @@ pt-BR:
       toll_in_freight: Pedágio no frete
       complement_credit_html: 'Complemento de valores — CT-e %{number}'
       complement_transfer_html: 'Repassado como crédito ao CT-e %{number}'
+      duplicate: Possível duplicidade
       kinds:
         expense: Atua
         freight_expense: Interna
@@ -1694,9 +1699,11 @@ pt-BR:
       gross: Frete bruto
       net: Frete líquido
       chart_label: '%{label} (%{trips})'
+      manifest_detail: '%{plate} · %{date}'
       none:
         vehicle: Sem placa
         driver: Sem motorista
+        manifest: Sem número
   freight_billings:
     km: '%{distance} km'
     detail:
@@ -1778,6 +1785,7 @@ pt-BR:
     dimensions:
       driver: Motorista
       vehicle: Veículo
+      manifest: MDF-e
     evolutions:
       monthly: Mensal
       weekly: Semanal
@@ -1785,10 +1793,22 @@ pt-BR:
       trips: Viagens
       loaded_km: KM rodado
       gross: Frete bruto
+      expenses: Despesas
       net: Frete líquido
       average: Média por viagem
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
+    highlights:
+      best: Melhor
+      worst: Pior
+    unmeasured_alert:
+      title:
+        one: 1 MDF-e sem km ou com km inválido
+        other: '%{count} MDF-es sem km ou com km inválido'
+      text: >-
+        O km rodado está vazio, zerado ou acima de %{max} km. Estes manifestos ficam fora do ranking e do R$/km até a distância ser
+        corrigida.
+      item: '%{plate} · %{date} · %{distance}'
     index:
       title: Viagens
       period: Viagens iniciadas de %{from} a %{to}
@@ -1809,7 +1829,7 @@ pt-BR:
       ranking_title: Faturamento por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto das viagens do período, com o nº de viagens entre parênteses
       per_km_ranking_title: R$/km por %{dimension}
-      per_km_ranking_subtitle: Frete bruto e líquido por km rodado dos 15 maiores do período, com o nº de viagens entre parênteses
+      per_km_ranking_subtitle: Os 15 maiores pelo frete líquido por km rodado, com o nº de viagens entre parênteses
       monthly_title: Evolução Mensal do Faturamento
       monthly_subtitle: Por mês de início da viagem, de %{from} a %{to}, com o nº de viagens entre parênteses
       weekly_title: Evolução Semanal do Faturamento

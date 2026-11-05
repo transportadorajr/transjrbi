@@ -25,6 +25,10 @@ RSpec.describe TripFilterForm do
     it 'is filtered by the plate' do
       expect(described_class.new(plate: 'AAA1A11')).to be_filtered
     end
+
+    it 'is filtered by the product group' do
+      expect(described_class.new(product_group_id: '7')).to be_filtered
+    end
   end
 
   describe '.preset_period' do
@@ -47,6 +51,10 @@ RSpec.describe TripFilterForm do
 
     it 'rejects a truck group that is not a number' do
       expect(described_class.new(truck_group_id: 'abc')).not_to be_valid
+    end
+
+    it 'rejects a product group that is not a number' do
+      expect(described_class.new(product_group_id: 'abc')).not_to be_valid
     end
   end
 end

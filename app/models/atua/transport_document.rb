@@ -100,6 +100,7 @@ module Atua
     scope :not_canceled, -> { where(canceled_at: nil) }
     scope :without_issuers, ->(codes) { where.not(issuer_code: codes).or(where(issuer_code: nil)) }
     scope :canceled, -> { where.not(canceled_at: nil) }
+    scope :without_ce, -> { where(arel_table[:document_kind].is_distinct_from(MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'])) }
     scope :by_situation, ->(situation) { situation.to_s == 'canceled' ? canceled : not_canceled }
     scope :commissionable, -> {
       active.not_canceled.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'])

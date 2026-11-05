@@ -8,7 +8,7 @@ RSpec.describe Dashboard::Trip do
   let(:dimension) { 'driver' }
 
   def create_trip(code:, plate:, started_at:, distance_km:, documents:, status: 'Encerrado')
-    create(:atua_manifest, tenant:, code:, plate:, status:, trip_started_at: started_at)
+    create(:atua_manifest, tenant:, code:, number: code.to_s, plate:, status:, trip_started_at: started_at)
     documents.each do |number, freight_cents, driver_code, driver_name|
       create(:atua_transport_document, tenant:, number:, freight_cents:, plate:, driver_code:, driver_name:, issued_at: started_at)
       create(:atua_manifest_document, tenant:, manifest_code: code, transport_document_number: number, calculated_distance_km: distance_km)
@@ -100,8 +100,66 @@ RSpec.describe Dashboard::Trip do
       it 'sorts the rows by the gross per km' do
         expect(dashboard.sorted_rows('gross_per_km', 'desc').map(&:label)).to eq(%w[BBB2B22 AAA1A11])
         expect(dashboard.sorted_rows('net', 'asc').map(&:label)).to eq(%w[BBB2B22 AAA1A11])
-        expect(dashboard.sorted_rows('unknown', 'desc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
       end
+
+      it 'sorts the rows by the net per km from the best when no known column is given' do
+        expect(dashboard.sorted_rows('unknown', 'asc').map(&:label)).to eq(%w[BBB2B22 AAA1A11])
+        expect(dashboard.sorted_rows(nil, nil).map(&:label)).to eq(%w[BBB2B22 AAA1A11])
+      end
+
+      it 'subtracts the net from the gross as the expenses' do
+        expect(dashboard.rows.map { |row| [row.label, row.expenses.format] }).to eq([['AAA1A11', 'R$ 0,00'], ['BBB2B22', 'R$ 1.000,00']])
+        expect(dashboard.total.expenses.format).to eq('R$ 1.000,00')
+      end
+
+      it 'highlights the best and the worst by the net per km unless sorted by the gross per km' do
+        expect(dashboard.highlights(nil)).to eq('BBB2B22' => :best, 'AAA1A11' => :worst)
+        expect(dashboard.highlights('gross_per_km')).to eq('BBB2B22' => :best, 'AAA1A11' => :worst)
+      end
+    end
+
+    context 'when grouped by manifest' do
+      let(:dimension) { 'manifest' }
+
+      it 'ranks each trip measured in the period on its own' do
+        expect(row_values(dashboard.rows)).to eq(
+          [
+            ['41003', 1, 250, 'R$ 5.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 4.000,00', 'R$ 20,00', 'R$ 16,00'],
+            ['41001', 1, 400, 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00'],
+          ],
+        )
+        expect(dashboard.rows.map { |row| [row.detail, row.manifest_id] }).to eq(
+          [['BBB2B22 · 21/10/2026', Atua::Manifest.find_by!(code: 41_003).id], ['AAA1A11 · 02/10/2026', Atua::Manifest.find_by!(code: 41_001).id]],
+        )
+      end
+
+      it 'keeps the trip without km out of the ranking and of the table total' do
+        expect(dashboard.unmeasured_trips.map(&:code)).to eq([41_002])
+        expect(row_values([dashboard.table_total])).to eq([['Total', 2, 650, 'R$ 9.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 4.000,00', 'R$ 13,85', 'R$ 12,31']])
+        expect(dashboard.total.trips_count).to eq(3)
+      end
+
+      it 'plots each trip by its number without the count of trips' do
+        expect(dashboard.per_km_ranking_data.first[:data]).to eq('41003' => 20.0, '41001' => 10.0)
+      end
+    end
+
+    context 'when a trip has a km above the limit' do
+      before do
+        create_trip(code: 41_007, plate: 'BBB2B22', started_at: Time.zone.local(2026, 10, 25, 8), distance_km: 5_001,
+                    documents: [['74007', 400_000, 10, 'JOSE SILVA']])
+      end
+
+      it 'treats the km as invalid and keeps the trip out of the per km' do
+        expect(dashboard.unmeasured_trips.map(&:code)).to eq([41_002, 41_007])
+        expect(row_values(dashboard.rows).first).to eq(
+          ['JOSE SILVA', 3, 5651, 'R$ 13.000,00', 'R$ 12.000,00', 'R$ 4.333,33', 'R$ 4.000,00', 'R$ 13,85', 'R$ 12,31'],
+        )
+      end
+    end
+
+    it 'has nothing to highlight with a single measured row' do
+      expect(dashboard.highlights('net_per_km')).to eq({})
     end
 
     it 'plots the gross and the net of the last six months by the start of the trip' do

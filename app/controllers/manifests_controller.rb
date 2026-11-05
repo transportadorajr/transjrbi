@@ -74,6 +74,6 @@ class ManifestsController < BaseController
   end
 
   def manifest_transport_documents
-    @manifest.transport_documents.merge(Atua::ManifestDocument.active)
+    @manifest.transport_documents.without_ce.merge(Atua::ManifestDocument.active)
   end
 end

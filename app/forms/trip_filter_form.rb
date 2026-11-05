@@ -1,6 +1,6 @@
 class TripFilterForm < BaseForm
   PERIOD_PRESETS = FreightBillingFilterForm::PERIOD_PRESETS
-  TRUCK_GROUP_ID_FORMAT = /\A\d+\z/
+  ID_FORMAT = /\A\d+\z/
 
   attribute :start_date, :date
   attribute :end_date, :date
@@ -8,10 +8,11 @@ class TripFilterForm < BaseForm
   attribute :plate, :string
   attribute :driver_code, :integer
   attribute :truck_group_id, :string
+  attribute :product_group_id, :string
 
   validates :start_date, :end_date, presence: true
   validates :dimension, inclusion: { in: Dashboard::Trip::DIMENSIONS }
-  validates :truck_group_id, format: { with: TRUCK_GROUP_ID_FORMAT }, allow_blank: true
+  validates :truck_group_id, :product_group_id, format: { with: ID_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 
   class << self
@@ -31,7 +32,7 @@ class TripFilterForm < BaseForm
   end
 
   def filtered?
-    dimension != Dashboard::Trip::DEFAULT_DIMENSION || period != preset_period(:week) || [plate, driver_code, truck_group_id].any?(&:present?)
+    dimension != Dashboard::Trip::DEFAULT_DIMENSION || period != preset_period(:week) || [plate, driver_code, truck_group_id, product_group_id].any?(&:present?)
   end
 
   private
