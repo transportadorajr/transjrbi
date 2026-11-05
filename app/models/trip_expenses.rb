@@ -1,5 +1,6 @@
 class TripExpenses
   Item = Data.define(:kind, :record, :transport_document, :posted_on, :amount)
+  DUPLICATE_KEY = %i[payee_code document_number total_cents posted_on].freeze
 
   attr_reader :items, :total
 
@@ -61,5 +62,21 @@ class TripExpenses
   def initialize(items)
     @items = items.each_with_index.sort_by { |item, index| [item.transport_document.number, index] }.map(&:first)
     @total = items.sum(Money.from_cents(0), &:amount)
+  end
+
+  def duplicate?(item)
+    duplicate_groups.any? { |group| group.include?(item) }
+  end
+
+  def duplicates_count
+    duplicate_groups.sum { |group| group.size - 1 }
+  end
+
+  private
+
+  def duplicate_groups
+    @duplicate_groups ||= items.select { |item| item.kind == :expense && item.amount.positive? && item.record.document_number.present? }
+      .group_by { |item| item.record.slice(*DUPLICATE_KEY).values }
+      .values.select { |group| group.size > 1 }
   end
 end

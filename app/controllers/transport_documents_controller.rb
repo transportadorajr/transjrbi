@@ -18,7 +18,7 @@ class TransportDocumentsController < BaseController
                                       Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
                                       Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
                                       id: :desc, except: hidden_sort_columns)
-      .page(params[:page])
+      .preload(taker: :customer_group).page(params[:page])
     @valid_count = transport_documents.count
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.activated.order(:name)

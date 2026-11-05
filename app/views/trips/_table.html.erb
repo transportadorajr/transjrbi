@@ -1,4 +1,4 @@
-<%# locals: (dashboard:, rows:) %>
+<%# locals: (dashboard:, rows:, highlights:) %>
 
 <div class="table-responsive">
   <table class="table app-table trips-table align-middle mb-0">
@@ -8,17 +8,18 @@
         <%= sortable_header(t('trips.columns.trips'), :trips, first_direction: :desc, anchor: 'trips_table', class: 'text-end') %>
         <th class="d-none d-lg-table-cell text-end"><%= t('trips.columns.loaded_km') %></th>
         <%= sortable_header(t('trips.columns.gross'), :gross, first_direction: :desc, anchor: 'trips_table', class: 'text-end') %>
+        <%= sortable_header(t('trips.columns.expenses'), :expenses, first_direction: :desc, anchor: 'trips_table', class: 'd-none d-lg-table-cell text-end') %>
         <%= sortable_header(t('trips.columns.net'), :net, first_direction: :desc, anchor: 'trips_table', class: 'text-end') %>
         <%= sortable_header(t('trips.columns.average'), :average, first_direction: :desc, anchor: 'trips_table', class: 'd-none d-lg-table-cell text-end') %>
         <%= sortable_header(t('trips.columns.gross_per_km'), :gross_per_km, first_direction: :desc, anchor: 'trips_table', class: 'd-none d-md-table-cell text-end') %>
-        <%= sortable_header(t('trips.columns.net_per_km'), :net_per_km, first_direction: :desc, anchor: 'trips_table', class: 'd-none d-md-table-cell text-end') %>
+        <%= sortable_header(t('trips.columns.net_per_km'), :net_per_km, first_direction: :desc, anchor: 'trips_table', class: 'text-end') %>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'row', collection: rows, as: :row %>
+      <%= render partial: 'row', collection: rows, as: :row, locals: { highlights: } %>
     </tbody>
     <tfoot>
-      <%= render 'row', row: dashboard.total %>
+      <%= render 'row', row: dashboard.table_total %>
     </tfoot>
   </table>
 </div>

@@ -50,6 +50,26 @@ RSpec.describe TripExpenses do
     expect(trip_expenses.total).to eq(Money.from_cents(25_000))
   end
 
+  describe 'duplicates' do
+    before do
+      unload.update!(payee_code: 8800, document_number: '5521', posted_on: Date.new(2026, 10, 3))
+      create(:atua_expense, tenant:, cost_object: second_document, total_cents: 35_000, payee_code: 8800, document_number: '5521',
+                            posted_on: Date.new(2026, 10, 3))
+      create(:atua_expense, tenant:, cost_object: second_document, total_cents: 35_000, payee_code: 8800, document_number: '5522',
+                            posted_on: Date.new(2026, 10, 3))
+      create(:atua_expense, tenant:, cost_object: second_document, total_cents: 12_000, payee_code: 9900, posted_on: Date.new(2026, 10, 4))
+      create(:atua_expense, tenant:, cost_object: first_document, total_cents: 12_000, payee_code: 9900, posted_on: Date.new(2026, 10, 4))
+    end
+
+    it 'flags the Atua expenses with the same payee, document, total and date' do
+      trip_expenses = described_class.for(documents, internal: true, atua: true)
+      flagged = trip_expenses.items.select { |item| trip_expenses.duplicate?(item) }
+
+      expect(flagged.map { |item| [item.transport_document.number, item.record.document_number] }).to eq([%w[100 5521], %w[200 5521]])
+      expect(trip_expenses.duplicates_count).to eq(1)
+    end
+  end
+
   context 'with value complements' do
     let!(:complement) do
       create(:atua_transport_document, tenant:, number: '500', issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, freight_cents: 35_000,

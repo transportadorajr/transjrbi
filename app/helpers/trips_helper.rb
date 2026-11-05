@@ -80,6 +80,10 @@ module TripsHelper
     drivers.map { |driver| [driver.driver_name.presence || driver.driver_code.to_s, driver.driver_code.to_s] }
   end
 
+  def trips_product_group_options(product_groups)
+    product_groups.map { |product_group| [product_group.name, product_group.id.to_s] }
+  end
+
   def trips_truck_group_options(truck_groups, selected)
     options_for_select(truck_groups.map { |truck_group| [truck_group.name, truck_group.id.to_s] }, selected)
   end
@@ -118,10 +122,36 @@ module TripsHelper
     t('trips.index.weekly_subtitle', from: l(weeks.first), to: l(weeks.last.end_of_week(Dashboard::Trip::WEEK_START)))
   end
 
+  def trips_row_class(row, highlights)
+    { best: 'table-success', worst: 'table-danger' }[highlights[row.key]]
+  end
+
+  def trips_row_label(row, highlights)
+    label = row.manifest_id && can?(:read, :manifests) ? link_to(row.label, manifest_path(row.manifest_id), class: 'fw-semibold') : row.label
+    parts = [content_tag(:span, label, class: 'fw-semibold')]
+    parts << content_tag(:span, row.detail, class: 'd-block text-body-secondary small') if row.detail
+    parts << trips_highlight_badge(highlights[row.key]) if highlights[row.key]
+
+    safe_join(parts, ' ')
+  end
+
+  def trips_unmeasured_alert(trips)
+    return if trips.empty?
+
+    render 'trips/unmeasured_alert', trips:
+  end
+
+  def trips_unmeasured_item(trip)
+    number = can?(:read, :manifests) ? link_to(trip.number, manifest_path(trip.id), class: 'fw-semibold') : trip.number
+
+    safe_join([number, content_tag(:span, t('trips.unmeasured_alert.item', plate: trip.plate, date: l(trip.trip_on), distance: trips_km(trip.loaded_km)),
+                                   class: 'text-body-secondary')], ' ')
+  end
+
   def trips_sort_columns(dashboard)
     [[trips_dimension_label(dashboard.dimension), :label], [t('trips.columns.trips'), :trips, :desc], [t('trips.columns.gross'), :gross, :desc],
-     [t('trips.columns.net'), :net, :desc], [t('trips.columns.average'), :average, :desc], [t('trips.columns.gross_per_km'), :gross_per_km, :desc],
-     [t('trips.columns.net_per_km'), :net_per_km, :desc]]
+     [t('trips.columns.expenses'), :expenses, :desc], [t('trips.columns.net'), :net, :desc], [t('trips.columns.average'), :average, :desc],
+     [t('trips.columns.gross_per_km'), :gross_per_km, :desc], [t('trips.columns.net_per_km'), :net_per_km, :desc]]
   end
 
   def trips_km(distance)
@@ -138,6 +168,10 @@ module TripsHelper
   end
 
   private
+
+  def trips_highlight_badge(highlight)
+    status_badge(t(highlight, scope: 'trips.highlights'), kind: highlight == :best ? :success : :danger)
+  end
 
   def trips_series(series)
     series.zip(SERIES_COLORS).map do |serie, color|
