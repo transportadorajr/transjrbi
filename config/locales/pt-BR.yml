@@ -470,6 +470,13 @@ pt-BR:
         product_group_id: Grupo de produtos
         macro_region_id: Macro região de origem
         truck_group_id: Tipo de conjunto
+      trip_filter_form:
+        start_date: Viagens a partir de
+        end_date: Viagens até
+        dimension: Agrupar por
+        plate: Placa
+        driver_code: Motorista
+        truck_group_id: Tipo de conjunto
       admin/login_form:
         email: E-mail
         password: Senha
@@ -589,6 +596,10 @@ pt-BR:
     errors:
       models:
         freight_billing_filter_form:
+          attributes:
+            end_date:
+              before_start_date: não pode ser anterior à data inicial
+        trip_filter_form:
           attributes:
             end_date:
               before_start_date: não pode ser anterior à data inicial
@@ -1061,7 +1072,8 @@ pt-BR:
     distance_adjustments: Ajustes de km
     route_distances: Trechos de km
     company: Dados da empresa
-    freight_billing: Faturamento de fretes
+    freight_billing: Faturamento
+    trips: Viagens
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -1677,6 +1689,14 @@ pt-BR:
         product_subgroup: Sem subgrupo
         origin: Sem origem
         macro_region: Outras Regiões
+    trip:
+      total: Total
+      gross: Frete bruto
+      net: Frete líquido
+      chart_label: '%{label} (%{trips})'
+      none:
+        vehicle: Sem placa
+        driver: Sem motorista
   freight_billings:
     km: '%{distance} km'
     detail:
@@ -1729,7 +1749,7 @@ pt-BR:
       net_per_km: Líquido/km
       share: Participação
     show:
-      title: Faturamento de Fretes
+      title: Faturamento
       period: CT-es emitidos de %{from} a %{to}
       last_sync: 'Última sincronização com a Atua: %{time}'
       never_synced: Nenhuma sincronização com a Atua até o momento
@@ -1746,6 +1766,56 @@ pt-BR:
       ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de emissão do CT-e
       monthly_title: Evolução Mensal
       monthly_subtitle: Frete bruto e líquido por mês de emissão do CT-e, de %{from} a %{to}
+      table_title: Detalhamento por %{dimension}
+  trips:
+    km: '%{distance} km'
+    period_presets:
+      week: Sem. atual
+      last_week: Sem. passada
+      month: Mês
+      last_month: Mês passado
+      today: Hoje
+    dimensions:
+      driver: Motorista
+      vehicle: Veículo
+    evolutions:
+      monthly: Mensal
+      weekly: Semanal
+    columns:
+      trips: Viagens
+      loaded_km: KM rodado
+      gross: Frete bruto
+      net: Frete líquido
+      average: Média por viagem
+      gross_per_km: Bruto/km
+      net_per_km: Líquido/km
+    index:
+      title: Viagens
+      period: Viagens iniciadas de %{from} a %{to}
+      last_sync: 'Última sincronização com a Atua: %{time}'
+      never_synced: Nenhuma sincronização com a Atua até o momento
+      period_label: Data
+      group_by: Agrupar por
+      evolution_label: Evolução
+      trips: Viagens
+      net_discounts: 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Combustível, Descarga e Pedágio'
+      gross: Frete bruto
+      net: Frete líquido
+      average: Média bruta por viagem
+      net_average: Média líquida por viagem
+      loaded_km: KM rodado
+      gross_per_km: Frete bruto por km
+      net_per_km: Frete líquido por km
+      ranking_title: Faturamento por %{dimension}
+      ranking_subtitle: Os 15 maiores pelo frete bruto das viagens do período, com o nº de viagens entre parênteses
+      per_km_ranking_title: R$/km por %{dimension}
+      per_km_ranking_subtitle: Frete bruto e líquido por km rodado dos 15 maiores do período, com o nº de viagens entre parênteses
+      monthly_title: Evolução Mensal do Faturamento
+      monthly_subtitle: Por mês de início da viagem, de %{from} a %{to}, com o nº de viagens entre parênteses
+      weekly_title: Evolução Semanal do Faturamento
+      weekly_subtitle: Por semana de início da viagem, de %{from} a %{to}, com o nº de viagens entre parênteses
+      monthly_per_km_title: Evolução Mensal do R$/km
+      weekly_per_km_title: Evolução Semanal do R$/km
       table_title: Detalhamento por %{dimension}
   freight_expenses:
     index:
@@ -1922,6 +1992,7 @@ pt-BR:
     formats:
       month_year: '%m/%Y'
       chart_month: '%b/%Y'
+      chart_week: '%d/%m'
   time:
     formats:
       date_time: '%d/%m/%Y %H:%M'
@@ -1931,7 +2002,8 @@ pt-BR:
     manifests: Manifestos
     route_distances: Trechos de km
     intelligence: Inteligência
-    freight_billing: Faturamento de Fretes
+    freight_billing: Faturamento
+    trips: Viagens
     registrations: Cadastros
     customers: Clientes
     customer_groups: Grupos de clientes

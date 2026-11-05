@@ -79,6 +79,7 @@ Rails.application.routes.draw do
       get :freights
       get :month
     end
+    resources :trips, only: :index
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection
     end

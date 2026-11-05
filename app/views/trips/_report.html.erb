@@ -1,0 +1,35 @@
+<%# locals: (dashboard:) %>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-7">
+    <%= render 'freight_billings/chart_card', title: trips_ranking_title(dashboard), subtitle: t('trips.index.ranking_subtitle'),
+                                              chart: trips_ranking_chart(dashboard.ranking_data) %>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <%= trips_evolution_cards(dashboard, :gross) %>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-xl-7">
+    <%= render 'freight_billings/chart_card', title: trips_per_km_ranking_title(dashboard), subtitle: t('trips.index.per_km_ranking_subtitle'),
+                                              chart: trips_ranking_chart(dashboard.per_km_ranking_data) %>
+  </div>
+
+  <div class="col-12 col-xl-5">
+    <%= trips_evolution_cards(dashboard, :per_km) %>
+  </div>
+</div>
+
+<div class="card table-card" id="trips_table">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= trips_table_title(dashboard) %></p>
+    </div>
+    <%= sort_menu(trips_sort_columns(dashboard)) %>
+  </div>
+  <div class="table-card-body">
+    <%= render 'table', dashboard:, rows: @rows %>
+  </div>
+</div>

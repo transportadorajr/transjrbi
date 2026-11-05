@@ -107,14 +107,14 @@ describe 'User sign in' do
   end
 
   context 'when the freight billing is a resource of the system' do
-    let!(:resource) { create(:resource, name: 'Faturamento de fretes', slug: 'freight_billing', writable: false) }
+    let!(:resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
     let!(:admin) { create(:user, email: 'carlos@transjrbi.com.br', user_type: :admin) }
 
     scenario 'opens the freight billing as the main screen after signing in' do
       sign_in_with(email: 'carlos@transjrbi.com.br', remember_me: false)
 
       expect(page).to have_current_path(freight_billing_path)
-      expect(page).to have_css('h1', text: 'Faturamento de Fretes')
+      expect(page).to have_css('h1', exact_text: 'Faturamento')
       expect(page).to have_no_link('Início')
     end
 
@@ -133,7 +133,7 @@ describe 'User sign in' do
         sign_in_with(email: 'bruna@transjrbi.com.br', remember_me: false)
 
         expect(page).to have_current_path(freight_billing_path)
-        expect(page).to have_css('h1', text: 'Faturamento de Fretes')
+        expect(page).to have_css('h1', exact_text: 'Faturamento')
       end
     end
   end

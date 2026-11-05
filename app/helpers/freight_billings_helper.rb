@@ -1,16 +1,9 @@
 module FreightBillingsHelper
-  BRAND_BLUE = '#2563eb'.freeze
-  DANGER_RED = '#dc3545'.freeze
+  include ChartsHelper
+
   SERIES_COLORS = [BRAND_BLUE, DANGER_RED].freeze
-  CHART_GRID_COLOR = '#eef0f4'.freeze
-  CHART_TEXT_COLOR = '#52514e'.freeze
-  CHART_HEIGHT = '320px'.freeze
   DETAIL_MODAL_ID = 'freight_billing_detail_modal'.freeze
   FREIGHTS_MODAL_ID = 'freight_billing_freights_modal'.freeze
-  RANKING_BAR_HEIGHT = 44
-  RANKING_MIN_HEIGHT = 320
-  RANKING_BAR_LABELS = { display: true, anchor: 'end', clamp: true, padding: { top: 0, right: 4, bottom: 0, left: 4 },
-                         font: { size: 11, weight: 600 } }.freeze
 
   def freight_billing_content_partial(dashboard)
     dashboard.empty? ? 'shared/no_content' : 'freight_billings/report'
@@ -150,8 +143,8 @@ module FreightBillingsHelper
       bar_chart(freight_billing_series(dashboard.ranking_data),
                 height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
                 legend: 'bottom',
-                **freight_billing_money_options,
-                library: freight_billing_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
+                **chart_money_options,
+                library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
     end
   end
 
@@ -160,8 +153,8 @@ module FreightBillingsHelper
       bar_chart(freight_billing_series(dashboard.monthly_data),
                 height: CHART_HEIGHT,
                 legend: 'bottom',
-                **freight_billing_money_options,
-                library: freight_billing_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS, tooltip: { enabled: false } }))
+                **chart_money_options,
+                library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS, tooltip: { enabled: false } }))
     end
   end
 
@@ -210,23 +203,5 @@ module FreightBillingsHelper
     series.zip(SERIES_COLORS).map do |serie, color|
       serie.merge(color:, dataset: { backgroundColor: color, borderWidth: 0, borderRadius: 4, maxBarThickness: 28 })
     end
-  end
-
-  def freight_billing_money_options
-    { prefix: "#{t('number.currency.format.unit')} ", thousands: t('number.currency.format.delimiter'),
-      decimal: t('number.currency.format.separator'), round: 2, zeros: true }
-  end
-
-  def freight_billing_bar_library(category_axis)
-    value_axis = category_axis == :x ? :y : :x
-
-    {
-      scales: {
-        category_axis => { grid: { display: false }, ticks: { color: CHART_TEXT_COLOR, autoSkip: false } },
-        value_axis => { border: { display: false }, grid: { color: CHART_GRID_COLOR },
-                        ticks: { color: CHART_TEXT_COLOR, maxRotation: 0, autoSkipPadding: 16 } },
-      },
-      plugins: { legend: { labels: { color: CHART_TEXT_COLOR, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, padding: 16 } } },
-    }
   end
 end

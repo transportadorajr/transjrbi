@@ -55,7 +55,7 @@ describe 'Clearing the applied filters' do
   end
 
   context 'when viewing the freight billing' do
-    let!(:resource) { create(:resource, name: 'Faturamento de fretes', slug: 'freight_billing', writable: false) }
+    let!(:resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
 
     scenario 'goes back to the current week by customer group' do
       visit freight_billing_path(dimension: 'driver', start_date: '2020-01-01', end_date: '2020-01-31', plate: 'ABC1D23')
