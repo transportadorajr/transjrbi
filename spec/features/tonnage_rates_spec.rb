@@ -196,8 +196,9 @@ describe 'Tonnage rates' do
           fill_in 'Nome', with: 'Outro custo'
           select 'Santa Luzia/MG (TISL)', from: 'Origem'
           fill_in 'Vigência', with: '2026-11'
-          fill_in 'Valor por tonelada', with: '9,50'
+          fill_in 'Valor por tonelada', with: '950'
 
+          expect(page).to have_field('Valor por tonelada', with: '9,50')
           expect { click_on 'Cadastrar Custo' }.to change(TonnageRate, :count).by(1)
 
           expect(page).to have_text('Custo cadastrado com sucesso.')

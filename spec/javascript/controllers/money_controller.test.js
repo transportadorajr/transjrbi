@@ -5,7 +5,7 @@ import MoneyController from '../../../app/javascript/controllers/money_controlle
 const tick = (ms = 0) => new Promise(resolve => setTimeout(resolve, ms));
 
 const html = `
-  <input type="text" id="rate" value="12,57" data-controller="money"
+  <input type="text" id="rate" value="1012,5" data-controller="money"
          data-money-separator-value="," data-money-delimiter-value=".">
 `;
 
@@ -17,6 +17,11 @@ describe('MoneyController', () => {
   const typeInto = value => {
     input().value = value;
     input().dispatchEvent(new Event('input', { bubbles: true }));
+  };
+
+  const typeKeys = keys => {
+    typeInto('');
+    [...keys].forEach(key => typeInto(input().value + key));
   };
 
   beforeEach(async () => {
@@ -31,25 +36,40 @@ describe('MoneyController', () => {
     document.body.innerHTML = '';
   });
 
-  it('keeps the value already loaded in the field', () => {
+  it('formats the value already loaded in the field', () => {
+    expect(input().value).toBe('101,25');
+  });
+
+  it('keeps the last two digits typed as the cents', () => {
+    typeKeys('1');
+    expect(input().value).toBe('0,01');
+
+    typeKeys('12');
+    expect(input().value).toBe('0,12');
+
+    typeKeys('1257');
     expect(input().value).toBe('12,57');
+
+    typeKeys('123456789');
+    expect(input().value).toBe('1.234.567,89');
   });
 
-  it('groups the thousands and keeps two decimals', () => {
-    typeInto('1234,567');
+  it('moves the digits back to the cents when one is erased', () => {
+    typeKeys('1257');
+    typeInto('12,5');
 
-    expect(input().value).toBe('1.234,56');
+    expect(input().value).toBe('1,25');
   });
 
-  it('accepts a value pasted with the thousands separator', () => {
-    typeInto('1.012,5');
+  it('ignores letters, signs and separators typed by the user', () => {
+    typeInto('-9a.5,0');
 
-    expect(input().value).toBe('1.012,5');
+    expect(input().value).toBe('9,50');
   });
 
-  it('drops letters and negative signs', () => {
-    typeInto('-12a,3');
+  it('clears the field when every digit is erased', () => {
+    typeInto('0,0');
 
-    expect(input().value).toBe('12,3');
+    expect(input().value).toBe('');
   });
 });

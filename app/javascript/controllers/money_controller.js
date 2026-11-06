@@ -1,23 +1,30 @@
 import { Controller } from '@hotwired/stimulus';
-import IMask from 'imask';
 
 export default class extends Controller {
   static values = { separator: { type: String, default: ',' }, delimiter: { type: String, default: '.' } };
 
   connect() {
-    this.imask = IMask(this.element, {
-      mask: Number,
-      scale: 2,
-      min: 0,
-      radix: this.separatorValue,
-      mapToRadix: ['.', ','].filter(character => character !== this.delimiterValue),
-      thousandsSeparator: this.delimiterValue,
-      padFractionalZeros: true,
-      normalizeZeros: true,
-    });
+    this.format = this.format.bind(this);
+    this.element.addEventListener('input', this.format);
+    this.format();
   }
 
   disconnect() {
-    this.imask?.destroy();
+    this.element.removeEventListener('input', this.format);
+  }
+
+  format() {
+    const digits = this.element.value.replace(/\D/g, '').replace(/^0+/, '');
+
+    if (digits === '') {
+      this.element.value = '';
+      return;
+    }
+
+    const padded = digits.padStart(3, '0');
+    const units = padded.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, this.delimiterValue);
+
+    this.element.value = `${units}${this.separatorValue}${padded.slice(-2)}`;
+    this.element.setSelectionRange?.(this.element.value.length, this.element.value.length);
   }
 }
