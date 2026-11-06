@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe 'Table sorting' do
   let!(:tenant) { create(:tenant) }
-  let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
   def first_column
     html_table_to_rows.drop(1).map(&:first)
@@ -14,7 +14,7 @@ describe 'Table sorting' do
     rows.drop(1).pluck(rows.first.index(label))
   end
 
-  before { login_as(admin, scope: :user) }
+  before { login_as(owner, scope: :user) }
 
   context 'when listing the macro regions' do
     let!(:resource) { create(:resource, name: 'Macrorregiões', slug: 'macro_regions') }
@@ -118,7 +118,7 @@ describe 'Table sorting' do
 
         expect(User.where(tenant:).count).to eq(2)
         expect(first_column.first).to include('Zélia Operadora')
-        expect(first_column.last).to include('Bruna Admin')
+        expect(first_column.last).to include('Bruna Dona')
       end
     end
 

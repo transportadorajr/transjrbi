@@ -21,10 +21,10 @@ describe 'Vehicles' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when there are no vehicles' do
       scenario 'shows the empty state message' do
@@ -366,12 +366,12 @@ describe 'Vehicles' do
   end
 
   context 'on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:vehicle) { create(:atua_vehicle, tenant:, plate: 'EXU0F72') }
     let!(:trip) { create(:atua_transport_document, tenant:, vehicle_code: vehicle.code, issued_at: Time.current) }
 
     before do
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
       use_mobile_screen
     end
 

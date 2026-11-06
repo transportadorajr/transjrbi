@@ -21,10 +21,10 @@ describe 'Excluded issuers' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when no issuer is excluded' do
       scenario 'shows the empty state message' do
@@ -199,10 +199,10 @@ describe 'Excluded issuers' do
   end
 
   context 'when the screen is opened on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:excluded_issuer) { create(:excluded_issuer, tenant:, code: 6190, name: 'MAYCON DORALINO SANTOS LORENA') }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     scenario 'keeps the essential columns and the action without scrolling sideways' do
       visit excluded_issuers_path

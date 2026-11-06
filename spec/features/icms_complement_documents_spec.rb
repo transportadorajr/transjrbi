@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe 'Value complements of ICMS' do
   let!(:tenant) { create(:tenant) }
-  let!(:admin) { create(:user, tenant:, user_type: :admin) }
+  let!(:owner) { create(:user, tenant:, user_type: :owner) }
   let!(:freight_billing_resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
   let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
   let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
@@ -22,7 +22,7 @@ describe 'Value complements of ICMS' do
 
   before do
     Atua::DiscardIcmsComplementsCommand.call(tenant)
-    login_as(admin, scope: :user)
+    login_as(owner, scope: :user)
   end
 
   scenario 'leaves them out of the transport documents listing' do

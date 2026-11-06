@@ -21,10 +21,10 @@ describe 'Cities' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when there are no cities' do
       scenario 'shows the empty state message' do
@@ -285,10 +285,10 @@ describe 'Cities' do
   end
 
   context 'when the screen is opened on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:city) { create(:city, tenant:) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     scenario 'keeps the essential columns and collapses the actions into a menu' do
       visit cities_path

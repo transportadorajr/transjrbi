@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe 'Records of an excluded plate' do
   let!(:tenant) { create(:tenant) }
-  let!(:admin) { create(:user, tenant:, user_type: :admin) }
+  let!(:owner) { create(:user, tenant:, user_type: :owner) }
   let!(:freight_billing_resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
   let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
   let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
@@ -21,7 +21,7 @@ describe 'Records of an excluded plate' do
     create(:atua_manifest_document, tenant:, manifest_code: fleet_manifest.code, transport_document_number: fleet_document.number,
                                     transport_document_series: fleet_document.series, branch_name: fleet_document.branch_name)
     Atua::DiscardExcludedPlatesCommand.call(tenant)
-    login_as(admin, scope: :user)
+    login_as(owner, scope: :user)
   end
 
   scenario 'leaves them out of the freight billing totals' do

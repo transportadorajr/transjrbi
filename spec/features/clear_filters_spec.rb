@@ -2,9 +2,9 @@ require 'rails_helper'
 
 describe 'Clearing the applied filters' do
   let!(:tenant) { create(:tenant) }
-  let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-  before { login_as(admin, scope: :user) }
+  before { login_as(owner, scope: :user) }
 
   context 'when listing the macro regions' do
     let!(:resource) { create(:resource, name: 'Macrorregiões', slug: 'macro_regions') }

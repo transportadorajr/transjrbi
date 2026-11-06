@@ -24,10 +24,10 @@ describe 'Customer groups' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when there are no groups' do
       scenario 'shows the empty state message' do
@@ -332,10 +332,10 @@ describe 'Customer groups' do
   end
 
   context 'when the screen is opened on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:customer_group) { create(:customer_group, tenant:, name: 'TERRAFEC', terms: ['2JM']) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     scenario 'keeps the essential columns and collapses the actions into a menu' do
       visit customer_groups_path

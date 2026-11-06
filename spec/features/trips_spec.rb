@@ -27,10 +27,10 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when there are no trips in the period' do
       scenario 'shows the empty state with zeroed indicators' do
@@ -308,6 +308,8 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
     end
 
     context 'when the trips dashboard is turned off for the tenant' do
+      let!(:freight_billing_resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
+
       before do
         Flipper.disable(:trips_dashboard)
         Flipper.enable_actor(:trips_dashboard, other_tenant)
@@ -369,12 +371,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
   end
 
   context 'when switching the evolution charts', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
       create_trip(code: 41_001, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 2, 8), distance_km: 500,
                   documents: [['74001', 1_000_000, 10, 'JOSE SILVA']])
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     def visible_chart_titles
@@ -403,12 +405,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
   end
 
   context 'when the screen is opened on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
       create_trip(code: 41_001, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 2, 8), distance_km: 500,
                   documents: [['74001', 1_000_000, 10, 'JOSE SILVA']])
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'draws the monthly charts and keeps only the essential columns without scrolling sideways' do
