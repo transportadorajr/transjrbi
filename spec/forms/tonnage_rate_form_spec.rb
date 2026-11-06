@@ -4,6 +4,26 @@ RSpec.describe TonnageRateForm do
   let(:tenant) { create(:tenant) }
   let(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
 
+  describe '.new' do
+    it 'starts with the Brasiltec name and the USIMINAS group' do
+      usiminas
+
+      form = described_class.new(tenant:)
+
+      expect(form).to have_attributes(name: 'Brasiltec', customer_group_id: usiminas.id)
+      expect(form).to be_default_fields_locked
+    end
+
+    it 'keeps the name and the group the user sent' do
+      usiminas
+      gerdau = create(:customer_group, tenant:, name: 'GERDAU')
+
+      form = described_class.new(tenant:, name: 'Outro custo', customer_group_id: gerdau.id)
+
+      expect(form).to have_attributes(name: 'Outro custo', customer_group_id: gerdau.id)
+    end
+  end
+
   describe '#save' do
     it 'creates an active rate and recalculates the freight expenses' do
       form = described_class.new(tenant:, customer_group_id: usiminas.id, name: ' Brasiltec ', origin: 'Utinga',
@@ -27,13 +47,14 @@ RSpec.describe TonnageRateForm do
     end
 
     it 'rejects a rate without the required fields' do
-      form = described_class.new(tenant:, valid_month: 'outubro', rate: 'doze')
+      form = described_class.new(tenant:, customer_group_id: '', name: '', valid_month: 'outubro', rate: 'doze')
 
       expect { expect(form.save).to be_falsey }.not_to change(TonnageRate, :count)
       expect(form.errors.full_messages).to contain_exactly(
         'Grupo de clientes não pode ficar em branco', 'Nome não pode ficar em branco', 'Origem não pode ficar em branco',
-        'Vigência não é um mês válido', 'Valor por tonelada (R$) deve ser maior que 0'
+        'Vigência não é um mês válido', 'Valor por tonelada deve ser maior que 0'
       )
+      expect(form).not_to be_default_fields_locked
     end
 
     it 'rejects an origin out of the list' do

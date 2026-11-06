@@ -75,6 +75,36 @@ describe 'Tonnage rates' do
         expect(page).to have_no_text('CUSTO DE OUTRA')
       end
 
+      context 'when an origin has a rate of a previous month' do
+        let!(:cubatao_september) do
+          create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 9, 1), rate_cents: 1_190)
+        end
+
+        scenario 'lists only the most recent rate of the origin' do
+          visit tonnage_rates_path
+
+          expect(TonnageRate.count).to eq(5)
+          expect(html_table_to_rows.drop(1).map { |row| row.first(4) }).to eq(
+            [
+              ['Cubatão/SP (Cubatão)', 'Brasiltec', 'USIMINAS', '10/2026'],
+              ['Santo André/SP (Utinga)', 'Brasiltec', 'USIMINAS', '10/2026'],
+              ['Ipatinga/MG', 'Brasiltec', 'USIMINAS', '09/2026'],
+            ],
+          )
+          expect(page).to have_css('.counter-card', text: "Total de custos\n3")
+        end
+
+        scenario 'shows the previous rate when its month is filtered' do
+          visit tonnage_rates_path
+          fill_in 'Vigência', with: '2026-09'
+          click_on 'Aplicar Filtros'
+
+          expect(html_table_to_rows.drop(1).map { |row| row.values_at(0, 3, 5) }).to eq(
+            [['Cubatão/SP (Cubatão)', '09/2026', 'R$ 11,90/t'], ['Ipatinga/MG', '09/2026', 'R$ 8,50/t']],
+          )
+        end
+      end
+
       scenario 'filters the rates by name, group, month and status' do
         visit tonnage_rates_path
         fill_in 'Nome do custo', with: 'brasil'
@@ -121,11 +151,15 @@ describe 'Tonnage rates' do
       scenario 'creates the rate of the month and recalculates the freight expenses' do
         visit tonnage_rates_path
         click_on 'Novo Custo'
-        select 'USIMINAS', from: 'Grupo de clientes'
-        fill_in 'Nome', with: 'Brasiltec'
+
+        expect(page).to have_select('Grupo de clientes', selected: 'USIMINAS', disabled: true)
+        expect(page).to have_field('Nome', with: 'Brasiltec', disabled: true)
+        expect(page).to have_css('.input-group-text', text: 'R$')
+        expect(page).to have_field('Valor por tonelada', type: 'text') { |field| field['data-controller'] == 'money' }
+
         select 'São Paulo/SP (TESP)', from: 'Origem'
         fill_in 'Vigência', with: '2026-11'
-        fill_in 'Valor por tonelada (R$)', with: '9,10'
+        fill_in 'Valor por tonelada', with: '9,10'
 
         expect { click_on 'Cadastrar Custo' }.to change(TonnageRate, :count).by(1)
           .and have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
@@ -144,8 +178,32 @@ describe 'Tonnage rates' do
         expect { click_on 'Cadastrar Custo' }.to not_change(TonnageRate, :count)
           .and not_have_enqueued_job(FreightExpenses::CalculateJob)
 
-        expect(page).to have_text('Grupo de clientes não pode ficar em branco')
-        expect(page).to have_text('Valor por tonelada (R$) deve ser maior que 0')
+        expect(page).to have_text('Origem não pode ficar em branco')
+        expect(page).to have_text('Valor por tonelada deve ser maior que 0')
+        expect(page).to have_field('Nome', with: 'Brasiltec', disabled: true)
+      end
+
+      context 'when the rate belongs to another group', :js do
+        let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU') }
+
+        scenario 'unlocks the group and the name to change them' do
+          visit new_tonnage_rate_path
+          click_on 'Alterar grupo e nome'
+
+          expect(page).to have_no_button('Alterar grupo e nome')
+
+          select 'GERDAU', from: 'Grupo de clientes'
+          fill_in 'Nome', with: 'Outro custo'
+          select 'Santa Luzia/MG (TISL)', from: 'Origem'
+          fill_in 'Vigência', with: '2026-11'
+          fill_in 'Valor por tonelada', with: '9,50'
+
+          expect { click_on 'Cadastrar Custo' }.to change(TonnageRate, :count).by(1)
+
+          expect(page).to have_text('Custo cadastrado com sucesso.')
+          expect(TonnageRate.last).to have_attributes(customer_group: gerdau, name: 'Outro custo', nickname: 'TISL',
+                                                      origin_city: 'Santa Luzia', origin_state: 'MG', rate_cents: 950)
+        end
       end
 
       scenario 'offers only the registered origins, including TISL in Santa Luzia/MG' do
@@ -165,11 +223,12 @@ describe 'Tonnage rates' do
         within("#tonnage_rate_#{tonnage_rate.id} .inline-actions") { click_on 'Alterar' }
 
         expect(page).to have_current_path(edit_tonnage_rate_path(tonnage_rate))
-        expect(page).to have_field('Valor por tonelada (R$)', with: '12,57')
+        expect(page).to have_field('Valor por tonelada', with: '12,57')
         expect(page).to have_field('Vigência', with: '2026-10')
         expect(page).to have_select('Origem', selected: 'Cubatão/SP (Cubatão)')
+        expect(page).to have_field('Nome', with: 'Brasiltec', disabled: true)
 
-        fill_in 'Valor por tonelada (R$)', with: '12,80'
+        fill_in 'Valor por tonelada', with: '12,80'
         uncheck 'Ativo'
 
         expect { click_on 'Salvar Alterações' }.to not_change(TonnageRate, :count)

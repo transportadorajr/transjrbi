@@ -32,8 +32,15 @@ class TonnageRateForm < BaseForm
     end
 
     def format_rate(rate_cents)
-      ActiveSupport::NumberHelper.number_to_rounded(rate_cents.to_d / 100, precision: 2, separator: ',', delimiter: '')
+      ActiveSupport::NumberHelper.number_to_rounded(rate_cents.to_d / 100, precision: 2, separator: ',', delimiter: '.')
     end
+  end
+
+  def initialize(attributes = {})
+    super
+    given = attributes.keys.map(&:to_s)
+    self.name = TonnageRate::DEFAULT_NAME unless given.include?('name')
+    self.customer_group_id = default_customer_group&.id unless given.include?('customer_group_id')
   end
 
   def tonnage_rate
@@ -71,7 +78,15 @@ class TonnageRateForm < BaseForm
     FreightExpenses::CalculateJob.perform_later(tenant.id)
   end
 
+  def default_fields_locked?
+    errors[:name].none? && errors[:customer_group_id].none?
+  end
+
   private
+
+  def default_customer_group
+    tenant&.customer_groups&.find_by(name: TonnageRate::DEFAULT_CUSTOMER_GROUP_NAME)
+  end
 
   def normalize_fields
     self.name = name.to_s.squish

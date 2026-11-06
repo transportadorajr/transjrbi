@@ -1,7 +1,7 @@
 module TonnageRates
   class BackfillCommand
-    GROUP_NAME = 'USIMINAS'.freeze
-    NAME = 'Brasiltec'.freeze
+    GROUP_NAME = TonnageRate::DEFAULT_CUSTOMER_GROUP_NAME
+    NAME = TonnageRate::DEFAULT_NAME
     VALID_MONTH = Date.new(2026, 10, 1)
     RATES = [
       { nickname: 'Cubatão', origin_city: 'Cubatão', origin_state: 'SP', rate_cents: 1_257 },

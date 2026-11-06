@@ -13,6 +13,27 @@ RSpec.describe TonnageRate do
     end
   end
 
+  describe '.for_listing' do
+    let!(:cubatao_september) { create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 9, 1)) }
+    let!(:cubatao_october) { create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 10, 1)) }
+    let!(:tisl_september) do
+      create(:tonnage_rate, tenant:, customer_group: usiminas, nickname: 'TISL', origin_city: 'Santa Luzia', origin_state: 'MG',
+                            valid_month: Date.new(2026, 9, 1))
+    end
+    let!(:other_group_cubatao) do
+      create(:tonnage_rate, tenant:, customer_group: create(:customer_group, tenant:, name: 'GERDAU'), valid_month: Date.new(2026, 9, 1))
+    end
+
+    it 'keeps only the most recent rate of each origin of each group' do
+      expect(tenant.tonnage_rates.for_listing(nil)).to contain_exactly(cubatao_october, tisl_september, other_group_cubatao)
+    end
+
+    it 'keeps every rate when a month is filtered' do
+      expect(tenant.tonnage_rates.for_listing('2026-09').by_valid_month('2026-09'))
+        .to contain_exactly(cubatao_september, tisl_september, other_group_cubatao)
+    end
+  end
+
   describe '.weight_in_tons' do
     it 'keeps a weight up to 200 as tons' do
       expect(described_class.weight_in_tons(BigDecimal('32.5'), nil)).to eq(BigDecimal('32.5'))

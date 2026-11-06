@@ -9,7 +9,7 @@ class TonnageRatesController < BaseController
   def index
     authorize!(:read, :tonnage_rates)
 
-    tonnage_rates = current_tenant.tonnage_rates
+    tonnage_rates = current_tenant.tonnage_rates.for_listing(params[:valid_month])
     counted_tonnage_rates = apply_scopes(tonnage_rates, params.except(:status))
 
     @tonnage_rates = apply_sort(apply_scopes(tonnage_rates).preload(:customer_group), valid_month: :desc, name: :asc, origin_city: :asc, id: :asc)

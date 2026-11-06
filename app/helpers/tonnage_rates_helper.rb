@@ -39,6 +39,21 @@ module TonnageRatesHelper
     t('tonnage_rates.weight', weight: number_with_precision(weight_tons, precision: 3))
   end
 
+  def tonnage_rate_default_field_html(tonnage_rate_form, **options)
+    options.merge(disabled: tonnage_rate_form.default_fields_locked?, data: { unlock_target: 'field' })
+  end
+
+  def tonnage_rate_unlock_button(tonnage_rate_form)
+    return unless tonnage_rate_form.default_fields_locked?
+
+    content_tag(:div, class: 'col-12', data: { unlock_target: 'button' }) do
+      button_tag(type: :button, class: 'btn btn-outline-secondary btn-sm btn-round', data: { action: 'unlock#enable' }) do
+        concat icon(:pencil, class: 'me-2')
+        concat t('tonnage_rates.form.unlock')
+      end
+    end
+  end
+
   def tonnage_rate_form_url(tonnage_rate_form)
     tonnage_rate_form.persisted? ? tonnage_rate_path(tonnage_rate_form.tonnage_rate) : tonnage_rates_path
   end
