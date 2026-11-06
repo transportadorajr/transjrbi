@@ -412,9 +412,9 @@ describe 'Freight billing' do
 
         expect(page).to have_css('.chart-card canvas', count: 3)
         expect(page).to have_text('Frete bruto por km por Grupo de clientes')
-        expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens')
-        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.labels')).to eq(['USIMINAS', 'Sem grupo'])
-        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[25.61, 28.85]])
+        expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens, do maior para o menor')
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.labels')).to eq(['Sem grupo', 'USIMINAS'])
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[28.85, 25.61]])
       end
 
       scenario 'plots the gross freight per km of the macro regions', :js do
