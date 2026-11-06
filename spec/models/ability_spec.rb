@@ -122,15 +122,49 @@ RSpec.describe Ability do
     end
   end
 
-  context 'when an admin or owner has no accesses' do
+  context 'when the owner has no accesses' do
+    let(:user) { create(:user, tenant:, user_type: :owner) }
     let!(:freights) { create(:resource, slug: 'freights') }
 
     it 'manages every resource' do
-      %i[admin owner].each do |user_type|
-        ability = described_class.new(create(:user, tenant: create(:tenant), user_type:))
+      expect(ability).to be_able_to(:manage, :freights)
+    end
+  end
 
-        expect(ability).to be_able_to(:manage, :freights)
-      end
+  context 'when the admin has no accesses' do
+    let(:user) { create(:user, tenant:, user_type: :admin) }
+    let!(:freights) { create(:resource, slug: 'freights') }
+
+    it 'cannot reach any resource' do
+      expect(ability).not_to be_able_to(:read, :freights)
+    end
+  end
+
+  context 'when the admin has accesses to resources' do
+    let(:user) { create(:user, tenant:, user_type: :admin) }
+    let!(:freights) { create(:resource, slug: 'freights') }
+    let!(:reports) { create(:resource, slug: 'reports') }
+    let!(:trips) { create(:resource, slug: 'trips') }
+
+    before do
+      create(:access, user:, resource: freights, reads: true, creates: true)
+      create(:access, user:, resource: reports, reads: true, creates: false)
+    end
+
+    it 'manages the resource it can edit' do
+      expect(ability).to be_able_to(:read, :freights)
+      expect(ability).to be_able_to(:create, :freights)
+      expect(ability).to be_able_to(:update, :freights)
+      expect(ability).to be_able_to(:destroy, :freights)
+    end
+
+    it 'only reads the resource it can read' do
+      expect(ability).to be_able_to(:read, :reports)
+      expect(ability).not_to be_able_to(:create, :reports)
+    end
+
+    it 'cannot reach a resource without access' do
+      expect(ability).not_to be_able_to(:read, :trips)
     end
   end
 

@@ -21,10 +21,10 @@ describe 'Customers' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when there are no customers' do
       scenario 'shows the empty state message' do
@@ -221,11 +221,11 @@ describe 'Customers' do
   end
 
   context 'on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:customer) { create(:atua_customer, tenant:, name: 'ARCELORMITTAL BRASIL S.A.') }
 
     before do
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
       use_mobile_screen
     end
 

@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe 'Documents taken by Transjr' do
   let!(:tenant) { create(:tenant) }
-  let!(:admin) { create(:user, tenant:, user_type: :admin) }
+  let!(:owner) { create(:user, tenant:, user_type: :owner) }
   let!(:freight_billing_resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
   let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
   let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
@@ -28,7 +28,7 @@ describe 'Documents taken by Transjr' do
 
   before do
     Atua::DiscardInternalTakerDocumentsCommand.call(tenant)
-    login_as(admin, scope: :user)
+    login_as(owner, scope: :user)
   end
 
   scenario 'leaves them out of the freight billing totals' do

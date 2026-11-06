@@ -21,10 +21,10 @@ describe 'Freight billing' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when the transport documents are readable too' do
       let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
@@ -1325,13 +1325,13 @@ describe 'Freight billing' do
   end
 
   context 'when the screen is opened on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
       create(:atua_manifest, tenant:, code: 41_001, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
       create(:atua_transport_document, tenant:, number: '74001', freight_cents: 1_000_000, plate: 'RVR2C34', trailer_plate: 'RVR9C02')
       create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74001', calculated_distance_km: 500)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'draws the charts and keeps only the essential columns without scrolling sideways' do
@@ -1416,7 +1416,7 @@ describe 'Freight billing' do
   end
 
   context 'when there are more rows than fit on a page' do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
       12.times do |index|
@@ -1426,7 +1426,7 @@ describe 'Freight billing' do
         create(:atua_transport_document, tenant:, number:, freight_cents: 200_000 - (index * 10_000), plate:)
         create(:atua_manifest_document, tenant:, manifest_code: 43_000 + index, transport_document_number: number, calculated_distance_km: 50)
       end
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     def listed_plates
@@ -1472,7 +1472,7 @@ describe 'Freight billing' do
   end
 
   context 'when filtering by customer group and driver', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
       create(:atua_customer, tenant:, code: 7100, customer_group: create(:customer_group, tenant:, name: 'USIMINAS'))
@@ -1493,7 +1493,7 @@ describe 'Freight billing' do
       create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74001', calculated_distance_km: 500)
       create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74002', calculated_distance_km: 200)
       create(:atua_manifest_document, tenant:, manifest_code: 41_003, transport_document_number: '74003', calculated_distance_km: 100)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'searches the active customer groups and the drivers of the tenant and filters the freight by them on a phone' do
@@ -1528,13 +1528,13 @@ describe 'Freight billing' do
   end
 
   context 'when the freight reaches hundreds of thousands on a laptop screen beside the sidebar', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
       create(:atua_manifest, tenant:, code: 41_002, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
       create(:atua_transport_document, tenant:, number: '74002', freight_cents: 74_687_244, plate: 'RVR2C34', trailer_plate: 'RVR9C02')
       create(:atua_manifest_document, tenant:, manifest_code: 41_002, transport_document_number: '74002', calculated_distance_km: 53_117)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'keeps every indicator value inside its card' do

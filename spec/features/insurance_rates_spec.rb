@@ -23,10 +23,10 @@ describe 'Insurance rate' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when the tenant has no rate' do
       scenario 'warns that the cargo insurance is not calculated' do
@@ -197,11 +197,11 @@ describe 'Insurance rate' do
   end
 
   context 'when the screen is opened on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
       create(:insurance_rate, tenant:)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'stacks the fields of the form without scrolling sideways' do

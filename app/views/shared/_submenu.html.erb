@@ -15,8 +15,7 @@
 
   <div class="collapse <%= 'show' if submenu_active?(menu) %>" id="<%= menu_id %>">
     <ul class="nav sidebar-subnav">
-      <% menu.menus.each do |submenu| %>
-        <% next unless submenu.show? %>
+      <% visible_menus(menu.menus).each do |submenu| %>
         <li class="<%= 'active' if menu_active?(submenu) %>">
           <%= link_to submenu.url, class: "nav-link sidebar-sublink #{'active' if menu_active?(submenu)}" do %>
             <%= icon :dot, class: 'sidebar-dot-icon' %>

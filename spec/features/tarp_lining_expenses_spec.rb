@@ -2,7 +2,7 @@ require 'rails_helper'
 
 describe 'Tarp lining paid to Régio' do
   let!(:tenant) { create(:tenant) }
-  let!(:admin) { create(:user, tenant:, user_type: :admin) }
+  let!(:owner) { create(:user, tenant:, user_type: :owner) }
   let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
   let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
   let!(:expenses_resource) { create(:resource, name: 'Despesas', slug: 'expenses', writable: false) }
@@ -24,7 +24,7 @@ describe 'Tarp lining paid to Régio' do
                           payee_name: 'MOINHO REGIO ALIMENTOS S/A - CASCAVEL', total_cents: 7_000, cost_object: transport_document)
     Atua::DiscardTarpLiningExpensesCommand.call(tenant)
     FreightExpenses::CalculateTarpLiningCommand.call(tenant)
-    login_as(admin, scope: :user)
+    login_as(owner, scope: :user)
   end
 
   scenario 'discounts the tarp lining of the CT-e only once' do

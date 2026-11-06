@@ -54,11 +54,29 @@ class Menu < SimpleDelegator
     self[:feature]
   end
 
-  def show?
-    feature_enabled? && (menus.empty? || menus.any?(&:show?))
+  def resource
+    self[:resource]
+  end
+
+  def show?(ability = nil)
+    feature_enabled? && authorized?(ability) && (menus.empty? || menus.any? { |menu| menu.show?(ability) })
   end
 
   private
+
+  def authorized?(ability)
+    return true if resource.blank?
+
+    ability.present? && ability.can?(action, subject)
+  end
+
+  def action
+    (self[:action] || :read).to_sym
+  end
+
+  def subject
+    resource.to_s.match?(/\A[A-Z]/) ? resource.to_s.constantize : resource.to_sym
+  end
 
   def feature_enabled?
     feature.blank? || Flipper.enabled?(feature, Current.tenant)

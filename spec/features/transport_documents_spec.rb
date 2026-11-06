@@ -21,10 +21,10 @@ describe 'Transport documents' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when there are no transport documents' do
       scenario 'shows the empty state message' do
@@ -801,11 +801,11 @@ describe 'Transport documents' do
   end
 
   context 'on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:transport_document) { create(:atua_transport_document, tenant:, number: '74130', plate: 'EXU0F72') }
 
     before do
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
       use_mobile_screen
     end
 
@@ -957,10 +957,10 @@ describe 'Transport documents' do
   end
 
   context 'on a tablet', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
     before do
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
       use_mobile_screen(width: 820, height: 1180)
     end
 

@@ -108,7 +108,7 @@ describe 'User sign in' do
 
   context 'when the freight billing is a resource of the system' do
     let!(:resource) { create(:resource, name: 'Faturamento', slug: 'freight_billing', writable: false) }
-    let!(:admin) { create(:user, email: 'carlos@transjrbi.com.br', user_type: :admin) }
+    let!(:owner) { create(:user, email: 'carlos@transjrbi.com.br', user_type: :owner) }
 
     scenario 'opens the freight billing as the main screen after signing in' do
       sign_in_with(email: 'carlos@transjrbi.com.br', remember_me: false)

@@ -17,10 +17,10 @@ describe 'Freight expenses' do
     end
   end
 
-  context 'when an admin is signed in' do
-    let!(:admin) { create(:user, tenant:, name: 'Bruna Admin', user_type: :admin) }
+  context 'when the owner is signed in' do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
 
-    before { login_as(admin, scope: :user) }
+    before { login_as(owner, scope: :user) }
 
     context 'when there are no commissions' do
       scenario 'shows the empty state message' do
@@ -176,10 +176,10 @@ describe 'Freight expenses' do
     end
   end
 
-  context 'when an admin is signed in and the tonnage costs were calculated' do
+  context 'when the owner is signed in and the tonnage costs were calculated' do
     around { |example| travel_to(Time.zone.local(2026, 10, 16, 12)) { example.run } }
 
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:cubatao) { create(:tonnage_rate, tenant:, customer_group: usiminas) }
     let!(:ipatinga) do
       create(:tonnage_rate, tenant:, customer_group: usiminas, nickname: nil, origin_city: 'Ipatinga', origin_state: 'MG',
@@ -197,7 +197,7 @@ describe 'Freight expenses' do
 
     before do
       FreightExpenses::CalculateTonnageCommand.call(tenant)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'lists the tonnage cost of the transport document with its weight and rate' do
@@ -240,8 +240,8 @@ describe 'Freight expenses' do
     end
   end
 
-  context 'when an admin is signed in and the cargo insurance was calculated' do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+  context 'when the owner is signed in and the cargo insurance was calculated' do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:insurance_rates_resource) { create(:resource, name: 'Alíquotas de seguro', slug: 'insurance_rates') }
     let!(:insurance_rate) { create(:insurance_rate, tenant:) }
     let!(:to_minas) do
@@ -265,7 +265,7 @@ describe 'Freight expenses' do
                                                   branch_name: manifest.branch_name)
       end
       FreightExpenses::CalculateInsuranceCommand.call(tenant)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'lists the cargo insurance of each transport document with the international insurance and IOF of the export cargo' do
@@ -299,8 +299,8 @@ describe 'Freight expenses' do
     end
   end
 
-  context 'when an admin is signed in and the tarp lining was calculated' do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+  context 'when the owner is signed in and the tarp lining was calculated' do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:moinho) { create(:customer_group, tenant:, name: 'MOINHO REGIO', terms: ['MOINHO REGIO'], activated_at: Time.current) }
     let!(:moinho_customer) { create(:atua_customer, tenant:, code: 601, name: 'MOINHO REGIO ALIMENTOS S/A', customer_group: moinho) }
     let!(:to_cascavel) do
@@ -314,7 +314,7 @@ describe 'Freight expenses' do
 
     before do
       FreightExpenses::CalculateTarpLiningCommand.call(tenant)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'lists the tarp lining of each transport document of the group' do
@@ -336,8 +336,8 @@ describe 'Freight expenses' do
     end
   end
 
-  context 'when an admin is signed in and the fuel was calculated' do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+  context 'when the owner is signed in and the fuel was calculated' do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:truck_groups_resource) { create(:resource, name: 'Grupos de caminhões', slug: 'truck_groups') }
     let!(:rodotrem) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9], fuel_percentage: BigDecimal('32.5')) }
     let!(:steel) do
@@ -348,7 +348,7 @@ describe 'Freight expenses' do
     before do
       create(:atua_transport_document, tenant:, number: '78002', axles: 6, freight_cents: 1_000_000)
       FreightExpenses::CalculateFuelCommand.call(tenant)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'lists the fuel of each transport document of an active truck group' do
@@ -405,14 +405,14 @@ describe 'Freight expenses' do
   end
 
   context 'when the screen is opened on a phone', :js do
-    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
     let!(:to_minas) do
       create(:atua_transport_document, tenant:, number: '74001', taker_code: 501, destination_state: 'MG', freight_cents: 1_000_000)
     end
 
     before do
       FreightExpenses::CalculateCommissionsCommand.call(tenant)
-      login_as(admin, scope: :user)
+      login_as(owner, scope: :user)
     end
 
     scenario 'keeps the transport document and the amount without scrolling sideways' do
