@@ -99,7 +99,7 @@ describe 'Freight billing' do
         expect(page).to have_no_table
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
           ['Frete bruto R$ 0,00', 'Frete líquido R$ 0,00',
-           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km'],
+           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km', 'KM vazio 0 km', 'Rodou vazio -'],
         )
       end
     end
@@ -201,7 +201,7 @@ describe 'Freight billing' do
         expect(Atua::TransportDocument.count).to eq(5)
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
           ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
-           'KM rodado 720 km'],
+           'KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 11,1%'],
         )
         expect(page).to have_text('Frete por Veículo')
         expect(page).to have_text('Evolução Mensal')
@@ -959,7 +959,7 @@ describe 'Freight billing' do
           expect(Atua::TransportDocument.where(tenant:).count).to eq(7)
           expect(all('.counter-card').map { |card| card.text.squish }).to eq(
             ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
-             'KM rodado 720 km'],
+             'KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 11,1%'],
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
             [
@@ -1250,12 +1250,11 @@ describe 'Freight billing' do
                              status_type: 'unrouted', distance_km: nil)
         end
 
-        scenario 'measures every trip by its loaded km without warning about the empty km' do
+        scenario 'leaves the trip out of the empty km and still divides the empty km by every loaded km' do
           visit freight_billing_path(october)
 
           expect(EmptyLeg.count).to eq(2)
-          expect(page).to have_no_text('KM vazio')
-          expect(all('.counter-card').last.text.squish).to eq('KM rodado 720 km')
+          expect(all('.counter-card').last(3).map { |card| card.text.squish }).to eq(['KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 11,1%'])
         end
       end
 
@@ -1354,8 +1353,8 @@ describe 'Freight billing' do
       title_top = page.evaluate_script("document.querySelector('.page-title').getBoundingClientRect().top")
       filter_top = page.evaluate_script("document.querySelector('.page-actions').getBoundingClientRect().top")
 
-      expect(card_tops.each_slice(2).map { |pair| pair.uniq.size }).to eq([1, 1, 1])
-      expect(card_tops.uniq.size).to eq(3)
+      expect(card_tops.each_slice(2).map { |pair| pair.uniq.size }).to eq([1, 1, 1, 1])
+      expect(card_tops.uniq.size).to eq(4)
       expect(option_tops.uniq.size).to eq(1)
       expect(filter_top).to be <= title_top
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)

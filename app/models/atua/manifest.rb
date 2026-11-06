@@ -140,6 +140,15 @@ module Atua
             AND distances.removed_from_atua_at IS NULL
         SQL
       end
+
+      def empty_km_sql
+        <<~SQL.squish
+          SELECT empty_legs.distance_km
+          FROM empty_legs
+          WHERE empty_legs.tenant_id = atua_manifests.tenant_id AND empty_legs.next_manifest_code = atua_manifests.code
+            AND empty_legs.status_type = 'calculated'
+        SQL
+      end
     end
 
     def canceled?

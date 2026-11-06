@@ -1778,6 +1778,8 @@ pt-BR:
       gross_per_km: Frete bruto por km
       net_per_km: Frete líquido por km
       loaded_km: KM rodado
+      empty_km: KM vazio
+      empty_share: Rodou vazio
       ranking_title: Frete por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de emissão do CT-e
       per_km_ranking_title: Frete bruto por km por %{dimension}
