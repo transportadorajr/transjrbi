@@ -38,7 +38,7 @@ RSpec.describe NetFreight do
     create(:atua_toll_voucher, tenant:, transport_document_number: document.number, branch_code: 2, toll_cents: 7_000, canceled_on: Date.new(2026, 10, 2))
   end
 
-  it 'subtracts the commissions, the tonnage costs, the national and international cargo insurance, the tarp lining, the fuel, the Atua expenses and the discounted toll from the valid transport documents' do
+  it 'subtracts the commissions, the tonnage costs, the national and international cargo insurance, the tarp lining, the fuel, the Atua expenses and the toll of the transport document, ahead of its vouchers, from the valid transport documents' do
     net_freight = described_class.for(tenant.atua_transport_documents)
 
     expect(net_freight.freight).to eq(Money.from_cents(1_200_000))
@@ -49,15 +49,15 @@ RSpec.describe NetFreight do
     expect(net_freight.tarp_lining).to eq(Money.from_cents(5_500))
     expect(net_freight.fuel).to eq(Money.from_cents(300_000))
     expect(net_freight.expenses).to eq(Money.from_cents(45_000))
-    expect(net_freight.toll).to eq(Money.from_cents(58_500))
-    expect(net_freight.net).to eq(Money.from_cents(722_413))
+    expect(net_freight.toll).to eq(Money.from_cents(30_000))
+    expect(net_freight.net).to eq(Money.from_cents(750_913))
   end
 
   it 'adds the manifest freight of the transport documents missing from Atua to the gross and the net freight' do
     net_freight = described_class.for(tenant.atua_transport_documents, missing_documents_freight: Money.from_cents(225_105))
 
     expect(net_freight.freight).to eq(Money.from_cents(1_425_105))
-    expect(net_freight.net).to eq(Money.from_cents(947_518))
+    expect(net_freight.net).to eq(Money.from_cents(976_018))
   end
 
   context 'with value complements of the transport documents' do
@@ -72,7 +72,7 @@ RSpec.describe NetFreight do
       expect(net_freight.freight).to eq(Money.from_cents(1_000_000))
       expect(net_freight.complement_credit).to eq(Money.from_cents(45_000))
       expect(net_freight.complement_transfer).to eq(Money.from_cents(0))
-      expect(net_freight.net).to eq(Money.from_cents(567_413))
+      expect(net_freight.net).to eq(Money.from_cents(595_913))
     end
 
     it 'transfers the value of the complement, leaving it without net freight' do
@@ -87,7 +87,7 @@ RSpec.describe NetFreight do
       net_freight = described_class.for(tenant.atua_transport_documents.where(id: [document.id, complement.id]))
 
       expect(net_freight.freight).to eq(Money.from_cents(1_045_000))
-      expect(net_freight.net).to eq(Money.from_cents(567_413))
+      expect(net_freight.net).to eq(Money.from_cents(595_913))
     end
   end
 end

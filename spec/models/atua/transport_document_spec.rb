@@ -377,6 +377,43 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.discounted_toll' do
+    def document(number, toll_cents)
+      create(:atua_transport_document, tenant:, number:, branch_code: 2, freight_cents: 400_000 + toll_cents, weight_freight_cents: 400_000,
+                                       toll_cents:, icms_cents: 0)
+    end
+
+    def voucher(number, company_toll_kind, charged_toll_cents, toll_cents)
+      create(:atua_toll_voucher, tenant:, transport_document_number: number, branch_code: 2, charged_toll_cents:, toll_cents:,
+                                 raw_data: { 'id_pedagio_empresa' => company_toll_kind })
+    end
+
+    let!(:with_toll_in_freight) { document('74754', 47_770) }
+    let!(:included_without_toll) { document('74800', 0) }
+    let!(:included_without_company_toll) { document('74801', 0) }
+    let!(:paid_on_tag) { document('74817', 0) }
+    let!(:route_without_toll) { document('74765', 0) }
+    let!(:without_voucher) { document('74802', 0) }
+
+    before do
+      voucher('74754', 1.0, 47_770, 176_193)
+      voucher('74800', 1.0, 50_000, 150_000)
+      voucher('74801', 1.0, 0, 90_000)
+      voucher('74817', 3.0, 103_544, 103_544)
+      voucher('74765', 0.0, 0, 74_640)
+    end
+
+    it 'takes the toll of the transport document first, then the company toll of an included voucher, then the driver toll of the voucher' do
+      documents = [with_toll_in_freight, included_without_toll, included_without_company_toll, paid_on_tag, route_without_toll, without_voucher]
+      tolls = described_class.where(id: documents).order(:number).pluck(:number, described_class.discounted_toll)
+
+      expect(Atua::TollVoucher.count).to eq(5)
+      expect(tolls.map { |number, cents| [number, cents.to_i] }).to eq(
+        [['74754', 47_770], ['74765', 74_640], ['74800', 50_000], ['74801', 90_000], ['74802', 0], ['74817', 103_544]],
+      )
+    end
+  end
+
   describe 'toll from Atua' do
     context 'with the toll kind and the voucher issuer imported from Atua' do
       let(:transport_document) do
