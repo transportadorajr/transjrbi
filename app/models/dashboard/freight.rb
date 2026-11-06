@@ -132,7 +132,7 @@ module Dashboard
     end
 
     def per_km_ranking_data
-      measured = ranking_rows.zip(ranking_labels).select { |row, _| row.gross_per_km }
+      measured = ranking_rows.zip(ranking_labels).select { |row, _| row.gross_per_km }.sort_by { |row, _| -row.gross_per_km.cents }
 
       [{ name: I18n.t('dashboards.freight.gross_per_km'), data: measured.to_h { |row, label| [label, row.gross_per_km.to_f] } }]
     end

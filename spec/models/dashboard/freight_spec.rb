@@ -64,6 +64,24 @@ RSpec.describe Dashboard::Freight do
     end
   end
 
+  describe '#per_km_ranking_data' do
+    let(:dimension) { 'customer_group' }
+
+    before do
+      [['LONGA', 7100, 41_001, '74001', 1_000_000, 1000], ['CURTA', 7200, 41_002, '74002', 500_000, 100]].each do |name, code, manifest, number, cents, km|
+        create(:atua_customer, tenant:, code:, customer_group: create(:customer_group, tenant:, name:))
+        create(:atua_manifest, tenant:, code: manifest, plate: "RVR#{code}", trip_started_at: Time.zone.local(2026, 10, 2, 8))
+        create(:atua_transport_document, tenant:, number:, freight_cents: cents, plate: "RVR#{code}", taker_code: code)
+        create(:atua_manifest_document, tenant:, manifest_code: manifest, transport_document_number: number, calculated_distance_km: km)
+      end
+    end
+
+    it 'plots the groups from the highest gross freight per km to the lowest' do
+      expect(dashboard.ranking_rows.map(&:label)).to eq(%w[LONGA CURTA])
+      expect(dashboard.per_km_ranking_data.first[:data].to_a).to eq([['CURTA', 50.0], ['LONGA', 10.0]])
+    end
+  end
+
   context 'without documents in the period' do
     it 'is empty' do
       expect(dashboard).to be_empty
