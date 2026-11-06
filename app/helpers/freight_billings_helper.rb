@@ -118,6 +118,10 @@ module FreightBillingsHelper
     number_to_percentage(share, precision: 1)
   end
 
+  def freight_billing_percentage(percentage)
+    percentage ? number_to_percentage(percentage, precision: 1) : t('tax.blank')
+  end
+
   def freight_billing_row_menu(row)
     menus = []
 

@@ -15,10 +15,10 @@ module Dashboard
     COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
     CHART_EXCLUDED_LABELS = { 'vehicle' => %w[INT6R00], 'driver' => ['JECI FERREIRA DE SOUZA JUNIOR'] }.freeze
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
-    COLUMNS = %i[id manifest_code issued_at loaded_km freight_cents freight_expenses_cents expenses_cents
+    COLUMNS = %i[id manifest_code issued_at loaded_km empty_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city
                  origin_state origin_macro_region_id export_origin].freeze
-    ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight loaded_km freight_cents freight_expenses_cents expenses_cents toll_cents
+    ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight loaded_km empty_km freight_cents freight_expenses_cents expenses_cents toll_cents
                           undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city origin_state
                           origin_macro_region_id export_origin].freeze
 
@@ -45,7 +45,7 @@ module Dashboard
     IssuedFact = Data.define(:issued_on, :freight_cents, :net_cents)
     MonthRow = Data.define(:month, :label, :gross, :net)
 
-    Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :freight_expenses, :expenses, :toll, :undiscounted_toll, :net, :gross_per_km,
+    Row = Data.define(:key, :label, :trips_count, :loaded_km, :empty_km, :empty_share, :gross, :freight_expenses, :expenses, :toll, :undiscounted_toll, :net, :gross_per_km,
                       :net_per_km, :share) do
       extend ActiveModel::Naming
 
@@ -249,7 +249,8 @@ module Dashboard
     end
 
     def document_entry(fact)
-      Entry.new(document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), **money_of([fact]),
+      Entry.new(document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), empty_km: BigDecimal('0'),
+                **money_of([fact]),
                 **attributes_of(fact))
     end
 
@@ -258,7 +259,7 @@ module Dashboard
 
       slices_of(trip_facts).map do |slice, weight|
         Entry.new(document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, loaded_km: trip.loaded_km.to_d * weight,
-                  **money_of(slice), **attributes_of(slice.first))
+                  empty_km: trip.empty_km.to_d * weight, **money_of(slice), **attributes_of(slice.first))
       end
     end
 
@@ -305,6 +306,7 @@ module Dashboard
         Arel.sql('first_trips.manifest_code'),
         table[:issued_at],
         Arel.sql('first_trips.loaded_km'),
+        Arel.sql('first_trips.empty_km'),
         table[:freight_cents],
         Arel::Nodes::Grouping.new(Atua::TransportDocument.freight_expenses_total.arel),
         Atua::TransportDocument.expenses_with_complements,
@@ -327,7 +329,8 @@ module Dashboard
       <<~SQL.squish
         LEFT JOIN LATERAL (
           SELECT atua_manifests.code AS manifest_code,
-                 (#{Atua::Manifest.loaded_km_sql}) AS loaded_km
+                 (#{Atua::Manifest.loaded_km_sql}) AS loaded_km,
+                 (#{Atua::Manifest.empty_km_sql}) AS empty_km
           FROM atua_manifest_documents
           INNER JOIN atua_manifests ON atua_manifests.tenant_id = atua_manifest_documents.tenant_id
             AND atua_manifests.code = atua_manifest_documents.manifest_code
@@ -350,12 +353,16 @@ module Dashboard
       freight_expenses_cents = grouped.sum(&:freight_expenses_cents)
       expenses_cents = grouped.sum(&:expenses_cents)
       toll_cents = grouped.sum(&:toll_cents)
+      loaded_km = grouped.sum(BigDecimal('0'), &:loaded_km)
+      empty_km = grouped.sum(BigDecimal('0'), &:empty_km)
 
       Row.new(
         key:,
         label:,
         trips_count: grouped.sum(BigDecimal('0'), &:weight).round(2),
-        loaded_km: grouped.sum(BigDecimal('0'), &:loaded_km).round(2),
+        loaded_km: loaded_km.round(2),
+        empty_km: empty_km.round(2),
+        empty_share: empty_share_of(empty_km, loaded_km),
         gross: Money.from_cents(gross_cents),
         freight_expenses: Money.from_cents(freight_expenses_cents),
         expenses: Money.from_cents(expenses_cents),
@@ -370,6 +377,10 @@ module Dashboard
 
     def per_km(cents, distance)
       Money.from_cents((cents / distance).round(0, BigDecimal::ROUND_HALF_UP)) if distance.positive?
+    end
+
+    def empty_share_of(empty_km, loaded_km)
+      (empty_km * 100 / loaded_km).round(1) if loaded_km.positive?
     end
 
     def share_of(cents)

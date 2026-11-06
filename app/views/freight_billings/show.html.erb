@@ -39,6 +39,8 @@
     <%= counter_card(:primary, t('.gross_per_km'), tax_money(@dashboard.total.gross_per_km), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:dark, t('.loaded_km'), freight_billing_km(@dashboard.total.loaded_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:dark, t('.empty_km'), freight_billing_km(@dashboard.total.empty_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:warning, t('.empty_share'), freight_billing_percentage(@dashboard.total.empty_share), col_class: 'col-6 col-xl-3') %>
   </div>
 
   <%= render freight_billing_content_partial(@dashboard), dashboard: @dashboard %>

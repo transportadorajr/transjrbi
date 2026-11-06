@@ -69,8 +69,8 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard).to be_empty
       expect(dashboard.rows).to eq([])
       expect(dashboard.gross).to eq(Money.from_cents(0))
-      expect(dashboard.total).to have_attributes(trips_count: 0, loaded_km: 0, gross: Money.from_cents(0), net: Money.from_cents(0),
-                                                 gross_per_km: nil, net_per_km: nil, share: BigDecimal('0'))
+      expect(dashboard.total).to have_attributes(trips_count: 0, loaded_km: 0, empty_km: 0, empty_share: nil, gross: Money.from_cents(0),
+                                                 net: Money.from_cents(0), gross_per_km: nil, net_per_km: nil, share: BigDecimal('0'))
     end
   end
 
@@ -161,6 +161,8 @@ RSpec.describe Dashboard::Freight do
         label: 'Total',
         trips_count: 3,
         loaded_km: BigDecimal('820'),
+        empty_km: BigDecimal('80'),
+        empty_share: BigDecimal('9.8'),
         gross: Money.from_cents(4_490_000),
         freight_expenses: Money.from_cents(50_000),
         expenses: Money.from_cents(15_000),
@@ -217,11 +219,13 @@ RSpec.describe Dashboard::Freight do
       )
       expect(dashboard.rows.values_at(1, 3).map(&:to_h)).to eq(
         [
-          { key: 'RVR2C34', label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), gross: Money.from_cents(1_500_000),
+          { key: 'RVR2C34', label: 'RVR2C34', trips_count: 1, loaded_km: BigDecimal('520'), empty_km: BigDecimal('80'),
+            empty_share: BigDecimal('15.4'), gross: Money.from_cents(1_500_000),
             freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0),
             net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
             share: BigDecimal('33.4') },
-          { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), gross: Money.from_cents(500_000),
+          { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
+            empty_share: BigDecimal('0'), gross: Money.from_cents(500_000),
             freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0), net: Money.from_cents(500_000),
             gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('11.1') },
         ],
