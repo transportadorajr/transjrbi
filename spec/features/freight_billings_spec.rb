@@ -171,6 +171,37 @@ describe 'Freight billing' do
                                         calculated_distance_km: 50)
       end
 
+      scenario 'keeps the charts plotted when going back to the dashboard through the logo', :js do
+        travel_to(Time.zone.local(2026, 10, 1, 12)) do
+          visit freight_billing_path
+          expect(page).to have_css('.chart-card canvas', count: 3)
+
+          page.execute_script("window.turboLoads = 0; document.addEventListener('turbo:load', () => window.turboLoads++)")
+          within('.sidebar-desktop') { find('.sidebar-logo-link').click }
+
+          expect(page).to have_current_path(freight_billing_path)
+          page.document.synchronize { page.evaluate_script('window.turboLoads').positive? || raise(Capybara::ExpectationNotMet) }
+          expect(page).to have_css('.chart-card canvas', count: 3)
+          expect(page.evaluate_script('Object.values(Chartkick.charts).filter((chart) => document.body.contains(chart.element)).length'))
+            .to eq(3)
+        end
+      end
+
+      scenario 'reloads the dashboard every five minutes to show the new transport documents', :js do
+        visit freight_billing_path(october)
+
+        expect(find('.page-shell')['data-auto-refresh-interval-value']).to eq('300000')
+        expect(page).to have_css('.counter-card', text: "FRETE BRUTO\nR$ 20.000,00")
+
+        create(:atua_transport_document, tenant:, number: '74020', freight_cents: 300_000, plate: 'RVR2C34', taker_code: 7200)
+        create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74020', calculated_distance_km: 10)
+        page.execute_script("document.querySelector('.page-shell').dataset.autoRefreshIntervalValue = '100'")
+
+        expect(page).to have_css('.counter-card', text: "FRETE BRUTO\nR$ 23.000,00")
+        expect(page).to have_current_path(freight_billing_path(october))
+        expect(Atua::TransportDocument.where(tenant:).count).to eq(5)
+      end
+
       scenario 'opens the current week from sunday to saturday from the intelligence menu' do
         travel_to(Date.new(2026, 10, 19)) do
           visit root_path
