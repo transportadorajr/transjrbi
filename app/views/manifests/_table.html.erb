@@ -10,6 +10,7 @@
         <th class="d-none d-xl-table-cell text-nowrap"><%= Atua::Manifest.human_attribute_name(:weight_kg) %></th>
         <th class="d-none d-xl-table-cell"><%= Atua::Manifest.human_attribute_name(:customer_group) %></th>
         <th class="d-none d-lg-table-cell text-nowrap"><%= Atua::Manifest.human_attribute_name(:loaded_km) %></th>
+        <th class="d-none d-md-table-cell text-nowrap"><%= Atua::Manifest.human_attribute_name(:documents_total) %></th>
         <%= sortable_header(Atua::Manifest.human_attribute_name(:gross_per_km), :gross_per_km, first_direction: :desc, class: 'd-none d-md-table-cell text-nowrap') %>
         <%= manifest_net_per_km_header %>
         <th class="text-end"><%= t('shared.actions') %></th>
