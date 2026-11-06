@@ -1,6 +1,6 @@
 <%# locals: (menus:, xxs_row_size: 2) %>
 
-<% menus.select(&:show?).each do |menu| %>
+<% visible_menus(menus).each do |menu| %>
   <% if menu.menus.any? %>
     <%= render 'shared/submenu', menu: %>
   <% else %>

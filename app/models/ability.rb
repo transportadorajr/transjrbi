@@ -14,7 +14,9 @@ class Ability
     can :deactivate, User, tenant_id: user.tenant_id
     cannot :deactivate, User, user_type: 'owner'
     cannot :deactivate, User, id: user.id
-    can :confirm, User, tenant_id: user.tenant_id, confirmed_at: nil if user.owner?
+    return unless user.owner?
+
+    can :confirm, User, tenant_id: user.tenant_id, confirmed_at: nil
     resource_privileges
   end
 

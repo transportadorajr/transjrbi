@@ -4,10 +4,12 @@ shared:
       icon: graph-up-arrow
       menus:
         - name: freight_billing
+          resource: freight_billing
           url: /freight_billing
           controllers:
             - freight_billings
         - name: trips
+          resource: trips
           url: /trips
           feature: trips_dashboard
           controllers:
@@ -16,14 +18,17 @@ shared:
       icon: receipt
       menus:
         - name: transport_documents
+          resource: transport_documents
           url: /transport_documents
           controllers:
             - transport_documents
         - name: manifests
+          resource: manifests
           url: /manifests
           controllers:
             - manifests
         - name: route_distances
+          resource: route_distances
           url: /route_distances
           controllers:
             - route_distances
@@ -31,67 +36,84 @@ shared:
       icon: card-list
       menus:
         - name: customers
+          resource: customers
           url: /customers
           controllers:
             - customers
         - name: customer_groups
+          resource: customer_groups
           url: /customer_groups
           controllers:
             - customer_groups
         - name: product_groups
+          resource: product_groups
           url: /product_groups
           controllers:
             - product_groups
         - name: macro_regions
+          resource: macro_regions
           url: /macro_regions
           controllers:
             - macro_regions
         - name: cities
+          resource: cities
           url: /cities
           controllers:
             - cities
         - name: truck_groups
+          resource: truck_groups
           url: /truck_groups
           controllers:
             - truck_groups
         - name: excluded_issuers
+          resource: excluded_issuers
           url: /excluded_issuers
           controllers:
             - excluded_issuers
         - name: drivers
+          resource: drivers
           url: /drivers
           controllers:
             - drivers
         - name: vehicles
+          resource: vehicles
           url: /vehicles
           controllers:
             - vehicles
         - name: expenses
+          resource: expenses
           url: /expenses
           controllers:
             - expenses
         - name: commission_rules
+          resource: commission_rules
           url: /commission_rules
           controllers:
             - commission_rules
         - name: tonnage_rates
+          resource: tonnage_rates
           url: /tonnage_rates
           controllers:
             - tonnage_rates
         - name: insurance_rates
+          resource: insurance_rates
           url: /insurance_rate
           controllers:
             - insurance_rates
         - name: freight_expenses
+          resource: freight_expenses
           url: /freight_expenses
           controllers:
             - freight_expenses
     - name: company
+      resource: company
       icon: buildings
       url: /company
       controllers:
         - companies
     - name: users
+      resource: User
+      action: create
       icon: people
       url: /users
       controllers:
