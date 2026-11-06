@@ -5,7 +5,10 @@ module Atua
     PREVIOUS_ATTRIBUTES = %i[attachment_at].freeze
 
     def call
-      super.tap { DiscardExcludedPlatesCommand.call(tenant) }
+      super.tap do
+        DiscardExcludedPlatesCommand.call(tenant)
+        DiscardTarpLiningExpensesCommand.call(tenant)
+      end
     end
   end
 end

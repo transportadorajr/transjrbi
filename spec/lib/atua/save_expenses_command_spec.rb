@@ -16,6 +16,20 @@ RSpec.describe Atua::SaveExpensesCommand do
     end
   end
 
+  context 'when a R$ 55,00 tarp lining was paid to Régio' do
+    let!(:regio) { create(:customer_group, tenant:, name: 'RÉGIO', terms: ['MOINHO REGIO']) }
+    let!(:cuiaba) { create(:atua_customer, tenant:, code: 7684, name: 'MOINHO REGIO ALIMENTOS S/A - CUIABA', customer_group: regio) }
+    let!(:lining) do
+      create(:atua_expense, tenant:, code: 1, posted_on: Date.new(2026, 9, 30), payee_code: 7684, history_code: 72, total_cents: 5_500)
+    end
+
+    it 'discards it after saving the report' do
+      described_class.call(import, spreadsheet)
+
+      expect(lining.reload.removed_from_atua_at).to be_present
+    end
+  end
+
   it 'is the save command of the expenses report' do
     expect(Atua::SaveReportCommand.for(:expenses)).to eq(described_class)
   end
