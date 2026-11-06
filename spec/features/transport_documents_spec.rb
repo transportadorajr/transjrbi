@@ -973,5 +973,15 @@ describe 'Transport documents' do
       end_top = page.evaluate_script("document.getElementById('end_date').getBoundingClientRect().top")
       expect(end_top).to be > start_top
     end
+
+    scenario 'moves to the end date as soon as the start date is filled in' do
+      visit transport_documents_path
+      find(:link, href: '#filtersModal').click
+
+      within('#filtersModal') { fill_in 'Lançados a partir de', with: Date.new(2026, 10, 1) }
+
+      expect(page.evaluate_script('document.activeElement.id')).to eq('end_date')
+      expect(find_field('Lançados até')[:min]).to eq('2026-10-01')
+    end
   end
 end
