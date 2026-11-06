@@ -27,6 +27,13 @@ ENV RAILS_ENV="production" \
     BUNDLE_WITHOUT="development" \
     LD_PRELOAD="/usr/local/lib/libjemalloc.so"
 
+FROM rust:1.97-slim-bookworm AS typst-builder
+
+WORKDIR /build
+COPY rust_typst_pdf/Cargo.toml rust_typst_pdf/Cargo.lock ./
+COPY rust_typst_pdf/src ./src
+RUN cargo build --release --locked
+
 # Throw-away build stage to reduce size of final image
 FROM base AS build
 
@@ -78,6 +85,7 @@ USER 1000:1000
 # Copy built artifacts: gems, application
 COPY --chown=rails:rails --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --chown=rails:rails --from=build /rails /rails
+COPY --chown=rails:rails --from=typst-builder /build/target/release/rust_typst_pdf /rails/bin/rust_typst_pdf
 
 ARG APP_VERSION=dev
 ENV APP_VERSION=$APP_VERSION

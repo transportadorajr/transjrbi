@@ -59,6 +59,19 @@ module RouteDistancesHelper
     t("helpers.submit.route_distance.#{route_distance_form.persisted? ? 'update' : 'create'}")
   end
 
+  def route_distances_pdf_report(route_distances)
+    PdfReport.new(
+      title: t('route_distances.index.pdf.header'),
+      columns: [pdf_column(RouteDistance.human_attribute_name(:customer), '2fr'), pdf_column(RouteDistance.human_attribute_name(:route), '3fr'),
+                pdf_column(RouteDistance.human_attribute_name(:distance_km), align: :right),
+                pdf_column(RouteDistance.human_attribute_name(:documents_count), align: :right)],
+      rows: route_distances.map do |route_distance|
+        [route_distance_customer(route_distance), route_distance_route(route_distance), route_distance_km(route_distance.distance_km),
+         route_distance.documents_count]
+      end,
+    )
+  end
+
   private
 
   def route_distance_edit_menu(route_distance)

@@ -148,6 +148,34 @@ module ManifestsHelper
     expense_amount(item.amount, credit: item.kind == :complement_credit)
   end
 
+  def manifests_pdf_report(manifests)
+    PdfReport.new(title: t('manifests.index.pdf.header'), columns: manifests_pdf_columns, rows: manifests.map { |manifest| manifest_pdf_row(manifest) })
+  end
+
+  def manifests_pdf_columns
+    columns = [pdf_column(Atua::Manifest.human_attribute_name(:mdfe)), pdf_column(Atua::Manifest.human_attribute_name(:branch_name), '1.5fr'),
+               pdf_column(Atua::Manifest.human_attribute_name(:plate)), pdf_column(Atua::Manifest.human_attribute_name(:driver), '1.5fr'),
+               pdf_column(Atua::Manifest.human_attribute_name(:origin), '1.5fr'), pdf_column(Atua::Manifest.human_attribute_name(:destination), '1.5fr'),
+               pdf_column(Atua::Manifest.human_attribute_name(:weight_kg), align: :right),
+               pdf_column(Atua::Manifest.human_attribute_name(:customer_group), '1.5fr'),
+               pdf_column(Atua::Manifest.human_attribute_name(:loaded_km), align: :right),
+               pdf_column(Atua::Manifest.human_attribute_name(:documents_total), align: :right),
+               pdf_column(Atua::Manifest.human_attribute_name(:gross_per_km), align: :right)]
+    columns << pdf_column(Atua::Manifest.human_attribute_name(:net_per_km), align: :right) if can?(:read, :freight_expenses)
+
+    columns
+  end
+
+  def manifest_pdf_row(manifest)
+    row = [manifest.number, tax_value(manifest.branch_name), tax_value(manifest.plate), manifest_names(manifest.drivers),
+           manifest_cities(manifest.origins), manifest_cities(manifest.destinations), tax_decimal(manifest.weight_kg),
+           manifest_names(manifest.customer_groups), manifest_km(manifest.loaded_km), freight_money(manifest.gross_cents),
+           freight_money(manifest.gross_per_km_cents)]
+    row << freight_money(manifest.net_per_km_cents) if can?(:read, :freight_expenses)
+
+    row
+  end
+
   private
 
   def manifest_complement_name(kind, transport_document)

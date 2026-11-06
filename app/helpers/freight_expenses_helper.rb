@@ -129,6 +129,26 @@ module FreightExpensesHelper
     safe_join(rows)
   end
 
+  def freight_expenses_pdf_report(freight_expenses, amount_total)
+    PdfReport.new(
+      title: t('freight_expenses.index.pdf.header'),
+      columns: freight_expenses_pdf_columns,
+      rows: freight_expenses.map do |freight_expense|
+        [freight_expense_transport_document(freight_expense.transport_document), tax_time(freight_expense.transport_document.issued_at),
+         tax_value(freight_expense.transport_document.taker_name), freight_expense.kind_type_name, freight_expense_detail(freight_expense),
+         freight_expense_base(freight_expense), freight_expense_rate(freight_expense), tax_money(freight_expense.amount)]
+      end,
+      totals: [t('freight_expenses.index.pdf.total'), '', '', '', '', '', '', tax_money(amount_total)],
+    )
+  end
+
+  def freight_expenses_pdf_columns
+    [pdf_column(FreightExpense.human_attribute_name(:transport_document)), pdf_column(Atua::TransportDocument.human_attribute_name(:issued_at)),
+     pdf_column(Atua::TransportDocument.human_attribute_name(:taker), '2fr'), pdf_column(FreightExpense.human_attribute_name(:kind_type), '1.5fr'),
+     pdf_column(FreightExpense.human_attribute_name(:detail), '2fr'), pdf_column(FreightExpense.human_attribute_name(:base), align: :right),
+     pdf_column(FreightExpense.human_attribute_name(:rate), align: :right), pdf_column(FreightExpense.human_attribute_name(:amount), align: :right)]
+  end
+
   private
 
   def net_freight_row(name, amount, color)

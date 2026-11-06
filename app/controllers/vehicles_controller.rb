@@ -8,10 +8,12 @@ class VehiclesController < BaseController
 
     vehicles = current_tenant.atua_vehicles.active.with_transport_documents_in(Time.current.all_year)
 
-    @vehicles = apply_sort(apply_scopes(vehicles), :plate, :id).page(params[:page])
+    @vehicles = listing_page(apply_sort(apply_scopes(vehicles), :plate, :id))
     @categories = vehicles.where.not(category: nil).distinct.order(:category).pluck(:category)
     @ownerships = vehicles.where.not(ownership: nil).distinct.order(:ownership).pluck(:ownership)
     @year = Date.current.year
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def show

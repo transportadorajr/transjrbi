@@ -59,6 +59,20 @@ module VehiclesHelper
     link_to label, transport_document_path(expense.cost_object), class: 'fw-semibold text-decoration-none'
   end
 
+  def vehicles_pdf_report(vehicles, year)
+    PdfReport.new(
+      title: t('vehicles.index.pdf.header'),
+      subtitle: t('vehicles.index.subtitle', year:),
+      columns: [pdf_column(Atua::Vehicle.human_attribute_name(:plate)), pdf_column(Atua::Vehicle.human_attribute_name(:description), '2fr'),
+                pdf_column(Atua::Vehicle.human_attribute_name(:category), '1.5fr'), pdf_column(Atua::Vehicle.human_attribute_name(:years)),
+                pdf_column(Atua::Vehicle.human_attribute_name(:ownership), '1.5fr'), pdf_column(Atua::Vehicle.human_attribute_name(:driver_name), '2fr')],
+      rows: vehicles.map do |vehicle|
+        [tax_value(vehicle.plate), vehicle_description(vehicle), tax_value(vehicle.category), vehicle_years(vehicle), tax_value(vehicle.ownership),
+         tax_value(vehicle.driver_name)]
+      end,
+    )
+  end
+
   private
 
   def vehicle_show_menu(vehicle)

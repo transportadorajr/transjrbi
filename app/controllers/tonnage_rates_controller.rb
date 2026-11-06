@@ -12,12 +12,13 @@ class TonnageRatesController < BaseController
     tonnage_rates = current_tenant.tonnage_rates.for_listing(params[:valid_month])
     counted_tonnage_rates = apply_scopes(tonnage_rates, params.except(:status))
 
-    @tonnage_rates = apply_sort(apply_scopes(tonnage_rates).preload(:customer_group), valid_month: :desc, name: :asc, origin_city: :asc, id: :asc)
-      .page(params[:page])
+    @tonnage_rates = listing_page(apply_sort(apply_scopes(tonnage_rates).preload(:customer_group), valid_month: :desc, name: :asc, origin_city: :asc, id: :asc))
     @customer_groups = current_tenant.customer_groups.where(id: current_tenant.tonnage_rates.select(:customer_group_id)).order(:name)
     @total_count = counted_tonnage_rates.count
     @active_count = counted_tonnage_rates.activated.count
     @deactivated_count = counted_tonnage_rates.not_activated.count
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def show

@@ -130,6 +130,31 @@ module TransportDocumentsHelper
     link_to manifest.number, manifest_path(manifest), class: 'fw-semibold text-decoration-none'
   end
 
+  def transport_documents_pdf_report(transport_documents)
+    PdfReport.new(title: t('transport_documents.index.pdf.header'), columns: transport_documents_pdf_columns,
+                  rows: transport_documents.map { |transport_document| transport_document_pdf_row(transport_document) })
+  end
+
+  def transport_documents_pdf_columns
+    columns = [pdf_column(Atua::TransportDocument.human_attribute_name(:number)), pdf_column(Atua::TransportDocument.human_attribute_name(:sender), '2fr'),
+               pdf_column(Atua::TransportDocument.human_attribute_name(:posted_on)), pdf_column(Atua::TransportDocument.human_attribute_name(:route), '2.5fr'),
+               pdf_column(Atua::TransportDocument.human_attribute_name(:plate)), pdf_column(Atua::TransportDocument.human_attribute_name(:customer_group), '2fr'),
+               pdf_column(Atua::TransportDocument.human_attribute_name(:driver_name), '2fr'),
+               pdf_column(Atua::TransportDocument.human_attribute_name(:gross), align: :right)]
+    columns << pdf_column(Atua::TransportDocument.human_attribute_name(:net), align: :right) if can?(:read, :freight_expenses)
+
+    columns
+  end
+
+  def transport_document_pdf_row(transport_document)
+    row = [transport_document.number, tax_value(transport_document.sender_name), tax_date(transport_document.posted_on),
+           transport_document_route(transport_document), tax_value(transport_document.plate), tax_value(transport_document.customer_group_name),
+           tax_value(transport_document.driver_name), tax_money(transport_document.freight)]
+    row << freight_money(transport_document.net_cents) if can?(:read, :freight_expenses)
+
+    row
+  end
+
   private
 
   def transport_document_show_menu(transport_document)

@@ -1,5 +1,6 @@
 class BaseController < ApplicationController
   include Sorting
+  include PdfListing
 
   before_action :require_signed_in_user
   before_action :require_password_change

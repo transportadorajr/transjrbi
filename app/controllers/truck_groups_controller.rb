@@ -10,10 +10,12 @@ class TruckGroupsController < BaseController
     truck_groups = current_tenant.truck_groups
     counted_truck_groups = apply_scopes(truck_groups, params.except(:status))
 
-    @truck_groups = apply_sort(apply_scopes(truck_groups), :name, :id).page(params[:page])
+    @truck_groups = listing_page(apply_sort(apply_scopes(truck_groups), :name, :id))
     @total_count = counted_truck_groups.count
     @active_count = counted_truck_groups.activated.count
     @deactivated_count = counted_truck_groups.not_activated.count
+
+    respond_with_listing
   end
 
   def show

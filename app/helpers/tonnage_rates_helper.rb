@@ -75,6 +75,20 @@ module TonnageRatesHelper
     end
   end
 
+  def tonnage_rates_pdf_report(tonnage_rates)
+    PdfReport.new(
+      title: t('tonnage_rates.index.pdf.header'),
+      columns: [pdf_column(TonnageRate.human_attribute_name(:origin), '2fr'), pdf_column(TonnageRate.human_attribute_name(:name), '2fr'),
+                pdf_column(TonnageRate.human_attribute_name(:customer_group), '2fr'), pdf_column(TonnageRate.human_attribute_name(:valid_month)),
+                pdf_column(TonnageRate.human_attribute_name(:reference_month)), pdf_column(TonnageRate.human_attribute_name(:rate), align: :right),
+                pdf_column(TonnageRate.human_attribute_name(:status))],
+      rows: tonnage_rates.map do |tonnage_rate|
+        [tonnage_rate_origin(tonnage_rate), tonnage_rate.name, tonnage_rate.customer_group.name, tonnage_rate_month(tonnage_rate.valid_month),
+         tonnage_rate_month(tonnage_rate.reference_month), tonnage_rate_per_ton(tonnage_rate.rate), tonnage_rate_status_badge(tonnage_rate)]
+      end,
+    )
+  end
+
   private
 
   def tonnage_origin_label(origin)

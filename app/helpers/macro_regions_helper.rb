@@ -46,6 +46,15 @@ module MacroRegionsHelper
     end
   end
 
+  def macro_regions_pdf_report(macro_regions)
+    PdfReport.new(
+      title: t('macro_regions.index.pdf.header'),
+      columns: [pdf_column(MacroRegion.human_attribute_name(:name), '2fr'), pdf_column(MacroRegion.human_attribute_name(:state)),
+                pdf_column(MacroRegion.human_attribute_name(:coverage), '3fr')],
+      rows: macro_regions.map { |macro_region| [macro_region.name, macro_region.state, macro_region_coverage(macro_region)] },
+    )
+  end
+
   private
 
   def macro_region_city_options(macro_region_form)

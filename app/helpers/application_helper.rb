@@ -18,6 +18,15 @@ module ApplicationHelper
     safe_join([content_tag(:h2, title, class: 'auth-title'), (content_tag(:p, subtitle, class: 'auth-subtitle') if subtitle.present?)])
   end
 
+  def pdf_export_button
+    path = url_for(request.query_parameters.symbolize_keys.except(:page).merge(format: :pdf))
+
+    link_to path, class: 'btn btn-outline-danger btn-round', target: '_blank', rel: 'noopener', title: t('shared.export_pdf') do
+      concat icon(:'file-earmark-pdf', class: 'me-md-2')
+      concat content_tag(:span, t('shared.export_pdf'), class: 'd-none d-md-inline')
+    end
+  end
+
   def create_button(title, path = new_record_path, **)
     link_to path, class: 'btn btn-primary btn-primary-action btn-round', ** do
       concat icon(:'plus-circle', class: 'me-2')
@@ -84,6 +93,10 @@ module ApplicationHelper
   def auto_refresh_data(data = {})
     data.merge(controller: [data[:controller], 'auto-refresh'].compact.join(' '),
                auto_refresh_interval_value: AUTO_REFRESH_INTERVAL.in_milliseconds)
+  end
+
+  def typst_currency(amount)
+    number_to_currency(amount || 0).gsub('$', '\$')
   end
 
   private

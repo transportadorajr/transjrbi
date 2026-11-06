@@ -1,0 +1,24 @@
+<%# locals: (report:, page_orientation:) %>
+<%= typst_page_setup(orientation: page_orientation) %>
+
+#set text(size: 9pt)
+
+#align(center)[
+  #text(16pt, weight: "bold", fill: rgb("<%= TypstHelper::TYPST_HEADER_FILL %>"), <%= typst_text(report.title) %>)
+]
+
+<%= typst_subtitle(report.subtitle) %>
+
+#v(0.3em)
+
+<%= typst_highlights(report.highlights) %>
+
+<%= typst_listing_body(report) %>
+
+#v(0.5em)
+
+#grid(
+  columns: (1fr, 1fr),
+  align(left, text(9pt, <%= typst_records_count(report) %>)),
+  align(right, text(9pt, style: "italic", <%= typst_generated_at %>)),
+)

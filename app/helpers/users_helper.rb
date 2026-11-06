@@ -114,6 +114,15 @@ module UsersHelper
     access_flag_tag(:'x-circle', 'text-danger', t('users.permissions.denied'))
   end
 
+  def users_pdf_report(users)
+    PdfReport.new(
+      title: t('users.index.pdf.header'),
+      columns: [pdf_column(User.human_attribute_name(:name), '2fr'), pdf_column(User.human_attribute_name(:email), '2fr'),
+                pdf_column(User.human_attribute_name(:phone)), pdf_column(User.human_attribute_name(:user_type)), pdf_column(User.human_attribute_name(:status))],
+      rows: users.map { |user| [user.name, user.email, user_phone(user), user_type_badge(user), user_status_badge(user)] },
+    )
+  end
+
   private
 
   def access_flag_tag(icon_name, color_class, label)

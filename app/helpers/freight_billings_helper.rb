@@ -181,6 +181,41 @@ module FreightBillingsHelper
     end
   end
 
+  def freight_billing_pdf_report(dashboard, rows, filter_form)
+    PdfReport.new(
+      title: t('freight_billings.show.pdf.header'),
+      subtitle: t('freight_billings.show.pdf.subtitle', table: freight_billing_table_title(dashboard), period: freight_billing_period_label(filter_form)),
+      highlights: freight_billing_pdf_highlights(dashboard),
+      columns: freight_billing_pdf_columns(dashboard),
+      rows: rows.map { |row| freight_billing_pdf_row(row, dashboard) },
+      totals: (freight_billing_pdf_row(dashboard.total, dashboard) unless dashboard.empty?),
+    )
+  end
+
+  def freight_billing_pdf_columns(dashboard)
+    [pdf_column(freight_billing_dimension_label(dashboard.dimension), '3fr'),
+     *%i[trips loaded_km gross net toll_total gross_per_km net_per_km share].map do |column|
+       pdf_column(t(column, scope: 'freight_billings.columns'), align: :right)
+     end]
+  end
+
+  def freight_billing_pdf_row(row, dashboard)
+    [freight_billing_row_label(row, dashboard), freight_billing_trips(row.trips_count), freight_billing_km(row.loaded_km), tax_money(row.gross),
+     tax_money(row.net), tax_money(row.toll_total), tax_money(row.gross_per_km), tax_money(row.net_per_km), freight_billing_share(row.share)]
+  end
+
+  def freight_billing_pdf_highlights(dashboard)
+    total = dashboard.total
+
+    [pdf_highlight(t('freight_billings.show.gross'), tax_money(dashboard.gross)), pdf_highlight(t('freight_billings.show.net'), tax_money(dashboard.net)),
+     pdf_highlight(t('freight_billings.show.trips'), freight_billing_trips(total.trips_count)),
+     pdf_highlight(t('freight_billings.show.gross_per_km'), tax_money(total.gross_per_km)),
+     pdf_highlight(t('freight_billings.show.net_per_km'), tax_money(total.net_per_km)),
+     pdf_highlight(t('freight_billings.show.loaded_km'), freight_billing_km(total.loaded_km)),
+     pdf_highlight(t('freight_billings.show.empty_km'), freight_billing_km(total.empty_km)),
+     pdf_highlight(t('freight_billings.show.empty_share'), freight_billing_percentage(total.empty_share))]
+  end
+
   private
 
   def freight_billing_detail_tolls(row)

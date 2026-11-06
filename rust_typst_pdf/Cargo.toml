@@ -1,0 +1,11 @@
+[package]
+name = "rust_typst_pdf"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+time = { version = "0.3.55", features = ["local-offset"] }
+typst = "0.15.1"
+typst-assets = { version = "0.15.1", features = ["fonts"] }
+typst-layout = "0.15.1"
+typst-pdf = "0.15.1"

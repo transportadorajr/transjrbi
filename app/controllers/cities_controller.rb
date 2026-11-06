@@ -8,9 +8,11 @@ class CitiesController < BaseController
   def index
     authorize!(:read, :cities)
 
-    @cities = apply_sort(apply_scopes(current_tenant.cities.preload(:macro_region)), :state, :name, :id).page(params[:page])
+    @cities = listing_page(apply_sort(apply_scopes(current_tenant.cities.preload(:macro_region)), :state, :name, :id))
     @macro_regions = current_tenant.macro_regions.order(:state, :name)
     @unassigned_origins = MacroRegion.unassigned_origins(current_tenant)
+
+    respond_with_listing
   end
 
   def show

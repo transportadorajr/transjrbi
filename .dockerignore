@@ -45,3 +45,6 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+
+/bin/rust_typst_pdf
+/rust_typst_pdf/target

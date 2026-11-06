@@ -16,8 +16,10 @@ class TripsController < BaseController
 
     load_filter_options
     @dashboard = Dashboard::Trip.new(manifests, dimension: @filter_form.dimension, period: @filter_form.period)
-    @rows = Kaminari.paginate_array(@dashboard.sorted_rows(params[:sort], params[:direction])).page(params[:page])
+    @rows = listing_page(@dashboard.sorted_rows(params[:sort], params[:direction]))
     @highlights = @dashboard.highlights(params[:sort])
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def product_options

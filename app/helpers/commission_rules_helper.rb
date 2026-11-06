@@ -53,6 +53,19 @@ module CommissionRulesHelper
     end
   end
 
+  def commission_rules_pdf_report(commission_rules)
+    PdfReport.new(
+      title: t('commission_rules.index.pdf.header'),
+      columns: [pdf_column(CommissionRule.human_attribute_name(:name), '2fr'), pdf_column(CommissionRule.human_attribute_name(:customer_group), '2fr'),
+                pdf_column(CommissionRule.human_attribute_name(:destination_type), '1fr'), pdf_column(CommissionRule.human_attribute_name(:base_type), '1fr'),
+                pdf_column(CommissionRule.human_attribute_name(:percentage), align: :right), pdf_column(CommissionRule.human_attribute_name(:status))],
+      rows: commission_rules.map do |commission_rule|
+        [commission_rule.name, commission_rule.customer_group.name, commission_rule.destination_type_name, commission_rule.base_type_name,
+         commission_percentage(commission_rule.percentage), commission_rule_status_badge(commission_rule)]
+      end,
+    )
+  end
+
   private
 
   def commission_rule_show_menu(commission_rule)

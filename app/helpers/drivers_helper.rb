@@ -46,6 +46,19 @@ module DriversHelper
     link_to transport_document.number, transport_document_path(transport_document), class: 'fw-semibold text-decoration-none'
   end
 
+  def drivers_pdf_report(drivers)
+    PdfReport.new(
+      title: t('drivers.index.pdf.header'),
+      columns: [pdf_column(Atua::Vehicle.human_attribute_name(:driver_name), '2fr'), pdf_column(Atua::Vehicle.human_attribute_name(:driver_code)),
+                pdf_column(Atua::Vehicle.human_attribute_name(:display_name), '2fr'), pdf_column(Atua::Vehicle.human_attribute_name(:driver_document)),
+                pdf_column(Atua::Vehicle.human_attribute_name(:driver_license)), pdf_column(Atua::Vehicle.human_attribute_name(:plates), '2fr')],
+      rows: drivers.map do |driver|
+        [tax_value(driver.driver_name), driver.driver_code, tax_value(driver.display_name), tax_value(driver.driver_document),
+         tax_value(driver.driver_license), tax_value(driver.plates)]
+      end,
+    )
+  end
+
   private
 
   def driver_show_menu(driver)

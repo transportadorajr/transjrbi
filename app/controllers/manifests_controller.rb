@@ -19,8 +19,9 @@ class ManifestsController < BaseController
     manifests = Atua::Manifest.with_trip_totals(by_truck_group(apply_scopes(current_tenant.atua_manifests.active.not_canceled.with_transport_documents)))
       .preload(route_documents: { transport_document: { taker: :customer_group } })
 
-    @manifests = apply_sort(manifests, Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc, except: manifest_sort_exceptions)
-      .page(params[:page])
+    @manifests = listing_page(apply_sort(manifests, Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc, except: manifest_sort_exceptions))
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def customer_options
