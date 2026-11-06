@@ -585,7 +585,7 @@ describe 'Manifests' do
               ['Seguro da carga', 'Interna', '74130', '-', 'Alíquota de seguro · R$ 10.000,00 · 0,022%', 'R$ 2,20'],
               ['Comissão', 'Interna', '74131', '-', 'Nacional · R$ 1.000,00 · 2,00%', 'R$ 60,00'],
               ['Custo por tonelada', 'Interna', '74131', '-', 'Brasiltec – Cubatão/SP (Cubatão) · 32,500 t · R$ 12,57/t', 'R$ 408,53'],
-              ['Vale-pedágio', 'Pedágio', '74131', '-', '-', 'R$ 150,00'],
+              ['Pedágio no frete', 'Pedágio', '74131', '-', '-', 'R$ 150,00'],
               ['DESCARGA - CHAPA', 'Atua', '74131', '03/10/2026', '-', 'R$ 350,00'],
             ],
           )

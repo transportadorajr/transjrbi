@@ -463,24 +463,27 @@ RSpec.describe Dashboard::Freight do
       trip(44_002, 'RVR2B22', '77002', freight_cents: 800_000, weight_freight_cents: 770_000, toll_cents: 30_000)
       trip(44_003, 'RVR3C33', '77003', freight_cents: 600_000, weight_freight_cents: 600_000, toll_cents: 40_000)
       trip(44_004, 'RVR4D44', '77004', freight_cents: 400_000, weight_freight_cents: 400_000, toll_cents: 0)
+      trip(44_005, 'RVR5E55', '77005', freight_cents: 300_000, weight_freight_cents: 300_000, toll_cents: 0)
       voucher('77001', 58_500)
       voucher('77001', 10_000, canceled_on: Date.new(2026, 10, 10))
       voucher('77001', 20_000, removed_from_atua_at: Time.current)
       voucher('77003', 40_000)
       voucher('77004', 12_000)
+      voucher('77005', 17_619, charged_toll_cents: 4_770, raw_data: { 'id_pedagio_empresa' => 1.0 })
     end
 
-    it 'discounts the voucher, or the toll inside the freight without a voucher, and nothing of a toll outside the freight' do
-      expect(Atua::TransportDocument.count).to eq(4)
-      expect(Atua::TollVoucher.count).to eq(5)
+    it 'discounts the toll inside the freight ahead of the vouchers, then the company toll of an included voucher, then the driver toll, and nothing of a toll outside the freight' do
+      expect(Atua::TransportDocument.count).to eq(5)
+      expect(Atua::TollVoucher.count).to eq(6)
       expect(dashboard.rows.map { |row| [row.label, row.toll.cents, row.net.cents] }).to eq(
-        [['RVR1A11', 58_500, 941_500], ['RVR2B22', 30_000, 770_000], ['RVR3C33', 0, 600_000], ['RVR4D44', 12_000, 388_000]],
+        [['RVR1A11', 30_000, 970_000], ['RVR2B22', 30_000, 770_000], ['RVR3C33', 0, 600_000], ['RVR4D44', 12_000, 388_000],
+         ['RVR5E55', 4_770, 295_230]],
       )
-      expect(dashboard.rows.map { |row| row.undiscounted_toll.cents }).to eq([0, 0, 40_000, 0])
-      expect(dashboard.total.toll_total).to eq(Money.from_cents(140_500))
-      expect(dashboard.total).to have_attributes(gross: Money.from_cents(2_800_000), toll: Money.from_cents(100_500), net: Money.from_cents(2_699_500))
-      expect(dashboard.net).to eq(Money.from_cents(2_699_500))
-      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(26_995.0)
+      expect(dashboard.rows.map { |row| row.undiscounted_toll.cents }).to eq([0, 0, 40_000, 0, 0])
+      expect(dashboard.total.toll_total).to eq(Money.from_cents(116_770))
+      expect(dashboard.total).to have_attributes(gross: Money.from_cents(3_100_000), toll: Money.from_cents(76_770), net: Money.from_cents(3_023_230))
+      expect(dashboard.net).to eq(Money.from_cents(3_023_230))
+      expect(dashboard.monthly_data.last[:data]['Out/2026']).to eq(30_232.3)
     end
   end
 

@@ -109,7 +109,7 @@ module ManifestsHelper
     when :expense then expense_link(item.record)
     when :complement_credit then manifest_complement_name(:complement_credit, item.record)
     when :complement_transfer then manifest_complement_name(:complement_transfer, item.record.complemented_transport_document)
-    when :toll then t(item.record.toll_voucher_paid.positive? ? 'toll_voucher' : 'toll_in_freight', scope: 'manifests.expenses')
+    when :toll then t(item.record.toll_cents.to_i.positive? ? 'toll_in_freight' : 'toll_voucher', scope: 'manifests.expenses')
     else item.record.kind_type_name
     end
   end

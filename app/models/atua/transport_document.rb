@@ -221,11 +221,10 @@ module Atua
       end
 
       def discounted_toll
-        vouchers = Arel::Nodes::NamedFunction.new('NULLIF', [Arel::Nodes::Grouping.new(toll_vouchers_total.arel), Arel::Nodes.build_quoted(0)])
-
         Arel::Nodes::Case.new
           .when(toll_outside_freight).then(0)
-          .else(Arel::Nodes::NamedFunction.new('COALESCE', [vouchers, zero_if_null(:toll_cents)]))
+          .when(zero_if_null(:toll_cents).gt(0)).then(arel_table[:toll_cents])
+          .else(Arel::Nodes::Grouping.new(toll_vouchers_total.arel))
       end
 
       def undiscounted_toll
@@ -239,7 +238,7 @@ module Atua
           .where(vouchers[:tenant_id].eq(arel_table[:tenant_id]))
           .where(vouchers[:transport_document_number].eq(arel_table[:number]))
           .where(vouchers[:branch_code].eq(arel_table[:branch_code]))
-          .select(sum_or_zero(vouchers[:toll_cents]))
+          .select(sum_or_zero(TollVoucher.discounted_toll))
       end
 
       def taker_names_by_code

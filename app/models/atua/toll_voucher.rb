@@ -2,6 +2,8 @@ module Atua
   class TollVoucher < ApplicationRecord
     include Importable
 
+    TOLL_INCLUDED_IN_FREIGHT = 1
+
     belongs_to :transport_document, class_name: 'Atua::TransportDocument', foreign_key: %i[tenant_id transport_document_number branch_code],
                                     primary_key: %i[tenant_id number branch_code], optional: true, inverse_of: :toll_vouchers
 
@@ -12,6 +14,22 @@ module Atua
 
     scope :by_period, ->(start_date, end_date) { where(issued_on: date_range(start_date, end_date)) }
     scope :not_canceled, -> { where(canceled_on: nil) }
+
+    class << self
+      def discounted_toll
+        Arel::Nodes::Case.new
+          .when(included_in_freight.and(arel_table[:charged_toll_cents].gt(0))).then(arel_table[:charged_toll_cents])
+          .else(Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:toll_cents], Arel::Nodes.build_quoted(0)]))
+      end
+
+      private
+
+      def included_in_freight
+        company_toll_kind = Arel::Nodes::InfixOperation.new('->', arel_table[:raw_data], Arel::Nodes.build_quoted('id_pedagio_empresa'))
+
+        company_toll_kind.eq(Arel::Nodes::NamedFunction.new('TO_JSONB', [Arel::Nodes.build_quoted(TOLL_INCLUDED_IN_FREIGHT)]))
+      end
+    end
   end
 end
 
