@@ -260,6 +260,7 @@ pt-BR:
         customer: Cliente
         customer_group: Grupo de clientes
         loaded_km: KM rodado
+        documents_total: Total dos CT-es
         gross_per_km: Bruto/km
         net_per_km: Líquido/km
       atua/manifest_document:

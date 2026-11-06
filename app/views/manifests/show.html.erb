@@ -38,6 +38,9 @@
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:loaded_km) %></dt>
         <dd class="col-12 col-md-9"><%= manifest_km(@manifest.loaded_km) %></dd>
 
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:documents_total) %></dt>
+        <dd class="col-12 col-md-9"><%= freight_money(@manifest.gross_cents) %></dd>
+
         <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:gross_per_km) %></dt>
         <dd class="col-12 col-md-9"><%= freight_money(@manifest.gross_per_km_cents) %></dd>
 
