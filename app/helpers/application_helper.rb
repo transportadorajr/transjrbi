@@ -1,6 +1,7 @@
 module ApplicationHelper
   COUNTER_ICONS = { dark: 'grid', success: 'check-circle', danger: 'x-circle', warning: 'exclamation-circle', primary: 'bar-chart' }.freeze
   NON_FILTER_PARAMS = %w[page sort direction].freeze
+  AUTO_REFRESH_INTERVAL = 5.minutes
 
   def icon(name, options = {})
     tag.i(**options, class: ['bi', "bi-#{name}", options[:class]], aria: { hidden: true })
@@ -78,6 +79,11 @@ module ApplicationHelper
 
   def status_badge(status, kind: :success)
     content_tag :span, status, class: "badge bg-#{kind}-subtle text-#{kind} px-3 py-2 rounded-pill"
+  end
+
+  def auto_refresh_data(data = {})
+    data.merge(controller: [data[:controller], 'auto-refresh'].compact.join(' '),
+               auto_refresh_interval_value: AUTO_REFRESH_INTERVAL.in_milliseconds)
   end
 
   private

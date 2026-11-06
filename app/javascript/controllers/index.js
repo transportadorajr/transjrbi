@@ -30,3 +30,6 @@ application.register('ranking-chart', RankingChartController);
 
 import RevealController from './reveal_controller';
 application.register('reveal', RevealController);
+
+import AutoRefreshController from './auto_refresh_controller';
+application.register('auto-refresh', AutoRefreshController);

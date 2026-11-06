@@ -1,3 +1,4 @@
+import Chartkick from 'chartkick';
 import { Chart } from 'chart.js';
 import { toFont } from 'chart.js/helpers';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -35,6 +36,19 @@ export function barLabelAlign(context) {
 export function barLabelColor(context) {
   return fitsInsideBar(context) ? INSIDE_LABEL_COLOR : context.dataset.backgroundColor;
 }
+
+export function destroyChartsOnRender(event) {
+  const { render } = event.detail;
+  if (!render) return;
+
+  event.detail.render = (currentElement, newElement) => {
+    Chartkick.destroyAll();
+    return render(currentElement, newElement);
+  };
+}
+
+Chartkick.config.autoDestroy = false;
+document.addEventListener('turbo:before-render', destroyChartsOnRender);
 
 Chart.register(ChartDataLabels);
 
