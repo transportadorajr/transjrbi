@@ -15,16 +15,10 @@
           <%= f.input :name, required: true, hint: t('tonnage_rates.form.name_hint'),
                              input_html: { class: 'form-control', autocomplete: 'off' } %>
         </div>
-        <div class="col-12 col-lg-5">
-          <%= f.input :origin_city, required: true, hint: t('tonnage_rates.form.origin_city_hint'),
-                                    input_html: { class: 'form-control', autocomplete: 'off' } %>
-        </div>
-        <div class="col-12 col-lg-2">
-          <%= f.input :origin_state, required: true, input_html: { class: 'form-control text-uppercase', maxlength: 2, autocomplete: 'off' } %>
-        </div>
-        <div class="col-12 col-lg-5">
-          <%= f.input :nickname, required: false, hint: t('tonnage_rates.form.nickname_hint'),
-                                 input_html: { class: 'form-control', autocomplete: 'off' } %>
+        <div class="col-12">
+          <%= f.input :origin, collection: tonnage_rate_origin_options(tonnage_rate_form), required: true,
+                               include_blank: t('helpers.select.prompt'), hint: t('tonnage_rates.form.origin_hint'),
+                               input_html: { class: 'form-select' } %>
         </div>
         <div class="col-12 col-lg-6">
           <%= f.input :valid_month, as: :string, required: true, hint: t('tonnage_rates.form.valid_month_hint'),

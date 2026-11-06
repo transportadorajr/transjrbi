@@ -3,6 +3,18 @@ class TonnageRate < ApplicationRecord
 
   WEIGHT_KG_ABOVE = 200
   OUTDATED_MONTHS = 2
+  Origin = Data.define(:nickname, :city, :state) do
+    def key
+      nickname.presence || "#{city}/#{state}"
+    end
+  end
+  ORIGINS = [
+    Origin.new(nickname: 'Cubatão', city: 'Cubatão', state: 'SP'),
+    Origin.new(nickname: 'Ipatinga', city: 'Ipatinga', state: 'MG'),
+    Origin.new(nickname: 'TESP', city: 'São Paulo', state: 'SP'),
+    Origin.new(nickname: 'TISL', city: 'Santa Luzia', state: 'MG'),
+    Origin.new(nickname: 'Utinga', city: 'Santo André', state: 'SP'),
+  ].freeze
 
   sortable :name
 
@@ -76,6 +88,10 @@ class TonnageRate < ApplicationRecord
 
   def series_key
     [customer_group_id, *self.class.origin_key(origin_city, origin_state)]
+  end
+
+  def origin
+    Origin.new(nickname:, city: origin_city, state: origin_state)
   end
 
   def reference_month

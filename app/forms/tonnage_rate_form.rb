@@ -1,18 +1,16 @@
 class TonnageRateForm < BaseForm
   attribute :customer_group_id, :integer
   attribute :name, :string
-  attribute :nickname, :string
-  attribute :origin_city, :string
-  attribute :origin_state, :string
+  attribute :origin, :string
   attribute :valid_month, :string
   attribute :rate, :string
   attribute :active, :boolean, default: true
 
   before_validation :normalize_fields
 
-  validates :customer_group_id, :name, :origin_city, :origin_state, :valid_month, presence: true
-  validates :origin_state, format: { with: /\A[A-Z]{2}\z/ }, allow_blank: true
+  validates :customer_group_id, :name, :origin, :valid_month, presence: true
   validate :customer_group_must_belong_to_tenant
+  validate :origin_must_be_listed
   validate :valid_month_must_be_a_month
   validate :rate_must_be_positive
   validate :origin_must_be_unique_in_the_month
@@ -25,8 +23,7 @@ class TonnageRateForm < BaseForm
   class << self
     def for_tonnage_rate(tonnage_rate)
       form = new(
-        customer_group_id: tonnage_rate.customer_group_id, name: tonnage_rate.name, nickname: tonnage_rate.nickname,
-        origin_city: tonnage_rate.origin_city, origin_state: tonnage_rate.origin_state,
+        customer_group_id: tonnage_rate.customer_group_id, name: tonnage_rate.name, origin: tonnage_rate.origin.key,
         valid_month: tonnage_rate.valid_month.strftime('%Y-%m'), rate: format_rate(tonnage_rate.rate_cents),
         active: tonnage_rate.activated?, tenant: tonnage_rate.tenant
       )
@@ -47,6 +44,14 @@ class TonnageRateForm < BaseForm
     tenant.customer_groups.order(:name, :id)
   end
 
+  def origins
+    persisted? ? (TonnageRate::ORIGINS + [tonnage_rate.origin]).uniq(&:key) : TonnageRate::ORIGINS
+  end
+
+  def selected_origin
+    origins.find { |item| item.key == origin }
+  end
+
   def valid_month_value
     TonnageRate.parse_month(valid_month) if valid_month.to_s.match?(/\A\d{4}-\d{2}\z/)
   end
@@ -59,8 +64,8 @@ class TonnageRateForm < BaseForm
 
   def submit
     transaction do
-      tonnage_rate.update!(customer_group_id:, name:, nickname: nickname.presence, origin_city:, origin_state:,
-                           valid_month: valid_month_value, rate_cents:, activated: active)
+      tonnage_rate.update!(customer_group_id:, name:, nickname: selected_origin.nickname.presence, origin_city: selected_origin.city,
+                           origin_state: selected_origin.state, valid_month: valid_month_value, rate_cents:, activated: active)
     end
 
     FreightExpenses::CalculateJob.perform_later(tenant.id)
@@ -70,9 +75,7 @@ class TonnageRateForm < BaseForm
 
   def normalize_fields
     self.name = name.to_s.squish
-    self.nickname = nickname.to_s.squish
-    self.origin_city = origin_city.to_s.squish
-    self.origin_state = origin_state.to_s.squish.upcase
+    self.origin = origin.to_s.strip
     self.valid_month = valid_month.to_s.strip
   end
 
@@ -80,6 +83,12 @@ class TonnageRateForm < BaseForm
     return if customer_group_id.blank? || tenant.customer_groups.exists?(customer_group_id)
 
     errors.add(:customer_group_id, :invalid)
+  end
+
+  def origin_must_be_listed
+    return if origin.blank? || selected_origin
+
+    errors.add(:origin, :inclusion)
   end
 
   def valid_month_must_be_a_month
@@ -95,12 +104,12 @@ class TonnageRateForm < BaseForm
   end
 
   def origin_must_be_unique_in_the_month
-    return unless active && valid_month_value
+    return unless active && valid_month_value && selected_origin
 
-    origin = TonnageRate.origin_key(origin_city, origin_state)
-    return if other_active_rates.where(valid_month: valid_month_value).none? { |rate| rate.series_key.drop(1) == origin }
+    key = TonnageRate.origin_key(selected_origin.city, selected_origin.state)
+    return if other_active_rates.where(valid_month: valid_month_value).none? { |rate| rate.series_key.drop(1) == key }
 
-    errors.add(:origin_city, :taken)
+    errors.add(:origin, :taken)
   end
 
   def other_active_rates

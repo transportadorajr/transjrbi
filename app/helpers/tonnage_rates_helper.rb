@@ -16,10 +16,11 @@ module TonnageRatesHelper
   end
 
   def tonnage_rate_origin(tonnage_rate)
-    city = tax_city(tonnage_rate.origin_city, tonnage_rate.origin_state)
-    return city if tonnage_rate.nickname.blank?
+    tonnage_origin_label(tonnage_rate.origin)
+  end
 
-    t('tonnage_rates.origin_with_nickname', origin: city, nickname: tonnage_rate.nickname)
+  def tonnage_rate_origin_options(tonnage_rate_form)
+    tonnage_rate_form.origins.map { |origin| [tonnage_origin_label(origin), origin.key] }
   end
 
   def tonnage_rate_label(tonnage_rate)
@@ -60,6 +61,13 @@ module TonnageRatesHelper
   end
 
   private
+
+  def tonnage_origin_label(origin)
+    city = tax_city(origin.city, origin.state)
+    return city if origin.nickname.blank?
+
+    t('tonnage_rates.origin_with_nickname', origin: city, nickname: origin.nickname)
+  end
 
   def tonnage_rate_show_menu(tonnage_rate)
     Menu.new(name: :show, record: tonnage_rate, url: tonnage_rate_path(tonnage_rate), icon: :eye)

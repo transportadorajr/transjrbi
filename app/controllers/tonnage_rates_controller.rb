@@ -83,6 +83,6 @@ class TonnageRatesController < BaseController
   end
 
   def tonnage_rate_params
-    params.expect(tonnage_rate: %i[customer_group_id name nickname origin_city origin_state valid_month rate active])
+    params.expect(tonnage_rate: %i[customer_group_id name origin valid_month rate active])
   end
 end

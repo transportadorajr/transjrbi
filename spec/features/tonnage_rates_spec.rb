@@ -123,9 +123,7 @@ describe 'Tonnage rates' do
         click_on 'Novo Custo'
         select 'USIMINAS', from: 'Grupo de clientes'
         fill_in 'Nome', with: 'Brasiltec'
-        fill_in 'Cidade de origem', with: 'São Paulo'
-        fill_in 'UF de origem', with: 'SP'
-        fill_in 'Apelido', with: 'TESP'
+        select 'São Paulo/SP (TESP)', from: 'Origem'
         fill_in 'Vigência', with: '2026-11'
         fill_in 'Valor por tonelada (R$)', with: '9,10'
 
@@ -149,6 +147,14 @@ describe 'Tonnage rates' do
         expect(page).to have_text('Grupo de clientes não pode ficar em branco')
         expect(page).to have_text('Valor por tonelada (R$) deve ser maior que 0')
       end
+
+      scenario 'offers only the registered origins, including TISL in Santa Luzia/MG' do
+        visit new_tonnage_rate_path
+
+        expect(page).to have_select('Origem', options: ['Selecione', 'Cubatão/SP (Cubatão)', 'Ipatinga/MG (Ipatinga)', 'São Paulo/SP (TESP)',
+                                                        'Santa Luzia/MG (TISL)', 'Santo André/SP (Utinga)'])
+        expect(page).to have_no_field('Cidade de origem')
+      end
     end
 
     context 'when editing a rate' do
@@ -161,6 +167,7 @@ describe 'Tonnage rates' do
         expect(page).to have_current_path(edit_tonnage_rate_path(tonnage_rate))
         expect(page).to have_field('Valor por tonelada (R$)', with: '12,57')
         expect(page).to have_field('Vigência', with: '2026-10')
+        expect(page).to have_select('Origem', selected: 'Cubatão/SP (Cubatão)')
 
         fill_in 'Valor por tonelada (R$)', with: '12,80'
         uncheck 'Ativo'

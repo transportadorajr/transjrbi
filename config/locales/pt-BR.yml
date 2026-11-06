@@ -560,9 +560,7 @@ pt-BR:
       tonnage_rate_form:
         customer_group_id: Grupo de clientes
         name: Nome
-        nickname: Apelido
-        origin_city: Cidade de origem
-        origin_state: UF de origem
+        origin: Origem
         valid_month: Vigência
         rate: Valor por tonelada (R$)
         active: Ativo
@@ -646,7 +644,8 @@ pt-BR:
               invalid: não pertence a esta empresa
             valid_month:
               invalid: não é um mês válido
-            origin_city:
+            origin:
+              inclusion: não está na lista de origens
               taken: já tem outro custo ativo deste grupo nesta vigência
         insurance_rate_form:
           attributes:
@@ -1652,8 +1651,7 @@ pt-BR:
         O custo é calculado para os CT-es cujo tomador pertence ao grupo e cuja cidade de origem é a cadastrada:
         valor por tonelada × peso do CT-e. CT-es cancelados ou sem peso ficam sem o custo.
       name_hint: 'Ex.: Brasiltec.'
-      origin_city_hint: Como aparece no CT-e (acentos, espaços e hífen são ignorados).
-      nickname_hint: 'Opcional. Ex.: Utinga, TESP.'
+      origin_hint: Cidade de origem do CT-e. Escolha a mesma origem todo mês para manter o histórico do custo.
       valid_month_hint: >-
         Mês em que o valor é usado. Cadastre no mês a média do mês anterior. Enquanto o mês não tiver valor, vale o do mês
         anterior; ao cadastrar, os CT-es do mês são recalculados.
