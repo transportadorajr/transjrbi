@@ -60,8 +60,8 @@ describe 'Manifests' do
         expect(Atua::TransportDocument.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Ações'],
-            ['40772 JR TRANSPORTES KM rodado - Bruto/km - Grupo de clientes - Origem - Destino -', 'RHJ4E07', '-', '-', '-', '-', '-', '-', '-', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
+            ['40772 JR TRANSPORTES KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Grupo de clientes - Origem - Destino -', 'RHJ4E07', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
@@ -81,8 +81,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Ações'],
-            ['40772 JR TRANSPORTES KM rodado - Bruto/km - Grupo de clientes - Origem - Destino -', 'RHJ4E07', '-', '-', '-', '-', '-', '-', '-', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
+            ['40772 JR TRANSPORTES KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Grupo de clientes - Origem - Destino -', 'RHJ4E07', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', ''],
           ],
         )
       end
@@ -100,8 +100,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Ações'],
-            ['40773 TRANSJR SABARA KM rodado - Bruto/km - Grupo de clientes - Origem - Destino -', 'EXU0F72', '-', '-', '-', '-', '-', '-', '-', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
+            ['40773 TRANSJR SABARA KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Grupo de clientes - Origem - Destino -', 'EXU0F72', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
@@ -157,9 +157,9 @@ describe 'Manifests' do
       let!(:maria_trip) do
         create(:atua_manifest, tenant:, code: 41_402, number: '40802', branch_name: 'JR', issued_on: Date.new(2026, 10, 2), plate: 'EXU0F72')
       end
-      let(:table_header) { ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Ações'] }
-      let(:jose_row) { ['40801 JR KM rodado - Bruto/km - Grupo de clientes USIMINAS Origem - Destino -', 'RHJ4E07', 'JOSE SILVA', '-', '-', '-', 'USIMINAS', '-', '-', ''] }
-      let(:maria_row) { ['40802 JR KM rodado - Bruto/km - Grupo de clientes GERDAU Origem - Destino -', 'EXU0F72', 'MARIA SOUZA', '-', '-', '-', 'GERDAU', '-', '-', ''] }
+      let(:table_header) { ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'] }
+      let(:jose_row) { ['40801 JR KM rodado - Total dos CT-es R$ 1.000,00 Bruto/km - Grupo de clientes USIMINAS Origem - Destino -', 'RHJ4E07', 'JOSE SILVA', '-', '-', '-', 'USIMINAS', '-', 'R$ 1.000,00', '-', ''] }
+      let(:maria_row) { ['40802 JR KM rodado - Total dos CT-es R$ 2.000,00 Bruto/km - Grupo de clientes GERDAU Origem - Destino -', 'EXU0F72', 'MARIA SOUZA', '-', '-', '-', 'GERDAU', '-', 'R$ 2.000,00', '-', ''] }
 
       def add_document(manifest, number, **attributes)
         create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', **attributes)
@@ -282,8 +282,8 @@ describe 'Manifests' do
         expect(Atua::Manifest.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Ações'],
-            ['40800 JR KM rodado - Bruto/km - Grupo de clientes - Origem Ipatinga/MG Betim/MG Destino Santos/SP Cubatão/SP', 'RHJ4E07', '-', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', '-', '-', '-', '-', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
+            ['40800 JR KM rodado - Total dos CT-es R$ 10.000,00 Bruto/km - Grupo de clientes - Origem Ipatinga/MG Betim/MG Destino Santos/SP Cubatão/SP', 'RHJ4E07', '-', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', '-', '-', '-', 'R$ 10.000,00', '-', ''],
           ],
         )
       end
@@ -331,9 +331,9 @@ describe 'Manifests' do
         expect(Atua::Manifest.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Ações'],
-            ['40901 JR KM rodado 100,00 km Bruto/km R$ 30,00 Grupo de clientes USIMINAS Origem - Destino -', 'BBB2B22', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 30,00', ''],
-            ['40900 JR KM rodado 500,00 km Bruto/km R$ 20,00 Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'AAA1A11', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 20,00', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
+            ['40901 JR KM rodado 100,00 km Total dos CT-es R$ 3.000,00 Bruto/km R$ 30,00 Grupo de clientes USIMINAS Origem - Destino -', 'BBB2B22', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 3.000,00', 'R$ 30,00', ''],
+            ['40900 JR KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'AAA1A11', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', ''],
           ],
         )
       end
@@ -357,9 +357,9 @@ describe 'Manifests' do
           expect(FreightExpense.count).to eq(1)
           expect(html_table_to_rows).to eq(
             [
-              ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Líquido/km', 'Ações'],
-              ['40901 JR KM rodado 100,00 km Bruto/km R$ 30,00 Líquido/km R$ 30,00 Grupo de clientes USIMINAS Origem - Destino -', 'BBB2B22', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 30,00', 'R$ 30,00', ''],
-              ['40900 JR KM rodado 500,00 km Bruto/km R$ 20,00 Líquido/km R$ 18,00 Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'AAA1A11', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 20,00', 'R$ 18,00', ''],
+              ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Líquido/km', 'Ações'],
+              ['40901 JR KM rodado 100,00 km Total dos CT-es R$ 3.000,00 Bruto/km R$ 30,00 Líquido/km R$ 30,00 Grupo de clientes USIMINAS Origem - Destino -', 'BBB2B22', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 3.000,00', 'R$ 30,00', 'R$ 30,00', ''],
+              ['40900 JR KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Líquido/km R$ 18,00 Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'AAA1A11', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', 'R$ 18,00', ''],
             ],
           )
         end
@@ -412,8 +412,8 @@ describe 'Manifests' do
         expect(Atua::TransportDocument.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Bruto/km', 'Ações'],
-            ['41149 JR TRANSPORTES KM rodado 500,00 km Bruto/km R$ 20,00 Grupo de clientes - Origem - Destino -', 'BDC8D26', '-', '-', '-', '-', '-', '500,00 km', 'R$ 20,00', ''],
+            ['MDF-e', 'Placa', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
+            ['41149 JR TRANSPORTES KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Grupo de clientes - Origem - Destino -', 'BDC8D26', '-', '-', '-', '-', '-', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', ''],
           ],
         )
 
@@ -488,6 +488,7 @@ describe 'Manifests' do
           'Destino' => 'Betim/MG',
           'Peso (kg)' => '19.170,00',
           'KM rodado' => '200,00 km',
+          'Total dos CT-es' => 'R$ 555,04',
           'Bruto/km' => 'R$ 2,78',
         )
         expect(manifest.documents.count).to eq(2)
@@ -881,8 +882,8 @@ describe 'Manifests' do
         expect(page).to have_no_css('th', text: /\ACliente\z/i)
         details = find('.manifest-mobile-details')
         expect(details.all('dt').map(&:text).zip(details.all('dd').map(&:text))).to eq(
-          [['KM rodado', '500,00 km'], ['Bruto/km', 'R$ 20,00'], ['Líquido/km', 'R$ 18,00'], ['Grupo de clientes', 'USIMINAS IPATINGA'], ['Origem', 'IPATINGA/MG'],
-           ['Destino', 'SANTOS/SP']],
+          [['KM rodado', '500,00 km'], ['Total dos CT-es', 'R$ 10.000,00'], ['Bruto/km', 'R$ 20,00'], ['Líquido/km', 'R$ 18,00'], ['Grupo de clientes', 'USIMINAS IPATINGA'],
+           ['Origem', 'IPATINGA/MG'], ['Destino', 'SANTOS/SP']],
         )
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end

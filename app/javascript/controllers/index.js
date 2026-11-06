@@ -39,3 +39,6 @@ application.register('money', MoneyController);
 
 import UnlockController from './unlock_controller';
 application.register('unlock', UnlockController);
+
+import DateRangeController from './date_range_controller';
+application.register('date-range', DateRangeController);

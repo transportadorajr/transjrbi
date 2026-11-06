@@ -28,6 +28,7 @@ module ManifestsHelper
 
   def manifest_mobile_details(manifest)
     details = [[Atua::Manifest.human_attribute_name(:loaded_km), manifest_km(manifest.loaded_km)],
+               [Atua::Manifest.human_attribute_name(:documents_total), freight_money(manifest.gross_cents)],
                [Atua::Manifest.human_attribute_name(:gross_per_km), freight_money(manifest.gross_per_km_cents)]]
     details << [Atua::Manifest.human_attribute_name(:net_per_km), freight_money(manifest.net_per_km_cents)] if can?(:read, :freight_expenses)
 
