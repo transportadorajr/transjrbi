@@ -3,6 +3,20 @@ class TonnageRate < ApplicationRecord
 
   WEIGHT_KG_ABOVE = 200
   OUTDATED_MONTHS = 2
+  DEFAULT_NAME = 'Brasiltec'.freeze
+  DEFAULT_CUSTOMER_GROUP_NAME = 'USIMINAS'.freeze
+  Origin = Data.define(:nickname, :city, :state) do
+    def key
+      nickname.presence || "#{city}/#{state}"
+    end
+  end
+  ORIGINS = [
+    Origin.new(nickname: 'Cubatão', city: 'Cubatão', state: 'SP'),
+    Origin.new(nickname: 'Ipatinga', city: 'Ipatinga', state: 'MG'),
+    Origin.new(nickname: 'TESP', city: 'São Paulo', state: 'SP'),
+    Origin.new(nickname: 'TISL', city: 'Santa Luzia', state: 'MG'),
+    Origin.new(nickname: 'Utinga', city: 'Santo André', state: 'SP'),
+  ].freeze
 
   sortable :name
 
@@ -20,6 +34,10 @@ class TonnageRate < ApplicationRecord
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
   scope :by_customer_group, ->(customer_group_id) { where(customer_group_id:) }
   scope :by_valid_month, ->(month) { where(valid_month: parse_month(month)) }
+  scope :latest, -> {
+    where(id: select(Arel.sql('DISTINCT ON (customer_group_id, origin_state, origin_city) tonnage_rates.id'))
+      .reorder(:customer_group_id, :origin_state, :origin_city, valid_month: :desc, id: :desc))
+  }
   scope :by_status, ->(status) { status.to_s == 'active' ? activated : not_activated }
 
   class << self
@@ -28,6 +46,10 @@ class TonnageRate < ApplicationRecord
         I18n.t('tonnage_rates.index.active') => :active,
         I18n.t('tonnage_rates.index.deactivated') => :deactivated,
       }
+    end
+
+    def for_listing(month)
+      month.present? ? all : latest
     end
 
     def parse_month(value)
@@ -76,6 +98,10 @@ class TonnageRate < ApplicationRecord
 
   def series_key
     [customer_group_id, *self.class.origin_key(origin_city, origin_state)]
+  end
+
+  def origin
+    Origin.new(nickname:, city: origin_city, state: origin_state)
   end
 
   def reference_month

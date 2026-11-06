@@ -16,10 +16,11 @@ module TonnageRatesHelper
   end
 
   def tonnage_rate_origin(tonnage_rate)
-    city = tax_city(tonnage_rate.origin_city, tonnage_rate.origin_state)
-    return city if tonnage_rate.nickname.blank?
+    tonnage_origin_label(tonnage_rate.origin)
+  end
 
-    t('tonnage_rates.origin_with_nickname', origin: city, nickname: tonnage_rate.nickname)
+  def tonnage_rate_origin_options(tonnage_rate_form)
+    tonnage_rate_form.origins.map { |origin| [tonnage_origin_label(origin), origin.key] }
   end
 
   def tonnage_rate_label(tonnage_rate)
@@ -36,6 +37,21 @@ module TonnageRatesHelper
 
   def tonnage_weight(weight_tons)
     t('tonnage_rates.weight', weight: number_with_precision(weight_tons, precision: 3))
+  end
+
+  def tonnage_rate_default_field_html(tonnage_rate_form, **options)
+    options.merge(disabled: tonnage_rate_form.default_fields_locked?, data: { unlock_target: 'field' })
+  end
+
+  def tonnage_rate_unlock_button(tonnage_rate_form)
+    return unless tonnage_rate_form.default_fields_locked?
+
+    content_tag(:div, class: 'col-12', data: { unlock_target: 'button' }) do
+      button_tag(type: :button, class: 'btn btn-outline-secondary btn-sm btn-round', data: { action: 'unlock#enable' }) do
+        concat icon(:pencil, class: 'me-2')
+        concat t('tonnage_rates.form.unlock')
+      end
+    end
   end
 
   def tonnage_rate_form_url(tonnage_rate_form)
@@ -60,6 +76,13 @@ module TonnageRatesHelper
   end
 
   private
+
+  def tonnage_origin_label(origin)
+    city = tax_city(origin.city, origin.state)
+    return city if origin.nickname.blank?
+
+    t('tonnage_rates.origin_with_nickname', origin: city, nickname: origin.nickname)
+  end
 
   def tonnage_rate_show_menu(tonnage_rate)
     Menu.new(name: :show, record: tonnage_rate, url: tonnage_rate_path(tonnage_rate), icon: :eye)

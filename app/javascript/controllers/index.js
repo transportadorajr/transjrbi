@@ -34,5 +34,11 @@ application.register('reveal', RevealController);
 import AutoRefreshController from './auto_refresh_controller';
 application.register('auto-refresh', AutoRefreshController);
 
+import MoneyController from './money_controller';
+application.register('money', MoneyController);
+
+import UnlockController from './unlock_controller';
+application.register('unlock', UnlockController);
+
 import DateRangeController from './date_range_controller';
 application.register('date-range', DateRangeController);
