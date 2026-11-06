@@ -13,15 +13,12 @@ class TransportDocumentsController < BaseController
     authorize!(:read, :transport_documents)
 
     transport_documents = apply_scopes(current_tenant.atua_transport_documents.active.freights.not_canceled)
-
-    @transport_documents = apply_sort(transport_documents.with_freight_totals,
-                                      Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
-                                      Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
-                                      id: :desc, except: hidden_sort_columns)
-      .preload(taker: :customer_group).page(params[:page])
+    @transport_documents = listing_page(sorted_transport_documents(transport_documents))
     @valid_count = transport_documents.count
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def customer_options
@@ -55,6 +52,14 @@ class TransportDocumentsController < BaseController
   end
 
   private
+
+  def sorted_transport_documents(transport_documents)
+    apply_sort(transport_documents.with_freight_totals,
+               Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
+               Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
+               id: :desc, except: hidden_sort_columns)
+      .preload(taker: :customer_group)
+  end
 
   def hidden_sort_columns
     can?(:read, :freight_expenses) ? [] : %w[net]

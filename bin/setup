@@ -18,6 +18,13 @@ FileUtils.chdir APP_ROOT do
   # Install JavaScript dependencies
   system!("bun install")
 
+  puts "\n== Building the Typst PDF engine =="
+  system! "cargo build --release --locked --manifest-path rust_typst_pdf/Cargo.toml"
+  target_dir = ENV.fetch("CARGO_TARGET_DIR", File.join(APP_ROOT, "rust_typst_pdf", "target"))
+  typst_binary = ENV.fetch("TYPST_PDF_BINARY", File.join(APP_ROOT, "bin", "rust_typst_pdf"))
+  FileUtils.mkdir_p File.dirname(typst_binary)
+  FileUtils.cp File.join(target_dir, "release", "rust_typst_pdf"), typst_binary
+
   # puts "\n== Copying sample files =="
   # unless File.exist?("config/database.yml")
   #   FileUtils.cp "config/database.yml.sample", "config/database.yml"

@@ -117,6 +117,19 @@ module ProductGroupsHelper
     render 'product_groups/products_table', products:, table_id:
   end
 
+  def product_groups_pdf_report(product_groups, subgroup_counts, document_counts)
+    PdfReport.new(
+      title: t('product_groups.index.pdf.header'),
+      columns: [pdf_column(ProductGroup.human_attribute_name(:name), '2fr'), pdf_column(ProductGroup.human_attribute_name(:subgroups), align: :right),
+                pdf_column(ProductGroup.human_attribute_name(:transport_documents), align: :right),
+                pdf_column(ProductGroup.human_attribute_name(:status))],
+      rows: product_groups.map do |product_group|
+        [product_group.name, product_group_count(product_group, subgroup_counts),
+         number_with_delimiter(product_group_count(product_group, document_counts)), product_group_status_badge(product_group)]
+      end,
+    )
+  end
+
   private
 
   def product_group_product_name_options(product_group_form)

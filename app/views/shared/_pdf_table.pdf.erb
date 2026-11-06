@@ -1,0 +1,16 @@
+<%# locals: (report:) %>
+#table(
+  columns: <%= typst_columns(report.columns) %>,
+  align: <%= typst_alignments(report.columns) %>,
+  inset: (x: 5pt, y: 4pt),
+  stroke: 0.4pt + rgb("<%= TypstHelper::TYPST_BORDER_COLOR %>"),
+  fill: (col, row) => if row == 0 { rgb("<%= TypstHelper::TYPST_HEADER_FILL %>") } else { none },
+
+  <%= typst_table_header(report.columns.map(&:label)) %>
+
+  <% report.rows.each do |row| %>
+    <%= typst_table_row(row) %>
+  <% end %>
+
+  <%= typst_table_footer(report.totals) %>
+)

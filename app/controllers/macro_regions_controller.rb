@@ -6,7 +6,9 @@ class MacroRegionsController < BaseController
   def index
     authorize!(:read, :macro_regions)
 
-    @macro_regions = apply_sort(apply_scopes(current_tenant.macro_regions.preload(:cities)), :state, :name, :id).page(params[:page])
+    @macro_regions = listing_page(apply_sort(apply_scopes(current_tenant.macro_regions.preload(:cities)), :state, :name, :id))
+
+    respond_with_listing
   end
 
   def show

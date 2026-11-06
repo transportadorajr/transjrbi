@@ -7,8 +7,10 @@ class CustomersController < BaseController
   def index
     authorize!(:read, :customers)
 
-    @customers = apply_sort(apply_scopes(current_tenant.atua_customers.active).preload(:customer_group), :name, :id).page(params[:page])
+    @customers = listing_page(apply_sort(apply_scopes(current_tenant.atua_customers.active).preload(:customer_group), :name, :id))
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def show

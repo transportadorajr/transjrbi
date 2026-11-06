@@ -167,6 +167,34 @@ module TripsHelper
     column_chart(trips_series(data), height: CHART_HEIGHT, legend: 'bottom', **chart_money_options, library: chart_bar_library(:x))
   end
 
+  def trips_pdf_report(dashboard, rows, filter_form, highlights)
+    PdfReport.new(
+      title: t('trips.index.pdf.header'),
+      subtitle: t('trips.index.pdf.subtitle', dimension: trips_dimension_label(dashboard.dimension), period: trips_period_label(filter_form)),
+      highlights: trips_pdf_highlights(dashboard.total),
+      columns: trips_pdf_columns(dashboard),
+      rows: rows.map { |row| trips_pdf_row(row, highlights) },
+      totals: (trips_pdf_row(dashboard.total, {}) unless dashboard.empty?),
+    )
+  end
+
+  def trips_pdf_columns(dashboard)
+    [pdf_column(trips_dimension_label(dashboard.dimension), '3fr'),
+     *%i[trips loaded_km gross expenses net average gross_per_km net_per_km].map { |column| pdf_column(t(column, scope: 'trips.columns'), align: :right) }]
+  end
+
+  def trips_pdf_row(row, highlights)
+    [trips_row_label(row, highlights), row.trips_count, trips_km(row.loaded_km), tax_money(row.gross), tax_money(row.expenses), tax_money(row.net),
+     tax_money(row.average), tax_money(row.gross_per_km), tax_money(row.net_per_km)]
+  end
+
+  def trips_pdf_highlights(total)
+    [pdf_highlight(t('trips.index.trips'), total.trips_count), pdf_highlight(t('trips.index.gross'), tax_money(total.gross)),
+     pdf_highlight(t('trips.index.average'), tax_money(total.average)), pdf_highlight(t('trips.index.gross_per_km'), tax_money(total.gross_per_km)),
+     pdf_highlight(t('trips.index.loaded_km'), trips_km(total.loaded_km)), pdf_highlight(t('trips.index.net'), tax_money(total.net)),
+     pdf_highlight(t('trips.index.net_average'), tax_money(total.net_average)), pdf_highlight(t('trips.index.net_per_km'), tax_money(total.net_per_km))]
+  end
+
   private
 
   def trips_highlight_badge(highlight)

@@ -9,7 +9,9 @@ class DriversController < BaseController
   def index
     authorize!(:read, :drivers)
 
-    @drivers = apply_sort(apply_scopes(current_tenant.atua_vehicles.drivers), :driver_name, :driver_code).page(params[:page])
+    @drivers = listing_page(apply_sort(apply_scopes(current_tenant.atua_vehicles.drivers), :driver_name, :driver_code))
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def show

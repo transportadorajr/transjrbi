@@ -57,6 +57,20 @@ module ExpensesHelper
     number_to_percentage(expense.icms_credit_percentage, precision: 2)
   end
 
+  def expenses_pdf_report(expenses)
+    PdfReport.new(
+      title: t('expenses.index.pdf.header'),
+      columns: [pdf_column(Atua::Expense.human_attribute_name(:history_name), '2fr'), pdf_column(Atua::Expense.human_attribute_name(:code)),
+                pdf_column(Atua::Expense.human_attribute_name(:posted_on)), pdf_column(Atua::Expense.human_attribute_name(:payee_name), '2fr'),
+                pdf_column(Atua::Expense.human_attribute_name(:plate)), pdf_column(Atua::Expense.human_attribute_name(:allocation)),
+                pdf_column(Atua::Expense.human_attribute_name(:total), align: :right)],
+      rows: expenses.map do |expense|
+        [tax_value(expense.history_name), expense.code, tax_date(expense.posted_on), tax_value(expense.payee_name), tax_value(expense.plate),
+         expense.allocation_name, tax_money(expense.total)]
+      end,
+    )
+  end
+
   private
 
   def expense_show_menu(expense)

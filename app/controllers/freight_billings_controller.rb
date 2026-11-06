@@ -17,7 +17,9 @@ class FreightBillingsController < BaseController
     load_product_options
     @macro_regions = current_tenant.macro_regions.order(:name)
     @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
-    @rows = Kaminari.paginate_array(@dashboard.sorted_rows(params[:sort], params[:direction])).page(params[:page])
+    @rows = listing_page(@dashboard.sorted_rows(params[:sort], params[:direction]))
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def detail

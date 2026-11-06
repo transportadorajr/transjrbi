@@ -61,6 +61,18 @@ module CustomerGroupsHelper
     render 'customer_groups/customers_table', collection: customers
   end
 
+  def customer_groups_pdf_report(customer_groups, customer_counts)
+    PdfReport.new(
+      title: t('customer_groups.index.pdf.header'),
+      columns: [pdf_column(CustomerGroup.human_attribute_name(:name), '2fr'), pdf_column(CustomerGroup.human_attribute_name(:customers), align: :right),
+                pdf_column(CustomerGroup.human_attribute_name(:terms), '3fr'), pdf_column(CustomerGroup.human_attribute_name(:status))],
+      rows: customer_groups.map do |customer_group|
+        [customer_group.name, customer_group_customers_count(customer_group, customer_counts), customer_group_terms(customer_group),
+         customer_group_status_badge(customer_group)]
+      end,
+    )
+  end
+
   private
 
   def customer_group_show_menu(customer_group)

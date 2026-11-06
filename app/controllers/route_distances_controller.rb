@@ -10,9 +10,11 @@ class RouteDistancesController < BaseController
     authorize!(:read, :route_distances)
 
     route_distances = current_tenant.route_distances.with_documents_count.preload(:customer)
-    @route_distances = apply_sort(apply_scopes(route_distances), RouteDistance.sort_text(RouteDistance.customer_name).asc,
-                                  :origin_city, :destination_city, :id).page(params[:page])
+    @route_distances = listing_page(apply_sort(apply_scopes(route_distances), RouteDistance.sort_text(RouteDistance.customer_name).asc,
+                                               :origin_city, :destination_city, :id))
     @route_distance_import_form = RouteDistanceImportForm.new(tenant: current_tenant)
+
+    respond_with_listing
   end
 
   def new

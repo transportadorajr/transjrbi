@@ -11,12 +11,13 @@ class CommissionRulesController < BaseController
     commission_rules = current_tenant.commission_rules
     counted_commission_rules = apply_scopes(commission_rules, params.except(:status))
 
-    @commission_rules = apply_sort(apply_scopes(commission_rules).preload(:customer_group).joins(:customer_group), CustomerGroup.arel_table[:name], :name, :id)
-      .page(params[:page])
+    @commission_rules = listing_page(apply_sort(apply_scopes(commission_rules).preload(:customer_group).joins(:customer_group), CustomerGroup.arel_table[:name], :name, :id))
     @customer_groups = current_tenant.customer_groups.where(id: current_tenant.commission_rules.select(:customer_group_id)).order(:name)
     @total_count = counted_commission_rules.count
     @active_count = counted_commission_rules.activated.count
     @deactivated_count = counted_commission_rules.not_activated.count
+
+    respond_with_listing(orientation: :landscape)
   end
 
   def show

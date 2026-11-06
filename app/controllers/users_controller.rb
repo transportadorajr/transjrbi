@@ -11,10 +11,12 @@ class UsersController < BaseController
     users = current_tenant.users.accessible_by(current_ability)
     counted_users = apply_scopes(users, params.except(:status))
 
-    @users = apply_sort(apply_scopes(users), :name, :id).page(params[:page])
+    @users = listing_page(apply_sort(apply_scopes(users), :name, :id))
     @total_count = counted_users.count
     @active_count = counted_users.activated.count
     @deactivated_count = counted_users.not_activated.count
+
+    respond_with_listing
   end
 
   def show

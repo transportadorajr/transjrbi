@@ -10,7 +10,7 @@ class ProductGroupsController < BaseController
     product_groups = current_tenant.product_groups.groups
     counted_product_groups = apply_scopes(product_groups, params.except(:status))
 
-    @product_groups = apply_sort(apply_scopes(product_groups), :name, :id).page(params[:page])
+    @product_groups = listing_page(apply_sort(apply_scopes(product_groups), :name, :id))
     @subgroup_counts = current_tenant.product_groups.where(parent_id: @product_groups.map(&:id)).group(:parent_id).count
     @document_counts = documents.joins(:product_group).where(product_groups: { parent_id: @product_groups.map(&:id) })
       .group(ProductGroup.arel_table[:parent_id]).count
@@ -18,6 +18,8 @@ class ProductGroupsController < BaseController
     @active_count = counted_product_groups.activated.count
     @deactivated_count = counted_product_groups.not_activated.count
     @unclassified_products = product_name_counts(documents.where(product_group_id: nil))
+
+    respond_with_listing
   end
 
   def show

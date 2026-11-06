@@ -43,3 +43,5 @@
 !/.env.example
 
 /cookies.txt
+
+/bin/rust_typst_pdf

@@ -64,6 +64,19 @@ module TruckGroupsHelper
     end
   end
 
+  def truck_groups_pdf_report(truck_groups)
+    PdfReport.new(
+      title: t('truck_groups.index.pdf.header'),
+      columns: [pdf_column(TruckGroup.human_attribute_name(:name), '2fr'), pdf_column(TruckGroup.human_attribute_name(:axles)),
+                pdf_column(TruckGroup.human_attribute_name(:plates), '3fr'), pdf_column(TruckGroup.human_attribute_name(:fuel_percentage), align: :right),
+                pdf_column(TruckGroup.human_attribute_name(:status))],
+      rows: truck_groups.map do |truck_group|
+        [truck_group.name, truck_group_axles(truck_group), truck_group_plates(truck_group), truck_group_fuel_percentage(truck_group.fuel_percentage),
+         truck_group_status_badge(truck_group)]
+      end,
+    )
+  end
+
   private
 
   def truck_group_show_menu(truck_group)

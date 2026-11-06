@@ -32,8 +32,6 @@ gem 'rswag-ui'
 gem 'cancancan'
 gem 'kaminari'
 gem 'has_scope'
-gem 'prawn-rails'
-gem 'matrix' # Prawn dependency, not required by default for some reason
 
 group :development, :test do
   gem 'capybara'

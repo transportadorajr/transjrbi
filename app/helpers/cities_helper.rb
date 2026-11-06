@@ -50,6 +50,15 @@ module CitiesHelper
     end
   end
 
+  def cities_pdf_report(cities)
+    PdfReport.new(
+      title: t('cities.index.pdf.header'),
+      columns: [pdf_column(City.human_attribute_name(:name), '2fr'), pdf_column(City.human_attribute_name(:state)),
+                pdf_column(City.human_attribute_name(:macro_region), '2fr')],
+      rows: cities.map { |city| [city.name, city.state, city_macro_region_name(city)] },
+    )
+  end
+
   private
 
   def macro_region_label(macro_region)

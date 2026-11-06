@@ -3,6 +3,7 @@
 <div class="page-shell">
   <%= page_header_tag t('.title'), subtitle: t('.subtitle', year: @year) do %>
     <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= pdf_export_button %>
   <% end %>
 
   <%= render 'filters' %>

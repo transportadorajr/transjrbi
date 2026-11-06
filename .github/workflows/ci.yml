@@ -91,6 +91,19 @@ jobs:
       - name: Build assets
         run: bun run build && bun run build:css
 
+      - name: Cache the Typst PDF engine
+        id: typst-engine
+        uses: actions/cache@v4
+        with:
+          path: bin/rust_typst_pdf
+          key: typst-engine-${{ runner.os }}-${{ hashFiles('rust_typst_pdf/Cargo.lock', 'rust_typst_pdf/Cargo.toml', 'rust_typst_pdf/src/**') }}
+
+      - name: Build the Typst PDF engine
+        if: steps.typst-engine.outputs.cache-hit != 'true'
+        run: |
+          cargo build --release --locked --manifest-path rust_typst_pdf/Cargo.toml
+          cp rust_typst_pdf/target/release/rust_typst_pdf bin/rust_typst_pdf
+
       - name: Run tests
         env:
           RAILS_ENV: test
