@@ -33,3 +33,6 @@ application.register('reveal', RevealController);
 
 import AutoRefreshController from './auto_refresh_controller';
 application.register('auto-refresh', AutoRefreshController);
+
+import DateRangeController from './date_range_controller';
+application.register('date-range', DateRangeController);

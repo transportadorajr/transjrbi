@@ -1,7 +1,7 @@
 <%= render layout: 'components/new_modal',
            locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
                      dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
-  <%= form_with url: admin_imports_path, method: :get do |f| %>
+  <%= form_with url: admin_imports_path, method: :get, data: { controller: 'date-range' } do |f| %>
     <div class="row g-3">
       <div class="col-12">
         <%= f.label :tenant_id, Atua::Import.human_attribute_name(:tenant), class: 'form-label fw-medium' %>
@@ -29,12 +29,13 @@
 
       <div class="col-12 col-sm-6">
         <%= f.label :start_date, t('admin.imports.filters.start_date'), class: 'form-label fw-medium' %>
-        <%= f.date_field :start_date, value: params[:start_date], class: 'form-control bg-light' %>
+        <%= f.date_field :start_date, value: params[:start_date], class: 'form-control bg-light',
+                                      data: { date_range_target: 'start', action: 'change->date-range#openEnd' } %>
       </div>
 
       <div class="col-12 col-sm-6">
         <%= f.label :end_date, t('admin.imports.filters.end_date'), class: 'form-label fw-medium' %>
-        <%= f.date_field :end_date, value: params[:end_date], class: 'form-control bg-light' %>
+        <%= f.date_field :end_date, value: params[:end_date], class: 'form-control bg-light', data: { date_range_target: 'end' } %>
       </div>
     </div>
 
