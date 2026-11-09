@@ -117,7 +117,7 @@ module Atua
       end
 
       def first_trip_documents
-        trip_documents.where(<<~SQL.squish)
+        trip_documents.where(<<~SQL.squish, canceled: CANCELED_STATUS)
           NOT EXISTS (
             SELECT 1
             FROM atua_manifest_documents earlier_documents
@@ -129,15 +129,12 @@ module Atua
               AND earlier_documents.branch_name = atua_transport_documents.branch_name
               AND earlier_documents.removed_from_atua_at IS NULL
               AND earlier_manifests.removed_from_atua_at IS NULL
-              AND earlier_manifests.status IS DISTINCT FROM #{connection.quote(CANCELED_STATUS)}
+              AND earlier_manifests.status IS DISTINCT FROM :canceled
               AND COALESCE(earlier_manifests.plate, '') <> ''
-              AND (#{trip_at_sql('earlier_manifests')}, earlier_manifests.code) < (#{trip_at_sql('atua_manifests')}, atua_manifests.code)
+              AND (COALESCE(earlier_manifests.trip_started_at, earlier_manifests.departure_on, earlier_manifests.issued_on), earlier_manifests.code)
+                < (COALESCE(atua_manifests.trip_started_at, atua_manifests.departure_on, atua_manifests.issued_on), atua_manifests.code)
           )
         SQL
-      end
-
-      def trip_at_sql(table)
-        "COALESCE(#{table}.trip_started_at, #{table}.departure_on, #{table}.issued_on)"
       end
 
       def trip_at
