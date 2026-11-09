@@ -254,6 +254,27 @@ describe 'Route distances' do
         expect(document.reload).to have_attributes(distance_km: BigDecimal('1450'), original_distance_km: BigDecimal('1300'))
       end
 
+      scenario 'registers the route of each transport document listed with its distance' do
+        same_route_document = document_on_route(distance_km: BigDecimal('1250'))
+        path = xlsx_file([['CTE ', 'KM ROTA EXECUTADA'], [document.number.to_i, 1450], [same_route_document.number.to_i, 1450], [88_888, 500]])
+
+        visit route_distances_path
+        within('#routeDistanceImportModal') do
+          expect(page).to have_text('Envie uma planilha do Excel com as colunas: número do CT-e e KM a considerar.')
+          attach_file 'Planilha', path
+          expect { click_on 'Importar' }.to change(RouteDistance, :count).by(1)
+        end
+
+        expect(page).to have_current_path(route_distances_path)
+        expect(page).to have_text('Planilha importada: 1 trecho(s) criado(s) e 0 atualizado(s); 2 CT-e(s) usam o KM desses trechos.')
+        expect(page).to have_text('Linha 4: nenhum CT-e importado com o número 88888.')
+        route_distance = RouteDistance.last
+        expect(route_distance).to have_attributes(tenant:, customer_code: 7001, origin_city: 'IPATINGA', origin_state: 'MG',
+                                                  destination_city: 'CAXIAS DO SUL', destination_state: 'RS', distance_km: BigDecimal('1450'))
+        expect(document.reload).to have_attributes(distance_km: BigDecimal('1450'), route_distance_id: route_distance.id)
+        expect(same_route_document.reload).to have_attributes(distance_km: BigDecimal('1450'), original_distance_km: BigDecimal('1250'))
+      end
+
       scenario 'rejects a file that is not an Excel spreadsheet' do
         visit route_distances_path
         within('#routeDistanceImportModal') do

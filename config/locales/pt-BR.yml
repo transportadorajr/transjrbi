@@ -1650,14 +1650,19 @@ pt-BR:
         Planilha importada: %{created} trecho(s) criado(s) e %{updated} atualizado(s); %{documents} CT-e(s) usam o KM
         desses trechos.
       unknown_customer: 'nenhum cliente do Atua com o CPF/CNPJ %{document}'
+      blank_document: 'informe o número do CT-e'
+      unknown_document: 'nenhum CT-e importado com o número %{number}'
+      ambiguous_document: 'há mais de um CT-e com o número %{number}, em trechos diferentes'
+      conflicting_distance: 'o trecho deste CT-e já recebeu %{distance} km na linha %{line}'
       row_error: 'Linha %{line}: %{message}.'
       unreadable: 'Não foi possível ler a planilha: %{reason}'
     import_modal:
       title: Importar Planilha
       instructions: >-
-        Envie uma planilha do Excel com as colunas: CPF/CNPJ do cliente, cidade de origem, UF de origem, cidade de
-        destino, UF de destino e KM a considerar. A primeira linha pode ser um cabeçalho. Trechos já cadastrados têm o
-        KM atualizado.
+        Envie uma planilha do Excel com as colunas: número do CT-e e KM a considerar. O trecho de cada CT-e (cliente,
+        origem e destino) é cadastrado com esse KM e aplicado a todos os CT-es do mesmo trecho. Também é aceita a planilha
+        com as colunas: CPF/CNPJ do cliente, cidade de origem, UF de origem, cidade de destino, UF de destino e KM a
+        considerar. A primeira linha pode ser um cabeçalho. Trechos já cadastrados têm o KM atualizado.
       submit: Importar
     form:
       route_distance_data: Trecho de KM
