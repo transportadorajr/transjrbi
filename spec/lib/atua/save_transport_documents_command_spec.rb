@@ -128,4 +128,25 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
       expect(document).to have_attributes(distance_km: first_record[:distance_km], original_distance_km: nil, distance_adjusted_at: nil)
     end
   end
+
+  context 'with a document whose distance was edited by hand' do
+    let(:first_record) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).first }
+
+    before do
+      create(:route_distance, tenant:, customer_code: first_record[:taker_code], distance_km: BigDecimal('1300'),
+                              **first_record.slice(:origin_city, :origin_state, :destination_city, :destination_state))
+      described_class.call(import, spreadsheet)
+      tenant.atua_transport_documents.find_by!(code: first_record[:code])
+        .then { |document| TransportDocuments::UpdateDistanceCommand.call(document, BigDecimal('1250.5')) }
+    end
+
+    it 'keeps the distance edited by hand when the document is imported again' do
+      described_class.call(import, spreadsheet)
+
+      document = tenant.atua_transport_documents.find_by!(code: first_record[:code])
+      expect(document).to have_attributes(distance_km: BigDecimal('1250.5'), original_distance_km: first_record[:distance_km],
+                                          route_distance_id: nil)
+      expect(document.distance_edited_at).to be_present
+    end
+  end
 end

@@ -1,0 +1,17 @@
+<% content_for :title, t('.title', number: @transport_document.number) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('transport_documents.index.title'), transport_documents_path %></li>
+        <li class="breadcrumb-item"><%= link_to @transport_document.number, transport_document_path(@transport_document) %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.breadcrumb') %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title', number: @transport_document.number), back_path: transport_document_path(@transport_document),
+                                                                         back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'form', transport_document_distance_form: @transport_document_distance_form %>
+</div>

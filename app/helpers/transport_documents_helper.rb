@@ -13,8 +13,18 @@ module TransportDocumentsHelper
     distance = tax_decimal(transport_document.distance_km)
     return distance unless transport_document.distance_adjusted_at
 
-    original = t('transport_documents.show.original_distance', distance: tax_decimal(transport_document.original_distance_km))
+    key = transport_document.distance_edited_at ? 'edited_distance' : 'original_distance'
+    original = t("transport_documents.show.#{key}", distance: tax_decimal(transport_document.original_distance_km))
     safe_join([distance, content_tag(:small, original, class: 'd-block text-muted')], ' ')
+  end
+
+  def transport_document_edit_distance_button(transport_document)
+    return unless can?(:update, :transport_documents)
+
+    link_to edit_transport_document_distance_path(transport_document), class: 'btn btn-outline-secondary btn-round' do
+      concat icon(:pencil, class: 'me-2')
+      concat t('transport_documents.show.edit_distance')
+    end
   end
 
   def transport_document_resync_button(transport_document)

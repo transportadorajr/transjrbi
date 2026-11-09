@@ -609,6 +609,8 @@ pt-BR:
         distance_km: KM considerado
       route_distance_import_form:
         file: Planilha
+      transport_document_distance_form:
+        distance_km: KM considerado
       driver_form:
         display_name: Nome de exibição
       truck_group_form:
@@ -874,6 +876,8 @@ pt-BR:
       route_distance:
         create: Cadastrar Trecho
         update: Salvar Alterações
+      transport_document_distance:
+        update: Salvar KM
       tonnage_rate:
         create: Cadastrar Custo
         update: Salvar Alterações
@@ -1152,6 +1156,8 @@ pt-BR:
       title: CT-e %{number}
       back: Voltar para CT-es
       original_distance: 'KM do trecho cadastrado. KM do Atua: %{distance}'
+      edited_distance: 'KM alterado neste CT-e. KM do Atua: %{distance}'
+      edit_distance: Alterar KM
       document_data: Dados do CT-e
       parties: Envolvidos
       transport: Transporte
@@ -1167,6 +1173,19 @@ pt-BR:
     resync:
       success: Sincronização dos CT-es emitidos em %{date} enfileirada. Ela roda em segundo plano.
       unavailable: Não é possível sincronizar este CT-e com a Atua.
+  transport_document_distances:
+    edit:
+      title: Alterar KM do CT-e %{number}
+      breadcrumb: Alterar KM
+      back: Voltar para o CT-e
+    form:
+      distance_data: Quilometragem do CT-e
+      distance_data_text: >-
+        KM a considerar somente neste CT-e, no lugar do KM do Atua e do KM do trecho cadastrado.
+        O KM alterado é mantido nas próximas importações do Atua.
+      distance_km_hint: 'KM do Atua: %{distance}. Deixe em branco para voltar a usar o KM do Atua ou do trecho cadastrado.'
+    update:
+      success: KM do CT-e atualizado.
   manifests:
     km: '%{distance} km'
     index:
