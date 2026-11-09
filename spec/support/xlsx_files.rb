@@ -40,6 +40,7 @@ module XlsxFiles
   def xlsx_file(rows)
     file = Tempfile.new(%w[spreadsheet .xlsx])
     file.close
+    xlsx_tempfiles << file
 
     Zip::File.open(file.path, create: true) do |zip|
       PARTS.each { |name, content| zip.get_output_stream(name) { |stream| stream.write(content) } }
@@ -50,6 +51,10 @@ module XlsxFiles
   end
 
   private
+
+  def xlsx_tempfiles
+    @xlsx_tempfiles ||= []
+  end
 
   def xlsx_sheet(rows)
     lines = rows.each_with_index.map do |values, index|

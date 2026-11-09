@@ -977,6 +977,9 @@ describe 'Transport documents' do
     scenario 'moves to the end date as soon as the start date is filled in' do
       visit transport_documents_path
       find(:link, href: '#filtersModal').click
+      page.document.synchronize do
+        raise Capybara::ExpectationNotMet unless page.evaluate_script('document.activeElement.id') == 'filtersModal'
+      end
 
       within('#filtersModal') { fill_in 'Lançados a partir de', with: Date.new(2026, 10, 1) }
 
