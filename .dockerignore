@@ -48,3 +48,5 @@
 
 /bin/rust_typst_pdf
 /rust_typst_pdf/target
+/bin/xlsx_export
+/xlsx_export

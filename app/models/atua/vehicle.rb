@@ -1,8 +1,8 @@
 module Atua
   class Vehicle < ApplicationRecord
     include Sortable
-
     include Importable
+    include Exportable
 
     DRIVER_COLUMNS = [
       'MAX(atua_vehicles.driver_name) AS driver_name',

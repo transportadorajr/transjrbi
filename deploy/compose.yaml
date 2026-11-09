@@ -5,6 +5,7 @@ services:
     environment:
       RAILS_ENV: production
       DB_HOST: db
+      XLSX_EXPORT_URL: http://xlsx:4000
     volumes:
       - ./storage:/rails/storage
     depends_on: [db]
@@ -36,10 +37,19 @@ services:
     environment:
       RAILS_ENV: production
       DB_HOST: db
+      XLSX_EXPORT_URL: http://xlsx:4000
     command: bundle exec good_job start
     volumes:
       - ./storage:/rails/storage
     depends_on: [db]
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  xlsx:
+    image: transjr/transjrbi-xlsx:${APP_VERSION:-latest}
+    environment:
+      XLSX_EXPORT_TOKEN: ${XLSX_EXPORT_TOKEN:?XLSX_EXPORT_TOKEN must be set in .env}
+      XLSX_EXPORT_MAX_CONCURRENCY: "2"
     restart: unless-stopped
     stop_grace_period: 30s
 

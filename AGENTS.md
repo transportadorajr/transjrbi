@@ -337,6 +337,16 @@ Because two versions of the app serve at the same time during every deploy, the 
 - **Never add `container_name` or `ports` to the `web` service**: `docker rollout` needs two containers of it at once. Only Traefik publishes ports.
 - **`/up` (`HealthController`) is the deploy healthcheck.** Keep it public, fast and free of authentication.
 
+## Excel Exports
+
+- Listings are exported to `.xlsx` by the `xlsx_export` service (`xlsx_export/`, Rust: axum + rust_xlsxwriter). Rails keeps every business rule (tenant, permissions, filters, sort, I18n) and sends typed rows over HTTP; the service only renders the workbook and never touches the database. The plan and the HTTP contract are in `docs/exportacao_excel/planejamento.md`.
+- To export a listing: `include Exportable` in its model, pass the unpaginated relation to `respond_with_listing(xlsx: @collection)` (the `ListingExport` concern; build the collection with `listing_page`, which skips pagination for `pdf`/`xlsx`), and render `xlsx_export_button` next to `pdf_export_button`.
+- `Exportable` exports every column of the table except `id`, foreign keys (`*_id`), `tenant_id`, `atua_import_id`, `raw_data`, `*_digits` and the credentials listed in `Exportable::SENSITIVE_COLUMNS`. Never export an id. `_cents` columns become money, `*percentage` columns percentages, enums their translated value and arrays a comma-separated text.
+- Every exported column needs a header under `activerecord.attributes.<model>.<column>` (without the `_cents` suffix for money); cover it with a spec on `Export::Column#translated?`.
+- The button and the `.xlsx` format are behind the `xlsx_export` Flipper flag (per tenant); with the flag off the format answers 406.
+- Feature specs that download a spreadsheet are tagged `:xlsx_service` (boots `bin/xlsx_export`, built by `bin/setup`) and read it with `downloaded_xlsx_rows`/`downloaded_xlsx_records`.
+- The service runs as the `xlsx` service of `deploy/compose.yaml`, reachable only inside the Docker network at `XLSX_EXPORT_URL`, authenticated by `XLSX_EXPORT_TOKEN`. Never publish its port or add Traefik labels to it. Contract changes go to a new `/v2/...` endpoint while `/v1` stays for at least one deploy, since two versions of `web` serve at the same time.
+
 ## Error Tracking
 
 - Production errors are reported to Sentry (`sentry-ruby` + `sentry-rails`, configured in `config/initializers/sentry.rb`). Setup is documented in `docs/sentry/configuracao.md`.

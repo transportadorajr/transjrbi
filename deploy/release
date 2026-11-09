@@ -13,6 +13,7 @@ fi
 
 docker compose pull
 docker compose up -d db
+docker compose up -d --no-deps xlsx
 docker compose run --rm --no-deps --label traefik.enable=false web ./bin/rails db:prepare
 
 docker rollout web \
