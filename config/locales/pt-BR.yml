@@ -1843,6 +1843,13 @@ pt-BR:
       gross_per_km: Frete bruto por km
       net_per_km: Frete líquido por km
       loaded_km: KM rodado
+      per_km_base:
+        one: >-
+          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Fica de fora 1 CT-e sem viagem com km
+          rodado (%{excluded_gross} bruto e %{excluded_net} líquido).
+        other: >-
+          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Ficam de fora %{count} CT-es sem viagem
+          com km rodado (%{excluded_gross} bruto e %{excluded_net} líquido).
       empty_km: KM vazio
       empty_share: Rodou vazio
       ranking_title: Frete por %{dimension}
@@ -1908,6 +1915,13 @@ pt-BR:
       loaded_km: KM rodado
       gross_per_km: Frete bruto por km
       net_per_km: Frete líquido por km
+      per_km_base:
+        one: >-
+          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Fica de fora 1 MDF-e sem km ou com km
+          inválido (%{excluded_gross} bruto e %{excluded_net} líquido).
+        other: >-
+          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Ficam de fora %{count} MDF-es sem km ou
+          com km inválido (%{excluded_gross} bruto e %{excluded_net} líquido).
       ranking_title: Faturamento por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto das viagens do período, com o nº de viagens entre parênteses
       per_km_ranking_title: R$/km por %{dimension}

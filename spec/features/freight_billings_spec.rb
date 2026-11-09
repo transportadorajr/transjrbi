@@ -226,6 +226,16 @@ describe 'Freight billing' do
           .to eq(['Clientes', 'Produtos', 'Sub. produtos', 'Veículo', 'Motorista', 'Origem', 'Região'])
       end
 
+      scenario 'shows the gross, net and km the per km is calculated on and the documents left out of it' do
+        visit freight_billing_path(october_by_truck)
+
+        expect(Atua::TransportDocument.count).to eq(5)
+        expect(find_by_id('per_km_base').text.squish).to eq(
+          'O R$/km considera R$ 19.000,00 de frete bruto e R$ 18.100,00 de frete líquido em 720 km. ' \
+          'Fica de fora 1 CT-e sem viagem com km rodado (R$ 1.000,00 bruto e R$ 1.000,00 líquido).',
+        )
+      end
+
       scenario 'shows the gross and net freight per truck discounting the toll vouchers of the transport documents' do
         visit freight_billing_path(october_by_truck)
 

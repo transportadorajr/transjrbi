@@ -53,6 +53,14 @@ RSpec.describe Dashboard::Trip do
       expect(row_values([dashboard.total])).to eq([['Total', 3, 650, 'R$ 11.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 3.333,33', 'R$ 13,85', 'R$ 12,31']])
     end
 
+    it 'exposes the gross, net and km the per km is calculated on and what is left out of it' do
+      expect(dashboard.per_km_base).to have_attributes(gross: Money.from_cents(900_000), net: Money.from_cents(800_000), loaded_km: BigDecimal('650'),
+                                                       excluded_count: 1, excluded_gross: Money.from_cents(200_000),
+                                                       excluded_net: Money.from_cents(200_000))
+      expect(dashboard.per_km_base).to be_excluded
+      expect((dashboard.per_km_base.gross.cents / dashboard.per_km_base.loaded_km).round).to eq(dashboard.total.gross_per_km.cents)
+    end
+
     it 'credits each trip to the driver of its largest freight' do
       expect(row_values(dashboard.rows)).to eq(
         [
@@ -152,6 +160,7 @@ RSpec.describe Dashboard::Trip do
 
       it 'treats the km as invalid and keeps the trip out of the per km' do
         expect(dashboard.unmeasured_trips.map(&:code)).to eq([41_002, 41_007])
+        expect(dashboard.per_km_base).to have_attributes(loaded_km: BigDecimal('650'), excluded_count: 2, excluded_gross: Money.from_cents(600_000))
         expect(row_values(dashboard.rows).first).to eq(
           ['JOSE SILVA', 3, 5651, 'R$ 13.000,00', 'R$ 12.000,00', 'R$ 4.333,33', 'R$ 4.000,00', 'R$ 13,85', 'R$ 12,31'],
         )

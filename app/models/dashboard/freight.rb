@@ -90,6 +90,16 @@ module Dashboard
       @rows ||= grouped_rows(entries)
     end
 
+    def per_km_base
+      @per_km_base ||= begin
+        measured, excluded = entries.partition(&:measured?)
+
+        PerKmBase.new(gross: Money.from_cents(measured.sum(&:freight_cents)), net: Money.from_cents(measured.sum(&:net_cents)),
+                      loaded_km: measured.sum(BigDecimal('0'), &:loaded_km).round(2), excluded_count: excluded.flat_map(&:document_ids).uniq.size,
+                      excluded_gross: Money.from_cents(excluded.sum(&:freight_cents)), excluded_net: Money.from_cents(excluded.sum(&:net_cents)))
+      end
+    end
+
     def sorted_rows(column, direction)
       return rows unless SORT_VALUES.key?(column.to_s)
 
