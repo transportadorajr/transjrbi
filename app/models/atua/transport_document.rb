@@ -305,6 +305,10 @@ module Atua
       raw_data['nm_emissao_vale_pedagio'].presence
     end
 
+    def atua_distance_km
+      distance_adjusted_at ? original_distance_km : distance_km
+    end
+
     private
 
     def toll_in_freight?
@@ -348,6 +352,7 @@ end
 #  destination_city_code              :bigint
 #  destination_state                  :string
 #  distance_adjusted_at               :datetime
+#  distance_edited_at                 :datetime
 #  distance_km                        :decimal(14, 2)
 #  document_kind                      :string
 #  driver_code                        :bigint

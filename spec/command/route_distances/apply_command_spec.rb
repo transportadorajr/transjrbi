@@ -87,4 +87,17 @@ RSpec.describe RouteDistances::ApplyCommand do
                                                  route_distance_id: route_distance.id)
     end
   end
+
+  context 'with a document of the route whose distance was edited by hand' do
+    let!(:document) do
+      document_on_route(distance_km: BigDecimal('1380'), original_distance_km: BigDecimal('1300'), distance_adjusted_at: 1.day.ago,
+                        distance_edited_at: 1.day.ago)
+    end
+
+    it 'keeps the distance edited by hand' do
+      expect(described_class.call(tenant)).to eq(0)
+
+      expect(document.reload).to have_attributes(distance_km: BigDecimal('1380'), original_distance_km: BigDecimal('1300'), route_distance_id: nil)
+    end
+  end
 end

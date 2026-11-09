@@ -52,6 +52,7 @@ Rails.application.routes.draw do
     resources :transport_documents, only: %i[index show] do
       get :customer_options, on: :collection
       post :resync, on: :member
+      resource :distance, only: %i[edit update], controller: 'transport_document_distances'
     end
     resources :manifests, only: %i[index show] do
       get :customer_options, on: :collection

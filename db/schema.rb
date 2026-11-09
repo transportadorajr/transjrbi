@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_06_133727) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_190927) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -504,6 +504,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_06_133727) do
     t.decimal "original_distance_km", precision: 14, scale: 2
     t.datetime "distance_adjusted_at"
     t.bigint "route_distance_id"
+    t.datetime "distance_edited_at"
     t.index ["atua_import_id"], name: "index_atua_transport_documents_on_atua_import_id"
     t.index ["complemented_transport_document_id"], name: "idx_on_complemented_transport_document_id_6691e9e8ef"
     t.index ["manifest_numbers"], name: "index_atua_transport_documents_on_manifest_numbers", using: :gin

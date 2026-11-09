@@ -1,0 +1,24 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('transport_document_distances.form.distance_data') %></p>
+    <p class="form-card-subtitle"><%= t('transport_document_distances.form.distance_data_text') %></p>
+  </div>
+  <%= simple_form_for(transport_document_distance_form, url: transport_document_distance_path(transport_document_distance_form.transport_document),
+                                                        method: :patch) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <%= f.input :distance_km, as: :string, required: false,
+                                    hint: transport_document_distance_hint(transport_document_distance_form.transport_document),
+                                    input_html: { class: 'form-control', inputmode: :decimal, autocomplete: 'off' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.transport_document_distance.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), transport_document_path(transport_document_distance_form.transport_document),
+                  class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

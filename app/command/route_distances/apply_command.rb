@@ -31,7 +31,7 @@ module RouteDistances
     end
 
     def candidates
-      documents = tenant.atua_transport_documents
+      documents = tenant.atua_transport_documents.where(distance_edited_at: nil)
 
       documents.where(taker_code: routes.values.map(&:customer_code).uniq).or(documents.where.not(distance_adjusted_at: nil))
     end

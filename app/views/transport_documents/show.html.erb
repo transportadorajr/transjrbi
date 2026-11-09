@@ -10,6 +10,7 @@
     </nav>
     <%= page_header_tag t('.title', number: @transport_document.number),
                         back_path: transport_documents_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= transport_document_edit_distance_button(@transport_document) %>
       <%= transport_document_resync_button(@transport_document) %>
     <% end %>
   </div>
