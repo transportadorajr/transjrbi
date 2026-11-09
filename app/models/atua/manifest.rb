@@ -76,16 +76,16 @@ module Atua
                                         per_km('net_cents').as('net_per_km_cents'))
       end
 
-      def gross_freight
+      def gross_freight(documents = trip_documents)
         Arel::Nodes::Addition.new(
-          Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel),
+          Arel::Nodes::Grouping.new(documents.select(TransportDocument.sum_or_zero(TransportDocument.arel_table[:freight_cents])).arel),
           missing_documents_freight,
         )
       end
 
-      def net_freight
+      def net_freight(documents = trip_documents)
         Arel::Nodes::Addition.new(
-          Arel::Nodes::Grouping.new(trip_documents.select(TransportDocument.sum_or_zero(TransportDocument.net_freight)).arel),
+          Arel::Nodes::Grouping.new(documents.select(TransportDocument.sum_or_zero(TransportDocument.net_freight)).arel),
           missing_documents_freight,
         )
       end
@@ -114,6 +114,30 @@ module Atua
         TransportDocument.active.not_canceled.without_ce.joins(:manifest_documents).merge(ManifestDocument.active)
           .where(documents[:tenant_id].eq(arel_table[:tenant_id]))
           .where(documents[:manifest_code].eq(arel_table[:code]))
+      end
+
+      def first_trip_documents
+        trip_documents.where(<<~SQL.squish)
+          NOT EXISTS (
+            SELECT 1
+            FROM atua_manifest_documents earlier_documents
+            INNER JOIN atua_manifests earlier_manifests ON earlier_manifests.tenant_id = earlier_documents.tenant_id
+              AND earlier_manifests.code = earlier_documents.manifest_code
+            WHERE earlier_documents.tenant_id = atua_transport_documents.tenant_id
+              AND earlier_documents.transport_document_number = atua_transport_documents.number
+              AND earlier_documents.transport_document_series = atua_transport_documents.series
+              AND earlier_documents.branch_name = atua_transport_documents.branch_name
+              AND earlier_documents.removed_from_atua_at IS NULL
+              AND earlier_manifests.removed_from_atua_at IS NULL
+              AND earlier_manifests.status IS DISTINCT FROM #{connection.quote(CANCELED_STATUS)}
+              AND COALESCE(earlier_manifests.plate, '') <> ''
+              AND (#{trip_at_sql('earlier_manifests')}, earlier_manifests.code) < (#{trip_at_sql('atua_manifests')}, atua_manifests.code)
+          )
+        SQL
+      end
+
+      def trip_at_sql(table)
+        "COALESCE(#{table}.trip_started_at, #{table}.departure_on, #{table}.issued_on)"
       end
 
       def trip_at

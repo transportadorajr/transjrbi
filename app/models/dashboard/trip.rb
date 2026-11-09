@@ -176,6 +176,7 @@ module Dashboard
     def facts
       @facts ||= manifests.trips
         .where(Arel.sql(Atua::Manifest.trip_on_sql).between(facts_range))
+        .where(Atua::Manifest.first_trip_documents.arel.exists)
         .joins(main_driver_join)
         .pluck(*fact_columns)
         .map do |id, code, number, trip_on, plate, driver_code, driver_name, gross_cents, net_cents, loaded_km|
@@ -196,8 +197,8 @@ module Dashboard
         Atua::Manifest.arel_table[:plate],
         Arel.sql('main_drivers.driver_code'),
         Arel.sql('main_drivers.driver_name'),
-        Arel::Nodes::Grouping.new(Atua::Manifest.gross_freight),
-        Arel::Nodes::Grouping.new(Atua::Manifest.net_freight),
+        Arel::Nodes::Grouping.new(Atua::Manifest.gross_freight(Atua::Manifest.first_trip_documents)),
+        Arel::Nodes::Grouping.new(Atua::Manifest.net_freight(Atua::Manifest.first_trip_documents)),
         Arel::Nodes::Grouping.new(Arel.sql(Atua::Manifest.loaded_km_sql)),
       ]
     end
