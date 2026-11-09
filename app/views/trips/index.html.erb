@@ -57,5 +57,7 @@
     <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-6 col-xl-3') %>
   </div>
 
+  <%= trips_per_km_base(@dashboard) %>
+
   <%= render trips_content_partial(@dashboard), dashboard: @dashboard %>
 <% end %>

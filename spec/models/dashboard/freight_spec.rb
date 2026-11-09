@@ -194,6 +194,16 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.net).to eq(dashboard.total.net)
     end
 
+    it 'exposes the gross, net and km the per km is calculated on and the documents left out of it' do
+      base = dashboard.per_km_base
+
+      expect(base).to have_attributes(gross: Money.from_cents(2_600_000), net: Money.from_cents(2_535_000), loaded_km: BigDecimal('820'),
+                                      excluded_count: 4, excluded_gross: Money.from_cents(1_890_000), excluded_net: Money.from_cents(1_890_000))
+      expect(base.gross + base.excluded_gross).to eq(dashboard.total.gross)
+      expect(base.net + base.excluded_net).to eq(dashboard.total.net)
+      expect((base.gross.cents / base.loaded_km).round).to eq(dashboard.total.gross_per_km.cents)
+    end
+
     context 'with documents linked to no trip' do
       let!(:unlinked_in_november) do
         create(:atua_transport_document, tenant:, number: '74008', freight_cents: 300_000, issued_at: Time.zone.local(2026, 11, 1, 0, 10),

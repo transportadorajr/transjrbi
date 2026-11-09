@@ -85,6 +85,16 @@ module Dashboard
       ranked.first(count).to_h { |row| [row.key, :best] }.merge(ranked.last(count).to_h { |row| [row.key, :worst] })
     end
 
+    def per_km_base
+      @per_km_base ||= begin
+        measured, excluded = period_facts.partition(&:measured?)
+
+        PerKmBase.new(gross: Money.from_cents(measured.sum(&:gross_cents)), net: Money.from_cents(measured.sum(&:net_cents)),
+                      loaded_km: measured.sum(BigDecimal('0'), &:loaded_km).round(2), excluded_count: excluded.size,
+                      excluded_gross: Money.from_cents(excluded.sum(&:gross_cents)), excluded_net: Money.from_cents(excluded.sum(&:net_cents)))
+      end
+    end
+
     def unmeasured_trips
       @unmeasured_trips ||= period_facts.reject(&:measured?).sort_by { |fact| [fact.trip_on, fact.code] }
     end

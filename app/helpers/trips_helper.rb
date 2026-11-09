@@ -135,6 +135,16 @@ module TripsHelper
     safe_join(parts, ' ')
   end
 
+  def trips_per_km_base(dashboard)
+    base = dashboard.per_km_base
+    return unless base.excluded?
+
+    content_tag(:p, t('trips.index.per_km_base', count: base.excluded_count, gross: tax_money(base.gross), net: tax_money(base.net),
+                                                 distance: trips_km(base.loaded_km), excluded_gross: tax_money(base.excluded_gross),
+                                                 excluded_net: tax_money(base.excluded_net)),
+                class: 'small text-body-secondary mb-4', id: 'per_km_base')
+  end
+
   def trips_unmeasured_alert(trips)
     return if trips.empty?
 

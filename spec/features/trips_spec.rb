@@ -93,6 +93,16 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_no_text('PEDRO OUTRO')
       end
 
+      scenario 'shows the gross, net and km the per km is calculated on and the trips left out of it' do
+        visit trips_path(october)
+
+        expect(Atua::Manifest.count).to eq(4)
+        expect(find_by_id('per_km_base').text.squish).to eq(
+          'O R$/km considera R$ 9.000,00 de frete bruto e R$ 8.000,00 de frete líquido em 650 km. ' \
+          'Fica de fora 1 MDF-e sem km ou com km inválido (R$ 2.000,00 bruto e R$ 2.000,00 líquido).',
+        )
+      end
+
       context 'with access to the manifests' do
         let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
         let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
@@ -195,6 +205,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
           expect(Atua::Manifest.count).to eq(5)
           expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(['41010 DDD4D44 · 23/10/2026', 'Total'])
           expect(page).to have_no_css('#unmeasured_trips')
+          expect(page).to have_no_css('#per_km_base')
 
           visit trips_path(october.merge(dimension: 'manifest', product_group_id: flour.id, plate: 'AAA1A11'))
 

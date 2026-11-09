@@ -110,6 +110,16 @@ module FreightBillingsHelper
     t('freight_billings.km', distance: number_with_delimiter(distance.round))
   end
 
+  def freight_billing_per_km_base(dashboard)
+    base = dashboard.per_km_base
+    return unless base.excluded?
+
+    content_tag(:p, t('freight_billings.show.per_km_base', count: base.excluded_count, gross: tax_money(base.gross), net: tax_money(base.net),
+                                                           distance: freight_billing_km(base.loaded_km), excluded_gross: tax_money(base.excluded_gross),
+                                                           excluded_net: tax_money(base.excluded_net)),
+                class: 'small text-body-secondary mb-4', id: 'per_km_base')
+  end
+
   def freight_billing_trips(count)
     number_with_precision(count, precision: 1, strip_insignificant_zeros: true)
   end
