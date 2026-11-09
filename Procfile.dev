@@ -3,3 +3,4 @@ js: bun run build --watch
 css: bun run watch:css
 worker: env ATUA_BASE_URL=${ATUA_BASE_URL:-http://localhost:4567/adm} bundle exec good_job start
 atua: bundle exec ruby mock/atua_server.rb
+xlsx: env XLSX_EXPORT_BIND=127.0.0.1:4000 bin/xlsx_export serve

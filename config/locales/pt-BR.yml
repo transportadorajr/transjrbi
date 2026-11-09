@@ -316,6 +316,26 @@ pt-BR:
         display_name: Nome de exibição
         vehicles_count: Veículos
         plates: Placas
+        vehicle_kind_code: Código do tipo do veículo
+        brand_code: Código da marca
+        manufacture_year: Ano de fabricação
+        model_year: Ano do modelo
+        owner_code: Código do proprietário
+        owner_name: Proprietário
+        owner_document: CPF/CNPJ do proprietário
+        source_updated_at: Atualizado na Atua em
+        city_code: Código da cidade
+        state_code: Código da UF
+        state: UF
+        registered_month_on: Mês de cadastro
+        updated_month_on: Mês de atualização
+        owner_whatsapp_at: WhatsApp do proprietário confirmado em
+        driver_whatsapp_at: WhatsApp do motorista confirmado em
+        high_performance_at: Alto desempenho desde
+        imported_at: Importado em
+        removed_from_atua_at: Removido da Atua em
+        created_at: Criado em
+        updated_at: Atualizado em
       atua/expense:
         code: Código
         allocation: Alocação
@@ -940,6 +960,7 @@ pt-BR:
   shared:
     actions: Ações
     export_pdf: Exportar PDF
+    export_xlsx: Exportar Excel
     all: Todos
     apply_filters: Aplicar Filtros
     clear_filters: Limpar Filtros
@@ -2082,6 +2103,14 @@ pt-BR:
       name: TransJRBI
       short_name: TransJRBI
       description: Fretes, viagens e resultados da sua transportadora em um só lugar.
+  xlsx_export:
+    filename: "%{title}-%{date}.xlsx"
+    formats:
+      money: '"%{unit}" #,##0.00'
+    errors:
+      failed: Não foi possível gerar a planilha do Excel agora. Tente novamente em alguns minutos.
+      status: 'O serviço de planilhas respondeu HTTP %{status}: %{message}'
+      unavailable: 'O serviço de planilhas não respondeu: %{reason}'
   typst:
     generated_at: Gerado em %{time}.
     records_count:

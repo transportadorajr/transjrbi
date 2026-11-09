@@ -50,6 +50,24 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+  xlsx_export:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: xlsx_export
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Lint
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
+
   test:
     runs-on: ubuntu-latest
 
@@ -103,6 +121,19 @@ jobs:
         run: |
           cargo build --release --locked --manifest-path rust_typst_pdf/Cargo.toml
           cp rust_typst_pdf/target/release/rust_typst_pdf bin/rust_typst_pdf
+
+      - name: Cache the Excel export service
+        id: xlsx-export
+        uses: actions/cache@v4
+        with:
+          path: bin/xlsx_export
+          key: xlsx-export-${{ runner.os }}-${{ hashFiles('xlsx_export/Cargo.lock', 'xlsx_export/Cargo.toml', 'xlsx_export/src/**') }}
+
+      - name: Build the Excel export service
+        if: steps.xlsx-export.outputs.cache-hit != 'true'
+        run: |
+          cargo build --release --locked --manifest-path xlsx_export/Cargo.toml
+          cp xlsx_export/target/release/xlsx_export bin/xlsx_export
 
       - name: Run tests
         env:

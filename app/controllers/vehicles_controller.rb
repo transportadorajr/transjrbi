@@ -13,7 +13,7 @@ class VehiclesController < BaseController
     @ownerships = vehicles.where.not(ownership: nil).distinct.order(:ownership).pluck(:ownership)
     @year = Date.current.year
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: @vehicles)
   end
 
   def show

@@ -51,6 +51,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push the Excel export image
+        uses: docker/build-push-action@v7
+        with:
+          context: xlsx_export
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/transjrbi-xlsx:${{ steps.version.outputs.version }}
+            ${{ vars.DOCKERHUB_USERNAME }}/transjrbi-xlsx:latest
+          cache-from: type=gha,scope=xlsx
+          cache-to: type=gha,mode=max,scope=xlsx
+
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}

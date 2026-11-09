@@ -25,6 +25,13 @@ FileUtils.chdir APP_ROOT do
   FileUtils.mkdir_p File.dirname(typst_binary)
   FileUtils.cp File.join(target_dir, "release", "rust_typst_pdf"), typst_binary
 
+  puts "\n== Building the Excel export service =="
+  system! "cargo build --release --locked --manifest-path xlsx_export/Cargo.toml"
+  xlsx_target_dir = ENV.fetch("CARGO_TARGET_DIR", File.join(APP_ROOT, "xlsx_export", "target"))
+  xlsx_binary = ENV.fetch("XLSX_EXPORT_BINARY", File.join(APP_ROOT, "bin", "xlsx_export"))
+  FileUtils.mkdir_p File.dirname(xlsx_binary)
+  FileUtils.cp File.join(xlsx_target_dir, "release", "xlsx_export"), xlsx_binary
+
   # puts "\n== Copying sample files =="
   # unless File.exist?("config/database.yml")
   #   FileUtils.cp "config/database.yml.sample", "config/database.yml"

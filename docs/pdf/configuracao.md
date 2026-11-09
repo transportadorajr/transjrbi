@@ -17,7 +17,7 @@ A imagem Docker compila o seu próprio binário no estágio `typst-builder`, e a
 
 Toda listagem tem o botão "Exportar PDF" (`pdf_export_button`), que abre a mesma URL com `.pdf` e mantém os filtros e a ordenação, sem a paginação.
 
-1. No controller, troque o `.page(params[:page])` por `listing_page(...)` e termine o `index` com `respond_with_listing` (ou `respond_with_listing(orientation: :landscape)`). Os dois vêm do concern `PdfListing`, incluído no `BaseController`. O nome do arquivo vem de `<controller>.<action>.pdf.filename`.
+1. No controller, troque o `.page(params[:page])` por `listing_page(...)` e termine o `index` com `respond_with_listing` (ou `respond_with_listing(orientation: :landscape)`). Os dois vêm do concern `ListingExport`, incluído no `BaseController`. O nome do arquivo vem de `<controller>.<action>.pdf.filename`.
 2. No helper da tela, crie um `<tela>_pdf_report` que devolve um `PdfReport` com o título, as colunas (`pdf_column(label, largura, align:)`), as linhas e, quando houver, o subtítulo, os indicadores (`pdf_highlight`) e a linha de totais. As células podem reaproveitar os helpers da tela: badges e links viram texto puro.
 3. O `index.pdf.erb` só renderiza o template compartilhado:
 

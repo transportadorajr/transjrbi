@@ -15,9 +15,12 @@ O script `deploy/release` executa, em ordem:
 
 1. Instala o plugin `docker rollout` na VPS, se ainda não estiver instalado.
 2. `docker compose pull`: baixa a imagem nova antes de qualquer troca.
-3. Roda `db:prepare` num container avulso, uma única vez. As migrations rodam enquanto a
+3. Sobe o serviço de planilhas Excel (`xlsx`) com a imagem nova. Ele só é acessado pela rede
+   interna do Docker (sem porta publicada e sem Traefik); a troca leva poucos segundos e, nesse
+   intervalo, só a exportação para Excel mostra um aviso de erro.
+4. Roda `db:prepare` num container avulso, uma única vez. As migrations rodam enquanto a
    versão antiga continua atendendo (por isso precisam ser retrocompatíveis, ver o item 4).
-4. `docker rollout web`:
+5. `docker rollout web`:
    - sobe um segundo container `web` com a versão nova;
    - espera o healthcheck (`/up`) passar, por até 180 segundos. Se não passar, o container
      novo é removido, o antigo continua no ar e o deploy falha;
@@ -25,8 +28,8 @@ O script `deploy/release` executa, em ordem:
    - cria `tmp/drain` no container antigo: o `/up` passa a responder 503, o Traefik para de
      mandar tráfego para ele e, depois de 20 segundos, o container é parado. O Puma termina as
      requisições em andamento (até 30 segundos).
-5. Sobe o Traefik (só recria se a configuração mudou).
-6. Recria o container `jobs` com a versão nova. O GoodJob espera até 25 segundos pelos jobs em
+6. Sobe o Traefik (só recria se a configuração mudou).
+7. Recria o container `jobs` com a versão nova. O GoodJob espera até 25 segundos pelos jobs em
    execução antes de sair.
 
 O Traefik usa um cookie (`transjrbi_server`) para manter cada usuário no mesmo container
@@ -40,7 +43,11 @@ CSS/JS ao container antigo, que não tem esses arquivos.
    ```bash
    APP_DOMAIN=<domínio, sem o app. na frente>
    ACME_EMAIL=<e-mail que recebe os avisos do Let's Encrypt>
+   XLSX_EXPORT_TOKEN=<segredo compartilhado entre o web e o serviço de planilhas>
    ```
+
+   Gere o `XLSX_EXPORT_TOKEN` com `openssl rand -hex 32`. Sem ele o `docker compose` recusa
+   subir os serviços, então adicione-o **antes** do primeiro deploy que traz o serviço `xlsx`.
 
    O Traefik atende `app.<APP_DOMAIN>` e `admin.<APP_DOMAIN>`. Os dois registros DNS precisam
    apontar para a VPS.

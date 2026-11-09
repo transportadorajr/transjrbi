@@ -141,6 +141,75 @@ describe 'Vehicles' do
 
         expect(page.status_code).to eq(404)
       end
+
+      context 'with the Excel export enabled', :xlsx_service, flipper: { xlsx_export: :tenant } do
+        before { truck.update_columns(imported_at: Time.zone.local(2026, 10, 1, 8, 30), created_at: Time.zone.local(2026, 10, 1, 8, 30), updated_at: Time.zone.local(2026, 10, 2, 17, 45)) }
+
+        scenario 'exports every column but the ids of the vehicles listed' do
+          visit vehicles_path
+          click_on 'Exportar Excel'
+
+          expect(page.response_headers['Content-Type']).to eq(Mime[:xlsx].to_s)
+          expect(page.response_headers['Content-Disposition']).to include('attachment', 'filename="veiculos-2026-11-02.xlsx"')
+          expect(Atua::Vehicle.count).to eq(6)
+          expect(downloaded_xlsx_sheet.default_sheet).to eq('Veículos')
+          expect(downloaded_xlsx_rows.first).to eq(
+            [
+              'Código', 'Placa', 'Categoria', 'Tipo do veículo', 'Código do tipo do veículo', 'Rodado', 'Carroceria', 'Código da marca', 'Marca',
+              'Modelo', 'Ano de fabricação', 'Ano do modelo', 'RENAVAM', 'Chassi', 'Cor', 'Propriedade', 'Código do proprietário', 'Proprietário',
+              'CPF/CNPJ do proprietário', 'ANTT', 'Código do motorista', 'Motorista', 'CPF do motorista', 'CNH', 'Gerenciamento de risco',
+              'Validade do cadastro', 'Atualizado na Atua em', 'Situação na Atua', 'Código da cidade', 'Cidade', 'Código da UF', 'UF',
+              'Mês de cadastro', 'Mês de atualização', 'WhatsApp do proprietário confirmado em', 'WhatsApp do motorista confirmado em',
+              'Alto desempenho desde', 'Importado em', 'Removido da Atua em', 'Criado em', 'Atualizado em'
+            ],
+          )
+          expect(downloaded_xlsx_records.pluck('Placa')).to eq(%w[BEV4G50 EXU0F72])
+          expect(downloaded_xlsx_records.last.compact).to eq(
+            'Código' => truck.code, 'Placa' => 'EXU0F72', 'Categoria' => 'Caminhão / Cavalo', 'Marca' => 'VOLVO', 'Modelo' => 'FH 540',
+            'Ano de fabricação' => 2021, 'Ano do modelo' => 2022, 'Propriedade' => 'Próprio', 'Código do motorista' => 760,
+            'Motorista' => 'JOSE DA SILVA', 'Situação na Atua' => 'Normal', 'Importado em' => DateTime.new(2026, 10, 1, 8, 30),
+            'Criado em' => DateTime.new(2026, 10, 1, 8, 30), 'Atualizado em' => DateTime.new(2026, 10, 2, 17, 45)
+          )
+        end
+
+        scenario 'exports only the vehicles that match the filters and the sort' do
+          visit vehicles_path(category: 'Carreta', sort: 'plate', direction: 'desc', page: 2)
+
+          expect(page).to have_link('Exportar Excel', href: vehicles_path(category: 'Carreta', sort: 'plate', direction: 'desc', format: :xlsx))
+
+          visit vehicles_path(sort: 'plate', direction: 'desc', format: :xlsx)
+
+          expect(Atua::Vehicle.count).to eq(6)
+          expect(downloaded_xlsx_records.pluck('Placa')).to eq(%w[EXU0F72 BEV4G50])
+
+          visit vehicles_path(category: 'Carreta', format: :xlsx)
+
+          expect(downloaded_xlsx_records.pluck('Placa')).to eq(%w[BEV4G50])
+        end
+
+        scenario 'goes back to the listing with a message when the export service fails' do
+          ClimateControl.modify(XLSX_EXPORT_URL: 'http://127.0.0.1:9') do
+            visit vehicles_path(category: 'Carreta')
+            click_on 'Exportar Excel'
+          end
+
+          expect(page).to have_current_path(vehicles_path(category: 'Carreta'))
+          expect(page).to have_text('Não foi possível gerar a planilha do Excel agora. Tente novamente em alguns minutos.')
+        end
+      end
+
+      context 'with the Excel export disabled' do
+        scenario 'neither shows the button nor exports the spreadsheet' do
+          visit vehicles_path
+
+          expect(page).to have_link('Exportar PDF')
+          expect(page).to have_no_link('Exportar Excel')
+
+          visit vehicles_path(format: :xlsx)
+
+          expect(page.status_code).to eq(406)
+        end
+      end
     end
 
     context 'when a vehicle has every detail' do
@@ -381,6 +450,19 @@ describe 'Vehicles' do
       expect(page).to have_link('EXU0F72')
       expect(page).to have_no_css('th', text: 'Categoria')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    context 'with the Excel export enabled', flipper: { xlsx_export: :tenant } do
+      scenario 'shows both export buttons as icons without horizontal scroll on a narrow phone' do
+        use_mobile_screen(width: 360, height: 780)
+        visit vehicles_path
+
+        expect(page).to have_link('EXU0F72')
+        expect(page).to have_link(title: 'Exportar PDF')
+        expect(page).to have_link(title: 'Exportar Excel', href: vehicles_path(format: :xlsx))
+        expect(page).to have_no_text('Exportar Excel')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
     end
 
     context 'when the plate has empty legs' do
