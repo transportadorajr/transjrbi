@@ -2109,6 +2109,7 @@ pt-BR:
       money: '"%{unit}" #,##0.00'
     errors:
       failed: Não foi possível gerar a planilha do Excel agora. Tente novamente em alguns minutos.
+      missing_url: 'Configuração do serviço de planilhas incompleta: defina XLSX_EXPORT_URL (ou xlsx_export.url nos credentials).'
       status: 'O serviço de planilhas respondeu HTTP %{status}: %{message}'
       unavailable: 'O serviço de planilhas não respondeu: %{reason}'
   typst:

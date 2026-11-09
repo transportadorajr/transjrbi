@@ -345,7 +345,7 @@ Because two versions of the app serve at the same time during every deploy, the 
 - Every exported column needs a header under `activerecord.attributes.<model>.<column>` (without the `_cents` suffix for money); cover it with a spec on `Export::Column#translated?`.
 - The button and the `.xlsx` format are behind the `xlsx_export` Flipper flag (per tenant); with the flag off the format answers 406.
 - Feature specs that download a spreadsheet are tagged `:xlsx_service` (boots `bin/xlsx_export`, built by `bin/setup`) and read it with `downloaded_xlsx_rows`/`downloaded_xlsx_records`.
-- The service runs as the `xlsx` service of `deploy/compose.yaml`, reachable only inside the Docker network at `XLSX_EXPORT_URL`, authenticated by `XLSX_EXPORT_TOKEN`. Never publish its port or add Traefik labels to it. Contract changes go to a new `/v2/...` endpoint while `/v1` stays for at least one deploy, since two versions of `web` serve at the same time.
+- The service runs as the `xlsx` service of `deploy/compose.yaml`, reachable only inside the Docker network at `XLSX_EXPORT_URL`, authenticated by `XLSX_EXPORT_TOKEN`. `XlsxExport.url` falls back to `http://localhost:4000` only in development and test; in production a missing URL raises `XlsxExport::ConfigurationError` instead of silently calling localhost. Never publish its port or add Traefik labels to it. Contract changes go to a new `/v2/...` endpoint while `/v1` stays for at least one deploy, since two versions of `web` serve at the same time.
 
 ## Error Tracking
 
