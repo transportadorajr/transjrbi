@@ -140,6 +140,12 @@ module FreightBillingsHelper
     menus
   end
 
+  def freight_billing_opened_detail(row)
+    return unless row
+
+    render 'freight_billings/detail_modal', row:, replace_url: freight_billing_path(request.query_parameters)
+  end
+
   def freight_billing_row_label(row, dashboard)
     return row.label unless dashboard.lists_freights?(row.key)
 

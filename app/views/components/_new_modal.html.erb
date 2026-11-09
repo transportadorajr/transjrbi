@@ -1,5 +1,6 @@
 <%= tag.div class: 'modal fade', id:, tabindex: -1, aria: { labelledby: "#{id}_label", hidden: true },
-            data: { controller: 'modal', modal_auto_show_value: local_assigns.fetch(:auto_show, false) } do %>
+            data: { controller: 'modal', modal_auto_show_value: local_assigns.fetch(:auto_show, false),
+                    modal_replace_url_value: local_assigns[:replace_url] }.compact do %>
   <%= tag.div class: ['modal-dialog', local_assigns[:dialog_class]] do %>
     <div class="modal-content border-0 shadow">
       <div class="modal-header border-bottom-0 pb-0">

@@ -46,6 +46,22 @@ describe('ModalController', () => {
     expect(Modal.getInstance(modal())).toBeNull();
   });
 
+  it('replaces the address of the page when a replace url is given', async () => {
+    window.history.replaceState(null, '', '/freight_billing?start_date=2026-11-01&detail=total');
+    document.body.innerHTML = `
+      <div class="modal" id="my_modal" tabindex="-1" data-controller="modal" data-modal-auto-show-value="true"
+           data-modal-replace-url-value="/freight_billing?start_date=2026-11-01">
+        <div class="modal-dialog"><div class="modal-content"></div></div>
+      </div>
+    `;
+    application = Application.start();
+    application.register('modal', ModalController);
+    await tick();
+
+    expect(window.location.pathname + window.location.search).toBe('/freight_billing?start_date=2026-11-01');
+    expect(modal().classList.contains('show')).toBe(true);
+  });
+
   it('disposes the bootstrap instance when the modal leaves the page', async () => {
     await mount(true);
     const element = modal();

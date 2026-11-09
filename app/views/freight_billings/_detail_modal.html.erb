@@ -1,8 +1,9 @@
-<%# locals: (row:) %>
+<%# locals: (row:, replace_url: nil) %>
 
 <%= tag.div class: 'freight-billing-detail', data: { turbo_temporary: true } do %>
   <%= render layout: 'components/new_modal',
-             locals: { id: FreightBillingsHelper::DETAIL_MODAL_ID, title: row.label, auto_show: true, show_footer: false } do %>
+             locals: { id: FreightBillingsHelper::DETAIL_MODAL_ID, title: row.label, auto_show: true, show_footer: false,
+                       replace_url: } do %>
     <% freight_billing_detail_sections(row).each do |section, fields| %>
       <p class="freight-billing-detail-section"><%= t(section, scope: 'freight_billings.detail.sections') %></p>
       <dl class="row detail-list mb-3">

@@ -8,9 +8,12 @@ class FreightBillingsController < BaseController
   has_scope :by_product, as: :product_id
   has_scope :by_origin_macro_region, as: :macro_region_id
 
+  DETAIL_PARAM = 'detail'.freeze
+
   before_action :load_dashboard, except: :product_options
 
   def show
+    @detail_row = opened_detail_row
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
     @product_groups = current_tenant.product_groups.groups.activated.order(:name)
@@ -24,8 +27,12 @@ class FreightBillingsController < BaseController
 
   def detail
     @row = @dashboard.row_for(params[:key])
+    return redirect_to(freight_billing_path(filter_params), alert: t('.row_not_found')) unless @row
 
-    redirect_to(freight_billing_path(filter_params), alert: t('.row_not_found')) unless @row
+    respond_to do |format|
+      format.turbo_stream
+      format.html { redirect_to freight_billing_path(filter_params.merge(DETAIL_PARAM => @row.key)) }
+    end
   end
 
   def freights
@@ -50,6 +57,12 @@ class FreightBillingsController < BaseController
   end
 
   private
+
+  def opened_detail_row
+    key = request.query_parameters.delete(DETAIL_PARAM)
+
+    @dashboard.row_for(key) if request.format.html? && !key.nil?
+  end
 
   def load_dashboard
     authorize!(:read, :freight_billing)
