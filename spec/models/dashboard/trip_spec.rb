@@ -158,6 +158,27 @@ RSpec.describe Dashboard::Trip do
       end
     end
 
+    context 'when a CT-e is listed again in a later MDF-e' do
+      before do
+        relist_documents(code: 41_008, plate: 'BBB2B22', started_at: Time.zone.local(2026, 10, 23, 8), numbers: %w[74004])
+        relist_documents(code: 41_009, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 24, 8), numbers: %w[74006])
+        relist_documents(code: 41_010, plate: 'BBB2B22', started_at: Time.zone.local(2026, 10, 26, 8), numbers: %w[74005])
+      end
+
+      def relist_documents(code:, plate:, started_at:, numbers:)
+        create(:atua_manifest, tenant:, code:, number: code.to_s, plate:, status: 'Normal', trip_started_at: started_at)
+        numbers.each do |number|
+          create(:atua_manifest_document, tenant:, manifest_code: code, transport_document_number: number, calculated_distance_km: 300)
+        end
+      end
+
+      it 'counts the freight of the CT-e only in its first trip that was not canceled' do
+        expect(Atua::Manifest.count).to eq(9)
+        expect(row_values([dashboard.total])).to eq([['Total', 4, 950, 'R$ 20.000,00', 'R$ 19.000,00', 'R$ 5.000,00', 'R$ 4.750,00', 'R$ 18,95', 'R$ 17,89']])
+        expect(dashboard.rows.flat_map(&:label)).to eq(['JOSE SILVA', 'MARIA SOUZA'])
+      end
+    end
+
     it 'has nothing to highlight with a single measured row' do
       expect(dashboard.highlights('net_per_km')).to eq({})
     end
