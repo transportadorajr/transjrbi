@@ -784,6 +784,22 @@ describe 'Freight billing' do
         expect(page).to have_no_text('OUT1A11')
       end
 
+      scenario 'opens the detail of the total from its address keeping the selected filters', :js do
+        visit detail_freight_billing_path(october.merge(key: 'total'))
+
+        expect(page).to have_css('#freight_billing_detail_modal.show .modal-title', text: 'Total')
+        expect(dl_to_hash('#freight_billing_detail_modal')).to include('Viagens' => '2', 'Frete bruto' => 'R$ 20.000,00', 'Participação' => '100,0%')
+        expect(page).to have_text('CT-es emitidos de 01/10/2026 a 31/10/2026')
+        expect(html_table_to_rows.last.values_at(0, 1)).to eq(['Total', 'R$ 20.000,00'])
+        expect(page).to have_current_path(freight_billing_path(october))
+        expect(page).to have_no_css('a.sort-link[href*="detail"]')
+
+        refresh
+
+        expect(page).to have_css('.freight-billing-table')
+        expect(page).to have_no_css('#freight_billing_detail_modal', visible: :all)
+      end
+
       context 'when the origins belong to macro regions' do
         let!(:grande_bh) { create(:macro_region, tenant:, name: 'GRANDE BH', state: 'MG', city_names: ['Belo Horizonte', 'Betim']) }
 
