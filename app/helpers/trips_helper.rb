@@ -2,8 +2,6 @@ module TripsHelper
   include ChartsHelper
 
   SERIES_COLORS = [BRAND_BLUE, DANGER_RED].freeze
-  EVOLUTIONS = %w[monthly weekly].freeze
-  DEFAULT_EVOLUTION = 'monthly'.freeze
 
   def trips_content_partial(dashboard)
     dashboard.empty? ? 'shared/no_content' : 'trips/report'
@@ -27,28 +25,11 @@ module TripsHelper
     "btn btn-sm #{variation}"
   end
 
-  def trips_evolutions
-    EVOLUTIONS
-  end
-
-  def trips_evolution_reveal_data
-    { controller: 'reveal', reveal_key_value: DEFAULT_EVOLUTION, reveal_active_class: 'btn-primary',
-      reveal_inactive_class: 'btn-outline-secondary', reveal_hidden_class: 'd-none' }
-  end
-
-  def trips_evolution_button(evolution)
-    default = evolution == DEFAULT_EVOLUTION
-
-    button_tag t(evolution, scope: 'trips.evolutions'), type: :button, class: ['btn btn-sm', default ? 'btn-primary' : 'btn-outline-secondary'],
-                                                        aria: { pressed: default },
-                                                        data: { reveal_target: 'button', reveal_key_param: evolution, action: 'reveal#show' }
-  end
-
   def trips_evolution_cards(dashboard, metric)
     suffix = metric == :per_km ? '_per_km' : ''
 
     safe_join(EVOLUTIONS.map do |evolution|
-      tag.div(class: ['h-100', ('d-none' unless evolution == DEFAULT_EVOLUTION)], data: { reveal_target: 'item', reveal_key: evolution }) do
+      chart_evolution_item(evolution) do
         render 'freight_billings/chart_card', title: t("trips.index.#{evolution}#{suffix}_title"),
                                               subtitle: public_send(:"trips_#{evolution}_subtitle", dashboard),
                                               chart: trips_history_chart(dashboard.public_send(:"#{evolution}#{suffix}_data"))

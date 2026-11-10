@@ -183,7 +183,7 @@ describe 'Freight billing' do
           page.document.synchronize { page.evaluate_script('window.turboLoads').positive? || raise(Capybara::ExpectationNotMet) }
           expect(page).to have_css('.chart-card canvas', count: 3)
           expect(page.evaluate_script('Object.values(Chartkick.charts).filter((chart) => document.body.contains(chart.element)).length'))
-            .to eq(3)
+            .to eq(4)
         end
       end
 
@@ -345,6 +345,68 @@ describe 'Freight billing' do
           end
         end
 
+        context 'when switching to the weekly evolution', :js do
+          def visible_chart_titles
+            all('.chart-card-title').map(&:text)
+          end
+
+          def click_week(label)
+            expect(page).to have_css('[data-controller="ranking-chart"] canvas', count: 2)
+
+            page.execute_script(<<~JS, label)
+              const [label] = arguments;
+              const chart = Object.values(Chartkick.charts)[2].getChartObject();
+              const rect = chart.canvas.getBoundingClientRect();
+              const y = chart.scales.y.getPixelForValue(chart.data.labels.indexOf(label));
+              chart.canvas.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: rect.left + chart.chartArea.left + 10, clientY: rect.top + y }));
+            JS
+          end
+
+          scenario 'shows the monthly evolution first and reveals the weekly one without reloading the page' do
+            visit freight_billing_path(october_by_truck)
+
+            expect(page).to have_button('Mensal', class: 'btn-primary')
+            expect(visible_chart_titles).to eq(['Frete por Veículo', 'Evolução Mensal'])
+
+            click_on 'Semanal'
+
+            expect(page).to have_button('Semanal', class: 'btn-primary')
+            expect(page).to have_button('Mensal', class: 'btn-outline-secondary')
+            expect(visible_chart_titles).to eq(['Frete por Veículo', 'Evolução Semanal'])
+            expect(page).to have_text('Frete bruto e líquido por semana de emissão do CT-e, de 09/08/2026 a 31/10/2026')
+            expect(page).to have_current_path(freight_billing_path(october_by_truck))
+            expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.labels.slice(-6)'))
+              .to eq(%w[20/09 27/09 04/10 11/10 18/10 25/10])
+            expect(page.evaluate_script(
+                     "[...document.querySelectorAll('.chart-card canvas')].filter((canvas) => canvas.checkVisibility())" \
+                     '.every((canvas) => canvas.getBoundingClientRect().width > 0)',
+                   )).to be(true)
+          end
+
+          scenario 'opens the freights issued in that week with the totals of its bars' do
+            visit freight_billing_path(october_by_truck)
+            click_on 'Semanal'
+            click_week('27/09')
+
+            expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: '27/09')
+            within('#freight_billing_freights_modal') do
+              expect(page).to have_text('CT-es emitidos de 27/09/2026 a 03/10/2026')
+              rows = html_table_to_rows
+              expect(rows[1..-2].size).to eq(Atua::TransportDocument.where(tenant:).count)
+              expect(rows.last).to include('R$ 20.300,00', 'R$ 19.400,00')
+            end
+            expect(page).to have_current_path(freight_billing_path(october_by_truck))
+          end
+
+          scenario 'opens nothing from a week without freights' do
+            visit freight_billing_path(october_by_truck)
+            click_on 'Semanal'
+            click_week('11/10')
+
+            expect(page).to have_no_css('#freight_billing_freights_modal')
+          end
+        end
+
         context 'when the ranking lists fifteen trucks' do
           before do
             12.times do |index|
@@ -423,8 +485,8 @@ describe 'Freight billing' do
         expect(page).to have_css('.chart-card canvas', count: 3)
         expect(page).to have_text('Frete bruto por km por Grupo de clientes')
         expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens, do maior para o menor')
-        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.labels')).to eq(['Sem grupo', 'USIMINAS'])
-        expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[28.85, 25.61]])
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[3].getChartObject().data.labels')).to eq(['Sem grupo', 'USIMINAS'])
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[3].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[28.85, 25.61]])
       end
 
       scenario 'plots the gross freight per km of the macro regions', :js do
@@ -782,13 +844,20 @@ describe 'Freight billing' do
         expect(page).to have_text('Este mês não está mais disponível. Confira os dados atualizados.')
       end
 
+      scenario 'redirects a week out of the weekly chart back to the report' do
+        visit week_freight_billing_path(october_by_truck.merge(week: '2020-01-05'))
+
+        expect(page).to have_current_path(freight_billing_path(october_by_truck))
+        expect(page).to have_text('Esta semana não está mais disponível. Confira os dados atualizados.')
+      end
+
       scenario 'makes only the ranking of the trucks and the drivers clickable' do
         visit freight_billing_path(october_by_truck)
-        expect(page).to have_css('[data-controller="ranking-chart"]', count: 2)
+        expect(page).to have_css('[data-controller="ranking-chart"]', count: 3)
 
         visit freight_billing_path(october)
         expect(page).to have_css('.chart-card')
-        expect(page).to have_css('[data-controller="ranking-chart"]', count: 1)
+        expect(page).to have_css('[data-controller="ranking-chart"]', count: 2)
       end
 
       scenario 'links only the trucks and the drivers to their freights' do
@@ -1453,7 +1522,7 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      expect(all('.dashboard-filter-label').map(&:text)).to eq(['DATA', 'AGRUPAR POR'])
+      expect(all('.dashboard-filter-label').map(&:text)).to eq(['DATA', 'AGRUPAR POR', 'EVOLUÇÃO'])
       expect(page).to have_link('Sem. atual')
       expect(page).to have_link('Sem. passada')
       expect(page).to have_link('Mês', exact: true)

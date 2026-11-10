@@ -7,8 +7,7 @@
   </div>
 
   <div class="col-12 col-xl-5">
-    <%= render 'chart_card', title: t('freight_billings.show.monthly_title'), subtitle: freight_billing_history_label(dashboard),
-                             chart: freight_billing_monthly_chart(dashboard) %>
+    <%= freight_billing_evolution_cards(dashboard) %>
   </div>
 </div>
 
