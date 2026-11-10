@@ -46,7 +46,14 @@ class FreightBillingsController < BaseController
     @row = @dashboard.month_row(params[:month])
     return redirect_to(freight_billing_path(filter_params), alert: t('.month_not_found')) unless @row
 
-    @transport_documents = @dashboard.month_freights(@row.month)
+    @transport_documents = @dashboard.history_freights(@row.period)
+  end
+
+  def week
+    @row = @dashboard.week_row(params[:week])
+    return redirect_to(freight_billing_path(filter_params), alert: t('.week_not_found')) unless @row
+
+    @transport_documents = @dashboard.history_freights(@row.period)
   end
 
   def product_options

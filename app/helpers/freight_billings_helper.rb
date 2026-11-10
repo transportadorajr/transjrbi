@@ -96,15 +96,25 @@ module FreightBillingsHelper
     t('freight_billings.show.table_title', dimension: freight_billing_dimension_label(dashboard.dimension))
   end
 
-  def freight_billing_history_label(dashboard)
+  def freight_billing_monthly_subtitle(dashboard)
     history = dashboard.history_period
 
     t('freight_billings.show.monthly_subtitle', from: l(history.first, format: :chart_month).capitalize,
                                                 to: l(history.last, format: :chart_month).capitalize)
   end
 
+  def freight_billing_weekly_subtitle(dashboard)
+    history = dashboard.weekly_history_period
+
+    t('freight_billings.show.weekly_subtitle', from: l(history.first), to: l(history.last))
+  end
+
   def freight_billing_month_period_label(row)
     t('freight_billings.month.period', month: row.label)
+  end
+
+  def freight_billing_week_period_label(row)
+    t('freight_billings.week.period', from: l(row.period.first), to: l(row.period.last))
   end
 
   def freight_billing_km(distance)
@@ -203,14 +213,14 @@ module FreightBillingsHelper
     end
   end
 
-  def freight_billing_monthly_chart(dashboard)
-    tag.div(data: freight_billing_monthly_chart_data(dashboard)) do
-      bar_chart(freight_billing_series(dashboard.monthly_data),
-                height: CHART_HEIGHT,
-                legend: 'bottom',
-                **chart_money_options,
-                library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS, tooltip: { enabled: false } }))
-    end
+  def freight_billing_evolution_cards(dashboard)
+    safe_join(chart_evolutions.map do |evolution|
+      chart_evolution_item(evolution) do
+        render 'freight_billings/chart_card', title: t("freight_billings.show.#{evolution}_title"),
+                                              subtitle: public_send(:"freight_billing_#{evolution}_subtitle", dashboard),
+                                              chart: freight_billing_history_chart(dashboard, evolution)
+      end
+    end)
   end
 
   def freight_billing_pdf_report(dashboard, rows, filter_form)
@@ -284,14 +294,30 @@ module FreightBillingsHelper
       action: 'click->ranking-chart#open mousemove->ranking-chart#hover' }
   end
 
-  def freight_billing_monthly_chart_data(dashboard)
-    { controller: 'ranking-chart', ranking_chart_urls_value: freight_billing_month_urls(dashboard),
+  def freight_billing_history_chart(dashboard, evolution)
+    tag.div(data: freight_billing_history_chart_data(dashboard, evolution)) do
+      bar_chart(freight_billing_series(dashboard.public_send(:"#{evolution}_data")),
+                height: CHART_HEIGHT,
+                legend: 'bottom',
+                **chart_money_options,
+                library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS, tooltip: { enabled: false } }))
+    end
+  end
+
+  def freight_billing_history_chart_data(dashboard, evolution)
+    { controller: 'ranking-chart', ranking_chart_urls_value: send(:"freight_billing_#{evolution}_urls", dashboard),
       action: 'click->ranking-chart#open mousemove->ranking-chart#hover' }
   end
 
-  def freight_billing_month_urls(dashboard)
+  def freight_billing_monthly_urls(dashboard)
     dashboard.billed_months.map do |month, billed|
       month_freight_billing_path(**request.query_parameters.symbolize_keys, month: month.strftime(Dashboard::Freight::MONTH_FORMAT)) if billed
+    end
+  end
+
+  def freight_billing_weekly_urls(dashboard)
+    dashboard.billed_weeks.map do |week, billed|
+      week_freight_billing_path(**request.query_parameters.symbolize_keys, week: week.strftime(Dashboard::Freight::WEEK_FORMAT)) if billed
     end
   end
 

@@ -968,6 +968,9 @@ pt-BR:
       aria_label: Navegação de páginas
   shared:
     actions: Ações
+    evolutions:
+      monthly: Mensal
+      weekly: Semanal
     export_pdf: Exportar PDF
     export_xlsx: Exportar Excel
     all: Todos
@@ -1864,6 +1867,9 @@ pt-BR:
     month:
       month_not_found: Este mês não está mais disponível. Confira os dados atualizados.
       period: CT-es emitidos em %{month}
+    week:
+      week_not_found: Esta semana não está mais disponível. Confira os dados atualizados.
+      period: CT-es emitidos de %{from} a %{to}
     filters:
       truck_group_hint: Pela placa do veículo ou pela quantidade de eixos informada em cada CT-e.
     period_presets:
@@ -1912,6 +1918,7 @@ pt-BR:
       never_synced: Nenhuma sincronização com a Atua até o momento
       period_label: Data
       group_by: Agrupar por
+      evolution_label: Evolução
       gross: Frete bruto
       net: Frete líquido
       net_discounts: 'Frete líquido é descontado do frete bruto: Comissões, Brasiltec, Seguro, Combustível, Descarga e Pedágio'
@@ -1934,6 +1941,8 @@ pt-BR:
       per_km_ranking_subtitle: Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens, do maior para o menor
       monthly_title: Evolução Mensal
       monthly_subtitle: Frete bruto e líquido por mês de emissão do CT-e, de %{from} a %{to}
+      weekly_title: Evolução Semanal
+      weekly_subtitle: Frete bruto e líquido por semana de emissão do CT-e, de %{from} a %{to}
       table_title: Detalhamento por %{dimension}
   trips:
     km: '%{distance} km'
@@ -1963,9 +1972,6 @@ pt-BR:
     dimensions:
       driver: Motorista
       vehicle: Veículo
-    evolutions:
-      monthly: Mensal
-      weekly: Semanal
     columns:
       gross: Frete bruto
       gross_per_km: Bruto/km

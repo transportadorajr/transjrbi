@@ -80,6 +80,7 @@ Rails.application.routes.draw do
       get :detail
       get :freights
       get :month
+      get :week
       get :product_options
     end
     resources :trips, only: :index do

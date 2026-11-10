@@ -7,7 +7,7 @@ module Dashboard
     HIGHLIGHT_LIMIT = 3
     MAX_LOADED_KM = 5_000
     HISTORY_MONTHS = 6
-    HISTORY_WEEKS = 12
+    HISTORY_WEEKS = 5
     WEEK_START = :sunday
     RANKING_LIMIT = 15
     TOTAL_KEY = 'total'.freeze

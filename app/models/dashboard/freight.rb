@@ -4,7 +4,10 @@ module Dashboard
     DEFAULT_DIMENSION = 'customer_group'.freeze
     FREIGHT_LIST_DIMENSIONS = %w[vehicle driver].freeze
     HISTORY_MONTHS = 6
+    HISTORY_WEEKS = 5
+    WEEK_START = :sunday
     MONTH_FORMAT = '%Y-%m'.freeze
+    WEEK_FORMAT = '%Y-%m-%d'.freeze
     RANKING_LIMIT = 15
     FOZ_ORIGIN_KEYS = ['FOZ DO IGUACU|PR|export', 'FOZ DO IGUACU|PR|national'].freeze
     TOTAL_KEY = 'total'.freeze
@@ -43,7 +46,7 @@ module Dashboard
     end
 
     IssuedFact = Data.define(:issued_on, :freight_cents, :net_cents)
-    MonthRow = Data.define(:month, :label, :gross, :net)
+    HistoryRow = Data.define(:period, :label, :gross, :net)
 
     Row = Data.define(:key, :label, :trips_count, :loaded_km, :empty_km, :empty_share, :gross, :freight_expenses, :expenses, :toll, :undiscounted_toll, :net, :gross_per_km,
                       :net_per_km, :share) do
@@ -151,31 +154,42 @@ module Dashboard
       period.last.beginning_of_month.months_ago(HISTORY_MONTHS - 1)..period.last.end_of_month
     end
 
-    def monthly_data
-      months = issued_facts(history_period).group_by { |fact| fact.issued_on.beginning_of_month }
-      labels = history_months.index_with { |month| month_label(month) }
+    def weekly_history_period
+      period.last.beginning_of_week(WEEK_START).weeks_ago(HISTORY_WEEKS - 1)..period.last.end_of_week(WEEK_START)
+    end
 
-      [
-        { name: I18n.t('dashboards.freight.gross'), data: monthly_values(labels, months, &:freight_cents) },
-        { name: I18n.t('dashboards.freight.net'), data: monthly_values(labels, months, &:net_cents) },
-      ]
+    def monthly_data
+      history_data(history_months.index_with { |month| month_label(month) }, &:beginning_of_month)
+    end
+
+    def weekly_data
+      history_data(history_weeks.index_with { |week| week_label(week) }) { |issued_on| issued_on.beginning_of_week(WEEK_START) }
     end
 
     def billed_months
       history_months.index_with { |month| issued_months.include?(month) }
     end
 
+    def billed_weeks
+      history_weeks.index_with { |week| issued_weeks.include?(week) }
+    end
+
     def month_row(value)
       month = history_months.find { |candidate| candidate.strftime(MONTH_FORMAT) == value.to_s }
       return unless month && issued_months.include?(month)
 
-      facts = issued_facts(month..month.end_of_month)
-
-      MonthRow.new(month:, label: month_label(month), gross: Money.from_cents(facts.sum(&:freight_cents)), net: Money.from_cents(facts.sum(&:net_cents)))
+      history_row(month..month.end_of_month, month_label(month))
     end
 
-    def month_freights(month)
-      issued_documents(month..month.end_of_month)
+    def week_row(value)
+      week = history_weeks.find { |candidate| candidate.strftime(WEEK_FORMAT) == value.to_s }
+      return unless week && issued_weeks.include?(week)
+
+      history_row(week..week.end_of_week(WEEK_START), week_label(week))
+    end
+
+    def history_freights(range)
+      issued_documents(range)
         .with_freight_totals
         .order(table[:issued_at].asc.nulls_last, id: :asc)
     end
@@ -185,11 +199,38 @@ module Dashboard
     attr_reader :documents, :manifests
 
     def issued_months
-      @issued_months ||= issued_facts(history_period).map { |fact| fact.issued_on.beginning_of_month }.uniq
+      @issued_months ||= history_facts.map { |fact| fact.issued_on.beginning_of_month }.uniq
+    end
+
+    def issued_weeks
+      @issued_weeks ||= history_facts.map { |fact| fact.issued_on.beginning_of_week(WEEK_START) }.uniq
     end
 
     def month_label(month)
       I18n.l(month, format: :chart_month).capitalize
+    end
+
+    def week_label(week)
+      I18n.l(week, format: :chart_week)
+    end
+
+    def history_facts
+      @history_facts ||= issued_facts([history_period.first, weekly_history_period.first].min..[history_period.last, weekly_history_period.last].max)
+    end
+
+    def history_data(labels)
+      grouped = history_facts.group_by { |fact| yield(fact.issued_on) }
+
+      [
+        { name: I18n.t('dashboards.freight.gross'), data: history_values(labels, grouped, &:freight_cents) },
+        { name: I18n.t('dashboards.freight.net'), data: history_values(labels, grouped, &:net_cents) },
+      ]
+    end
+
+    def history_row(range, label)
+      facts = history_facts.select { |fact| range.cover?(fact.issued_on) }
+
+      HistoryRow.new(period: range, label:, gross: Money.from_cents(facts.sum(&:freight_cents)), net: Money.from_cents(facts.sum(&:net_cents)))
     end
 
     def issued_documents(range = period)
@@ -493,13 +534,19 @@ module Dashboard
     end
 
     def history_months
-      first_month = history_period.first.beginning_of_month
+      first_month = history_period.first
 
       (0...HISTORY_MONTHS).map { |offset| first_month.months_since(offset) }
     end
 
-    def monthly_values(labels, months, &)
-      labels.to_h { |month, label| [label, Money.from_cents(months.fetch(month, []).sum(&)).to_f] }
+    def history_weeks
+      first_week = weekly_history_period.first
+
+      (0...HISTORY_WEEKS).map { |offset| first_week.weeks_since(offset) }
+    end
+
+    def history_values(labels, grouped, &)
+      labels.to_h { |start, label| [label, Money.from_cents(grouped.fetch(start, []).sum(&)).to_f] }
     end
 
     def first_trips

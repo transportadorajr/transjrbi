@@ -220,15 +220,14 @@ RSpec.describe Dashboard::Trip do
       expect(dashboard.monthly_per_km_data.map { |serie| serie[:data].values }).to eq([[nil, nil, nil, nil, 15.0, 13.85], [nil, nil, nil, nil, 15.0, 12.31]])
     end
 
-    it 'plots the gross and the net of the last twelve weeks from sunday to saturday' do
+    it 'plots the gross and the net of the last five weeks from sunday to saturday' do
       gross, net = dashboard.weekly_data
 
-      expect(gross[:data].size).to eq(12)
-      expect(gross[:data].keys.values_at(0, -1)).to eq(['09/08 (0)', '25/10 (0)'])
-      expect(gross[:data].select { |_, value| value.positive? }).to eq('13/09 (1)' => 1500.0, '27/09 (1)' => 4000.0, '18/10 (2)' => 7000.0)
-      expect(net[:data].select { |_, value| value.positive? }).to eq('13/09 (1)' => 1500.0, '27/09 (1)' => 4000.0, '18/10 (2)' => 6000.0)
+      expect(gross[:data].keys).to eq(['27/09 (1)', '04/10 (0)', '11/10 (0)', '18/10 (2)', '25/10 (0)'])
+      expect(gross[:data].select { |_, value| value.positive? }).to eq('27/09 (1)' => 4000.0, '18/10 (2)' => 7000.0)
+      expect(net[:data].select { |_, value| value.positive? }).to eq('27/09 (1)' => 4000.0, '18/10 (2)' => 6000.0)
       expect(dashboard.weekly_per_km_data.map { |serie| serie[:data].compact }).to eq(
-        [{ '13/09 (1)' => 15.0, '27/09 (1)' => 10.0, '18/10 (2)' => 20.0 }, { '13/09 (1)' => 15.0, '27/09 (1)' => 10.0, '18/10 (2)' => 16.0 }],
+        [{ '27/09 (1)' => 10.0, '18/10 (2)' => 20.0 }, { '27/09 (1)' => 10.0, '18/10 (2)' => 16.0 }],
       )
     end
   end
