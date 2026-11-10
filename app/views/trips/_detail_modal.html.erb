@@ -1,0 +1,17 @@
+<%# locals: (row:, replace_url: nil) %>
+
+<%= tag.div class: 'trip-detail', data: { turbo_temporary: true } do %>
+  <%= render layout: 'components/new_modal',
+             locals: { id: TripsHelper::DETAIL_MODAL_ID, title: row.label, auto_show: true, show_footer: false,
+                       replace_url: } do %>
+    <% trips_detail_sections(row).each do |section, fields| %>
+      <p class="trip-detail-section"><%= t(section, scope: 'trips.detail.sections') %></p>
+      <dl class="row detail-list mb-3">
+        <% fields.each do |field, value| %>
+          <dt class="col-7"><%= t(field, scope: 'trips.detail.fields') %></dt>
+          <dd class="col-5 text-end text-nowrap"><%= value %></dd>
+        <% end %>
+      </dl>
+    <% end %>
+  <% end %>
+<% end %>

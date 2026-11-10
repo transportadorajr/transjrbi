@@ -3,7 +3,7 @@ module Dashboard
     DIMENSIONS = %w[customer_group customer vehicle driver].freeze
     FILTER_PARAMS = { 'customer_group' => 'customer_group_id', 'customer' => 'customer_code', 'vehicle' => 'plate', 'driver' => 'driver_code' }.freeze
 
-    Row = Data.define(:key, :label, :count, :gross, :net) do
+    Row = Data.define(:key, :label, :count, :gross, :net, :durations) do
       def filterable?
         !key.nil?
       end
@@ -25,16 +25,21 @@ module Dashboard
         documents = Atua::TransportDocument.active.not_canceled.without_ce.joins(manifest_documents: :manifest)
           .merge(Atua::ManifestDocument.active).where(atua_manifests: { id: manifests.unscope(:order, :select).select(:id) })
 
-        new(documents, dimension:, net:, counted: Atua::Manifest.arel_table[:id], plate: Atua::Manifest.arel_table[:plate])
+        new(documents, dimension:, net:, counted: Atua::Manifest.arel_table[:id], plate: Atua::Manifest.arel_table[:plate], durations: true)
       end
     end
 
-    def initialize(documents, dimension:, net:, counted:, plate:)
+    def initialize(documents, dimension:, net:, counted:, plate:, durations: false)
       @documents = documents
       @dimension = self.class.sanitize_dimension(dimension)
       @net = net
       @counted = counted
       @plate = plate
+      @durations = durations
+    end
+
+    def durations?
+      @durations
     end
 
     def grouped?
@@ -47,7 +52,7 @@ module Dashboard
 
     def rows
       @rows ||= grouped_documents.group(key_column).pluck(key_column, label_column, *totals_columns)
-        .map { |key, label, count, gross, net| build_row(key, label, count, gross, net) }
+        .map { |key, label, count, gross, net| build_row(key, label, count, gross, net, durations_by_key[key]) }
         .sort_by { |row| [-row.gross.cents, I18n.transliterate(row.label.to_s).downcase] }
     end
 
@@ -55,7 +60,7 @@ module Dashboard
       @total ||= begin
         count, gross, net = documents.pick(*totals_columns)
 
-        build_row(nil, I18n.t('dashboards.listing_groups.total'), count, gross, net)
+        build_row(nil, I18n.t('dashboards.listing_groups.total'), count, gross, net, total_durations)
       end
     end
 
@@ -63,9 +68,38 @@ module Dashboard
 
     attr_reader :documents, :counted, :plate
 
-    def build_row(key, label, count, gross, net)
+    def build_row(key, label, count, gross, net, durations)
       Row.new(key: key&.to_s, label: label.presence || I18n.t(dimension, scope: 'dashboards.listing_groups.none'), count: count.to_i,
-              gross: Money.from_cents(gross.to_i), net: @net ? Money.from_cents(net.to_i) : nil)
+              gross: Money.from_cents(gross.to_i), net: @net ? Money.from_cents(net.to_i) : nil, durations:)
+    end
+
+    def durations_by_key
+      return {} unless durations?
+
+      @durations_by_key ||= duration_facts(key_column).group_by(&:first)
+        .transform_values { |facts| TripDurations.new(facts.map(&:last)) }
+    end
+
+    def total_durations
+      return unless durations?
+
+      TripDurations.new(duration_facts.map(&:last))
+    end
+
+    def duration_facts(key = nil)
+      manifest_id = Atua::Manifest.arel_table[:id]
+      columns = [key, manifest_id].compact
+      relation = key ? grouped_documents : documents
+
+      relation.group(*columns).pluck(*columns, *duration_columns).map do |*keys, seconds, in_progress, net|
+        [keys.first, TripDurations.build_fact(seconds, net, in_progress)]
+      end
+    end
+
+    def duration_columns
+      [Arel::Nodes::NamedFunction.new('MAX', [Arel.sql(Atua::Manifest.duration_seconds_sql)]),
+       Arel::Nodes::NamedFunction.new('BOOL_OR', [Arel.sql(Atua::Manifest.in_progress_sql)]),
+       Atua::TransportDocument.sum_or_zero(Atua::TransportDocument.net_freight)]
     end
 
     def totals_columns

@@ -108,6 +108,15 @@ RSpec.describe Dashboard::ListingGroups do
         expect(groups).not_to be_grouped
       end
     end
+
+    context 'when the transport documents are grouped' do
+      let(:dimension) { 'vehicle' }
+
+      it 'has no trip durations' do
+        expect(groups).not_to be_durations
+        expect(groups.total.durations).to be_nil
+      end
+    end
   end
 
   describe '.for_manifests' do
@@ -141,6 +150,30 @@ RSpec.describe Dashboard::ListingGroups do
             ['BBB2B22', 'BBB2B22', 1, 'R$ 4.000,00', 'R$ 4.000,00'],
             ['AAA1A11', 'AAA1A11', 1, 'R$ 3.000,00', 'R$ 3.000,00'],
             [nil, 'Total', 2, 'R$ 7.000,00', 'R$ 7.000,00'],
+          ],
+        )
+      end
+    end
+
+    context 'when the trips were closed' do
+      let(:dimension) { 'customer_group' }
+
+      def duration_values(groups)
+        (groups.rows + [groups.total]).map { |row| [row.label, row.durations.average&.hours, row.durations.net_per_hour&.format] }
+      end
+
+      before do
+        Atua::Manifest.find_by!(code: 41_001).update!(trip_started_at: Time.zone.local(2026, 10, 1, 8), closed_at: Time.zone.local(2026, 10, 2, 10))
+        Atua::Manifest.find_by!(code: 41_003).update!(trip_started_at: Time.zone.local(2026, 10, 1, 8), closed_at: Time.zone.local(2026, 10, 1, 20))
+      end
+
+      it 'averages the duration and the net freight per hour of the manifests of each group counting each manifest once in the total' do
+        expect(groups).to be_durations
+        expect(duration_values(groups)).to eq(
+          [
+            ['USIMINAS', 19, 'R$ 131,58'],
+            ['Sem grupo', 26, 'R$ 76,92'],
+            ['Total', 19, 'R$ 184,21'],
           ],
         )
       end

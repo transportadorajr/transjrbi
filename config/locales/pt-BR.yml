@@ -263,6 +263,9 @@ pt-BR:
         documents_total: Total dos CT-es
         gross_per_km: Bruto/km
         net_per_km: Líquido/km
+        trip_started_at: Início da viagem
+        duration: Duração
+        net_per_hour: Líquido/hora
       atua/manifest_document:
         transport_document_number: CT-e
         customer_name: Cliente
@@ -887,6 +890,8 @@ pt-BR:
       admin/http_request:
         show: Visualizar
       dashboard/freight/row:
+        show: Visualizar
+      dashboard/trip/row:
         show: Visualizar
       user:
         show: Visualizar
@@ -1799,11 +1804,9 @@ pt-BR:
       gross: Frete bruto
       net: Frete líquido
       chart_label: '%{label} (%{trips})'
-      manifest_detail: '%{plate} · %{date}'
       none:
         vehicle: Sem placa
         driver: Sem motorista
-        manifest: Sem número
     listing_groups:
       total: Total
       none:
@@ -1811,6 +1814,21 @@ pt-BR:
         customer: Sem cliente
         vehicle: Sem placa
         driver: Sem motorista
+  trip_durations:
+    days:
+      one: 1 dia
+      other: '%{count} dias'
+    hours:
+      one: 1 hora
+      other: '%{count} horas'
+    less_than_an_hour: Menos de 1 hora
+    in_progress: Em andamento há %{duration}
+    average: Tempo médio de conclusão
+    in_progress_count: Em andamento (fora da média)
+    none_closed: Nenhuma viagem do período foi encerrada ainda. O tempo médio aparece quando a primeira for encerrada.
+    excluded:
+      one: 1 manifesto encerrado com menos de 1 hora ou mais de 15 dias ficou fora da média.
+      other: '%{count} manifestos encerrados com menos de 1 hora ou mais de 15 dias ficaram fora da média.'
   listing_filters:
     period_label: Data
     group_by: Agrupar por
@@ -1830,6 +1848,8 @@ pt-BR:
       subtitle: Toque em um grupo para filtrar a lista.
       gross: Frete bruto
       net: Frete líquido
+      average_duration: Tempo médio
+      net_per_hour: Líquido/hora
   freight_billings:
     km: '%{distance} km'
     detail:
@@ -1926,6 +1946,23 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
   trips:
     km: '%{distance} km'
+    detail:
+      row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
+      sections:
+        trip: Viagem
+        values: Valores
+        indicators: Indicadores
+      fields:
+        trips: Viagens
+        loaded_km: KM rodado
+        duration: Tempo médio
+        gross: Frete bruto
+        expenses: Despesas
+        net: Frete líquido
+        average: Média bruta por viagem
+        net_average: Média líquida por viagem
+        gross_per_km: Bruto/km
+        net_per_km: Líquido/km
     period_presets:
       week: Sem. atual
       last_week: Sem. passada
@@ -1935,16 +1972,11 @@ pt-BR:
     dimensions:
       driver: Motorista
       vehicle: Veículo
-      manifest: MDF-e
     columns:
-      trips: Viagens
-      loaded_km: KM rodado
       gross: Frete bruto
-      expenses: Despesas
-      net: Frete líquido
-      average: Média por viagem
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
+      duration: Tempo médio
     highlights:
       best: Melhor
       worst: Pior

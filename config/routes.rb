@@ -84,6 +84,7 @@ Rails.application.routes.draw do
       get :product_options
     end
     resources :trips, only: :index do
+      get :detail, on: :collection
       get :product_options, on: :collection
     end
     resources :freight_expenses, only: %i[index] do

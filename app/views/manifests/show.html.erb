@@ -45,6 +45,17 @@
         <dd class="col-12 col-md-9"><%= freight_money(@manifest.gross_per_km_cents) %></dd>
 
         <%= manifest_net_per_km_details(@manifest) %>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:trip_started_at) %></dt>
+        <dd class="col-12 col-md-9"><%= manifest_datetime(@manifest.trip_started_at) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:closed_at) %></dt>
+        <dd class="col-12 col-md-9"><%= manifest_datetime(@manifest.closed_at) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Atua::Manifest.human_attribute_name(:duration) %></dt>
+        <dd class="col-12 col-md-9"><%= manifest_duration(@manifest) %></dd>
+
+        <%= manifest_net_per_hour_details(@manifest) %>
       </dl>
     </div>
   </div>

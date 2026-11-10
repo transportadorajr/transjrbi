@@ -2,12 +2,9 @@
 
 <%= tag.tr class: trips_row_class(row, highlights) do %>
   <td><%= trips_row_label(row, highlights) %></td>
-  <td class="text-end text-nowrap"><%= row.trips_count %></td>
-  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= trips_km(row.loaded_km) %></td>
   <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
-  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(row.expenses) %></td>
-  <td class="text-end text-nowrap"><%= tax_money(row.net) %></td>
-  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(row.average) %></td>
   <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.gross_per_km) %></td>
   <td class="text-end text-nowrap fw-semibold"><%= tax_money(row.net_per_km) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= trip_duration(row.duration) %></td>
+  <td class="text-end"><%= responsive_actions_menu(trips_row_menu(row)) %></td>
 <% end %>

@@ -1,5 +1,6 @@
 <% content_for :title, t('.title') %>
 <% turbo_refreshes_with method: :replace, scroll: :preserve %>
+<% content_for :remote_container, trips_opened_detail(@detail_row) %>
 
 <%= tag.div class: 'page-shell', data: auto_refresh_data(chart_evolution_reveal_data) do %>
   <%= page_header_tag t('.title'), subtitle: trips_period_label(@filter_form),
@@ -56,6 +57,8 @@
     <%= counter_card(:success, t('.net_average'), tax_money(@dashboard.total.net_average), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:success, t('.net_per_km'), tax_money(@dashboard.total.net_per_km), col_class: 'col-6 col-xl-3') %>
   </div>
+
+  <%= trip_durations_cards(@dashboard.durations) %>
 
   <%= trips_per_km_base(@dashboard) %>
 

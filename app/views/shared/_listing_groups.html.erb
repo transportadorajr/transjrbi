@@ -15,6 +15,7 @@
           <th class="text-end"><%= count_label %></th>
           <th class="text-end"><%= t('listing_filters.groups.gross') %></th>
           <%= listing_groups_net_header(groups) %>
+          <%= listing_groups_duration_headers(groups) %>
         </tr>
       </thead>
       <tbody>
@@ -24,6 +25,7 @@
             <td class="text-end"><%= row.count %></td>
             <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
             <%= listing_groups_net_cell(row) %>
+            <%= listing_groups_duration_cells(row, groups) %>
           </tr>
         <% end %>
       </tbody>
@@ -33,6 +35,7 @@
           <td class="text-end"><%= groups.total.count %></td>
           <td class="text-end text-nowrap"><%= tax_money(groups.total.gross) %></td>
           <%= listing_groups_net_cell(groups.total) %>
+          <%= listing_groups_duration_cells(groups.total, groups) %>
         </tr>
       </tfoot>
     </table>

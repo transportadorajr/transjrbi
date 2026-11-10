@@ -2,6 +2,7 @@ module TripsHelper
   include ChartsHelper
 
   SERIES_COLORS = [BRAND_BLUE, DANGER_RED].freeze
+  DETAIL_MODAL_ID = 'trip_detail_modal'.freeze
 
   def trips_content_partial(dashboard)
     dashboard.empty? ? 'shared/no_content' : 'trips/report'
@@ -108,9 +109,7 @@ module TripsHelper
   end
 
   def trips_row_label(row, highlights)
-    label = row.manifest_id && can?(:read, :manifests) ? link_to(row.label, manifest_path(row.manifest_id), class: 'fw-semibold') : row.label
-    parts = [content_tag(:span, label, class: 'fw-semibold')]
-    parts << content_tag(:span, row.detail, class: 'd-block text-body-secondary small') if row.detail
+    parts = [content_tag(:span, row.label, class: 'fw-semibold')]
     parts << trips_highlight_badge(highlights[row.key]) if highlights[row.key]
 
     safe_join(parts, ' ')
@@ -140,9 +139,32 @@ module TripsHelper
   end
 
   def trips_sort_columns(dashboard)
-    [[trips_dimension_label(dashboard.dimension), :label], [t('trips.columns.trips'), :trips, :desc], [t('trips.columns.gross'), :gross, :desc],
-     [t('trips.columns.expenses'), :expenses, :desc], [t('trips.columns.net'), :net, :desc], [t('trips.columns.average'), :average, :desc],
-     [t('trips.columns.gross_per_km'), :gross_per_km, :desc], [t('trips.columns.net_per_km'), :net_per_km, :desc]]
+    [[trips_dimension_label(dashboard.dimension), :label], [t('trips.columns.gross'), :gross, :desc],
+     [t('trips.columns.gross_per_km'), :gross_per_km, :desc], [t('trips.columns.net_per_km'), :net_per_km, :desc],
+     [t('trips.columns.duration'), :duration]]
+  end
+
+  def trips_row_menu(row)
+    menus = []
+
+    menus << trips_row_show_menu(row) if can?(:read, :trips)
+
+    menus
+  end
+
+  def trips_opened_detail(row)
+    return unless row
+
+    render 'trips/detail_modal', row:, replace_url: trips_path(request.query_parameters)
+  end
+
+  def trips_detail_sections(row)
+    {
+      trip: { trips: row.trips_count, loaded_km: trips_km(row.loaded_km), duration: trip_duration(row.duration) },
+      values: { gross: tax_money(row.gross), expenses: tax_money(row.expenses), net: tax_money(row.net), average: tax_money(row.average),
+                net_average: tax_money(row.net_average) },
+      indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km) },
+    }
   end
 
   def trips_km(distance)
@@ -172,12 +194,11 @@ module TripsHelper
 
   def trips_pdf_columns(dashboard)
     [pdf_column(trips_dimension_label(dashboard.dimension), '3fr'),
-     *%i[trips loaded_km gross expenses net average gross_per_km net_per_km].map { |column| pdf_column(t(column, scope: 'trips.columns'), align: :right) }]
+     *%i[gross gross_per_km net_per_km duration].map { |column| pdf_column(t(column, scope: 'trips.columns'), align: :right) }]
   end
 
   def trips_pdf_row(row, highlights)
-    [trips_row_label(row, highlights), row.trips_count, trips_km(row.loaded_km), tax_money(row.gross), tax_money(row.expenses), tax_money(row.net),
-     tax_money(row.average), tax_money(row.gross_per_km), tax_money(row.net_per_km)]
+    [trips_row_label(row, highlights), tax_money(row.gross), tax_money(row.gross_per_km), tax_money(row.net_per_km), trip_duration(row.duration)]
   end
 
   def trips_pdf_highlights(total)
@@ -188,6 +209,11 @@ module TripsHelper
   end
 
   private
+
+  def trips_row_show_menu(row)
+    Menu.new(name: :show, record: row, url: detail_trips_path(**request.query_parameters.symbolize_keys, key: row.key), icon: :eye,
+             data: { turbo_stream: true })
+  end
 
   def trips_highlight_badge(highlight)
     status_badge(t(highlight, scope: 'trips.highlights'), kind: highlight == :best ? :success : :danger)

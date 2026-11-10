@@ -60,8 +60,8 @@ describe 'Manifests' do
         expect(Atua::TransportDocument.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
-            ['40772 - RHJ4E07 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', ''],
+            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
+            ['40772 - RHJ4E07 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Duração - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', '-', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
@@ -81,8 +81,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
-            ['40772 - RHJ4E07 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', ''],
+            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
+            ['40772 - RHJ4E07 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Duração - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', '-', ''],
           ],
         )
       end
@@ -100,8 +100,8 @@ describe 'Manifests' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
-            ['40773 - EXU0F72 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', ''],
+            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
+            ['40773 - EXU0F72 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Duração - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', '-', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
@@ -157,9 +157,9 @@ describe 'Manifests' do
       let!(:maria_trip) do
         create(:atua_manifest, tenant:, code: 41_402, number: '40802', branch_name: 'JR', issued_on: Date.new(2026, 10, 2), plate: 'EXU0F72')
       end
-      let(:table_header) { ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'] }
-      let(:jose_row) { ['40801 - RHJ4E07 KM rodado - Total dos CT-es R$ 1.000,00 Bruto/km - Grupo de clientes USIMINAS Origem - Destino -', 'JOSE SILVA', '-', '-', '-', 'USIMINAS', '-', 'R$ 1.000,00', '-', ''] }
-      let(:maria_row) { ['40802 - EXU0F72 KM rodado - Total dos CT-es R$ 2.000,00 Bruto/km - Grupo de clientes GERDAU Origem - Destino -', 'MARIA SOUZA', '-', '-', '-', 'GERDAU', '-', 'R$ 2.000,00', '-', ''] }
+      let(:table_header) { ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'] }
+      let(:jose_row) { ['40801 - RHJ4E07 KM rodado - Total dos CT-es R$ 1.000,00 Bruto/km - Duração - Grupo de clientes USIMINAS Origem - Destino -', 'JOSE SILVA', '-', '-', '-', 'USIMINAS', '-', 'R$ 1.000,00', '-', '-', ''] }
+      let(:maria_row) { ['40802 - EXU0F72 KM rodado - Total dos CT-es R$ 2.000,00 Bruto/km - Duração - Grupo de clientes GERDAU Origem - Destino -', 'MARIA SOUZA', '-', '-', '-', 'GERDAU', '-', 'R$ 2.000,00', '-', '-', ''] }
 
       def add_document(manifest, number, **attributes)
         create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', **attributes)
@@ -265,7 +265,8 @@ describe 'Manifests' do
 
         expect(page).to have_css('#listing_groups .table-card-title', text: 'Resumo por veículo')
         expect(html_table_to_rows(table: find('#listing_groups table'))).to eq(
-          [['Veículo', 'Manifestos', 'Frete bruto'], ['EXU0F72', '1', 'R$ 2.000,00'], ['RHJ4E07', '1', 'R$ 1.000,00'], ['Total', '2', 'R$ 3.000,00']],
+          [['Veículo', 'Manifestos', 'Frete bruto', 'Tempo médio'], ['EXU0F72', '1', 'R$ 2.000,00', '-'], ['RHJ4E07', '1', 'R$ 1.000,00', '-'],
+           ['Total', '2', 'R$ 3.000,00', '-']],
         )
 
         within('#listing_groups') { click_on 'RHJ4E07' }
@@ -279,7 +280,7 @@ describe 'Manifests' do
         visit manifests_path(dimension: 'customer_group', driver_code: 20)
 
         expect(html_table_to_rows(table: find('#listing_groups table'))).to eq(
-          [['Grupo de clientes', 'Manifestos', 'Frete bruto'], ['GERDAU', '1', 'R$ 2.000,00'], ['Total', '1', 'R$ 2.000,00']],
+          [['Grupo de clientes', 'Manifestos', 'Frete bruto', 'Tempo médio'], ['GERDAU', '1', 'R$ 2.000,00', '-'], ['Total', '1', 'R$ 2.000,00', '-']],
         )
       end
 
@@ -295,6 +296,122 @@ describe 'Manifests' do
           click_on 'Mês'
 
           expect(page).to have_text('Nenhum registro encontrado')
+        end
+      end
+    end
+
+    context 'when the manifests have closed trips and a trip in progress' do
+      let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+      let!(:long_trip) { create_trip(41_701, '40901', 'AAA1A11', Time.zone.local(2026, 10, 1, 8), Time.zone.local(2026, 10, 3, 10), 1_000_000) }
+      let!(:short_trip) { create_trip(41_702, '40902', 'BBB2B22', Time.zone.local(2026, 10, 2, 8), Time.zone.local(2026, 10, 3, 8), 360_000) }
+      let!(:open_trip) { create_trip(41_703, '40903', 'CCC3C33', Time.zone.local(2026, 11, 8, 8), nil, 200_000) }
+      let(:header) do
+        ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Líquido/km',
+         'Duração', 'Líquido/hora', 'Ações']
+      end
+
+      def create_trip(code, number, plate, started_at, closed_at, freight_cents)
+        manifest = create(:atua_manifest, tenant:, code:, number:, plate:, branch_name: 'JR', trip_started_at: started_at, closed_at:,
+                                          status: closed_at ? 'Encerrado' : 'Normal')
+        create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', freight_cents:)
+        create(:atua_manifest_document, tenant:, manifest_code: code, transport_document_number: number, transport_document_series: 1, branch_name: 'JR')
+        manifest
+      end
+
+      def duration_columns
+        html_table_to_rows.map { |row| [row.first.split.first, *row.values_at(-3, -2)] }
+      end
+
+      scenario 'shows the duration and the net freight per hour of each trip and the trip in progress apart' do
+        travel_to(Time.zone.local(2026, 11, 10, 10)) do
+          visit manifests_path
+
+          expect(Atua::Manifest.count).to eq(3)
+          expect(html_table_to_rows.first).to eq(header)
+          expect(duration_columns.drop(1)).to eq(
+            [
+              ['40903', 'Em andamento há 2 dias e 2 horas', '-'],
+              ['40902', '1 dia', 'R$ 150,00'],
+              ['40901', '2 dias e 2 horas', 'R$ 200,00'],
+            ],
+          )
+          expect(page).to have_css('.trip-duration-in-progress', text: 'Em andamento há 2 dias e 2 horas')
+          expect(page).to have_no_css('#trip_durations')
+        end
+      end
+
+      scenario 'sorts the trips from the fastest to the slowest and back' do
+        visit manifests_path
+        within('thead') { click_on 'Duração' }
+
+        expect(page).to have_current_path(/direction=asc&sort=duration/)
+        expect(duration_columns.drop(1).map(&:first)).to eq(%w[40902 40901 40903])
+
+        within('thead') { click_on 'Duração' }
+
+        expect(page).to have_current_path(/direction=desc/)
+        expect(duration_columns.drop(1).map(&:first)).to eq(%w[40901 40902 40903])
+      end
+
+      scenario 'sorts the trips by the net freight per hour' do
+        visit manifests_path
+        within('thead') { click_on 'Líquido/hora' }
+
+        expect(duration_columns.drop(1).map(&:first)).to eq(%w[40901 40902 40903])
+      end
+
+      scenario 'averages the duration and the net freight per hour of each vehicle' do
+        visit manifests_path(dimension: 'vehicle')
+
+        expect(html_table_to_rows(table: find('#listing_groups table'))).to eq(
+          [
+            ['Veículo', 'Manifestos', 'Frete bruto', 'Frete líquido', 'Tempo médio', 'Líquido/hora'],
+            ['AAA1A11', '1', 'R$ 10.000,00', 'R$ 10.000,00', '2 dias e 2 horas', 'R$ 200,00'],
+            ['BBB2B22', '1', 'R$ 3.600,00', 'R$ 3.600,00', '1 dia', 'R$ 150,00'],
+            ['CCC3C33', '1', 'R$ 2.000,00', 'R$ 2.000,00', '-', '-'],
+            ['Total', '3', 'R$ 15.600,00', 'R$ 15.600,00', '1 dia e 13 horas', 'R$ 183,78'],
+          ],
+        )
+      end
+
+      scenario 'shows the start, the closing, the duration and the net freight per hour on the details' do
+        visit manifest_path(long_trip)
+
+        expect(dl_to_hash('#manifest_data')).to include(
+          'Início da viagem' => '01/10/2026 08:00',
+          'Encerrado em' => '03/10/2026 10:00',
+          'Duração' => '2 dias e 2 horas',
+          'Líquido/hora' => 'R$ 200,00',
+        )
+      end
+
+      scenario 'exports the duration and the net freight per hour to the PDF' do
+        visit manifests_path(format: :pdf, sort: 'duration', direction: 'desc')
+
+        text = PDF::Inspector::Text.analyze(page.body).strings.join(' ')
+        expect(text).to include('Duração', 'Líquido/hora', '2 dias e 2 horas', 'R$ 200,00')
+      end
+
+      context 'without access to the freight expenses' do
+        let!(:freight_expenses_resource) { nil }
+
+        scenario 'shows the duration without the net freight per hour' do
+          visit manifests_path
+
+          expect(html_table_to_rows.first).to eq(
+            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
+          )
+          expect(page).to have_no_css('th', text: 'Líquido/hora')
+
+          visit manifest_path(long_trip)
+
+          expect(dl_to_hash('#manifest_data')).not_to have_key('Líquido/hora')
+        end
+
+        scenario 'ignores a sort by the net freight per hour left in the address' do
+          visit manifests_path(sort: 'net_per_hour', direction: 'desc')
+
+          expect(html_table_to_rows.drop(1).map { |row| row.first.split.first }).to eq(%w[40903 40902 40901])
         end
       end
     end
@@ -321,8 +438,8 @@ describe 'Manifests' do
         expect(Atua::Manifest.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
-            ['40800 - RHJ4E07 KM rodado - Total dos CT-es R$ 10.000,00 Bruto/km - Grupo de clientes - Origem Ipatinga/MG Betim/MG Destino Santos/SP Cubatão/SP', '-', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', '-', '-', '-', 'R$ 10.000,00', '-', ''],
+            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
+            ['40800 - RHJ4E07 KM rodado - Total dos CT-es R$ 10.000,00 Bruto/km - Duração - Grupo de clientes - Origem Ipatinga/MG Betim/MG Destino Santos/SP Cubatão/SP', '-', 'Ipatinga/MG Betim/MG', 'Santos/SP Cubatão/SP', '-', '-', '-', 'R$ 10.000,00', '-', '-', ''],
           ],
         )
       end
@@ -370,9 +487,9 @@ describe 'Manifests' do
         expect(Atua::Manifest.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
-            ['40901 - BBB2B22 KM rodado 100,00 km Total dos CT-es R$ 3.000,00 Bruto/km R$ 30,00 Grupo de clientes USIMINAS Origem - Destino -', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 3.000,00', 'R$ 30,00', ''],
-            ['40900 - AAA1A11 KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', ''],
+            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
+            ['40901 - BBB2B22 KM rodado 100,00 km Total dos CT-es R$ 3.000,00 Bruto/km R$ 30,00 Duração - Grupo de clientes USIMINAS Origem - Destino -', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 3.000,00', 'R$ 30,00', '-', ''],
+            ['40900 - AAA1A11 KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Duração - Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', '-', ''],
           ],
         )
       end
@@ -396,9 +513,9 @@ describe 'Manifests' do
           expect(FreightExpense.count).to eq(1)
           expect(html_table_to_rows).to eq(
             [
-              ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Líquido/km', 'Ações'],
-              ['40901 - BBB2B22 KM rodado 100,00 km Total dos CT-es R$ 3.000,00 Bruto/km R$ 30,00 Líquido/km R$ 30,00 Grupo de clientes USIMINAS Origem - Destino -', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 3.000,00', 'R$ 30,00', 'R$ 30,00', ''],
-              ['40900 - AAA1A11 KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Líquido/km R$ 18,00 Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', 'R$ 18,00', ''],
+              ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Líquido/km', 'Duração', 'Líquido/hora', 'Ações'],
+              ['40901 - BBB2B22 KM rodado 100,00 km Total dos CT-es R$ 3.000,00 Bruto/km R$ 30,00 Líquido/km R$ 30,00 Duração - Líquido/hora - Grupo de clientes USIMINAS Origem - Destino -', 'MARIA SOUZA', '-', '-', '5.000,00', 'USIMINAS', '100,00 km', 'R$ 3.000,00', 'R$ 30,00', 'R$ 30,00', '-', '-', ''],
+              ['40900 - AAA1A11 KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Líquido/km R$ 18,00 Duração - Líquido/hora - Grupo de clientes USIMINAS GERDAU Origem - Destino -', 'JOSE SILVA', '-', '-', '30.000,00', 'USIMINAS GERDAU', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', 'R$ 18,00', '-', '-', ''],
             ],
           )
         end
@@ -451,8 +568,8 @@ describe 'Manifests' do
         expect(Atua::TransportDocument.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Ações'],
-            ['41149 - BDC8D26 KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', ''],
+            ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
+            ['41149 - BDC8D26 KM rodado 500,00 km Total dos CT-es R$ 10.000,00 Bruto/km R$ 20,00 Duração - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '500,00 km', 'R$ 10.000,00', 'R$ 20,00', '-', ''],
           ],
         )
 
@@ -473,7 +590,7 @@ describe 'Manifests' do
         scenario 'adds the freight of the manifest to the net freight of the details' do
           visit manifests_path
 
-          expect(html_table_to_rows.second.last(3)).to eq(['R$ 20,00', 'R$ 20,00', ''])
+          expect(html_table_to_rows.second.last(5)).to eq(['R$ 20,00', 'R$ 20,00', '-', '-', ''])
 
           visit manifest_path(manifest)
 
@@ -529,6 +646,9 @@ describe 'Manifests' do
           'KM rodado' => '200,00 km',
           'Total dos CT-es' => 'R$ 555,04',
           'Bruto/km' => 'R$ 2,78',
+          'Início da viagem' => '02/10/2026 06:30',
+          'Encerrado em' => '03/10/2026 18:00',
+          'Duração' => '1 dia e 12 horas',
         )
         expect(manifest.documents.count).to eq(2)
         expect(html_table_to_rows(table: find_by_id('manifest_documents'))).to eq(
@@ -921,8 +1041,8 @@ describe 'Manifests' do
         expect(page).to have_no_css('th', text: /\ACliente\z/i)
         details = find('.manifest-mobile-details')
         expect(details.all('dt').map(&:text).zip(details.all('dd').map(&:text))).to eq(
-          [['KM rodado', '500,00 km'], ['Total dos CT-es', 'R$ 10.000,00'], ['Bruto/km', 'R$ 20,00'], ['Líquido/km', 'R$ 18,00'], ['Grupo de clientes', 'USIMINAS IPATINGA'],
-           ['Origem', 'IPATINGA/MG'], ['Destino', 'SANTOS/SP']],
+          [['KM rodado', '500,00 km'], ['Total dos CT-es', 'R$ 10.000,00'], ['Bruto/km', 'R$ 20,00'], ['Líquido/km', 'R$ 18,00'], ['Duração', '-'],
+           ['Líquido/hora', '-'], ['Grupo de clientes', 'USIMINAS IPATINGA'], ['Origem', 'IPATINGA/MG'], ['Destino', 'SANTOS/SP']],
         )
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end

@@ -226,6 +226,53 @@ RSpec.describe Atua::Manifest do
     end
   end
 
+  describe 'trip duration' do
+    def create_trip(code, started_at:, closed_at:, freight_cents: 380_000)
+      manifest = create(:atua_manifest, tenant:, code:, branch_name: 'JR', trip_started_at: started_at, closed_at:)
+      create(:atua_transport_document, tenant:, number: code.to_s, series: 1, branch_name: 'JR', freight_cents:)
+      create(:atua_manifest_document, tenant:, manifest_code: code, transport_document_number: code.to_s, transport_document_series: 1, branch_name: 'JR')
+      manifest
+    end
+
+    context 'with closed, open and too short trips' do
+      let!(:closed) { create_trip(41_601, started_at: Time.zone.local(2026, 10, 1, 8), closed_at: Time.zone.local(2026, 10, 3, 10)) }
+      let!(:open) { create_trip(41_602, started_at: Time.zone.local(2026, 10, 5, 8), closed_at: nil) }
+      let!(:short) { create_trip(41_603, started_at: Time.zone.local(2026, 10, 6, 8), closed_at: Time.zone.local(2026, 10, 6, 8, 30)) }
+
+      it 'measures the closed trip from the start to the closing' do
+        expect(closed.duration.hours).to eq(50)
+        expect(closed).not_to be_in_progress
+        expect(closed.elapsed).to be_nil
+      end
+
+      it 'shows the time elapsed so far of the trip in progress without a final duration' do
+        travel_to(Time.zone.local(2026, 10, 6, 13)) do
+          expect(open.duration).to be_nil
+          expect(open).to be_in_progress
+          expect(open.elapsed.hours).to eq(29)
+        end
+      end
+
+      it 'calculates the duration and the net freight per hour of each trip' do
+        totals = described_class.with_trip_totals(described_class.where(tenant:)).index_by(&:code)
+
+        expect(totals[41_601].duration_seconds).to eq(50.hours.to_i)
+        expect(totals[41_601].net_per_hour_cents).to eq(totals[41_601].net_cents * 3600 / 50.hours.to_i)
+        expect(totals[41_602].duration_seconds).to be_nil
+        expect(totals[41_602].net_per_hour_cents).to be_nil
+        expect(totals[41_603].duration_seconds).to eq(30.minutes.to_i)
+        expect(totals[41_603].net_per_hour_cents).to be_nil
+      end
+
+      it 'sorts the trips from the fastest leaving the trips in progress last' do
+        totals = described_class.with_trip_totals(described_class.where(tenant:))
+
+        expect(totals.sorted_by(:duration, :asc).map(&:code)).to eq([41_603, 41_601, 41_602])
+        expect(totals.sorted_by(:duration, :desc).map(&:code)).to eq([41_601, 41_603, 41_602])
+      end
+    end
+  end
+
   describe '#origins and #destinations' do
     let!(:manifest) { create(:atua_manifest, tenant:, code: 41_500, branch_name: 'JR') }
     let!(:internal_taker) { create(:atua_customer, tenant:, code: 777, document_digits: Atua::TransportDocument::INTERNAL_TAKER_DOCUMENTS.first) }

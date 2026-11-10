@@ -52,7 +52,7 @@ class ManifestsController < BaseController
   private
 
   def manifest_sort_exceptions
-    can?(:read, :freight_expenses) ? [] : %w[net_per_km]
+    can?(:read, :freight_expenses) ? [] : %w[net_per_km net_per_hour]
   end
 
   def load_filter_options

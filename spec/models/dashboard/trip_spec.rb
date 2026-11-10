@@ -22,6 +22,39 @@ RSpec.describe Dashboard::Trip do
     end
   end
 
+  context 'with closed trips and a trip in progress' do
+    let(:dimension) { 'vehicle' }
+
+    before do
+      create_trip(code: 41_001, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 2, 8), distance_km: 400,
+                  documents: [['74001', 300_000, 10, 'JOSE SILVA']])
+      create_trip(code: 41_002, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 10, 8), distance_km: 300,
+                  documents: [['74002', 400_000, 10, 'JOSE SILVA']])
+      create_trip(code: 41_003, plate: 'BBB2B22', started_at: Time.zone.local(2026, 10, 12, 8), distance_km: 300,
+                  documents: [['74003', 900_000, 20, 'MARIA SOUZA']], status: 'Normal')
+      Atua::Manifest.find_by!(code: 41_001).update!(closed_at: Time.zone.local(2026, 10, 3, 10))
+      Atua::Manifest.find_by!(code: 41_002).update!(closed_at: Time.zone.local(2026, 10, 10, 20))
+    end
+
+    def duration_values(rows)
+      rows.map { |row| [row.label, row.duration&.hours] }
+    end
+
+    it 'averages the duration leaving the trip in progress out' do
+      expect(duration_values(dashboard.rows + [dashboard.total])).to eq([['BBB2B22', nil], ['AAA1A11', 19], ['Total', 19]])
+    end
+
+    it 'sorts the vehicles from the fastest leaving the vehicles without a duration last' do
+      expect(dashboard.sorted_rows('duration', 'asc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
+    end
+
+    it 'finds a row and the total by key and nothing for an unknown key' do
+      expect(dashboard.find_row('AAA1A11').trips_count).to eq(2)
+      expect(dashboard.find_row('total')).to eq(dashboard.total)
+      expect(dashboard.find_row('ZZZ9Z99')).to be_nil
+    end
+  end
+
   context 'without trips in the period' do
     it 'is empty with a zeroed total' do
       expect(dashboard).to be_empty
@@ -126,29 +159,12 @@ RSpec.describe Dashboard::Trip do
       end
     end
 
-    context 'when grouped by manifest' do
+    context 'when grouped by an unavailable manifest dimension' do
       let(:dimension) { 'manifest' }
 
-      it 'ranks each trip measured in the period on its own' do
-        expect(row_values(dashboard.rows)).to eq(
-          [
-            ['41003', 1, 250, 'R$ 5.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 4.000,00', 'R$ 20,00', 'R$ 16,00'],
-            ['41001', 1, 400, 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00'],
-          ],
-        )
-        expect(dashboard.rows.map { |row| [row.detail, row.manifest_id] }).to eq(
-          [['BBB2B22 · 21/10/2026', Atua::Manifest.find_by!(code: 41_003).id], ['AAA1A11 · 02/10/2026', Atua::Manifest.find_by!(code: 41_001).id]],
-        )
-      end
-
-      it 'keeps the trip without km out of the ranking and of the table total' do
-        expect(dashboard.unmeasured_trips.map(&:code)).to eq([41_002])
-        expect(row_values([dashboard.table_total])).to eq([['Total', 2, 650, 'R$ 9.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 4.000,00', 'R$ 13,85', 'R$ 12,31']])
-        expect(dashboard.total.trips_count).to eq(3)
-      end
-
-      it 'plots each trip by its number without the count of trips' do
-        expect(dashboard.per_km_ranking_data.first[:data]).to eq('41003' => 20.0, '41001' => 10.0)
+      it 'goes back to the drivers' do
+        expect(dashboard.dimension).to eq('driver')
+        expect(dashboard.rows.map(&:label)).to eq(['JOSE SILVA', 'MARIA SOUZA'])
       end
     end
 
