@@ -1834,6 +1834,9 @@ pt-BR:
         trip: Viagem
         values: Valores
         indicators: Indicadores
+    toll_legend:
+      toll: Pedágio pago pela JR, descontado do frete líquido
+      undiscounted_toll: Pedágio pago pelo cliente em TAG, não descontado do frete líquido
     freights:
       row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
       total: Total
@@ -1870,8 +1873,8 @@ pt-BR:
       gross: Frete bruto
       freight_expenses: Despesas de frete
       expenses: Despesas
-      toll: Pedágio
-      undiscounted_toll: Pedágio (Não descontado)
+      toll: Pedágio pago pela JR
+      undiscounted_toll: Pedágio pago pelo cliente (TAG)
       toll_total: Pedágio
       net: Frete líquido
       gross_per_km: Bruto/km
