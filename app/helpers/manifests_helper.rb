@@ -67,13 +67,7 @@ module ManifestsHelper
 
     details + [[Atua::Manifest.human_attribute_name(:customer_group), manifest_names(manifest.customer_groups)],
                [Atua::Manifest.human_attribute_name(:origin), manifest_cities(manifest.origins)],
-               [Atua::Manifest.human_attribute_name(:destination), manifest_cities(manifest.destinations)]]
-  end
-
-  def manifest_identity(manifest)
-    return manifest.number if manifest.plate.blank?
-
-    t('manifests.identity', number: manifest.number, plate: manifest.plate)
+               [Atua::Manifest.human_attribute_name(:destination), manifest_final_destination(manifest)]]
   end
 
   def manifest_km(distance)
@@ -87,6 +81,12 @@ module ManifestsHelper
 
     safe_join([content_tag(:dt, Atua::Manifest.human_attribute_name(:net_per_km), class: 'col-12 col-md-3'),
                content_tag(:dd, freight_money(manifest.net_per_km_cents), class: 'col-12 col-md-9')])
+  end
+
+  def manifest_final_destination(manifest)
+    city, state = manifest.final_destination
+
+    tax_city(city, state)
   end
 
   def manifest_cities(cities)
@@ -208,8 +208,8 @@ module ManifestsHelper
   end
 
   def manifest_pdf_row(manifest)
-    row = [manifest.number, tax_value(manifest.branch_name), tax_value(manifest.plate), manifest_names(manifest.drivers),
-           manifest_cities(manifest.origins), manifest_cities(manifest.destinations), tax_decimal(manifest.weight_kg),
+    row = [manifest.number, tax_value(manifest.branch_name), tax_value(manifest.plate), tax_value(manifest.main_driver_name),
+           manifest_cities(manifest.origins), manifest_final_destination(manifest), tax_decimal(manifest.weight_kg),
            manifest_names(manifest.customer_groups), manifest_km(manifest.loaded_km), freight_money(manifest.gross_cents),
            freight_money(manifest.gross_per_km_cents)]
     row << freight_money(manifest.net_per_km_cents) if can?(:read, :freight_expenses)

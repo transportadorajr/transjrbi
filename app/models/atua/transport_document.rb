@@ -23,6 +23,8 @@ module Atua
                            inverse_of: :trailer_transport_documents
     end
 
+    belongs_to :driver, class_name: '::Driver', foreign_key: %i[tenant_id driver_code], primary_key: %i[tenant_id code],
+                        optional: true, inverse_of: false
     belongs_to :origin_macro_region, class_name: 'MacroRegion', optional: true, inverse_of: :transport_documents
     belongs_to :product_group, optional: true, inverse_of: :transport_documents
     belongs_to :route_distance, optional: true, inverse_of: :transport_documents

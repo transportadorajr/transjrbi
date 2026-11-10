@@ -1197,7 +1197,6 @@ pt-BR:
     update:
       success: KM do CT-e atualizado.
   manifests:
-    identity: '%{number} - %{plate}'
     km: '%{distance} km'
     index:
       title: Manifestos
