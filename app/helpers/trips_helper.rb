@@ -128,9 +128,7 @@ module TripsHelper
   end
 
   def trips_row_label(row, highlights)
-    label = row.manifest_id && can?(:read, :manifests) ? link_to(row.label, manifest_path(row.manifest_id), class: 'fw-semibold') : row.label
-    parts = [content_tag(:span, label, class: 'fw-semibold')]
-    parts << content_tag(:span, row.detail, class: 'd-block text-body-secondary small') if row.detail
+    parts = [content_tag(:span, row.label, class: 'fw-semibold')]
     parts << trips_highlight_badge(highlights[row.key]) if highlights[row.key]
 
     safe_join(parts, ' ')
@@ -179,12 +177,6 @@ module TripsHelper
     render 'trips/detail_modal', row:, replace_url: trips_path(request.query_parameters)
   end
 
-  def trips_detail_title(row)
-    return row.label unless row.detail
-
-    t('trips.detail.title', label: row.label, detail: row.detail)
-  end
-
   def trips_detail_sections(row)
     {
       trip: { trips: row.trips_count, loaded_km: trips_km(row.loaded_km), duration: trip_duration(row.duration) },
@@ -192,12 +184,6 @@ module TripsHelper
                 net_average: tax_money(row.net_average) },
       indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km), net_per_hour: tax_money(row.net_per_hour) },
     }
-  end
-
-  def trips_detail_manifest_link(row)
-    return unless row.manifest_id && can?(:read, :manifests)
-
-    link_to t('trips.detail.show_manifest'), manifest_path(row.manifest_id), class: 'btn btn-outline-secondary w-100', data: { turbo_frame: '_top' }
   end
 
   def trips_km(distance)

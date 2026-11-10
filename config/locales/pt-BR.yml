@@ -1801,11 +1801,9 @@ pt-BR:
       gross: Frete bruto
       net: Frete líquido
       chart_label: '%{label} (%{trips})'
-      manifest_detail: '%{plate} · %{date}'
       none:
         vehicle: Sem placa
         driver: Sem motorista
-        manifest: Sem número
     listing_groups:
       total: Total
       none:
@@ -1942,8 +1940,6 @@ pt-BR:
     km: '%{distance} km'
     detail:
       row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
-      title: '%{label} · %{detail}'
-      show_manifest: Ver MDF-e
       sections:
         trip: Viagem
         values: Valores
@@ -1969,7 +1965,6 @@ pt-BR:
     dimensions:
       driver: Motorista
       vehicle: Veículo
-      manifest: MDF-e
     evolutions:
       monthly: Mensal
       weekly: Semanal

@@ -131,40 +131,28 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
           expect(page).to have_current_path(manifest_path(Atua::Manifest.find_by!(code: 41_002)))
         end
 
-        scenario 'sorts the manifests from the worst net per km and opens one to check its expenses' do
-          visit trips_path(october.merge(dimension: 'manifest'))
+        scenario 'sorts the vehicles from the worst net per km' do
+          visit trips_path(october.merge(dimension: 'vehicle'))
           within('.trips-table thead') { click_on 'Líquido/km' }
           within('.trips-table thead') { click_on 'Líquido/km' }
 
           expect(page).to have_current_path(/direction=asc/)
-          expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(
-            ['41001 AAA1A11 · 02/10/2026 Pior', '41003 BBB2B22 · 21/10/2026 Melhor', 'Total'],
-          )
-
-          click_on '41003'
-
-          expect(page).to have_current_path(manifest_path(Atua::Manifest.find_by!(code: 41_003)))
-          expect(page).to have_text('Despesas da viagem')
+          expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(['AAA1A11 Pior', 'BBB2B22 Melhor', 'Total'])
         end
       end
 
-      scenario 'ranks the manifests by the net per km highlighting the best and the worst' do
+      scenario 'offers no grouping by manifest and goes back to the default listing when it is asked for' do
         visit trips_path(october)
-        click_on 'MDF-e'
 
         expect(Atua::Manifest.count).to eq(4)
-        expect(page).to have_current_path(/dimension=manifest/)
-        expect(html_table_to_rows(table: find('.trips-table'))).to eq(
-          [
-            ['MDF-e', 'Frete bruto', 'Bruto/km', 'Líquido/km', 'Tempo médio', 'Ações'],
-            ['41003 BBB2B22 · 21/10/2026 Melhor', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00', '-', ''],
-            ['41001 AAA1A11 · 02/10/2026 Pior', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
-            ['Total', 'R$ 9.000,00', 'R$ 13,85', 'R$ 12,31', '-', ''],
-          ],
-        )
-        expect(page).to have_css('.trips-table tbody tr.table-success', text: '41003')
-        expect(page).to have_css('.trips-table tbody tr.table-danger', text: '41001')
-        expect(page).to have_css('#unmeasured_trips', text: '41002')
+        expect(first('.dashboard-segmented', text: 'Motorista').all('a').map(&:text)).to eq(%w[Motorista Veículo])
+
+        visit trips_path(october.merge(dimension: 'manifest'))
+
+        expect(page).to have_current_path(trips_path)
+        expect(page).to have_css('.alert')
+        expect(page).to have_link('Motorista', class: 'btn-primary')
+        expect(page).to have_no_link('MDF-e')
       end
 
       scenario 'groups the trips by vehicle keeping the period' do
@@ -207,18 +195,18 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         end
 
         scenario 'compares only the trips of the chosen product combined with the other filters' do
-          visit trips_path(october.merge(dimension: 'manifest'))
+          visit trips_path(october.merge(dimension: 'vehicle'))
 
           expect(all('#product_group_id_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['FARINHA'])
 
-          visit trips_path(october.merge(dimension: 'manifest', product_group_id: flour.id))
+          visit trips_path(october.merge(dimension: 'vehicle', product_group_id: flour.id))
 
           expect(Atua::Manifest.count).to eq(5)
-          expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(['41010 DDD4D44 · 23/10/2026', 'Total'])
+          expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[DDD4D44 Total])
           expect(page).to have_no_css('#unmeasured_trips')
           expect(page).to have_no_css('#per_km_base')
 
-          visit trips_path(october.merge(dimension: 'manifest', product_group_id: flour.id, plate: 'AAA1A11'))
+          visit trips_path(october.merge(dimension: 'vehicle', product_group_id: flour.id, plate: 'AAA1A11'))
 
           expect(page).to have_text('Nenhum registro encontrado')
         end
@@ -240,16 +228,16 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
           end
 
           scenario 'offers every product without a product group and only the products of the selected group' do
-            visit trips_path(october.merge(dimension: 'manifest'))
+            visit trips_path(october.merge(dimension: 'vehicle'))
 
             expect(product_options).to eq(['BOBINA (SIDERÚRGICO)', 'FARINHA DE MILHO (FARINHA)', 'FARINHA DE TRIGO (FARINHA)'])
 
-            visit trips_path(october.merge(dimension: 'manifest', product_group_id: flour.id, product_id: wheat_flour.id))
+            visit trips_path(october.merge(dimension: 'vehicle', product_group_id: flour.id, product_id: wheat_flour.id))
 
             expect(product_options).to eq(['FARINHA DE MILHO (FARINHA)', 'FARINHA DE TRIGO (FARINHA)'])
             expect(page).to have_field('product_id', type: :hidden, with: wheat_flour.id.to_s)
             expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
-              .to eq(['41012 FFF6F66 · 25/10/2026 Melhor', '41010 DDD4D44 · 23/10/2026 Pior', 'Total'])
+              .to eq(['FFF6F66 Melhor', 'DDD4D44 Pior', 'Total'])
           end
 
           scenario 'drops a product that is not of the selected product group from the product options' do
@@ -260,7 +248,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
           end
 
           scenario 'reloads the products when another product group is chosen', :js do
-            visit trips_path(october.merge(dimension: 'manifest', product_id: coil.id))
+            visit trips_path(october.merge(dimension: 'vehicle', product_id: coil.id))
             find(:link, href: '#filtersModal').click
 
             expect(page).to have_css('#product_id_select .select2-single-value', text: 'BOBINA (SIDERÚRGICO)', visible: :all)
@@ -282,25 +270,25 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
             expect(page).to have_current_path(/product_group_id=#{flour.id}&product_id=#{wheat_flour.id}/)
             expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
-              .to eq(['41012 FFF6F66 · 25/10/2026 Melhor', '41010 DDD4D44 · 23/10/2026 Pior', 'Total'])
+              .to eq(['FFF6F66 Melhor', 'DDD4D44 Pior', 'Total'])
           end
 
           scenario 'compares the best and the worst trips of the chosen product by gross freight per km' do
-            visit trips_path(october.merge(dimension: 'manifest', product_id: wheat_flour.id, sort: 'gross_per_km', direction: 'desc'))
+            visit trips_path(october.merge(dimension: 'vehicle', product_id: wheat_flour.id, sort: 'gross_per_km', direction: 'desc'))
 
             expect(Atua::Manifest.count).to eq(7)
             expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
-              .to eq(['41012 FFF6F66 · 25/10/2026 Melhor', '41010 DDD4D44 · 23/10/2026 Pior', 'Total'])
+              .to eq(['FFF6F66 Melhor', 'DDD4D44 Pior', 'Total'])
             expect(page).to have_field('product_id', type: :hidden, with: wheat_flour.id.to_s)
 
-            visit trips_path(october.merge(dimension: 'manifest', product_id: wheat_flour.id, sort: 'gross_per_km', direction: 'asc'))
+            visit trips_path(october.merge(dimension: 'vehicle', product_id: wheat_flour.id, sort: 'gross_per_km', direction: 'asc'))
 
             expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first))
-              .to eq(['41010 DDD4D44 · 23/10/2026 Pior', '41012 FFF6F66 · 25/10/2026 Melhor', 'Total'])
+              .to eq(['DDD4D44 Pior', 'FFF6F66 Melhor', 'Total'])
           end
 
           scenario 'lists no trip for a product group passed as the product' do
-            visit trips_path(october.merge(dimension: 'manifest', product_id: flour.id))
+            visit trips_path(october.merge(dimension: 'vehicle', product_id: flour.id))
 
             expect(page).to have_text('Nenhum registro encontrado')
           end
@@ -316,12 +304,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
           create(:atua_manifest_document, tenant:, manifest_code: 41_011, transport_document_number: '74012', calculated_distance_km: 200)
         end
 
-        scenario 'leaves the CE out of the freight of the manifest' do
-          visit trips_path(october.merge(dimension: 'manifest', plate: 'EEE5E55'))
+        scenario 'leaves the CE out of the freight of the vehicle' do
+          visit trips_path(october.merge(dimension: 'vehicle', plate: 'EEE5E55'))
 
           expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
             [
-              ['41011 EEE5E55 · 24/10/2026', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
+              ['EEE5E55', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
               ['Total', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
             ],
           )
@@ -403,26 +391,6 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
           expect(row_detail('Total')).to include('Viagens' => '3', 'Frete bruto' => 'R$ 15.600,00', 'Tempo médio' => '1 dia e 13 horas',
                                                  'Líquido/hora' => 'R$ 183,78')
-        end
-
-        scenario 'leaves the manifest link out without access to the manifests' do
-          visit trips_path(october.merge(dimension: 'manifest'))
-          row_detail('41021')
-
-          expect(page).to have_no_link('Ver MDF-e')
-        end
-
-        context 'with access to the manifests' do
-          let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
-
-          scenario 'links the detail of a manifest to its screen' do
-            visit trips_path(october.merge(dimension: 'manifest'))
-            row_detail('41021')
-
-            within('#trip_detail_modal') { click_on 'Ver MDF-e' }
-
-            expect(page).to have_current_path(manifest_path(Atua::Manifest.find_by!(code: 41_021)))
-          end
         end
       end
 
@@ -561,12 +529,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
       ).uniq).to eq([['#2563eb', '#dc3545']])
     end
 
-    scenario 'keeps the net per km of each manifest on the phone without scrolling sideways' do
+    scenario 'keeps the net per km of each vehicle on the phone without scrolling sideways' do
       use_mobile_screen(width: 360)
-      visit trips_path(october.merge(dimension: 'manifest'))
+      visit trips_path(october.merge(dimension: 'vehicle'))
 
       expect(page).to have_css('th', text: %r{\ALíquido/km\z}i)
-      expect(page).to have_css('td', text: 'AAA1A11 · 02/10/2026')
+      expect(page).to have_css('td', text: 'AAA1A11')
       expect(page).to have_no_css('th', text: /\ADespesas\z/i)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end

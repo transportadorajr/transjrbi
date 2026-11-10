@@ -1,6 +1,6 @@
 module Dashboard
   class Trip
-    DIMENSIONS = %w[driver vehicle manifest].freeze
+    DIMENSIONS = %w[driver vehicle].freeze
     DEFAULT_DIMENSION = 'driver'.freeze
     DEFAULT_SORT = 'net_per_km'.freeze
     HIGHLIGHT_COLUMNS = %w[gross_per_km net_per_km].freeze
@@ -19,7 +19,7 @@ module Dashboard
       end
     end
 
-    Row = Data.define(:key, :label, :detail, :manifest_id, :trips_count, :loaded_km, :gross, :expenses, :net, :average, :net_average,
+    Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :expenses, :net, :average, :net_average,
                       :gross_per_km, :net_per_km, :duration, :net_per_hour) do
       extend ActiveModel::Naming
 
@@ -69,19 +69,15 @@ module Dashboard
       @durations ||= TripDurations.new(period_facts.map(&:duration_fact))
     end
 
-    def table_total
-      @table_total ||= build_row(TOTAL_KEY, I18n.t('dashboards.trip.total'), ranked_facts)
-    end
-
     def find_row(key)
-      return table_total if key.to_s == TOTAL_KEY
+      return total if key.to_s == TOTAL_KEY
 
       rows.find { |row| row.key == key.to_s }
     end
 
     def rows
-      @rows ||= ranked_facts.group_by { |fact| key_for(fact) }
-        .map { |key, grouped| row_for(key, grouped) }
+      @rows ||= period_facts.group_by { |fact| key_for(fact) }
+        .map { |key, grouped| build_row(key.to_s, label_for(key, grouped), grouped) }
         .sort_by { |row| [-row.gross.cents, row.label] }
     end
 
@@ -186,17 +182,11 @@ module Dashboard
     end
 
     def ranking_label(row)
-      return row.label if dimension == 'manifest'
-
       I18n.t('dashboards.trip.chart_label', label: row.label, trips: row.trips_count)
     end
 
     def period_facts
       @period_facts ||= facts.select { |fact| period.cover?(fact.trip_on) }
-    end
-
-    def ranked_facts
-      @ranked_facts ||= dimension == 'manifest' ? period_facts.select(&:measured?) : period_facts
     end
 
     def facts
@@ -249,8 +239,6 @@ module Dashboard
       Row.new(
         key:,
         label:,
-        detail: nil,
-        manifest_id: nil,
         trips_count: grouped.size,
         loaded_km: grouped.sum(BigDecimal('0'), &:loaded_km).round(2),
         gross: Money.from_cents(gross_cents),
@@ -269,28 +257,12 @@ module Dashboard
       Money.from_cents((cents.to_d / divisor).round(0, BigDecimal::ROUND_HALF_UP)) if divisor.positive?
     end
 
-    def row_for(key, grouped)
-      row = build_row(key.to_s, label_for(key, grouped), grouped)
-      return row unless dimension == 'manifest'
-
-      fact = grouped.first
-      row.with(detail: I18n.t('dashboards.trip.manifest_detail', plate: fact.plate, date: I18n.l(fact.trip_on)), manifest_id: fact.id)
-    end
-
     def key_for(fact)
-      case dimension
-      when 'vehicle' then fact.plate
-      when 'manifest' then fact.id
-      else fact.driver_code
-      end
+      dimension == 'vehicle' ? fact.plate : fact.driver_code
     end
 
     def label_for(key, grouped)
-      label = case dimension
-              when 'vehicle' then key
-              when 'manifest' then grouped.first.number
-              else driver_display_names[key].presence || grouped.filter_map(&:driver_name).first
-              end
+      label = dimension == 'vehicle' ? key : driver_display_names[key].presence || grouped.filter_map(&:driver_name).first
 
       label.presence || I18n.t(dimension, scope: 'dashboards.trip.none')
     end

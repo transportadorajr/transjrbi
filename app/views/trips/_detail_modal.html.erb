@@ -2,7 +2,7 @@
 
 <%= tag.div class: 'trip-detail', data: { turbo_temporary: true } do %>
   <%= render layout: 'components/new_modal',
-             locals: { id: TripsHelper::DETAIL_MODAL_ID, title: trips_detail_title(row), auto_show: true, show_footer: false,
+             locals: { id: TripsHelper::DETAIL_MODAL_ID, title: row.label, auto_show: true, show_footer: false,
                        replace_url: } do %>
     <% trips_detail_sections(row).each do |section, fields| %>
       <p class="trip-detail-section"><%= t(section, scope: 'trips.detail.sections') %></p>
@@ -13,6 +13,5 @@
         <% end %>
       </dl>
     <% end %>
-    <%= trips_detail_manifest_link(row) %>
   <% end %>
 <% end %>
