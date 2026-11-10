@@ -37,6 +37,12 @@ module ManifestsHelper
                [Atua::Manifest.human_attribute_name(:destination), manifest_cities(manifest.destinations)]]
   end
 
+  def manifest_identity(manifest)
+    return manifest.number if manifest.plate.blank?
+
+    t('manifests.identity', number: manifest.number, plate: manifest.plate)
+  end
+
   def manifest_km(distance)
     return t('tax.blank') unless distance&.positive?
 
