@@ -409,6 +409,14 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
                                           'Evolução Semanal do R$/km'])
       expect(page).to have_current_path(trips_path(october))
       expect(page.evaluate_script(
+               'Object.values(Chartkick.charts).filter((chart) => chart.element.checkVisibility())' \
+               '.map((chart) => chart.getChartObject().options.indexAxis)',
+             )).to eq(%w[y y y y])
+      expect(page.evaluate_script(
+               'Object.values(Chartkick.charts).filter((chart) => chart.element.checkVisibility())' \
+               '.map((chart) => chart.getChartObject().options.plugins.datalabels.display)',
+             )).to eq([true, true, true, true])
+      expect(page.evaluate_script(
                "[...document.querySelectorAll('.chart-card canvas')].filter((canvas) => canvas.checkVisibility())" \
                '.every((canvas) => canvas.getBoundingClientRect().width > 0)',
              )).to be(true)

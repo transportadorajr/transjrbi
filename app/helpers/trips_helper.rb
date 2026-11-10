@@ -32,7 +32,7 @@ module TripsHelper
       chart_evolution_item(evolution) do
         render 'freight_billings/chart_card', title: t("trips.index.#{evolution}#{suffix}_title"),
                                               subtitle: public_send(:"trips_#{evolution}_subtitle", dashboard),
-                                              chart: trips_history_chart(dashboard.public_send(:"#{evolution}#{suffix}_data"))
+                                              chart: public_send(:"trips_#{evolution}_chart", dashboard.public_send(:"#{evolution}#{suffix}_data"))
       end
     end)
   end
@@ -154,8 +154,13 @@ module TripsHelper
                                   **chart_money_options, library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
   end
 
-  def trips_history_chart(data)
+  def trips_monthly_chart(data)
     column_chart(trips_series(data), height: CHART_HEIGHT, legend: 'bottom', **chart_money_options, library: chart_bar_library(:x))
+  end
+
+  def trips_weekly_chart(data)
+    bar_chart(trips_series(data), height: CHART_HEIGHT, legend: 'bottom', **chart_money_options,
+                                  library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS, tooltip: { enabled: false } }))
   end
 
   def trips_pdf_report(dashboard, rows, filter_form, highlights)
