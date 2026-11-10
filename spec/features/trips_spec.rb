@@ -394,12 +394,20 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
       all('.chart-card-title').map(&:text)
     end
 
-    scenario 'shows the monthly evolution first and reveals the weekly one beside the rankings' do
+    scenario 'shows the monthly evolution first on horizontal bars and reveals the weekly one beside the rankings' do
       visit trips_path(october)
 
       expect(page).to have_button('Mensal', class: 'btn-primary')
       expect(visible_chart_titles).to eq(['Faturamento por Motorista', 'Evolução Mensal do Faturamento', 'R$/km por Motorista',
                                           'Evolução Mensal do R$/km'])
+      expect(page.evaluate_script(
+               'Object.values(Chartkick.charts).filter((chart) => chart.element.checkVisibility())' \
+               '.map((chart) => chart.getChartObject().options.indexAxis)',
+             )).to eq(%w[y y y y])
+      expect(page.evaluate_script(
+               'Object.values(Chartkick.charts).filter((chart) => chart.element.checkVisibility())' \
+               '.map((chart) => chart.getChartObject().options.plugins.datalabels.display)',
+             )).to eq([true, true, true, true])
 
       click_on 'Semanal'
 
