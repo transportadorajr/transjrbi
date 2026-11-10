@@ -239,8 +239,22 @@ module Atua
       route_cities(:destination_city, :destination_state)
     end
 
+    def final_destination
+      document = route_documents.select(&:on_route?).reverse.find { |route_document| route_document.destination_city.present? }
+
+      [document.destination_city, document.destination_state] if document
+    end
+
     def drivers
       route_documents.select(&:on_route?).filter_map { |document| document.transport_document&.driver_name.presence }.uniq
+    end
+
+    def main_driver_name
+      document = route_documents.select(&:on_route?).filter_map(&:transport_document)
+        .select { |transport_document| transport_document.driver_code && transport_document.document_kind != MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'] }
+        .min_by { |transport_document| [-transport_document.freight_cents.to_i, transport_document.id] }
+
+      document&.driver&.display_name.presence || document&.driver_name.presence
     end
 
     def customer_groups

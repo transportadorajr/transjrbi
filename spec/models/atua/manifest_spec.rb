@@ -300,6 +300,16 @@ RSpec.describe Atua::Manifest do
       expect(manifest.origins).to eq([%w[Ipatinga MG], %w[Betim MG]])
       expect(manifest.destinations).to eq([%w[Santos SP], %w[Cubatão SP], %w[Campinas SP]])
     end
+
+    it 'returns the destination of the last document of the trip as the final destination' do
+      expect(manifest.final_destination).to eq(%w[Campinas SP])
+    end
+
+    it 'returns no final destination when no document of the trip has a destination' do
+      other = create(:atua_manifest, tenant:, code: 41_501, branch_name: 'JR')
+
+      expect(other.final_destination).to be_nil
+    end
   end
 
   describe '#drivers and #weight_kg' do
@@ -333,6 +343,42 @@ RSpec.describe Atua::Manifest do
       it 'returns no driver and no weight' do
         expect(manifest.drivers).to eq([])
         expect(manifest.weight_kg).to be_nil
+      end
+    end
+  end
+
+  describe '#main_driver_name' do
+    let!(:manifest) { create(:atua_manifest, tenant:, code: 41_520, branch_name: 'JR') }
+
+    def add_document(number, driver_code, driver_name, freight_cents, **attributes)
+      create(:atua_transport_document, tenant:, number:, series: 1, branch_name: 'JR', driver_code:, driver_name:, freight_cents:, **attributes)
+      create(:atua_manifest_document, tenant:, manifest_code: 41_520, transport_document_number: number, transport_document_series: 1, branch_name: 'JR')
+    end
+
+    context 'when the trip has documents of different drivers' do
+      before do
+        add_document('1', 10, 'JOAO DA SILVA', 50_000)
+        add_document('2', 20, 'MARIA SOUZA', 90_000)
+        add_document('3', 30, 'PEDRO LIMA', 200_000, canceled_at: Time.current)
+        add_document('4', 40, 'ANA COSTA', 300_000, document_kind: 'ce')
+      end
+
+      it 'returns the driver of the highest freight transport document on the trip' do
+        expect(manifest.main_driver_name).to eq('MARIA SOUZA')
+      end
+
+      it 'returns the display name of the main driver when one is registered' do
+        create(:driver, tenant:, code: 20, display_name: 'MARIA')
+
+        expect(manifest.main_driver_name).to eq('MARIA')
+      end
+    end
+
+    context 'when the documents have no driver' do
+      before { add_document('1', nil, nil, 50_000) }
+
+      it 'returns no driver' do
+        expect(manifest.main_driver_name).to be_nil
       end
     end
   end
