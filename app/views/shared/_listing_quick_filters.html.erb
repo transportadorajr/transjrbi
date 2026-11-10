@@ -1,0 +1,21 @@
+<%# locals: (groups:) %>
+
+<div class="dashboard-filter-bar mb-3">
+  <span class="dashboard-filter-label"><%= t('listing_filters.period_label') %></span>
+
+  <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('listing_filters.period_label') } do %>
+    <% listing_period_presets.each do |preset| %>
+      <%= link_to listing_period_preset_label(preset), listing_period_preset_path(preset), class: listing_period_preset_link_class(preset) %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="dashboard-filter-bar mb-4">
+  <span class="dashboard-filter-label"><%= t('listing_filters.group_by') %></span>
+
+  <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('listing_filters.group_by') } do %>
+    <% listing_dimensions.each do |dimension| %>
+      <%= link_to listing_dimension_label(dimension), listing_dimension_path(dimension, groups), class: listing_dimension_link_class(dimension, groups) %>
+    <% end %>
+  <% end %>
+</div>

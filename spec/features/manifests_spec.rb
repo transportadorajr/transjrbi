@@ -258,6 +258,45 @@ describe 'Manifests' do
         expect(all('#customer_code_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(['USIMINAS IPATINGA'])
         expect(page).to have_no_css('#customer_code_select .select2-single-value', visible: :all)
       end
+
+      scenario 'groups the manifests by vehicle and filters the list by the tapped plate' do
+        visit manifests_path
+        within('.dashboard-segmented', text: 'Veículo') { click_on 'Veículo' }
+
+        expect(page).to have_css('#listing_groups .table-card-title', text: 'Resumo por veículo')
+        expect(html_table_to_rows(table: find('#listing_groups table'))).to eq(
+          [['Veículo', 'Manifestos', 'Frete bruto'], ['EXU0F72', '1', 'R$ 2.000,00'], ['RHJ4E07', '1', 'R$ 1.000,00'], ['Total', '2', 'R$ 3.000,00']],
+        )
+
+        within('#listing_groups') { click_on 'RHJ4E07' }
+
+        expect(page).to have_current_path(manifests_path(dimension: 'vehicle', plate: 'RHJ4E07'))
+        expect(html_table_to_rows(table: find('.table-card:not(#listing_groups) table'))).to eq([table_header, jose_row])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
+      end
+
+      scenario 'groups the manifests by the customer group of their transport documents' do
+        visit manifests_path(dimension: 'customer_group', driver_code: 20)
+
+        expect(html_table_to_rows(table: find('#listing_groups table'))).to eq(
+          [['Grupo de clientes', 'Manifestos', 'Frete bruto'], ['GERDAU', '1', 'R$ 2.000,00'], ['Total', '1', 'R$ 2.000,00']],
+        )
+      end
+
+      scenario 'filters the manifests issued last month with one tap' do
+        travel_to(Date.new(2026, 11, 10)) do
+          visit manifests_path
+          click_on 'Mês passado'
+
+          expect(page).to have_current_path(manifests_path(end_date: '2026-10-31', start_date: '2026-10-01'))
+          expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Mês passado')
+          expect(html_table_to_rows).to eq([table_header, maria_row, jose_row])
+
+          click_on 'Mês'
+
+          expect(page).to have_text('Nenhum registro encontrado')
+        end
+      end
     end
 
     context 'when a manifest has transport documents from several cities' do

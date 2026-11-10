@@ -1,0 +1,40 @@
+<%# locals: (groups:, count_label:) %>
+
+<div class="card table-card mb-4" id="listing_groups">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= listing_groups_title(groups) %></p>
+      <p class="table-card-subtitle"><%= t('listing_filters.groups.subtitle') %></p>
+    </div>
+  </div>
+  <div class="table-card-body table-responsive listing-groups-body">
+    <table class="table app-table align-middle mb-0">
+      <thead>
+        <tr>
+          <th><%= listing_dimension_label(groups.dimension) %></th>
+          <th class="text-end"><%= count_label %></th>
+          <th class="text-end"><%= t('listing_filters.groups.gross') %></th>
+          <%= listing_groups_net_header(groups) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% groups.rows.each do |row| %>
+          <tr>
+            <td><%= listing_group_label(row, groups) %></td>
+            <td class="text-end"><%= row.count %></td>
+            <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
+            <%= listing_groups_net_cell(row) %>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><%= groups.total.label %></td>
+          <td class="text-end"><%= groups.total.count %></td>
+          <td class="text-end text-nowrap"><%= tax_money(groups.total.gross) %></td>
+          <%= listing_groups_net_cell(groups.total) %>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>

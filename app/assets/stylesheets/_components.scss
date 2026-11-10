@@ -822,6 +822,18 @@
   }
 }
 
+.listing-groups-body {
+  max-height: 22rem;
+  overflow-y: auto;
+
+  tfoot td {
+    position: sticky;
+    bottom: 0;
+    background: var(--bs-body-bg);
+    font-weight: 600;
+  }
+}
+
 .freight-billing-toll-carrier {
   --freight-billing-toll-color: var(--bs-danger);
 

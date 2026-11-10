@@ -141,6 +141,134 @@ describe 'Transport documents' do
       end
     end
 
+    context 'when there are transport documents of different weeks, customers and vehicles' do
+      let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+      let!(:usiminas_customer) { create(:atua_customer, tenant:, code: 7100, name: 'USIMINAS IPATINGA', customer_group: usiminas) }
+      let!(:loose_customer) { create(:atua_customer, tenant:, code: 7300, name: 'AVULSO', customer_group: nil) }
+      let(:table_header) { ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'] }
+      let(:groups_table) { find('#listing_groups table') }
+      let(:documents_table) { find('.table-card:not(#listing_groups) table') }
+
+      before do
+        create(:atua_transport_document, tenant:, number: '74201', posted_on: Date.new(2026, 10, 19), plate: 'EXU0F72', taker_code: 7100,
+                                         taker_name: 'USIMINAS IPATINGA', origin_city: 'Ipatinga', origin_state: 'MG', destination_city: 'Betim',
+                                         destination_state: 'MG', freight_cents: 100_000)
+        create(:atua_transport_document, tenant:, number: '74202', posted_on: Date.new(2026, 10, 20), plate: 'RHJ4E07', taker_code: 7300,
+                                         taker_name: 'AVULSO', origin_city: 'Ipatinga', origin_state: 'MG', destination_city: 'Betim',
+                                         destination_state: 'MG', freight_cents: 300_000)
+        create(:atua_transport_document, tenant:, number: '74203', posted_on: Date.new(2026, 10, 12), plate: 'EXU0F72', taker_code: 7100,
+                                         taker_name: 'USIMINAS IPATINGA', origin_city: 'Ipatinga', origin_state: 'MG', destination_city: 'Betim',
+                                         destination_state: 'MG', freight_cents: 50_000)
+        create(:atua_transport_document, tenant: other_tenant, number: '74204', posted_on: Date.new(2026, 10, 20), plate: 'EXU0F72', freight_cents: 900_000)
+      end
+
+      scenario 'filters the transport documents of the current week with one tap' do
+        travel_to(Date.new(2026, 10, 21)) do
+          visit transport_documents_path
+          click_on 'Sem. atual'
+
+          expect(Atua::TransportDocument.count).to eq(4)
+          expect(page).to have_current_path(transport_documents_path(end_date: '2026-10-24', start_date: '2026-10-18'))
+          expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Sem. atual')
+          expect(html_table_to_rows).to eq(
+            [
+              table_header,
+              ['74202 -', '20/10/2026', 'Ipatinga/MG → Betim/MG', 'RHJ4E07', 'AVULSO', '-', 'R$ 3.000,00', ''],
+              ['74201 -', '19/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 1.000,00', ''],
+            ],
+          )
+
+          click_on 'Sem. passada'
+
+          expect(html_table_to_rows).to eq(
+            [table_header, ['74203 -', '12/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 500,00', '']],
+          )
+        end
+      end
+
+      scenario 'groups the transport documents by customer group and filters the list by the tapped group' do
+        visit transport_documents_path(start_date: '2026-10-18', end_date: '2026-10-24')
+        within('.dashboard-segmented', text: 'Grupo de clientes') { click_on 'Grupo de clientes' }
+
+        expect(page).to have_css('#listing_groups .table-card-title', text: 'Resumo por grupo de clientes')
+        expect(html_table_to_rows(table: groups_table)).to eq(
+          [
+            ['Grupo de clientes', 'CT-es', 'Frete bruto'],
+            ['Sem grupo', '1', 'R$ 3.000,00'],
+            ['USIMINAS', '1', 'R$ 1.000,00'],
+            ['Total', '2', 'R$ 4.000,00'],
+          ],
+        )
+
+        within('#listing_groups') { click_on 'USIMINAS' }
+
+        expect(page).to have_current_path(transport_documents_path(customer_group_id: usiminas.id, dimension: 'customer_group', end_date: '2026-10-24',
+                                                                   start_date: '2026-10-18'))
+        expect(html_table_to_rows(table: documents_table)).to eq(
+          [table_header, ['74201 -', '19/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 1.000,00', '']],
+        )
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
+      end
+
+      scenario 'groups the transport documents by vehicle and hides the summary when the grouping is tapped again' do
+        visit transport_documents_path(dimension: 'vehicle')
+
+        expect(html_table_to_rows(table: groups_table)).to eq(
+          [['Veículo', 'CT-es', 'Frete bruto'], ['RHJ4E07', '1', 'R$ 3.000,00'], ['EXU0F72', '2', 'R$ 1.500,00'], ['Total', '3', 'R$ 4.500,00']],
+        )
+
+        within('#listing_groups') { click_on 'EXU0F72' }
+
+        expect(all('tbody .table-identity a').map(&:text)).to eq(%w[74201 74203])
+
+        within('.dashboard-segmented', text: 'Veículo') { click_on 'Veículo' }
+
+        expect(page).to have_current_path(transport_documents_path(plate: 'EXU0F72'))
+        expect(page).to have_no_css('#listing_groups')
+      end
+
+      scenario 'keeps the grouping when the filters of the modal are applied' do
+        visit transport_documents_path(dimension: 'customer')
+        fill_in 'Placa', with: 'RHJ4E07'
+        click_on 'Aplicar Filtros'
+
+        expect(html_table_to_rows(table: groups_table)).to eq(
+          [['Cliente', 'CT-es', 'Frete bruto'], ['AVULSO', '1', 'R$ 3.000,00'], ['Total', '1', 'R$ 3.000,00']],
+        )
+      end
+
+      scenario 'ignores an unknown grouping' do
+        visit transport_documents_path(dimension: 'origin')
+
+        expect(all('tbody .table-identity a').map(&:text)).to eq(%w[74202 74201 74203])
+        expect(page).to have_no_css('#listing_groups')
+      end
+
+      context 'with access to the freight expenses' do
+        let!(:freight_expenses_resource) { create(:resource, name: 'Despesas de frete', slug: 'freight_expenses', writable: false) }
+
+        before { create(:freight_expense, tenant:, transport_document: Atua::TransportDocument.find_by(number: '74202'), amount_cents: 100_000) }
+
+        scenario 'shows the net freight of each group' do
+          visit transport_documents_path(dimension: 'driver')
+
+          expect(FreightExpense.count).to eq(1)
+          expect(html_table_to_rows(table: groups_table)).to eq(
+            [['Motorista', 'CT-es', 'Frete bruto', 'Frete líquido'], ['Sem motorista', '3', 'R$ 4.500,00', 'R$ 3.500,00'],
+             ['Total', '3', 'R$ 4.500,00', 'R$ 3.500,00']],
+          )
+        end
+      end
+
+      scenario 'stacks the quick filters and the summary on a phone without scrolling the page sideways', :js do
+        use_mobile_screen
+        visit transport_documents_path(dimension: 'customer_group')
+
+        expect(page).to have_css('#listing_groups')
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
+    end
+
     context 'when a transport document may have received a correction letter in Atua' do
       let!(:transport_document) do
         create(:atua_transport_document, tenant:, number: '74130', issued_at: Time.zone.local(2026, 10, 1, 16, 45))

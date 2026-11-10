@@ -1,0 +1,80 @@
+module ListingFiltersHelper
+  def listing_period_presets
+    FreightBillingFilterForm::PERIOD_PRESETS
+  end
+
+  def listing_period_preset_label(preset)
+    t(preset, scope: 'listing_filters.period_presets')
+  end
+
+  def listing_period_preset_path(preset)
+    period = FreightBillingFilterForm.preset_period(preset)
+
+    listing_url(start_date: period.first.iso8601, end_date: period.last.iso8601)
+  end
+
+  def listing_period_preset_link_class(preset)
+    period = FreightBillingFilterForm.preset_period(preset)
+    active = params[:start_date] == period.first.iso8601 && params[:end_date] == period.last.iso8601
+
+    listing_chip_class(active)
+  end
+
+  def listing_dimensions
+    Dashboard::ListingGroups::DIMENSIONS
+  end
+
+  def listing_dimension_label(dimension)
+    t(dimension, scope: 'listing_filters.dimensions')
+  end
+
+  def listing_dimension_path(dimension, groups)
+    listing_url(dimension: dimension == groups.dimension ? nil : dimension)
+  end
+
+  def listing_dimension_link_class(dimension, groups)
+    listing_chip_class(dimension == groups.dimension)
+  end
+
+  def listing_dimension_field
+    hidden_field_tag(:dimension, params[:dimension], id: nil) if params[:dimension].is_a?(String)
+  end
+
+  def listing_groups_card(groups, count_label:)
+    return unless groups.grouped?
+
+    render 'shared/listing_groups', groups:, count_label:
+  end
+
+  def listing_groups_title(groups)
+    t('listing_filters.groups.title', dimension: listing_dimension_label(groups.dimension).downcase)
+  end
+
+  def listing_group_label(row, groups)
+    return row.label unless row.filterable?
+
+    link_to row.label, listing_url(groups.filter_param => row.key), class: 'fw-semibold text-decoration-none text-break'
+  end
+
+  def listing_groups_net_header(groups)
+    return if groups.total.net.nil?
+
+    content_tag(:th, t('listing_filters.groups.net'), class: 'd-none d-md-table-cell text-end')
+  end
+
+  def listing_groups_net_cell(row)
+    return if row.net.nil?
+
+    content_tag(:td, tax_money(row.net), class: 'd-none d-md-table-cell text-end text-nowrap')
+  end
+
+  private
+
+  def listing_url(changes)
+    url_for(request.query_parameters.except('page').merge(changes.stringify_keys).compact_blank.merge(only_path: true))
+  end
+
+  def listing_chip_class(active)
+    "btn btn-sm #{active ? 'btn-primary' : 'btn-outline-secondary'}"
+  end
+end
