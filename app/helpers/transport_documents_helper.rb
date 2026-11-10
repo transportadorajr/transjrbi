@@ -50,6 +50,14 @@ module TransportDocumentsHelper
       destination: tax_city(transport_document.destination_city, transport_document.destination_state))
   end
 
+  def transport_document_title(key, transport_document)
+    t(key, kind: transport_document_kind_name(transport_document), number: transport_document.number)
+  end
+
+  def transport_document_kind_name(transport_document)
+    t(transport_document.document_kind.presence || 'cte', scope: 'transport_documents.document_kinds')
+  end
+
   def transport_document_kind(transport_document)
     return t('tax.blank') if transport_document.document_kind.blank?
 
@@ -146,7 +154,8 @@ module TransportDocumentsHelper
   end
 
   def transport_documents_pdf_columns
-    columns = [pdf_column(Atua::TransportDocument.human_attribute_name(:number)), pdf_column(Atua::TransportDocument.human_attribute_name(:sender), '2fr'),
+    columns = [pdf_column(Atua::TransportDocument.human_attribute_name(:number)),
+               pdf_column(Atua::TransportDocument.human_attribute_name(:document_kind)), pdf_column(Atua::TransportDocument.human_attribute_name(:sender), '2fr'),
                pdf_column(Atua::TransportDocument.human_attribute_name(:posted_on)), pdf_column(Atua::TransportDocument.human_attribute_name(:route), '2.5fr'),
                pdf_column(Atua::TransportDocument.human_attribute_name(:plate)), pdf_column(Atua::TransportDocument.human_attribute_name(:customer_group), '2fr'),
                pdf_column(Atua::TransportDocument.human_attribute_name(:driver_name), '2fr'),
@@ -157,7 +166,7 @@ module TransportDocumentsHelper
   end
 
   def transport_document_pdf_row(transport_document)
-    row = [transport_document.number, tax_value(transport_document.sender_name), tax_date(transport_document.posted_on),
+    row = [transport_document.number, transport_document_kind_name(transport_document), tax_value(transport_document.sender_name), tax_date(transport_document.posted_on),
            transport_document_route(transport_document), tax_value(transport_document.plate), tax_value(transport_document.customer_group_name),
            tax_value(transport_document.driver_name), tax_money(transport_document.freight)]
     row << freight_money(transport_document.net_cents) if can?(:read, :freight_expenses)

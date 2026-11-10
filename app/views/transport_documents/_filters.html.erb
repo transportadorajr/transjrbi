@@ -12,6 +12,12 @@
       </div>
 
       <div class="col-12">
+        <%= f.label :document_kind, t('transport_documents.filters.document_kind'), class: 'form-label fw-medium' %>
+        <%= f.select :document_kind, Atua::TransportDocument.document_kinds, { include_blank: t('shared.all'), selected: params[:document_kind] },
+                     { class: 'form-select bg-light' } %>
+      </div>
+
+      <div class="col-12">
         <%= f.label :plate, t('transport_documents.filters.plate'), class: 'form-label fw-medium' %>
         <%= f.text_field :plate, value: params[:plate], class: 'form-control bg-light text-uppercase', autocomplete: :off,
                                  placeholder: t('transport_documents.filters.plate') %>

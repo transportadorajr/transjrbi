@@ -60,8 +60,8 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
+            ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74130 USIMINAS', 'CT-e', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
@@ -80,8 +80,8 @@ describe 'Transport documents' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
+            ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74130 USIMINAS', 'CT-e', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
           ],
         )
       end
@@ -95,8 +95,8 @@ describe 'Transport documents' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
+            ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74130 USIMINAS', 'CT-e', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', '-', '-', 'R$ 555,04', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
@@ -145,7 +145,7 @@ describe 'Transport documents' do
       let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
       let!(:usiminas_customer) { create(:atua_customer, tenant:, code: 7100, name: 'USIMINAS IPATINGA', customer_group: usiminas) }
       let!(:loose_customer) { create(:atua_customer, tenant:, code: 7300, name: 'AVULSO', customer_group: nil) }
-      let(:table_header) { ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'] }
+      let(:table_header) { ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'] }
       let(:groups_table) { find('#listing_groups table') }
       let(:documents_table) { find('.table-card:not(#listing_groups) table') }
 
@@ -173,15 +173,15 @@ describe 'Transport documents' do
           expect(html_table_to_rows).to eq(
             [
               table_header,
-              ['74202 -', '20/10/2026', 'Ipatinga/MG → Betim/MG', 'RHJ4E07', 'AVULSO', '-', 'R$ 3.000,00', ''],
-              ['74201 -', '19/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 1.000,00', ''],
+              ['74202 -', 'CT-e', '20/10/2026', 'Ipatinga/MG → Betim/MG', 'RHJ4E07', 'AVULSO', '-', 'R$ 3.000,00', ''],
+              ['74201 -', 'CT-e', '19/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 1.000,00', ''],
             ],
           )
 
           click_on 'Sem. passada'
 
           expect(html_table_to_rows).to eq(
-            [table_header, ['74203 -', '12/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 500,00', '']],
+            [table_header, ['74203 -', 'CT-e', '12/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 500,00', '']],
           )
         end
       end
@@ -205,7 +205,7 @@ describe 'Transport documents' do
         expect(page).to have_current_path(transport_documents_path(customer_group_id: usiminas.id, dimension: 'customer_group', end_date: '2026-10-24',
                                                                    start_date: '2026-10-18'))
         expect(html_table_to_rows(table: documents_table)).to eq(
-          [table_header, ['74201 -', '19/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 1.000,00', '']],
+          [table_header, ['74201 -', 'CT-e', '19/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'USIMINAS', '-', 'R$ 1.000,00', '']],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
       end
@@ -331,8 +331,8 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Frete líquido', 'Ações'],
-            ['74130 USIMINAS', '01/10/2026', '- → -', 'EXU0F72', '-', '-', 'R$ 555,04', 'R$ 555,04', ''],
+            ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Frete líquido', 'Ações'],
+            ['74130 USIMINAS', 'CT-e', '01/10/2026', '- → -', 'EXU0F72', '-', '-', 'R$ 555,04', 'R$ 555,04', ''],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
@@ -342,9 +342,57 @@ describe 'Transport documents' do
       scenario 'tells on the details that the document is a vehicle sale and shows no net freight' do
         visit transport_document_path(vehicle_sale)
 
-        expect(page).to have_css('h1.page-title', text: 'CT-e 3649')
+        expect(page).to have_css('h1.page-title', text: 'CE 3649')
+        expect(page).to have_title('CE 3649')
         expect(dl_to_hash('#document_data')).to include('Tipo do documento' => 'CE Venda de veículo')
         expect(page).to have_no_css('#transport_document_net_freight')
+      end
+    end
+
+    context 'when there are CT-es and CEs' do
+      let!(:cte) do
+        create(:atua_transport_document, tenant:, number: '74130', document_kind: 'cte', sender_name: 'USIMINAS', posted_on: Date.new(2026, 10, 2),
+                                         plate: 'EXU0F72', freight_cents: 55_504)
+      end
+      let!(:ce) do
+        create(:atua_transport_document, tenant:, number: '4526', document_kind: 'ce', sender_name: 'GERDAU', posted_on: Date.new(2026, 10, 1),
+                                         plate: 'RHJ4E07', freight_cents: 120_000)
+      end
+
+      let(:table_header) { ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'] }
+      let(:cte_row) { ['74130 USIMINAS', 'CT-e', '02/10/2026', '- → -', 'EXU0F72', '-', '-', 'R$ 555,04', ''] }
+      let(:ce_row) { ['4526 GERDAU', 'CE', '01/10/2026', '- → -', 'RHJ4E07', '-', '-', 'R$ 1.200,00', ''] }
+
+      scenario 'identifies the type of each document on the listing' do
+        visit transport_documents_path
+
+        expect(Atua::TransportDocument.count).to eq(2)
+        expect(html_table_to_rows).to eq([table_header, cte_row, ce_row])
+      end
+
+      scenario 'filters the listing by CE' do
+        visit transport_documents_path
+        select 'CE', from: 'Tipo do documento'
+        click_on 'Aplicar Filtros'
+
+        expect(page).to have_current_path(transport_documents_path, ignore_query: true)
+        expect(html_table_to_rows).to eq([table_header, ce_row])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['CT-es válidos 1'])
+      end
+
+      scenario 'filters the listing by CT-e' do
+        visit transport_documents_path
+        select 'CT-e', from: 'Tipo do documento'
+        click_on 'Aplicar Filtros'
+
+        expect(html_table_to_rows).to eq([table_header, cte_row])
+      end
+
+      scenario 'shows the document type on a phone', :js do
+        use_mobile_screen
+        visit transport_documents_path
+
+        within("#atua_transport_document_#{ce.id}") { expect(page).to have_css('td', text: 'CE', visible: :visible) }
       end
     end
 
@@ -366,10 +414,10 @@ describe 'Transport documents' do
                                          driver_code: 20, driver_name: 'MARIA SOUZA', taker_code: gerdau_customer.code)
       end
 
-      let(:table_header) { ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'] }
-      let(:jose_row) { ['75001 -', '03/10/2026', '- → -', 'RVR2C34', 'USIMINAS', 'JOSE SILVA', 'R$ 100,00', ''] }
-      let(:maria_usiminas_row) { ['75002 -', '02/10/2026', '- → -', 'RVR8J90', 'USIMINAS', 'MARIA SOUZA', 'R$ 200,00', ''] }
-      let(:maria_gerdau_row) { ['75003 -', '01/10/2026', '- → -', 'RVR8J90', 'GERDAU', 'MARIA SOUZA', 'R$ 300,00', ''] }
+      let(:table_header) { ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'] }
+      let(:jose_row) { ['75001 -', 'CT-e', '03/10/2026', '- → -', 'RVR2C34', 'USIMINAS', 'JOSE SILVA', 'R$ 100,00', ''] }
+      let(:maria_usiminas_row) { ['75002 -', 'CT-e', '02/10/2026', '- → -', 'RVR8J90', 'USIMINAS', 'MARIA SOUZA', 'R$ 200,00', ''] }
+      let(:maria_gerdau_row) { ['75003 -', 'CT-e', '01/10/2026', '- → -', 'RVR8J90', 'GERDAU', 'MARIA SOUZA', 'R$ 300,00', ''] }
 
       scenario 'filters the transport documents by driver' do
         visit transport_documents_path(driver_code: 20)
@@ -422,10 +470,10 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
-            ['74140 -', '20/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
-            ['74142 -', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
-            ['74141 -', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74140 -', 'CT-e', '20/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['74142 -', 'CT-e', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['74141 -', 'CT-e', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
           ],
         )
       end
@@ -439,9 +487,9 @@ describe 'Transport documents' do
         expect(Atua::TransportDocument.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Número', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
-            ['74142 -', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
-            ['74141 -', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['Número', 'Tipo do documento', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista', 'Frete bruto', 'Ações'],
+            ['74142 -', 'CT-e', '10/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
+            ['74141 -', 'CT-e', '03/10/2026', '- → -', '-', '-', '-', 'R$ 555,04', ''],
           ],
         )
       end

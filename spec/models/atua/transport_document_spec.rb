@@ -264,6 +264,22 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.by_document_kind' do
+    let!(:cte) { create(:atua_transport_document, tenant:, document_kind: 'cte') }
+    let!(:ce) { create(:atua_transport_document, tenant:, document_kind: 'ce') }
+
+    it 'returns only the documents of the given kind' do
+      expect(described_class.by_document_kind('ce')).to contain_exactly(ce)
+      expect(described_class.by_document_kind('cte')).to contain_exactly(cte)
+    end
+  end
+
+  describe '.document_kinds' do
+    it 'maps the translated kinds to the stored values' do
+      expect(described_class.document_kinds).to eq('CT-e' => 'cte', 'CE' => 'ce')
+    end
+  end
+
   describe '.commissionable' do
     context 'with normal, complement, CE, canceled and removed documents' do
       let!(:normal) { create(:atua_transport_document, tenant:) }

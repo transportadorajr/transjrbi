@@ -1,4 +1,4 @@
-<% content_for :title, t('.title', number: @transport_document.number) %>
+<% content_for :title, transport_document_title('.title', @transport_document) %>
 
 <div class="page-shell">
   <div class="mb-3 page-breadcrumb">
@@ -9,8 +9,8 @@
         <li class="breadcrumb-item active" aria-current="page"><%= t('.breadcrumb') %></li>
       </ol>
     </nav>
-    <%= page_header_tag t('.title', number: @transport_document.number), back_path: transport_document_path(@transport_document),
-                                                                         back_title: t('.back'), wrapper_class: 'mb-0' %>
+    <%= page_header_tag transport_document_title('.title', @transport_document),
+                        back_path: transport_document_path(@transport_document), back_title: t('.back'), wrapper_class: 'mb-0' %>
   </div>
 
   <%= render 'form', transport_document_distance_form: @transport_document_distance_form %>
