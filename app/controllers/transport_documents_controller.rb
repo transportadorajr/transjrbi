@@ -2,6 +2,7 @@ class TransportDocumentsController < BaseController
   include CustomerOptions
 
   has_scope :by_number, as: :number
+  has_scope :by_document_kind, as: :document_kind
   has_scope :by_plate, as: :plate
   has_scope :by_driver, as: :driver_code
   has_scope :by_customer_group, as: :customer_group_id

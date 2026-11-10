@@ -85,6 +85,17 @@ describe 'Transport document distance' do
       end
     end
 
+    context 'when the document is a CE' do
+      let!(:ce) { create(:atua_transport_document, tenant:, number: '4526', document_kind: 'ce', distance_km: BigDecimal('120')) }
+
+      scenario 'names the document as a CE on the distance change title' do
+        visit edit_transport_document_distance_path(ce)
+
+        expect(page).to have_css('h1.page-title', text: 'Alterar KM do CE 4526')
+        expect(page).to have_title('Alterar KM do CE 4526')
+      end
+    end
+
     scenario 'cannot change the distance of a transport document of another tenant' do
       stranger = create(:atua_transport_document, tenant: other_tenant, distance_km: BigDecimal('100'))
 

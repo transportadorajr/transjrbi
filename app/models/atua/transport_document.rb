@@ -66,6 +66,7 @@ module Atua
     scope :by_period_start, ->(date) { by_posted_period(date, nil) }
     scope :by_period_end, ->(date) { by_posted_period(nil, date) }
     scope :by_number, ->(number) { where(number: number.to_s.strip) }
+    scope :by_document_kind, ->(kind) { where(document_kind: kind) }
     scope :by_plate, ->(plate) {
       plate = normalize_plate(plate)
       where(plate:).or(where(trailer_plate: plate))
@@ -132,6 +133,10 @@ module Atua
     }
 
     class << self
+      def document_kinds
+        MapTransportDocumentsCommand::DOCUMENT_KINDS.values.index_by { |kind| I18n.t(kind, scope: 'transport_documents.document_kinds') }
+      end
+
       def vehicle_sale?(record)
         record[:document_kind] == MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'] &&
           INTERNAL_TAKER_DOCUMENTS.include?(record[:sender_document_digits]) &&
