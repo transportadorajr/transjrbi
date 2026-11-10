@@ -159,10 +159,9 @@ module TripsHelper
   end
 
   def trips_sort_columns(dashboard)
-    [[trips_dimension_label(dashboard.dimension), :label], [t('trips.columns.trips'), :trips, :desc], [t('trips.columns.gross'), :gross, :desc],
-     [t('trips.columns.expenses'), :expenses, :desc], [t('trips.columns.net'), :net, :desc], [t('trips.columns.average'), :average, :desc],
+    [[trips_dimension_label(dashboard.dimension), :label], [t('trips.columns.gross'), :gross, :desc],
      [t('trips.columns.gross_per_km'), :gross_per_km, :desc], [t('trips.columns.net_per_km'), :net_per_km, :desc],
-     [t('trips.columns.duration'), :duration], [t('trips.columns.net_per_hour'), :net_per_hour, :desc]]
+     [t('trips.columns.duration'), :duration]]
   end
 
   def trips_km(distance)
