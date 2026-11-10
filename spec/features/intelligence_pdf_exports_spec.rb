@@ -65,7 +65,7 @@ describe 'Intelligence PDF exports' do
         expect(page).to have_link('Exportar PDF', href: freight_billing_path(**october, dimension: 'vehicle', format: :pdf))
       end
 
-      scenario 'exports the indicators and every row of the grouping with its total on a landscape page' do
+      scenario 'exports the indicators and the gross, per km and average time of every row of the grouping with its total on a landscape page' do
         travel_to Time.zone.local(2026, 11, 6, 14, 30) do
           visit freight_billing_path(**october, dimension: 'vehicle', format: :pdf)
         end
@@ -125,7 +125,7 @@ describe 'Intelligence PDF exports' do
         expect(page).to have_link('Exportar PDF', href: trips_path(**october, format: :pdf))
       end
 
-      scenario 'exports the indicators and every row of the grouping with its total on a landscape page' do
+      scenario 'exports the indicators and the gross, per km and average time of every row of the grouping with its total on a landscape page' do
         visit trips_path(**october, format: :pdf)
 
         expect(page.status_code).to eq(200)
@@ -135,8 +135,8 @@ describe 'Intelligence PDF exports' do
         text = pdf_text
         expect(text).to include('Relatório de Viagens', 'Motorista — Viagens iniciadas de 01/10/2026 a 31/10/2026')
         expect(text).to include('Viagens', 'Frete bruto', 'Frete líquido', 'Bruto/km', 'Líquido/km')
-        expect(text).to include('JOSE SILVA', 'Viagens2', 'Frete brutoR$ 9.000,00', 'Total2', '1 registro listado.')
-        expect(text).not_to include('PEDRO OUTRO')
+        expect(text).to include('Tempo médio', 'JOSE SILVA', 'Viagens2', 'Frete brutoR$ 9.000,00', 'TotalR$ 9.000,00', '1 registro listado.')
+        expect(text).not_to include('PEDRO OUTRO', 'Despesas', 'Média por viagem', 'Líquido/hora')
       end
     end
   end

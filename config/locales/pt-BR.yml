@@ -1952,16 +1952,10 @@ pt-BR:
       monthly: Mensal
       weekly: Semanal
     columns:
-      trips: Viagens
-      loaded_km: KM rodado
       gross: Frete bruto
-      expenses: Despesas
-      net: Frete líquido
-      average: Média por viagem
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
       duration: Tempo médio
-      net_per_hour: Líquido/hora
     highlights:
       best: Melhor
       worst: Pior
