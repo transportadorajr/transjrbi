@@ -763,13 +763,15 @@
   cursor: pointer;
 }
 
-.freight-billing-detail-section {
+.freight-billing-detail-section,
+.trip-detail-section {
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 700;
 }
 
-.freight-billing-detail dl {
+.freight-billing-detail dl,
+.trip-detail dl {
   font-size: 0.875rem;
 
   dt {

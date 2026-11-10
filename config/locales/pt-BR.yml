@@ -891,6 +891,8 @@ pt-BR:
         show: Visualizar
       dashboard/freight/row:
         show: Visualizar
+      dashboard/trip/row:
+        show: Visualizar
       user:
         show: Visualizar
         edit: Alterar
@@ -1938,6 +1940,26 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
   trips:
     km: '%{distance} km'
+    detail:
+      row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
+      title: '%{label} · %{detail}'
+      show_manifest: Ver MDF-e
+      sections:
+        trip: Viagem
+        values: Valores
+        indicators: Indicadores
+      fields:
+        trips: Viagens
+        loaded_km: KM rodado
+        duration: Tempo médio
+        gross: Frete bruto
+        expenses: Despesas
+        net: Frete líquido
+        average: Média bruta por viagem
+        net_average: Média líquida por viagem
+        gross_per_km: Bruto/km
+        net_per_km: Líquido/km
+        net_per_hour: Líquido/hora
     period_presets:
       week: Sem. atual
       last_week: Sem. passada

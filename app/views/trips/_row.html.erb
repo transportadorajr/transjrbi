@@ -6,4 +6,5 @@
   <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.gross_per_km) %></td>
   <td class="text-end text-nowrap fw-semibold"><%= tax_money(row.net_per_km) %></td>
   <td class="d-none d-md-table-cell text-end text-nowrap"><%= trip_duration(row.duration) %></td>
+  <td class="text-end"><%= responsive_actions_menu(trips_row_menu(row)) %></td>
 <% end %>

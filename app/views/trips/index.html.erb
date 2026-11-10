@@ -1,5 +1,6 @@
 <% content_for :title, t('.title') %>
 <% turbo_refreshes_with method: :replace, scroll: :preserve %>
+<% content_for :remote_container, trips_opened_detail(@detail_row) %>
 
 <%= tag.div class: 'page-shell', data: auto_refresh_data(trips_evolution_reveal_data) do %>
   <%= page_header_tag t('.title'), subtitle: trips_period_label(@filter_form),

@@ -50,6 +50,12 @@ RSpec.describe Dashboard::Trip do
       expect(dashboard.sorted_rows('duration', 'asc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
       expect(dashboard.sorted_rows('net_per_hour', 'desc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
     end
+
+    it 'finds a row and the total by key and nothing for an unknown key' do
+      expect(dashboard.find_row('AAA1A11').trips_count).to eq(2)
+      expect(dashboard.find_row('total')).to eq(dashboard.table_total)
+      expect(dashboard.find_row('ZZZ9Z99')).to be_nil
+    end
   end
 
   context 'without trips in the period' do

@@ -22,6 +22,10 @@ module Dashboard
     Row = Data.define(:key, :label, :detail, :manifest_id, :trips_count, :loaded_km, :gross, :expenses, :net, :average, :net_average,
                       :gross_per_km, :net_per_km, :duration, :net_per_hour) do
       extend ActiveModel::Naming
+
+      def confirmation_name
+        label
+      end
     end
 
     SORT_VALUES = {
@@ -67,6 +71,12 @@ module Dashboard
 
     def table_total
       @table_total ||= build_row(TOTAL_KEY, I18n.t('dashboards.trip.total'), ranked_facts)
+    end
+
+    def find_row(key)
+      return table_total if key.to_s == TOTAL_KEY
+
+      rows.find { |row| row.key == key.to_s }
     end
 
     def rows

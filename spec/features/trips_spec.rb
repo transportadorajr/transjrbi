@@ -25,6 +25,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
       expect(page).to have_current_path(new_user_session_path)
     end
+
+    scenario 'redirects the detail of a row to the login screen' do
+      visit detail_trips_path(key: 'total')
+
+      expect(page).to have_current_path(new_user_session_path)
+    end
   end
 
   context 'when the owner is signed in' do
@@ -89,10 +95,10 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_css('.chart-card', count: 6)
         expect(html_table_to_rows(table: find('.trips-table'))).to eq(
           [
-            ['Motorista', 'Frete bruto', 'Bruto/km', 'Líquido/km', 'Tempo médio'],
-            ['JOSE SILVA', 'R$ 9.000,00', 'R$ 13,85', 'R$ 12,31', '-'],
-            ['MARIA SOUZA', 'R$ 2.000,00', '-', '-', '-'],
-            ['Total', 'R$ 11.000,00', 'R$ 13,85', 'R$ 12,31', '-'],
+            ['Motorista', 'Frete bruto', 'Bruto/km', 'Líquido/km', 'Tempo médio', 'Ações'],
+            ['JOSE SILVA', 'R$ 9.000,00', 'R$ 13,85', 'R$ 12,31', '-', ''],
+            ['MARIA SOUZA', 'R$ 2.000,00', '-', '-', '-', ''],
+            ['Total', 'R$ 11.000,00', 'R$ 13,85', 'R$ 12,31', '-', ''],
           ],
         )
         expect(page).to have_no_text('PEDRO OUTRO')
@@ -150,10 +156,10 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_current_path(/dimension=manifest/)
         expect(html_table_to_rows(table: find('.trips-table'))).to eq(
           [
-            ['MDF-e', 'Frete bruto', 'Bruto/km', 'Líquido/km', 'Tempo médio'],
-            ['41003 BBB2B22 · 21/10/2026 Melhor', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00', '-'],
-            ['41001 AAA1A11 · 02/10/2026 Pior', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00', '-'],
-            ['Total', 'R$ 9.000,00', 'R$ 13,85', 'R$ 12,31', '-'],
+            ['MDF-e', 'Frete bruto', 'Bruto/km', 'Líquido/km', 'Tempo médio', 'Ações'],
+            ['41003 BBB2B22 · 21/10/2026 Melhor', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00', '-', ''],
+            ['41001 AAA1A11 · 02/10/2026 Pior', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
+            ['Total', 'R$ 9.000,00', 'R$ 13,85', 'R$ 12,31', '-', ''],
           ],
         )
         expect(page).to have_css('.trips-table tbody tr.table-success', text: '41003')
@@ -169,9 +175,9 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_current_path(/dimension=vehicle/)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
           [
-            ['BBB2B22 Melhor', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00', '-'],
-            ['AAA1A11 Pior', 'R$ 6.000,00', 'R$ 10,00', 'R$ 10,00', '-'],
-            ['Total', 'R$ 11.000,00', 'R$ 13,85', 'R$ 12,31', '-'],
+            ['BBB2B22 Melhor', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00', '-', ''],
+            ['AAA1A11 Pior', 'R$ 6.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
+            ['Total', 'R$ 11.000,00', 'R$ 13,85', 'R$ 12,31', '-', ''],
           ],
         )
       end
@@ -315,8 +321,8 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
           expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
             [
-              ['41011 EEE5E55 · 24/10/2026', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-'],
-              ['Total', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-'],
+              ['41011 EEE5E55 · 24/10/2026', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
+              ['Total', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
             ],
           )
         end
@@ -343,7 +349,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         within('.trips-table thead') { click_on 'Tempo médio' }
 
         expect(Atua::Manifest.count).to eq(3)
-        expect(html_table_to_rows(table: find('.trips-table')).map { |row| [row.first.split.first, row.last] }).to eq(
+        expect(html_table_to_rows(table: find('.trips-table')).map { |row| [row.first.split.first, row[-2]] }).to eq(
           [
             ['Veículo', 'Tempo médio'],
             ['BBB2B22', '1 dia'],
@@ -352,6 +358,72 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
             ['Total', '1 dia e 13 horas'],
           ],
         )
+      end
+
+      scenario 'opens the detail of a vehicle on the page when the link is reached without turbo' do
+        visit detail_trips_path(october.merge(dimension: 'vehicle', key: 'AAA1A11'))
+
+        expect(page).to have_current_path(trips_path(october.merge(dimension: 'vehicle', detail: 'AAA1A11')))
+        expect(page).to have_css('#remote-container #trip_detail_modal .modal-title', text: 'AAA1A11')
+        expect(dl_to_hash('#trip_detail_modal')).to include('Viagens' => '1', 'Tempo médio' => '2 dias e 2 horas', 'Líquido/hora' => 'R$ 200,00')
+      end
+
+      scenario 'goes back to the listing with an alert when the row is no longer available' do
+        visit detail_trips_path(october.merge(dimension: 'vehicle', key: 'ZZZ9Z99'))
+
+        expect(page).to have_current_path(trips_path(october.merge(dimension: 'vehicle')))
+        expect(page).to have_text('Esta linha não está mais disponível. Confira os dados atualizados.')
+        expect(page).to have_no_css('#trip_detail_modal')
+      end
+
+      context 'when opening the detail of a row', :js do
+        def row_detail(label)
+          within('.trips-table tr', text: label) { find(:link, title: 'Visualizar').click }
+          expect(page).to have_css('#trip_detail_modal.show .modal-title', text: label)
+
+          dl_to_hash('#trip_detail_modal')
+        end
+
+        scenario 'shows every figure of the vehicle in a modal injected in the remote container' do
+          visit trips_path(october.merge(dimension: 'vehicle'))
+
+          expect(page).to have_css('.trips-table')
+          expect(page).to have_no_css('#trip_detail_modal', visible: :all)
+          expect(row_detail('AAA1A11')).to eq(
+            'Viagens' => '1', 'KM rodado' => '400 km', 'Tempo médio' => '2 dias e 2 horas', 'Frete bruto' => 'R$ 10.000,00',
+            'Despesas' => 'R$ 0,00', 'Frete líquido' => 'R$ 10.000,00', 'Média bruta por viagem' => 'R$ 10.000,00',
+            'Média líquida por viagem' => 'R$ 10.000,00', 'Bruto/km' => 'R$ 25,00', 'Líquido/km' => 'R$ 25,00', 'Líquido/hora' => 'R$ 200,00'
+          )
+          expect(page).to have_css('#remote-container #trip_detail_modal')
+          expect(page).to have_current_path(trips_path(october.merge(dimension: 'vehicle')))
+        end
+
+        scenario 'shows the figures of every trip in the total row' do
+          visit trips_path(october.merge(dimension: 'vehicle'))
+
+          expect(row_detail('Total')).to include('Viagens' => '3', 'Frete bruto' => 'R$ 15.600,00', 'Tempo médio' => '1 dia e 13 horas',
+                                                 'Líquido/hora' => 'R$ 183,78')
+        end
+
+        scenario 'leaves the manifest link out without access to the manifests' do
+          visit trips_path(october.merge(dimension: 'manifest'))
+          row_detail('41021')
+
+          expect(page).to have_no_link('Ver MDF-e')
+        end
+
+        context 'with access to the manifests' do
+          let!(:manifests_resource) { create(:resource, name: 'Manifestos', slug: 'manifests', writable: false) }
+
+          scenario 'links the detail of a manifest to its screen' do
+            visit trips_path(october.merge(dimension: 'manifest'))
+            row_detail('41021')
+
+            within('#trip_detail_modal') { click_on 'Ver MDF-e' }
+
+            expect(page).to have_current_path(manifest_path(Atua::Manifest.find_by!(code: 41_021)))
+          end
+        end
       end
 
       scenario 'shows the average duration, the net freight per hour and the trips in progress below the indicators' do

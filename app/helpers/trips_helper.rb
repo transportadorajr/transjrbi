@@ -4,6 +4,7 @@ module TripsHelper
   SERIES_COLORS = [BRAND_BLUE, DANGER_RED].freeze
   EVOLUTIONS = %w[monthly weekly].freeze
   DEFAULT_EVOLUTION = 'monthly'.freeze
+  DETAIL_MODAL_ID = 'trip_detail_modal'.freeze
 
   def trips_content_partial(dashboard)
     dashboard.empty? ? 'shared/no_content' : 'trips/report'
@@ -164,6 +165,41 @@ module TripsHelper
      [t('trips.columns.duration'), :duration]]
   end
 
+  def trips_row_menu(row)
+    menus = []
+
+    menus << trips_row_show_menu(row) if can?(:read, :trips)
+
+    menus
+  end
+
+  def trips_opened_detail(row)
+    return unless row
+
+    render 'trips/detail_modal', row:, replace_url: trips_path(request.query_parameters)
+  end
+
+  def trips_detail_title(row)
+    return row.label unless row.detail
+
+    t('trips.detail.title', label: row.label, detail: row.detail)
+  end
+
+  def trips_detail_sections(row)
+    {
+      trip: { trips: row.trips_count, loaded_km: trips_km(row.loaded_km), duration: trip_duration(row.duration) },
+      values: { gross: tax_money(row.gross), expenses: tax_money(row.expenses), net: tax_money(row.net), average: tax_money(row.average),
+                net_average: tax_money(row.net_average) },
+      indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km), net_per_hour: tax_money(row.net_per_hour) },
+    }
+  end
+
+  def trips_detail_manifest_link(row)
+    return unless row.manifest_id && can?(:read, :manifests)
+
+    link_to t('trips.detail.show_manifest'), manifest_path(row.manifest_id), class: 'btn btn-outline-secondary w-100', data: { turbo_frame: '_top' }
+  end
+
   def trips_km(distance)
     t('trips.km', distance: number_with_delimiter(distance.round))
   end
@@ -205,6 +241,11 @@ module TripsHelper
   end
 
   private
+
+  def trips_row_show_menu(row)
+    Menu.new(name: :show, record: row, url: detail_trips_path(**request.query_parameters.symbolize_keys, key: row.key), icon: :eye,
+             data: { turbo_stream: true })
+  end
 
   def trips_highlight_badge(highlight)
     status_badge(t(highlight, scope: 'trips.highlights'), kind: highlight == :best ? :success : :danger)
