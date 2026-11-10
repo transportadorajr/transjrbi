@@ -4,7 +4,7 @@ module Dashboard
     DEFAULT_DIMENSION = 'customer_group'.freeze
     FREIGHT_LIST_DIMENSIONS = %w[vehicle driver].freeze
     HISTORY_MONTHS = 6
-    HISTORY_WEEKS = 12
+    HISTORY_WEEKS = 5
     WEEK_START = :sunday
     MONTH_FORMAT = '%Y-%m'.freeze
     WEEK_FORMAT = '%Y-%m-%d'.freeze

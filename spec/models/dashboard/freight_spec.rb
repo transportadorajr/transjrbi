@@ -548,13 +548,13 @@ RSpec.describe Dashboard::Freight do
       create(:atua_transport_document, tenant:, freight_cents: 900_000, issued_at: Time.zone.local(2026, 11, 2, 9))
     end
 
-    it 'plots the last twelve weeks, from Sunday to Saturday, by the issue date of the documents' do
+    it 'plots the last five weeks, from Sunday to Saturday, by the issue date of the documents' do
       gross = dashboard.weekly_data.first
 
       expect(Atua::TransportDocument.count).to eq(4)
-      expect(dashboard.weekly_history_period).to eq(Date.new(2026, 8, 9)..Date.new(2026, 10, 31))
+      expect(dashboard.weekly_history_period).to eq(Date.new(2026, 9, 27)..Date.new(2026, 10, 31))
       expect(gross[:name]).to eq('Frete bruto')
-      expect(gross[:data].keys).to eq(%w[09/08 16/08 23/08 30/08 06/09 13/09 20/09 27/09 04/10 11/10 18/10 25/10])
+      expect(gross[:data].keys).to eq(%w[27/09 04/10 11/10 18/10 25/10])
       expect(gross[:data].values_at('18/10', '25/10')).to eq([3_000.0, 4_000.0])
       expect(gross[:data].values.sum).to eq(7_000.0)
       expect(dashboard.monthly_data.first[:data].values_at('Ago/2026', 'Out/2026')).to eq([1_000.0, 7_000.0])
@@ -573,7 +573,7 @@ RSpec.describe Dashboard::Freight do
 
     it 'finds no week outside the chart or without documents' do
       expect(dashboard.week_row('2026-10-11')).to be_nil
-      expect(dashboard.week_row('2026-08-02')).to be_nil
+      expect(dashboard.week_row('2026-09-20')).to be_nil
       expect(dashboard.week_row('2026-10-19')).to be_nil
     end
   end

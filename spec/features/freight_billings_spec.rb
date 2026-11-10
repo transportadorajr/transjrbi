@@ -373,10 +373,10 @@ describe 'Freight billing' do
             expect(page).to have_button('Semanal', class: 'btn-primary')
             expect(page).to have_button('Mensal', class: 'btn-outline-secondary')
             expect(visible_chart_titles).to eq(['Frete por Veículo', 'Evolução Semanal'])
-            expect(page).to have_text('Frete bruto e líquido por semana de emissão do CT-e, de 09/08/2026 a 31/10/2026')
+            expect(page).to have_text('Frete bruto e líquido por semana de emissão do CT-e, de 27/09/2026 a 31/10/2026')
             expect(page).to have_current_path(freight_billing_path(october_by_truck))
-            expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.labels.slice(-6)'))
-              .to eq(%w[20/09 27/09 04/10 11/10 18/10 25/10])
+            expect(page.evaluate_script('Object.values(Chartkick.charts)[2].getChartObject().data.labels'))
+              .to eq(%w[27/09 04/10 11/10 18/10 25/10])
             expect(page.evaluate_script(
                      "[...document.querySelectorAll('.chart-card canvas')].filter((canvas) => canvas.checkVisibility())" \
                      '.every((canvas) => canvas.getBoundingClientRect().width > 0)',
