@@ -10,8 +10,39 @@ module ManifestsHelper
   def manifest_sort_columns
     columns = [[Atua::Manifest.human_attribute_name(:gross_per_km), :gross_per_km, :desc]]
     columns << [Atua::Manifest.human_attribute_name(:net_per_km), :net_per_km, :desc] if can?(:read, :freight_expenses)
+    columns << [Atua::Manifest.human_attribute_name(:duration), :duration, :asc]
+    columns << [Atua::Manifest.human_attribute_name(:net_per_hour), :net_per_hour, :desc] if can?(:read, :freight_expenses)
 
     columns
+  end
+
+  def manifest_duration(manifest)
+    return trip_duration_in_progress(manifest.elapsed) if manifest.in_progress?
+
+    trip_duration(manifest.duration)
+  end
+
+  def manifest_net_per_hour_header
+    return unless can?(:read, :freight_expenses)
+
+    sortable_header(Atua::Manifest.human_attribute_name(:net_per_hour), :net_per_hour, first_direction: :desc, class: 'd-none d-lg-table-cell text-nowrap')
+  end
+
+  def manifest_net_per_hour_cell(manifest)
+    return unless can?(:read, :freight_expenses)
+
+    content_tag(:td, freight_money(manifest.net_per_hour_cents), class: 'd-none d-lg-table-cell text-nowrap')
+  end
+
+  def manifest_net_per_hour_details(manifest)
+    return unless can?(:read, :freight_expenses)
+
+    safe_join([content_tag(:dt, Atua::Manifest.human_attribute_name(:net_per_hour), class: 'col-12 col-md-3'),
+               content_tag(:dd, freight_money(manifest.net_per_hour_cents), class: 'col-12 col-md-9')])
+  end
+
+  def manifest_datetime(value)
+    value ? l(value, format: :date_time) : t('tax.blank')
   end
 
   def manifest_net_per_km_header
@@ -31,6 +62,8 @@ module ManifestsHelper
                [Atua::Manifest.human_attribute_name(:documents_total), freight_money(manifest.gross_cents)],
                [Atua::Manifest.human_attribute_name(:gross_per_km), freight_money(manifest.gross_per_km_cents)]]
     details << [Atua::Manifest.human_attribute_name(:net_per_km), freight_money(manifest.net_per_km_cents)] if can?(:read, :freight_expenses)
+    details << [Atua::Manifest.human_attribute_name(:duration), manifest_duration(manifest)]
+    details << [Atua::Manifest.human_attribute_name(:net_per_hour), freight_money(manifest.net_per_hour_cents)] if can?(:read, :freight_expenses)
 
     details + [[Atua::Manifest.human_attribute_name(:customer_group), manifest_names(manifest.customer_groups)],
                [Atua::Manifest.human_attribute_name(:origin), manifest_cities(manifest.origins)],
@@ -168,6 +201,8 @@ module ManifestsHelper
                pdf_column(Atua::Manifest.human_attribute_name(:documents_total), align: :right),
                pdf_column(Atua::Manifest.human_attribute_name(:gross_per_km), align: :right)]
     columns << pdf_column(Atua::Manifest.human_attribute_name(:net_per_km), align: :right) if can?(:read, :freight_expenses)
+    columns << pdf_column(Atua::Manifest.human_attribute_name(:duration), align: :right)
+    columns << pdf_column(Atua::Manifest.human_attribute_name(:net_per_hour), align: :right) if can?(:read, :freight_expenses)
 
     columns
   end
@@ -178,11 +213,19 @@ module ManifestsHelper
            manifest_names(manifest.customer_groups), manifest_km(manifest.loaded_km), freight_money(manifest.gross_cents),
            freight_money(manifest.gross_per_km_cents)]
     row << freight_money(manifest.net_per_km_cents) if can?(:read, :freight_expenses)
+    row << manifest_pdf_duration(manifest)
+    row << freight_money(manifest.net_per_hour_cents) if can?(:read, :freight_expenses)
 
     row
   end
 
   private
+
+  def manifest_pdf_duration(manifest)
+    return t('trip_durations.in_progress', duration: trip_duration(manifest.elapsed)) if manifest.in_progress?
+
+    trip_duration(manifest.duration)
+  end
 
   def manifest_complement_name(kind, transport_document)
     t("#{kind}_html", scope: 'manifests.expenses', number: freight_expense_transport_document(transport_document))

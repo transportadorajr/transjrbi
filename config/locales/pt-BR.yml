@@ -263,6 +263,9 @@ pt-BR:
         documents_total: Total dos CT-es
         gross_per_km: Bruto/km
         net_per_km: Líquido/km
+        trip_started_at: Início da viagem
+        duration: Duração
+        net_per_hour: Líquido/hora
       atua/manifest_document:
         transport_document_number: CT-e
         customer_name: Cliente
@@ -1808,6 +1811,21 @@ pt-BR:
         customer: Sem cliente
         vehicle: Sem placa
         driver: Sem motorista
+  trip_durations:
+    days:
+      one: 1 dia
+      other: '%{count} dias'
+    hours:
+      one: 1 hora
+      other: '%{count} horas'
+    less_than_an_hour: Menos de 1 hora
+    in_progress: Em andamento há %{duration}
+    average: Tempo médio de conclusão
+    net_per_hour: Frete líquido por hora
+    in_progress_count: Em andamento (fora da média)
+    excluded:
+      one: 1 manifesto encerrado com menos de 1 hora ou mais de 15 dias ficou fora da média.
+      other: '%{count} manifestos encerrados com menos de 1 hora ou mais de 15 dias ficaram fora da média.'
   listing_filters:
     period_label: Data
     group_by: Agrupar por
@@ -1827,6 +1845,8 @@ pt-BR:
       subtitle: Toque em um grupo para filtrar a lista.
       gross: Frete bruto
       net: Frete líquido
+      average_duration: Tempo médio
+      net_per_hour: Líquido/hora
   freight_billings:
     km: '%{distance} km'
     detail:
@@ -1939,6 +1959,8 @@ pt-BR:
       average: Média por viagem
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
+      duration: Tempo médio
+      net_per_hour: Líquido/hora
     highlights:
       best: Melhor
       worst: Pior

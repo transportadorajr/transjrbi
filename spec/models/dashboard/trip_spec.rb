@@ -22,6 +22,36 @@ RSpec.describe Dashboard::Trip do
     end
   end
 
+  context 'with closed trips and a trip in progress' do
+    let(:dimension) { 'vehicle' }
+
+    before do
+      create_trip(code: 41_001, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 2, 8), distance_km: 400,
+                  documents: [['74001', 300_000, 10, 'JOSE SILVA']])
+      create_trip(code: 41_002, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 10, 8), distance_km: 300,
+                  documents: [['74002', 400_000, 10, 'JOSE SILVA']])
+      create_trip(code: 41_003, plate: 'BBB2B22', started_at: Time.zone.local(2026, 10, 12, 8), distance_km: 300,
+                  documents: [['74003', 900_000, 20, 'MARIA SOUZA']], status: 'Normal')
+      Atua::Manifest.find_by!(code: 41_001).update!(closed_at: Time.zone.local(2026, 10, 3, 10))
+      Atua::Manifest.find_by!(code: 41_002).update!(closed_at: Time.zone.local(2026, 10, 10, 20))
+    end
+
+    def duration_values(rows)
+      rows.map { |row| [row.label, row.duration&.hours, row.net_per_hour&.format] }
+    end
+
+    it 'averages the duration and the net freight per hour leaving the trip in progress out' do
+      expect(duration_values(dashboard.rows + [dashboard.total])).to eq(
+        [['BBB2B22', nil, nil], ['AAA1A11', 19, 'R$ 184,21'], ['Total', 19, 'R$ 184,21']],
+      )
+    end
+
+    it 'sorts the vehicles from the fastest leaving the vehicles without a duration last' do
+      expect(dashboard.sorted_rows('duration', 'asc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
+      expect(dashboard.sorted_rows('net_per_hour', 'desc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
+    end
+  end
+
   context 'without trips in the period' do
     it 'is empty with a zeroed total' do
       expect(dashboard).to be_empty

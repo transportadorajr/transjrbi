@@ -84,10 +84,10 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_css('.chart-card', count: 6)
         expect(html_table_to_rows(table: find('.trips-table'))).to eq(
           [
-            ['Motorista', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas', 'Frete líquido', 'Média por viagem', 'Bruto/km', 'Líquido/km'],
-            ['JOSE SILVA', '2', '650 km', 'R$ 9.000,00', 'R$ 1.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 13,85', 'R$ 12,31'],
-            ['MARIA SOUZA', '1', '0 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', '-', '-'],
-            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 1.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31'],
+            ['Motorista', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas', 'Frete líquido', 'Média por viagem', 'Bruto/km', 'Líquido/km', 'Tempo médio', 'Líquido/hora'],
+            ['JOSE SILVA', '2', '650 km', 'R$ 9.000,00', 'R$ 1.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 13,85', 'R$ 12,31', '-', '-'],
+            ['MARIA SOUZA', '1', '0 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', '-', '-', '-', '-'],
+            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 1.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31', '-', '-'],
           ],
         )
         expect(page).to have_no_text('PEDRO OUTRO')
@@ -145,10 +145,10 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_current_path(/dimension=manifest/)
         expect(html_table_to_rows(table: find('.trips-table'))).to eq(
           [
-            ['MDF-e', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas', 'Frete líquido', 'Média por viagem', 'Bruto/km', 'Líquido/km'],
-            ['41003 BBB2B22 · 21/10/2026 Melhor', '1', '250 km', 'R$ 5.000,00', 'R$ 1.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00'],
-            ['41001 AAA1A11 · 02/10/2026 Pior', '1', '400 km', 'R$ 4.000,00', 'R$ 0,00', 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00'],
-            ['Total', '2', '650 km', 'R$ 9.000,00', 'R$ 1.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 13,85', 'R$ 12,31'],
+            ['MDF-e', 'Viagens', 'KM rodado', 'Frete bruto', 'Despesas', 'Frete líquido', 'Média por viagem', 'Bruto/km', 'Líquido/km', 'Tempo médio', 'Líquido/hora'],
+            ['41003 BBB2B22 · 21/10/2026 Melhor', '1', '250 km', 'R$ 5.000,00', 'R$ 1.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00', '-', '-'],
+            ['41001 AAA1A11 · 02/10/2026 Pior', '1', '400 km', 'R$ 4.000,00', 'R$ 0,00', 'R$ 4.000,00', 'R$ 4.000,00', 'R$ 10,00', 'R$ 10,00', '-', '-'],
+            ['Total', '2', '650 km', 'R$ 9.000,00', 'R$ 1.000,00', 'R$ 8.000,00', 'R$ 4.500,00', 'R$ 13,85', 'R$ 12,31', '-', '-'],
           ],
         )
         expect(page).to have_css('.trips-table tbody tr.table-success', text: '41003')
@@ -164,9 +164,9 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_current_path(/dimension=vehicle/)
         expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
           [
-            ['BBB2B22 Melhor', '1', '250 km', 'R$ 5.000,00', 'R$ 1.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00'],
-            ['AAA1A11 Pior', '2', '400 km', 'R$ 6.000,00', 'R$ 0,00', 'R$ 6.000,00', 'R$ 3.000,00', 'R$ 10,00', 'R$ 10,00'],
-            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 1.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31'],
+            ['BBB2B22 Melhor', '1', '250 km', 'R$ 5.000,00', 'R$ 1.000,00', 'R$ 4.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 16,00', '-', '-'],
+            ['AAA1A11 Pior', '2', '400 km', 'R$ 6.000,00', 'R$ 0,00', 'R$ 6.000,00', 'R$ 3.000,00', 'R$ 10,00', 'R$ 10,00', '-', '-'],
+            ['Total', '3', '650 km', 'R$ 11.000,00', 'R$ 1.000,00', 'R$ 10.000,00', 'R$ 3.666,67', 'R$ 13,85', 'R$ 12,31', '-', '-'],
           ],
         )
       end
@@ -310,11 +310,40 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
           expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
             [
-              ['41011 EEE5E55 · 24/10/2026', '1', '200 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00'],
-              ['Total', '1', '200 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00'],
+              ['41011 EEE5E55 · 24/10/2026', '1', '200 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', '-'],
+              ['Total', '1', '200 km', 'R$ 2.000,00', 'R$ 0,00', 'R$ 2.000,00', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', '-'],
             ],
           )
         end
+      end
+    end
+
+    context 'when the trips were closed' do
+      before do
+        create_trip(code: 41_021, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 1, 8), distance_km: 400,
+                    documents: [['74021', 1_000_000, 10, 'JOSE SILVA']])
+        create_trip(code: 41_022, plate: 'BBB2B22', started_at: Time.zone.local(2026, 10, 2, 8), distance_km: 300,
+                    documents: [['74022', 360_000, 20, 'MARIA SOUZA']])
+        create_trip(code: 41_023, plate: 'CCC3C33', started_at: Time.zone.local(2026, 10, 20, 8), distance_km: 300,
+                    documents: [['74023', 200_000, 30, 'PEDRO SANTOS']])
+        Atua::Manifest.find_by!(code: 41_021).update!(closed_at: Time.zone.local(2026, 10, 3, 10))
+        Atua::Manifest.find_by!(code: 41_022).update!(closed_at: Time.zone.local(2026, 10, 3, 8))
+      end
+
+      scenario 'shows the average duration and the net freight per hour of each vehicle and sorts from the fastest' do
+        visit trips_path(october.merge(dimension: 'vehicle'))
+        within('.trips-table thead') { click_on 'Tempo médio' }
+
+        expect(Atua::Manifest.count).to eq(3)
+        expect(html_table_to_rows(table: find('.trips-table')).map { |row| [row.first.split.first, *row.last(2)] }).to eq(
+          [
+            ['Veículo', 'Tempo médio', 'Líquido/hora'],
+            ['BBB2B22', '1 dia', 'R$ 150,00'],
+            ['AAA1A11', '2 dias e 2 horas', 'R$ 200,00'],
+            ['CCC3C33', '-', '-'],
+            ['Total', '1 dia e 13 horas', 'R$ 183,78'],
+          ],
+        )
       end
     end
 

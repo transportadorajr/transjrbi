@@ -12,6 +12,8 @@
         <th class="d-none d-md-table-cell text-nowrap"><%= Atua::Manifest.human_attribute_name(:documents_total) %></th>
         <%= sortable_header(Atua::Manifest.human_attribute_name(:gross_per_km), :gross_per_km, first_direction: :desc, class: 'd-none d-md-table-cell text-nowrap') %>
         <%= manifest_net_per_km_header %>
+        <%= sortable_header(Atua::Manifest.human_attribute_name(:duration), :duration, class: 'd-none d-md-table-cell text-nowrap') %>
+        <%= manifest_net_per_hour_header %>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>

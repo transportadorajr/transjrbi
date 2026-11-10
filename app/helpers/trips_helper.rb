@@ -161,7 +161,8 @@ module TripsHelper
   def trips_sort_columns(dashboard)
     [[trips_dimension_label(dashboard.dimension), :label], [t('trips.columns.trips'), :trips, :desc], [t('trips.columns.gross'), :gross, :desc],
      [t('trips.columns.expenses'), :expenses, :desc], [t('trips.columns.net'), :net, :desc], [t('trips.columns.average'), :average, :desc],
-     [t('trips.columns.gross_per_km'), :gross_per_km, :desc], [t('trips.columns.net_per_km'), :net_per_km, :desc]]
+     [t('trips.columns.gross_per_km'), :gross_per_km, :desc], [t('trips.columns.net_per_km'), :net_per_km, :desc],
+     [t('trips.columns.duration'), :duration], [t('trips.columns.net_per_hour'), :net_per_hour, :desc]]
   end
 
   def trips_km(distance)
@@ -190,12 +191,12 @@ module TripsHelper
 
   def trips_pdf_columns(dashboard)
     [pdf_column(trips_dimension_label(dashboard.dimension), '3fr'),
-     *%i[trips loaded_km gross expenses net average gross_per_km net_per_km].map { |column| pdf_column(t(column, scope: 'trips.columns'), align: :right) }]
+     *%i[trips loaded_km gross expenses net average gross_per_km net_per_km duration net_per_hour].map { |column| pdf_column(t(column, scope: 'trips.columns'), align: :right) }]
   end
 
   def trips_pdf_row(row, highlights)
     [trips_row_label(row, highlights), row.trips_count, trips_km(row.loaded_km), tax_money(row.gross), tax_money(row.expenses), tax_money(row.net),
-     tax_money(row.average), tax_money(row.gross_per_km), tax_money(row.net_per_km)]
+     tax_money(row.average), tax_money(row.gross_per_km), tax_money(row.net_per_km), trip_duration(row.duration), tax_money(row.net_per_hour)]
   end
 
   def trips_pdf_highlights(total)

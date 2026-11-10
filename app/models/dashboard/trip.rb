@@ -13,14 +13,14 @@ module Dashboard
     TOTAL_KEY = 'total'.freeze
     FEATURE = :trips_dashboard
 
-    Fact = Data.define(:id, :code, :number, :trip_on, :plate, :driver_code, :driver_name, :gross_cents, :net_cents, :loaded_km) do
+    Fact = Data.define(:id, :code, :number, :trip_on, :plate, :driver_code, :driver_name, :gross_cents, :net_cents, :loaded_km, :duration_fact) do
       def measured?
         loaded_km.positive? && loaded_km <= MAX_LOADED_KM
       end
     end
 
     Row = Data.define(:key, :label, :detail, :manifest_id, :trips_count, :loaded_km, :gross, :expenses, :net, :average, :net_average,
-                      :gross_per_km, :net_per_km) do
+                      :gross_per_km, :net_per_km, :duration, :net_per_hour) do
       extend ActiveModel::Naming
     end
 
@@ -33,6 +33,8 @@ module Dashboard
       'average' => ->(row) { row.average&.cents || -Float::INFINITY },
       'gross_per_km' => ->(row) { row.gross_per_km&.cents || -Float::INFINITY },
       'net_per_km' => ->(row) { row.net_per_km&.cents || -Float::INFINITY },
+      'duration' => ->(row) { row.duration&.seconds || Float::INFINITY },
+      'net_per_hour' => ->(row) { row.net_per_hour&.cents || -Float::INFINITY },
     }.freeze
 
     attr_reader :dimension, :period
@@ -189,8 +191,9 @@ module Dashboard
         .where(Atua::Manifest.first_trip_documents.arel.exists)
         .joins(main_driver_join)
         .pluck(*fact_columns)
-        .map do |id, code, number, trip_on, plate, driver_code, driver_name, gross_cents, net_cents, loaded_km|
-          Fact.new(id, code, number, trip_on, plate, driver_code, driver_name, gross_cents.to_i, net_cents.to_i, loaded_km.to_d)
+        .map do |id, code, number, trip_on, plate, driver_code, driver_name, gross_cents, net_cents, loaded_km, seconds, in_progress|
+          Fact.new(id, code, number, trip_on, plate, driver_code, driver_name, gross_cents.to_i, net_cents.to_i, loaded_km.to_d,
+                   TripDurations.build_fact(seconds, net_cents, in_progress))
         end
     end
 
@@ -210,6 +213,8 @@ module Dashboard
         Arel::Nodes::Grouping.new(Atua::Manifest.gross_freight(Atua::Manifest.first_trip_documents)),
         Arel::Nodes::Grouping.new(Atua::Manifest.net_freight(Atua::Manifest.first_trip_documents)),
         Arel::Nodes::Grouping.new(Arel.sql(Atua::Manifest.loaded_km_sql)),
+        Arel::Nodes::Grouping.new(Arel.sql(Atua::Manifest.duration_seconds_sql)),
+        Arel::Nodes::Grouping.new(Arel.sql(Atua::Manifest.in_progress_sql)),
       ]
     end
 
@@ -225,6 +230,7 @@ module Dashboard
       measured_km = measured.sum(BigDecimal('0'), &:loaded_km)
       gross_cents = grouped.sum(&:gross_cents)
       net_cents = grouped.sum(&:net_cents)
+      durations = TripDurations.new(grouped.map(&:duration_fact))
 
       Row.new(
         key:,
@@ -240,6 +246,8 @@ module Dashboard
         net_average: divided(net_cents, grouped.size),
         gross_per_km: divided(measured.sum(&:gross_cents), measured_km),
         net_per_km: divided(measured.sum(&:net_cents), measured_km),
+        duration: durations.average,
+        net_per_hour: durations.net_per_hour,
       )
     end
 

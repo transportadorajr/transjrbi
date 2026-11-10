@@ -68,6 +68,24 @@ module ListingFiltersHelper
     content_tag(:td, tax_money(row.net), class: 'd-none d-md-table-cell text-end text-nowrap')
   end
 
+  def listing_groups_duration_headers(groups)
+    return unless groups.durations?
+
+    headers = [content_tag(:th, t('listing_filters.groups.average_duration'), class: 'd-none d-md-table-cell text-end')]
+    headers << content_tag(:th, t('listing_filters.groups.net_per_hour'), class: 'd-none d-lg-table-cell text-end') unless groups.total.net.nil?
+
+    safe_join(headers)
+  end
+
+  def listing_groups_duration_cells(row, groups)
+    return unless groups.durations?
+
+    cells = [content_tag(:td, trip_duration(row.durations.average), class: 'd-none d-md-table-cell text-end text-nowrap')]
+    cells << content_tag(:td, tax_money(row.durations.net_per_hour), class: 'd-none d-lg-table-cell text-end text-nowrap') unless row.net.nil?
+
+    safe_join(cells)
+  end
+
   private
 
   def listing_url(changes)

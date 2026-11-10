@@ -13,6 +13,8 @@
         <%= sortable_header(t('trips.columns.average'), :average, first_direction: :desc, anchor: 'trips_table', class: 'd-none d-lg-table-cell text-end') %>
         <%= sortable_header(t('trips.columns.gross_per_km'), :gross_per_km, first_direction: :desc, anchor: 'trips_table', class: 'd-none d-md-table-cell text-end') %>
         <%= sortable_header(t('trips.columns.net_per_km'), :net_per_km, first_direction: :desc, anchor: 'trips_table', class: 'text-end') %>
+        <%= sortable_header(t('trips.columns.duration'), :duration, anchor: 'trips_table', class: 'd-none d-xl-table-cell text-end') %>
+        <%= sortable_header(t('trips.columns.net_per_hour'), :net_per_hour, first_direction: :desc, anchor: 'trips_table', class: 'd-none d-lg-table-cell text-end') %>
       </tr>
     </thead>
     <tbody>

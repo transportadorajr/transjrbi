@@ -24,6 +24,8 @@ module Atua
 
     sortable :gross_per_km, -> { Arel.sql('gross_per_km_cents') }
     sortable :net_per_km, -> { Arel.sql('net_per_km_cents') }
+    sortable :duration, -> { Arel.sql('duration_seconds') }
+    sortable :net_per_hour, -> { Arel.sql('net_per_hour_cents') }
 
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
     validates :number, presence: true
@@ -70,10 +72,31 @@ module Atua
 
     class << self
       def with_trip_totals(manifests)
-        totals = manifests.with_freight_totals.select(Arel::Nodes::Grouping.new(net_freight).as('net_cents'), Arel::Nodes::Grouping.new(Arel.sql(loaded_km_sql)).as('loaded_km'))
+        totals = manifests.with_freight_totals.select(Arel::Nodes::Grouping.new(net_freight).as('net_cents'), Arel::Nodes::Grouping.new(Arel.sql(loaded_km_sql)).as('loaded_km'),
+                                                      Arel::Nodes::Grouping.new(Arel.sql(duration_seconds_sql)).as('duration_seconds'))
 
         from(totals, table_name).select(arel_table[Arel.star], per_km('gross_cents').as('gross_per_km_cents'),
-                                        per_km('net_cents').as('net_per_km_cents'))
+                                        per_km('net_cents').as('net_per_km_cents'), per_hour('net_cents').as('net_per_hour_cents'))
+      end
+
+      def duration_seconds_sql
+        <<~SQL.squish
+          CASE WHEN atua_manifests.closed_at > atua_manifests.trip_started_at
+            THEN EXTRACT(EPOCH FROM atua_manifests.closed_at - atua_manifests.trip_started_at)
+          END
+        SQL
+      end
+
+      def in_progress_sql
+        'atua_manifests.closed_at IS NULL AND atua_manifests.trip_started_at IS NOT NULL'
+      end
+
+      def per_hour(cents_column)
+        seconds = arel_table[:duration_seconds]
+        cents = Arel::Nodes::Multiplication.new(arel_table[cents_column], Arel::Nodes.build_quoted(TripDuration::SECONDS_PER_HOUR))
+        per_hour = Arel::Nodes::NamedFunction.new('ROUND', [Arel::Nodes::Division.new(cents, seconds)])
+
+        Arel::Nodes::Case.new.when(seconds.gteq(TripDuration::MIN_MEASURED.to_i)).then(per_hour)
       end
 
       def gross_freight(documents = trip_documents)
@@ -182,6 +205,18 @@ module Atua
 
     def trip?
       active? && !canceled? && plate.present?
+    end
+
+    def duration
+      TripDuration.between(trip_started_at, closed_at)
+    end
+
+    def in_progress?
+      closed_at.nil? && trip_started_at.present?
+    end
+
+    def elapsed
+      TripDuration.between(trip_started_at, Time.current) if in_progress?
     end
 
     def missing_documents_freight
