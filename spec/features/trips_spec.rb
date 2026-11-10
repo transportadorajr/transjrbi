@@ -335,8 +335,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         Atua::Manifest.find_by!(code: 41_022).update!(closed_at: Time.zone.local(2026, 10, 3, 8))
       end
 
-      scenario 'shows the average duration and the net freight per hour of each vehicle and sorts from the fastest' do
+      scenario 'shows the average duration and the net freight per hour of each vehicle from tablets up and sorts from the fastest' do
         visit trips_path(october.merge(dimension: 'vehicle'))
+
+        expect(page).to have_css('.trips-table th.d-md-table-cell', text: 'Tempo médio')
+        expect(page).to have_css('.trips-table th.d-md-table-cell', text: 'Líquido/hora')
+
         within('.trips-table thead') { click_on 'Tempo médio' }
 
         expect(Atua::Manifest.count).to eq(3)
