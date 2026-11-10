@@ -81,6 +81,9 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
                                      'KM rodado 650 km', 'Frete líquido R$ 10.000,00', 'Média líquida por viagem R$ 3.333,33',
                                      'Frete líquido por km R$ 12,31', 'Tempo médio de conclusão -', 'Frete líquido por hora -',
                                      'Em andamento (fora da média) 3'])
+        expect(find_by_id('trip_durations')).to have_text(
+          'Nenhuma viagem do período foi encerrada ainda. O tempo médio e o frete líquido por hora aparecem quando a primeira for encerrada.',
+        )
         expect(all('.counter-card .icon-success').size).to eq(4)
         expect(page).to have_no_css('.trips-table .text-danger')
         expect(page).to have_css('.chart-card', count: 6)
@@ -355,6 +358,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(all('#trip_durations .counter-card').map { |card| card.text.squish }).to eq(
           ['Tempo médio de conclusão 1 dia e 13 horas', 'Frete líquido por hora R$ 183,78', 'Em andamento (fora da média) 1'],
         )
+        expect(page).to have_no_text('Nenhuma viagem do período foi encerrada ainda')
       end
     end
 

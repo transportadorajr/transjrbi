@@ -18,6 +18,12 @@ module TripDurationsHelper
     render 'shared/trip_durations', durations:
   end
 
+  def trip_durations_none_closed_note(durations)
+    return unless durations.measured_count.zero? && durations.in_progress_count.positive?
+
+    content_tag(:p, t('trip_durations.none_closed'), class: 'small text-body-secondary mb-0 mt-2')
+  end
+
   def trip_durations_excluded_note(durations)
     return if durations.excluded_count.zero?
 

@@ -6,5 +6,6 @@
     <%= counter_card(:success, t('trip_durations.net_per_hour'), tax_money(durations.net_per_hour), col_class: 'col-6 col-xl-3') %>
     <%= counter_card(:warning, t('trip_durations.in_progress_count'), durations.in_progress_count, col_class: 'col-6 col-xl-3') %>
   </div>
+  <%= trip_durations_none_closed_note(durations) %>
   <%= trip_durations_excluded_note(durations) %>
 </section>

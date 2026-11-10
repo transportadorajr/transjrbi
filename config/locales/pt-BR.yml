@@ -1823,6 +1823,7 @@ pt-BR:
     average: Tempo médio de conclusão
     net_per_hour: Frete líquido por hora
     in_progress_count: Em andamento (fora da média)
+    none_closed: Nenhuma viagem do período foi encerrada ainda. O tempo médio e o frete líquido por hora aparecem quando a primeira for encerrada.
     excluded:
       one: 1 manifesto encerrado com menos de 1 hora ou mais de 15 dias ficou fora da média.
       other: '%{count} manifestos encerrados com menos de 1 hora ou mais de 15 dias ficaram fora da média.'

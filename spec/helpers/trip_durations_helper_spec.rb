@@ -23,4 +23,23 @@ RSpec.describe TripDurationsHelper do
       expect(helper.trip_duration_in_progress(TripDuration.new(29.hours))).to have_css('.trip-duration-in-progress', text: 'Em andamento há 1 dia e 5 horas')
     end
   end
+
+  describe '#trip_durations_none_closed_note' do
+    def durations(*facts)
+      Dashboard::TripDurations.new(facts)
+    end
+
+    it 'explains the blank average when every trip of the period is still in progress' do
+      note = helper.trip_durations_none_closed_note(durations(Dashboard::TripDurations.build_fact(nil, 100_000, true)))
+
+      expect(note).to include('Nenhuma viagem do período foi encerrada ainda.')
+    end
+
+    it 'stays hidden when a trip was closed or there are no trips' do
+      closed = durations(Dashboard::TripDurations.build_fact(26.hours.to_i, 100_000, false), Dashboard::TripDurations.build_fact(nil, 100_000, true))
+
+      expect(helper.trip_durations_none_closed_note(closed)).to be_nil
+      expect(helper.trip_durations_none_closed_note(durations)).to be_nil
+    end
+  end
 end
