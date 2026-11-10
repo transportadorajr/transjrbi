@@ -498,7 +498,7 @@ describe 'Freight billing' do
           expect(page).to have_no_css('#freight_billing_detail_modal', visible: :all)
           expect(row_detail('RVR2C34')).to eq(
             'Viagens' => '1', 'KM rodado' => '520 km', 'Frete bruto' => 'R$ 15.000,00', 'Despesas de frete' => 'R$ 500,00',
-            'Despesas' => 'R$ 150,00', 'Pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 14.100,00', 'Bruto/km' => 'R$ 28,85',
+            'Despesas' => 'R$ 150,00', 'Pedágio pago pela JR' => 'R$ 250,00', 'Frete líquido' => 'R$ 14.100,00', 'Bruto/km' => 'R$ 28,85',
             'Líquido/km' => 'R$ 27,12', 'Participação' => '75,0%'
           )
           expect(page).to have_css('#remote-container #freight_billing_detail_modal')
@@ -520,7 +520,7 @@ describe 'Freight billing' do
 
           expect(row_detail('Total')).to eq(
             'Viagens' => '2', 'KM rodado' => '720 km', 'Frete bruto' => 'R$ 20.000,00', 'Despesas de frete' => 'R$ 500,00',
-            'Despesas' => 'R$ 150,00', 'Pedágio' => 'R$ 250,00', 'Frete líquido' => 'R$ 19.100,00', 'Bruto/km' => 'R$ 26,39',
+            'Despesas' => 'R$ 150,00', 'Pedágio pago pela JR' => 'R$ 250,00', 'Frete líquido' => 'R$ 19.100,00', 'Bruto/km' => 'R$ 26,39',
             'Líquido/km' => 'R$ 25,14', 'Participação' => '100,0%'
           )
         end
@@ -537,15 +537,47 @@ describe 'Freight billing' do
 
             detail = row_detail('RVR8J90')
 
-            expect(detail).to include('Pedágio (Não descontado)' => 'R$ 400,00', 'Frete bruto' => 'R$ 11.000,00', 'Frete líquido' => 'R$ 11.000,00')
-            expect(detail).not_to have_key('Pedágio')
+            expect(detail).to include('Pedágio pago pelo cliente (TAG)' => 'R$ 400,00', 'Frete bruto' => 'R$ 11.000,00',
+                                      'Frete líquido' => 'R$ 11.000,00')
+            expect(detail).not_to have_key('Pedágio pago pela JR')
             expect(html_table_to_rows.find { |row| row.first == 'RVR8J90' }).to include('R$ 400,00')
           end
 
           scenario 'shows both tolls when the row mixes a discounted toll and one that is not' do
             visit freight_billing_path(october_by_truck)
 
-            expect(row_detail('Total')).to include('Pedágio' => 'R$ 250,00', 'Pedágio (Não descontado)' => 'R$ 400,00')
+            expect(row_detail('Total')).to include('Pedágio pago pela JR' => 'R$ 250,00', 'Pedágio pago pelo cliente (TAG)' => 'R$ 400,00')
+          end
+
+          scenario 'colors the toll paid by the carrier apart from the toll the customer pays with a tag' do
+            visit freight_billing_path(october_by_truck)
+
+            expect(Atua::TransportDocument.count).to eq(6)
+            within('.freight-billing-table tr', text: 'RVR2C34') do
+              expect(page).to have_css('.freight-billing-toll-carrier', text: 'R$ 250,00')
+              expect(page).to have_no_css('.freight-billing-toll-customer')
+            end
+            within('.freight-billing-table tr', text: 'RVR8J90') do
+              expect(page).to have_css('.freight-billing-toll-customer', text: 'R$ 400,00')
+              expect(page).to have_no_css('.freight-billing-toll-carrier')
+            end
+            within('.freight-billing-table tfoot') do
+              expect(page).to have_css('.freight-billing-toll-carrier', text: 'R$ 250,00')
+              expect(page).to have_css('.freight-billing-toll-customer', text: 'R$ 400,00')
+            end
+            expect(all('.freight-billing-toll-legend-item').map(&:text)).to eq(
+              ['Pedágio pago pela JR, descontado do frete líquido', 'Pedágio pago pelo cliente em TAG, não descontado do frete líquido'],
+            )
+          end
+
+          scenario 'colors the tolls of the detail by who pays them' do
+            visit freight_billing_path(october_by_truck)
+            row_detail('Total')
+
+            within('#freight_billing_detail_modal') do
+              expect(page).to have_css('dd .freight-billing-toll-carrier', text: 'R$ 250,00')
+              expect(page).to have_css('dd .freight-billing-toll-customer', text: 'R$ 400,00')
+            end
           end
         end
 

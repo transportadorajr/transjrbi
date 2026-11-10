@@ -4,6 +4,7 @@ module FreightBillingsHelper
   SERIES_COLORS = [BRAND_BLUE, DANGER_RED].freeze
   DETAIL_MODAL_ID = 'freight_billing_detail_modal'.freeze
   FREIGHTS_MODAL_ID = 'freight_billing_freights_modal'.freeze
+  TOLL_PAYER_CLASSES = { toll: 'freight-billing-toll-carrier', undiscounted_toll: 'freight-billing-toll-customer' }.freeze
 
   def freight_billing_content_partial(dashboard)
     dashboard.empty? ? 'shared/no_content' : 'freight_billings/report'
@@ -146,6 +147,21 @@ module FreightBillingsHelper
     render 'freight_billings/detail_modal', row:, replace_url: freight_billing_path(request.query_parameters)
   end
 
+  def freight_billing_toll(row)
+    tolls = freight_billing_tolls(row)
+    return tax_money(row.toll_total) if tolls.empty?
+
+    safe_join(tolls.map { |payer, amount| freight_billing_toll_amount(payer, amount, class: 'd-block') })
+  end
+
+  def freight_billing_toll_legend
+    tag.div(class: 'freight-billing-toll-legend d-none d-lg-flex') do
+      safe_join(TOLL_PAYER_CLASSES.map do |payer, css_class|
+        tag.span(t(payer, scope: 'freight_billings.toll_legend'), class: "freight-billing-toll-legend-item #{css_class}")
+      end)
+    end
+  end
+
   def freight_billing_row_label(row, dashboard)
     return row.label unless dashboard.lists_freights?(row.key)
 
@@ -235,10 +251,18 @@ module FreightBillingsHelper
   private
 
   def freight_billing_detail_tolls(row)
-    return { toll: tax_money(row.toll) } unless row.undiscounted_toll.positive?
+    tolls = freight_billing_tolls(row)
+    return { toll_total: tax_money(row.toll_total) } if tolls.empty?
 
-    tolls = { undiscounted_toll: tax_money(row.undiscounted_toll) }
-    row.toll.positive? ? { toll: tax_money(row.toll), **tolls } : tolls
+    tolls.to_h { |payer, amount| [payer, freight_billing_toll_amount(payer, amount)] }
+  end
+
+  def freight_billing_tolls(row)
+    { toll: row.toll, undiscounted_toll: row.undiscounted_toll }.select { |_payer, amount| amount.positive? }
+  end
+
+  def freight_billing_toll_amount(payer, amount, **options)
+    tag.span(tax_money(amount), class: [TOLL_PAYER_CLASSES.fetch(payer), options[:class]], title: t(payer, scope: 'freight_billings.toll_legend'))
   end
 
   def freight_billing_freights_path(row)
