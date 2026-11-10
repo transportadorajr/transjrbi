@@ -8,9 +8,13 @@
 
   <%= render 'filters' %>
 
+  <%= render 'shared/listing_quick_filters', groups: @groups %>
+
   <div class="row g-3 mb-4">
     <%= counter_card(:success, t('.valid'), @manifests.total_count) %>
   </div>
+
+  <%= listing_groups_card(@groups, count_label: t('.groups_count')) %>
 
   <div class="card table-card">
     <div class="table-card-header">

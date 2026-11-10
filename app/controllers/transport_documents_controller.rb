@@ -15,6 +15,7 @@ class TransportDocumentsController < BaseController
     transport_documents = apply_scopes(current_tenant.atua_transport_documents.active.freights.not_canceled)
     @transport_documents = listing_page(sorted_transport_documents(transport_documents))
     @valid_count = transport_documents.count
+    @groups = Dashboard::ListingGroups.for_transport_documents(transport_documents, dimension: params[:dimension], net: can?(:read, :freight_expenses))
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
 

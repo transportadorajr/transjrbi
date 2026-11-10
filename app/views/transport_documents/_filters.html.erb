@@ -3,6 +3,7 @@
                      dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
   <%= form_with url: transport_documents_path, method: :get, data: { controller: 'date-range' } do |f| %>
     <%= sort_fields %>
+    <%= listing_dimension_field %>
     <div class="row g-3">
       <div class="col-12">
         <%= f.label :number, t('transport_documents.filters.number'), class: 'form-label fw-medium' %>

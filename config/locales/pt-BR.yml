@@ -1141,6 +1141,7 @@ pt-BR:
       title: CT-es
       subtitle: Conhecimentos de transporte emitidos na Atua.
       valid: CT-es válidos
+      groups_count: CT-es
       pdf:
         header: Relatório de CT-es
         filename: ctes_%{time}.pdf
@@ -1195,6 +1196,7 @@ pt-BR:
         filename: manifestos_%{time}.pdf
       subtitle: Manifestos eletrônicos (MDF-e) válidos emitidos na Atua.
       valid: Manifestos válidos
+      groups_count: Manifestos
     filters:
       number: Número do manifesto
       plate: Placa
@@ -1798,6 +1800,32 @@ pt-BR:
         vehicle: Sem placa
         driver: Sem motorista
         manifest: Sem número
+    listing_groups:
+      total: Total
+      none:
+        customer_group: Sem grupo
+        customer: Sem cliente
+        vehicle: Sem placa
+        driver: Sem motorista
+  listing_filters:
+    period_label: Data
+    group_by: Agrupar por
+    period_presets:
+      week: Sem. atual
+      last_week: Sem. passada
+      month: Mês
+      last_month: Mês passado
+      today: Hoje
+    dimensions:
+      customer_group: Grupo de clientes
+      customer: Cliente
+      vehicle: Veículo
+      driver: Motorista
+    groups:
+      title: Resumo por %{dimension}
+      subtitle: Toque em um grupo para filtrar a lista.
+      gross: Frete bruto
+      net: Frete líquido
   freight_billings:
     km: '%{distance} km'
     detail:
