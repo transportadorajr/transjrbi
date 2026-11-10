@@ -1,10 +1,10 @@
-<%# locals: (durations:, net:) %>
+<%# locals: (durations:) %>
 
-<section class="mt-4" id="trip_durations">
-  <div class="row g-3">
-    <%= counter_card(:primary, t('trip_durations.average'), trip_duration(durations.average)) %>
-    <%= trip_durations_net_card(durations, net:) %>
-    <%= counter_card(:warning, t('trip_durations.in_progress_count'), durations.in_progress_count) %>
+<section class="mb-4" id="trip_durations">
+  <div class="row g-2 g-md-3 counter-grid-compact">
+    <%= counter_card(:primary, t('trip_durations.average'), trip_duration(durations.average), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:success, t('trip_durations.net_per_hour'), tax_money(durations.net_per_hour), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:warning, t('trip_durations.in_progress_count'), durations.in_progress_count, col_class: 'col-6 col-xl-3') %>
   </div>
   <%= trip_durations_excluded_note(durations) %>
 </section>

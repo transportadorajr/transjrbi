@@ -19,7 +19,6 @@ class ManifestsController < BaseController
     filtered = by_truck_group(apply_scopes(current_tenant.atua_manifests.active.not_canceled.with_transport_documents))
     manifests = Atua::Manifest.with_trip_totals(filtered).preload(route_documents: { transport_document: { taker: :customer_group } })
     @groups = Dashboard::ListingGroups.for_manifests(filtered, dimension: params[:dimension], net: can?(:read, :freight_expenses))
-    @durations = Dashboard::TripDurations.for_manifests(filtered)
 
     @manifests = listing_page(apply_sort(manifests, Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc, except: manifest_sort_exceptions))
 

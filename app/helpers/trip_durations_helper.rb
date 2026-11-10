@@ -14,19 +14,13 @@ module TripDurationsHelper
     content_tag(:span, t('trip_durations.in_progress', duration: trip_duration(elapsed)), class: 'trip-duration-in-progress text-body-secondary fst-italic')
   end
 
-  def trip_durations_cards(durations, net:)
-    render 'shared/trip_durations', durations:, net:
+  def trip_durations_cards(durations)
+    render 'shared/trip_durations', durations:
   end
 
   def trip_durations_excluded_note(durations)
     return if durations.excluded_count.zero?
 
     content_tag(:p, t('trip_durations.excluded', count: durations.excluded_count), class: 'small text-body-secondary mb-0 mt-2')
-  end
-
-  def trip_durations_net_card(durations, net:)
-    return unless net
-
-    counter_card(:success, t('trip_durations.net_per_hour'), tax_money(durations.net_per_hour))
   end
 end

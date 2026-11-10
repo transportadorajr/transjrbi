@@ -64,7 +64,7 @@ describe 'Manifests' do
             ['40772 - RHJ4E07 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Duração - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', '-', ''],
           ],
         )
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1', 'Tempo médio de conclusão -', 'Em andamento (fora da média) 0'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
         expect(page).to have_text('1 registro')
         expect(page).to have_link(href: manifest_path(closed), title: 'Visualizar')
         expect(page).to have_no_text('40780')
@@ -104,7 +104,7 @@ describe 'Manifests' do
             ['40773 - EXU0F72 KM rodado - Total dos CT-es R$ 555,04 Bruto/km - Duração - Grupo de clientes - Origem - Destino -', '-', '-', '-', '-', '-', '-', 'R$ 555,04', '-', '-', ''],
           ],
         )
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1', 'Tempo médio de conclusão -', 'Em andamento (fora da média) 0'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
       end
 
       scenario 'ignores a canceled situation left in the address' do
@@ -190,7 +190,7 @@ describe 'Manifests' do
 
         expect(Atua::Manifest.count).to eq(2)
         expect(html_table_to_rows).to eq([table_header, maria_row])
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1', 'Tempo médio de conclusão -', 'Em andamento (fora da média) 0'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
       end
 
       scenario 'filters the manifests by the truck group of the transport documents' do
@@ -273,7 +273,7 @@ describe 'Manifests' do
 
         expect(page).to have_current_path(manifests_path(dimension: 'vehicle', plate: 'RHJ4E07'))
         expect(html_table_to_rows(table: find('.table-card:not(#listing_groups) table'))).to eq([table_header, jose_row])
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1', 'Tempo médio de conclusão -', 'Em andamento (fora da média) 0'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Manifestos válidos 1'])
       end
 
       scenario 'groups the manifests by the customer group of their transport documents' do
@@ -336,9 +336,7 @@ describe 'Manifests' do
             ],
           )
           expect(page).to have_css('.trip-duration-in-progress', text: 'Em andamento há 2 dias e 2 horas')
-          expect(all('#trip_durations .counter-card').map { |card| card.text.squish }).to eq(
-            ['Tempo médio de conclusão 1 dia e 13 horas', 'Frete líquido por hora R$ 183,78', 'Em andamento (fora da média) 1'],
-          )
+          expect(page).to have_no_css('#trip_durations')
         end
       end
 
@@ -404,9 +402,6 @@ describe 'Manifests' do
             ['MDF-e', 'Motorista', 'Origem', 'Destino', 'Peso (kg)', 'Grupo de clientes', 'KM rodado', 'Total dos CT-es', 'Bruto/km', 'Duração', 'Ações'],
           )
           expect(page).to have_no_css('th', text: 'Líquido/hora')
-          expect(all('#trip_durations .counter-card').map { |card| card.text.squish }).to eq(
-            ['Tempo médio de conclusão 1 dia e 13 horas', 'Em andamento (fora da média) 1'],
-          )
 
           visit manifest_path(long_trip)
 

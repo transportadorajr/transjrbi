@@ -1,25 +1,17 @@
 require 'rails_helper'
 
 RSpec.describe Dashboard::TripDurations do
-  let!(:tenant) { create(:tenant) }
-
-  def create_trip(code, started_at:, closed_at:, freight_cents:)
-    manifest = create(:atua_manifest, tenant:, code:, branch_name: 'JR', trip_started_at: started_at, closed_at:)
-    create(:atua_transport_document, tenant:, number: code.to_s, series: 1, branch_name: 'JR', freight_cents:)
-    create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: code.to_s, transport_document_series: 1,
-                                    branch_name: 'JR')
-    manifest
-  end
-
-  describe '.for_manifests' do
-    subject(:durations) { described_class.for_manifests(tenant.atua_manifests) }
-
-    before do
-      create_trip(41_001, started_at: Time.zone.local(2026, 10, 1, 8), closed_at: Time.zone.local(2026, 10, 2, 10), freight_cents: 300_000)
-      create_trip(41_002, started_at: Time.zone.local(2026, 10, 1, 8), closed_at: Time.zone.local(2026, 10, 1, 20), freight_cents: 400_000)
-      create_trip(41_003, started_at: Time.zone.local(2026, 10, 5, 8), closed_at: nil, freight_cents: 900_000)
-      create_trip(41_004, started_at: Time.zone.local(2026, 10, 5, 8), closed_at: Time.zone.local(2026, 10, 5, 8, 20), freight_cents: 900_000)
-      create_trip(41_005, started_at: Time.zone.local(2026, 9, 1, 8), closed_at: Time.zone.local(2026, 10, 1, 8), freight_cents: 900_000)
+  context 'with closed trips, a trip in progress and trips out of the measured range' do
+    subject(:durations) do
+      described_class.new(
+        [
+          described_class.build_fact(26.hours.to_i, 300_000, false),
+          described_class.build_fact(12.hours.to_i, 400_000, false),
+          described_class.build_fact(nil, 900_000, true),
+          described_class.build_fact(20.minutes.to_i, 900_000, false),
+          described_class.build_fact(30.days.to_i, 900_000, false),
+        ],
+      )
     end
 
     it 'averages the closed trips weighting the net freight by the hours' do

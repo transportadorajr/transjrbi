@@ -61,6 +61,10 @@ module Dashboard
       @total ||= build_row(TOTAL_KEY, I18n.t('dashboards.trip.total'), period_facts)
     end
 
+    def durations
+      @durations ||= TripDurations.new(period_facts.map(&:duration_fact))
+    end
+
     def table_total
       @table_total ||= build_row(TOTAL_KEY, I18n.t('dashboards.trip.total'), ranked_facts)
     end

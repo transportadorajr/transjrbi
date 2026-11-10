@@ -40,7 +40,8 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_text('Nenhum registro encontrado')
         expect(page).to have_no_table
         expect(counter_cards).to eq(['Viagens 0', 'Frete bruto R$ 0,00', 'Média bruta por viagem -', 'Frete bruto por km -', 'KM rodado 0 km',
-                                     'Frete líquido R$ 0,00', 'Média líquida por viagem -', 'Frete líquido por km -'])
+                                     'Frete líquido R$ 0,00', 'Média líquida por viagem -', 'Frete líquido por km -',
+                                     'Tempo médio de conclusão -', 'Frete líquido por hora -', 'Em andamento (fora da média) 0'])
       end
     end
 
@@ -78,8 +79,9 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(Atua::Manifest.count).to eq(4)
         expect(counter_cards).to eq(['Viagens 3', 'Frete bruto R$ 11.000,00', 'Média bruta por viagem R$ 3.666,67', 'Frete bruto por km R$ 13,85',
                                      'KM rodado 650 km', 'Frete líquido R$ 10.000,00', 'Média líquida por viagem R$ 3.333,33',
-                                     'Frete líquido por km R$ 12,31'])
-        expect(all('.counter-card .icon-success').size).to eq(3)
+                                     'Frete líquido por km R$ 12,31', 'Tempo médio de conclusão -', 'Frete líquido por hora -',
+                                     'Em andamento (fora da média) 3'])
+        expect(all('.counter-card .icon-success').size).to eq(4)
         expect(page).to have_no_css('.trips-table .text-danger')
         expect(page).to have_css('.chart-card', count: 6)
         expect(html_table_to_rows(table: find('.trips-table'))).to eq(
@@ -343,6 +345,15 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
             ['CCC3C33', '-', '-'],
             ['Total', '1 dia e 13 horas', 'R$ 183,78'],
           ],
+        )
+      end
+
+      scenario 'shows the average duration, the net freight per hour and the trips in progress below the indicators' do
+        visit trips_path(october)
+
+        expect(Atua::Manifest.count).to eq(3)
+        expect(all('#trip_durations .counter-card').map { |card| card.text.squish }).to eq(
+          ['Tempo médio de conclusão 1 dia e 13 horas', 'Frete líquido por hora R$ 183,78', 'Em andamento (fora da média) 1'],
         )
       end
     end

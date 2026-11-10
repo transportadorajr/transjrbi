@@ -7,16 +7,6 @@ module Dashboard
     end
 
     class << self
-      def for_manifests(manifests)
-        facts = manifests.unscope(:order, :select).pluck(
-          Arel.sql(Atua::Manifest.duration_seconds_sql),
-          Arel::Nodes::Grouping.new(Atua::Manifest.net_freight),
-          Arel.sql(Atua::Manifest.in_progress_sql),
-        )
-
-        new(facts.map { |seconds, net_cents, in_progress| build_fact(seconds, net_cents, in_progress) })
-      end
-
       def build_fact(seconds, net_cents, in_progress)
         Fact.new(duration: TripDuration.from_seconds(seconds.to_d), net_cents: net_cents.to_i, in_progress: in_progress == true)
       end
