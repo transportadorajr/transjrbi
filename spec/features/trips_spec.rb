@@ -47,7 +47,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(page).to have_no_table
         expect(counter_cards).to eq(['Viagens 0', 'Frete bruto R$ 0,00', 'Média bruta por viagem -', 'Frete bruto por km -', 'KM rodado 0 km',
                                      'Frete líquido R$ 0,00', 'Média líquida por viagem -', 'Frete líquido por km -',
-                                     'Tempo médio de conclusão -', 'Frete líquido por hora -', 'Em andamento (fora da média) 0'])
+                                     'Tempo médio de conclusão -', 'Em andamento (fora da média) 0'])
       end
     end
 
@@ -85,12 +85,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(Atua::Manifest.count).to eq(4)
         expect(counter_cards).to eq(['Viagens 3', 'Frete bruto R$ 11.000,00', 'Média bruta por viagem R$ 3.666,67', 'Frete bruto por km R$ 13,85',
                                      'KM rodado 650 km', 'Frete líquido R$ 10.000,00', 'Média líquida por viagem R$ 3.333,33',
-                                     'Frete líquido por km R$ 12,31', 'Tempo médio de conclusão -', 'Frete líquido por hora -',
+                                     'Frete líquido por km R$ 12,31', 'Tempo médio de conclusão -',
                                      'Em andamento (fora da média) 3'])
         expect(find_by_id('trip_durations')).to have_text(
-          'Nenhuma viagem do período foi encerrada ainda. O tempo médio e o frete líquido por hora aparecem quando a primeira for encerrada.',
+          'Nenhuma viagem do período foi encerrada ainda. O tempo médio aparece quando a primeira for encerrada.',
         )
-        expect(all('.counter-card .icon-success').size).to eq(4)
+        expect(all('.counter-card .icon-success').size).to eq(3)
         expect(page).to have_no_css('.trips-table .text-danger')
         expect(page).to have_css('.chart-card', count: 6)
         expect(html_table_to_rows(table: find('.trips-table'))).to eq(
@@ -353,7 +353,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
 
         expect(page).to have_current_path(trips_path(october.merge(dimension: 'vehicle', detail: 'AAA1A11')))
         expect(page).to have_css('#remote-container #trip_detail_modal .modal-title', text: 'AAA1A11')
-        expect(dl_to_hash('#trip_detail_modal')).to include('Viagens' => '1', 'Tempo médio' => '2 dias e 2 horas', 'Líquido/hora' => 'R$ 200,00')
+        expect(dl_to_hash('#trip_detail_modal')).to include('Viagens' => '1', 'Tempo médio' => '2 dias e 2 horas')
       end
 
       scenario 'goes back to the listing with an alert when the row is no longer available' do
@@ -380,7 +380,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
           expect(row_detail('AAA1A11')).to eq(
             'Viagens' => '1', 'KM rodado' => '400 km', 'Tempo médio' => '2 dias e 2 horas', 'Frete bruto' => 'R$ 10.000,00',
             'Despesas' => 'R$ 0,00', 'Frete líquido' => 'R$ 10.000,00', 'Média bruta por viagem' => 'R$ 10.000,00',
-            'Média líquida por viagem' => 'R$ 10.000,00', 'Bruto/km' => 'R$ 25,00', 'Líquido/km' => 'R$ 25,00', 'Líquido/hora' => 'R$ 200,00'
+            'Média líquida por viagem' => 'R$ 10.000,00', 'Bruto/km' => 'R$ 25,00', 'Líquido/km' => 'R$ 25,00'
           )
           expect(page).to have_css('#remote-container #trip_detail_modal')
           expect(page).to have_current_path(trips_path(october.merge(dimension: 'vehicle')))
@@ -389,19 +389,19 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         scenario 'shows the figures of every trip in the total row' do
           visit trips_path(october.merge(dimension: 'vehicle'))
 
-          expect(row_detail('Total')).to include('Viagens' => '3', 'Frete bruto' => 'R$ 15.600,00', 'Tempo médio' => '1 dia e 13 horas',
-                                                 'Líquido/hora' => 'R$ 183,78')
+          expect(row_detail('Total')).to include('Viagens' => '3', 'Frete bruto' => 'R$ 15.600,00', 'Tempo médio' => '1 dia e 13 horas')
         end
       end
 
-      scenario 'shows the average duration, the net freight per hour and the trips in progress below the indicators' do
+      scenario 'shows the average duration and the trips in progress below the indicators without the net freight per hour' do
         visit trips_path(october)
 
         expect(Atua::Manifest.count).to eq(3)
         expect(all('#trip_durations .counter-card').map { |card| card.text.squish }).to eq(
-          ['Tempo médio de conclusão 1 dia e 13 horas', 'Frete líquido por hora R$ 183,78', 'Em andamento (fora da média) 1'],
+          ['Tempo médio de conclusão 1 dia e 13 horas', 'Em andamento (fora da média) 1'],
         )
         expect(page).to have_no_text('Nenhuma viagem do período foi encerrada ainda')
+        expect(page).to have_no_text('Frete líquido por hora')
       end
     end
 

@@ -37,18 +37,15 @@ RSpec.describe Dashboard::Trip do
     end
 
     def duration_values(rows)
-      rows.map { |row| [row.label, row.duration&.hours, row.net_per_hour&.format] }
+      rows.map { |row| [row.label, row.duration&.hours] }
     end
 
-    it 'averages the duration and the net freight per hour leaving the trip in progress out' do
-      expect(duration_values(dashboard.rows + [dashboard.total])).to eq(
-        [['BBB2B22', nil, nil], ['AAA1A11', 19, 'R$ 184,21'], ['Total', 19, 'R$ 184,21']],
-      )
+    it 'averages the duration leaving the trip in progress out' do
+      expect(duration_values(dashboard.rows + [dashboard.total])).to eq([['BBB2B22', nil], ['AAA1A11', 19], ['Total', 19]])
     end
 
     it 'sorts the vehicles from the fastest leaving the vehicles without a duration last' do
       expect(dashboard.sorted_rows('duration', 'asc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
-      expect(dashboard.sorted_rows('net_per_hour', 'desc').map(&:label)).to eq(%w[AAA1A11 BBB2B22])
     end
 
     it 'finds a row and the total by key and nothing for an unknown key' do

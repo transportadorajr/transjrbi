@@ -20,7 +20,7 @@ module Dashboard
     end
 
     Row = Data.define(:key, :label, :trips_count, :loaded_km, :gross, :expenses, :net, :average, :net_average,
-                      :gross_per_km, :net_per_km, :duration, :net_per_hour) do
+                      :gross_per_km, :net_per_km, :duration) do
       extend ActiveModel::Naming
 
       def confirmation_name
@@ -38,7 +38,6 @@ module Dashboard
       'gross_per_km' => ->(row) { row.gross_per_km&.cents || -Float::INFINITY },
       'net_per_km' => ->(row) { row.net_per_km&.cents || -Float::INFINITY },
       'duration' => ->(row) { row.duration&.seconds || Float::INFINITY },
-      'net_per_hour' => ->(row) { row.net_per_hour&.cents || -Float::INFINITY },
     }.freeze
 
     attr_reader :dimension, :period
@@ -234,7 +233,6 @@ module Dashboard
       measured_km = measured.sum(BigDecimal('0'), &:loaded_km)
       gross_cents = grouped.sum(&:gross_cents)
       net_cents = grouped.sum(&:net_cents)
-      durations = TripDurations.new(grouped.map(&:duration_fact))
 
       Row.new(
         key:,
@@ -248,8 +246,7 @@ module Dashboard
         net_average: divided(net_cents, grouped.size),
         gross_per_km: divided(measured.sum(&:gross_cents), measured_km),
         net_per_km: divided(measured.sum(&:net_cents), measured_km),
-        duration: durations.average,
-        net_per_hour: durations.net_per_hour,
+        duration: TripDurations.new(grouped.map(&:duration_fact)).average,
       )
     end
 

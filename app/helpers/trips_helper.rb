@@ -182,7 +182,7 @@ module TripsHelper
       trip: { trips: row.trips_count, loaded_km: trips_km(row.loaded_km), duration: trip_duration(row.duration) },
       values: { gross: tax_money(row.gross), expenses: tax_money(row.expenses), net: tax_money(row.net), average: tax_money(row.average),
                 net_average: tax_money(row.net_average) },
-      indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km), net_per_hour: tax_money(row.net_per_hour) },
+      indicators: { gross_per_km: tax_money(row.gross_per_km), net_per_km: tax_money(row.net_per_km) },
     }
   end
 

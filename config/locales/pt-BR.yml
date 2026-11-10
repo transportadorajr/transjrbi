@@ -1821,9 +1821,8 @@ pt-BR:
     less_than_an_hour: Menos de 1 hora
     in_progress: Em andamento há %{duration}
     average: Tempo médio de conclusão
-    net_per_hour: Frete líquido por hora
     in_progress_count: Em andamento (fora da média)
-    none_closed: Nenhuma viagem do período foi encerrada ainda. O tempo médio e o frete líquido por hora aparecem quando a primeira for encerrada.
+    none_closed: Nenhuma viagem do período foi encerrada ainda. O tempo médio aparece quando a primeira for encerrada.
     excluded:
       one: 1 manifesto encerrado com menos de 1 hora ou mais de 15 dias ficou fora da média.
       other: '%{count} manifestos encerrados com menos de 1 hora ou mais de 15 dias ficaram fora da média.'
@@ -1955,7 +1954,6 @@ pt-BR:
         net_average: Média líquida por viagem
         gross_per_km: Bruto/km
         net_per_km: Líquido/km
-        net_per_hour: Líquido/hora
     period_presets:
       week: Sem. atual
       last_week: Sem. passada
