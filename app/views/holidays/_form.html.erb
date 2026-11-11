@@ -1,0 +1,33 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('holidays.form.holiday_data') %></p>
+    <p class="form-card-subtitle"><%= t('holidays.form.holiday_data_text') %></p>
+  </div>
+  <%= simple_form_for(holiday_form, url: holiday_form_url(holiday_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <%= f.input :date, as: :date, html5: true, required: true, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-8">
+          <%= f.input :name, required: true, input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :scope_type, collection: HolidayForm.enum_options_for_select(:scope_type), required: true,
+                                   include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :kind_type, collection: HolidayForm.enum_options_for_select(:kind_type), required: true,
+                                  include_blank: t('helpers.select.prompt'), hint: t('holidays.form.kind_type_hint'),
+                                  input_html: { class: 'form-select' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, holiday_form_submit_label(holiday_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), holidays_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

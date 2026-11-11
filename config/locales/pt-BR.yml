@@ -82,6 +82,9 @@ pt-BR:
       excluded_issuer:
         one: Emissor desconsiderado
         other: Emissores desconsiderados
+      holiday:
+        one: Feriado
+        other: Feriados
       route_distance:
         one: Trecho de km
         other: Trechos de km
@@ -97,6 +100,11 @@ pt-BR:
         code: Código no Atua
         documents_count: Documentos
         freight: Frete bruto
+      holiday:
+        date: Data
+        name: Nome
+        scope_type: Abrangência
+        kind_type: Tipo
       route_distance:
         customer: Cliente
         customer_code: Cliente
@@ -610,6 +618,11 @@ pt-BR:
         macro_region_id: Macro região
       excluded_issuer_form:
         code: Emissor
+      holiday_form:
+        date: Data
+        name: Nome
+        scope_type: Abrangência
+        kind_type: Tipo
       route_distance_form:
         customer_code: Cliente
         origin_city: Cidade de origem
@@ -708,6 +721,10 @@ pt-BR:
             code:
               taken: já está desconsiderado
               inclusion: não emitiu nenhum CT-e ou CE
+        holiday_form:
+          attributes:
+            date:
+              taken: já tem um feriado cadastrado
         route_distance_form:
           attributes:
             base:
@@ -770,6 +787,16 @@ pt-BR:
             password:
               same_as_current: deve ser diferente da senha atual
   enums:
+  enums:
+    holiday:
+      scope_type:
+        national: Nacional
+        state: Estadual
+        municipal: Municipal
+      kind_type:
+        holiday: Feriado
+        bridge_day: Emenda
+        optional: Ponto facultativo
     commission_rule:
       destination_type:
         national: Nacional (qualquer UF brasileira)
@@ -889,6 +916,9 @@ pt-BR:
         update: Salvar Alterações
       excluded_issuer:
         create: Desconsiderar Emissor
+      holiday:
+        create: Cadastrar Feriado
+        update: Salvar Alterações
       route_distance:
         create: Cadastrar Trecho
         update: Salvar Alterações
@@ -953,6 +983,9 @@ pt-BR:
         destroy: Excluir
       excluded_issuer:
         destroy: Voltar a considerar
+      holiday:
+        edit: Alterar
+        destroy: Excluir
       route_distance:
         edit: Alterar
         destroy: Excluir
@@ -1138,6 +1171,7 @@ pt-BR:
     truck_groups: Grupos de caminhões
     excluded_issuers: Emissores desconsiderados
     distance_adjustments: Ajustes de km
+    holidays: Feriados
     route_distances: Trechos de km
     company: Dados da empresa
     freight_billing: Faturamento
@@ -1676,6 +1710,51 @@ pt-BR:
       excluded_issuer_data: Emissor
       excluded_issuer_data_text: >-
         Escolha o usuário do Atua que emitiu os CT-es ou CEs. Só aparecem os usuários que já emitiram algum documento.
+  holidays:
+    national:
+      new_year: Confraternização Universal
+      carnival_monday: Carnaval (segunda-feira)
+      carnival_tuesday: Carnaval (terça-feira)
+      good_friday: Sexta-feira Santa
+      tiradentes: Tiradentes
+      labour_day: Dia do Trabalho
+      corpus_christi: Corpus Christi
+      independence_day: Independência do Brasil
+      our_lady_aparecida: Nossa Senhora Aparecida
+      all_souls_day: Finados
+      republic_day: Proclamação da República
+      black_consciousness_day: Dia Nacional de Zumbi e da Consciência Negra
+      christmas: Natal
+      bridge_day: Emenda de %{name}
+    index:
+      title: Feriados
+      subtitle: >-
+        Dias com faturamento menor. A projeção de faturamento reduz a previsão nos feriados e emendas de segunda a
+        sábado.
+      new_holiday: Novo Feriado
+      confirm_destroy: Tem certeza que deseja excluir este feriado?
+    filters:
+      year: Ano
+      name: Nome do feriado
+      all_scopes: Todas
+    new:
+      title: Novo Feriado
+      back: Voltar para feriados
+    create:
+      success: Feriado cadastrado com sucesso.
+    edit:
+      title: Alterar Feriado
+      back: Voltar para feriados
+    update:
+      success: Feriado atualizado com sucesso.
+    destroy:
+      success: Feriado excluído com sucesso.
+    form:
+      holiday_data: Dados do Feriado
+      holiday_data_text: Os feriados nacionais são cadastrados automaticamente. Cadastre aqui os estaduais e municipais.
+      kind_type_hint: >-
+        Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
+        não funciona (ex.: Carnaval).
   route_distances:
     km: '%{distance} km'
     saved:
@@ -2270,6 +2349,7 @@ pt-BR:
       month_year: '%m/%Y'
       chart_month: '%b/%Y'
       chart_week: '%d/%m'
+      with_weekday: '%d/%m/%Y (%A)'
   time:
     formats:
       date_time: '%d/%m/%Y %H:%M'
@@ -2290,6 +2370,7 @@ pt-BR:
     truck_groups: Grupos de caminhões
     excluded_issuers: Emissores desconsiderados
     drivers: Motoristas
+    holidays: Feriados
     vehicles: Veículos
     expenses: Despesas
     commission_rules: Regras de comissão

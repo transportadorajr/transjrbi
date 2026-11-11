@@ -16,6 +16,16 @@ RSpec.describe Admin::TenantForm do
 
   describe '#save' do
     context 'when creating a tenant' do
+      it 'registers the national holidays of the new tenant' do
+        form = described_class.new(valid_attributes)
+
+        travel_to(Time.zone.local(2026, 11, 11)) do
+          expect { expect(form.save).to be(true) }.to change(Holiday, :count).by(47)
+        end
+
+        expect(Tenant.last.holidays.find_by!(date: Date.new(2026, 11, 20))).to have_attributes(scope_type: 'national')
+      end
+
       it 'creates the tenant and a confirmed owner without sending e-mails' do
         form = described_class.new(valid_attributes)
 

@@ -35,7 +35,7 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(20)
+    expect { run_seeds }.to change(Resource, :count).by(21)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
@@ -44,6 +44,7 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'product_groups')).to have_attributes(name: 'Grupos de produtos', writable: true)
     expect(Resource.find_by!(slug: 'freight_billing')).to have_attributes(name: 'Faturamento', writable: false)
     expect(Resource.find_by!(slug: 'trips')).to have_attributes(name: 'Viagens', writable: false)
+    expect(Resource.find_by!(slug: 'holidays')).to have_attributes(name: 'Feriados', writable: true)
   end
 
   it 'registers the trips dashboard flag turned off' do
@@ -63,7 +64,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(19)
+      expect { run_seeds }.to change(Resource, :count).by(20)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end
@@ -83,5 +84,14 @@ RSpec.describe 'db/seeds.rb' do
 
     expect(ProductGroups::BackfillCommand).to have_received(:call).with(tenant)
     expect(ProductGroups::BackfillCommand).to have_received(:call).with(other_tenant)
+  end
+
+  it 'registers the national holidays of every tenant' do
+    allow(Holidays::SeedNationalCommand).to receive(:call).and_return(Holiday.none)
+
+    run_seeds
+
+    expect(Holidays::SeedNationalCommand).to have_received(:call).with(tenant)
+    expect(Holidays::SeedNationalCommand).to have_received(:call).with(other_tenant)
   end
 end
