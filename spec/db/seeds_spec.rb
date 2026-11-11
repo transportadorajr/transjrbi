@@ -35,7 +35,7 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(21)
+    expect { run_seeds }.to change(Resource, :count).by(22)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
@@ -45,6 +45,7 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'freight_billing')).to have_attributes(name: 'Faturamento', writable: false)
     expect(Resource.find_by!(slug: 'trips')).to have_attributes(name: 'Viagens', writable: false)
     expect(Resource.find_by!(slug: 'holidays')).to have_attributes(name: 'Feriados', writable: true)
+    expect(Resource.find_by!(slug: 'revenue_projection')).to have_attributes(name: 'Projeção de faturamento', writable: false)
   end
 
   it 'registers the trips dashboard flag turned off' do
@@ -52,6 +53,13 @@ RSpec.describe 'db/seeds.rb' do
 
     expect(Flipper.features.map(&:key)).to include('trips_dashboard')
     expect(Flipper.enabled?(:trips_dashboard, tenant)).to be(false)
+  end
+
+  it 'registers the revenue projection flag turned off' do
+    run_seeds
+
+    expect(Flipper.features.map(&:key)).to include('revenue_projection')
+    expect(Flipper.enabled?(:revenue_projection, tenant)).to be(false)
   end
 
   it 'does not duplicate the access resources when run again' do
@@ -64,7 +72,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(20)
+      expect { run_seeds }.to change(Resource, :count).by(21)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end

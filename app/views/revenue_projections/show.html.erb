@@ -1,0 +1,19 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle'), note: revenue_projection_last_sync_label(@last_synced_at) %>
+
+  <div class="row g-3 mb-4">
+    <%= render 'projection_card', projection: @month, id: 'month_projection' %>
+    <%= render 'projection_card', projection: @week, id: 'week_projection' %>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <%= render 'freight_billings/chart_card', title: t('.chart_title'), subtitle: t('.chart_subtitle'),
+                                                chart: revenue_projection_chart(@month) %>
+    </div>
+  </div>
+
+  <p class="small text-muted mb-0"><%= t('.method') %></p>
+</div>

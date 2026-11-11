@@ -85,6 +85,7 @@ Rails.application.routes.draw do
       get :week
       get :product_options
     end
+    resource :revenue_projection, only: :show
     resources :trips, only: :index do
       get :detail, on: :collection
       get :product_options, on: :collection

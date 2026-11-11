@@ -1,10 +1,10 @@
 require 'rails_helper'
 
-describe 'Sidebar menu', flipper: :trips_dashboard do
+describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection] do
   let!(:tenant) { create(:tenant) }
   let!(:resources) do
     %w[
-      freight_billing trips transport_documents manifests route_distances customers customer_groups product_groups
+      freight_billing trips revenue_projection transport_documents manifests route_distances customers customer_groups product_groups
       macro_regions cities truck_groups excluded_issuers holidays drivers vehicles expenses commission_rules tonnage_rates
       insurance_rates freight_expenses company users
     ].index_with { |slug| create(:resource, slug:) }
@@ -24,7 +24,7 @@ describe 'Sidebar menu', flipper: :trips_dashboard do
 
       expect(sidebar_items).to eq(
         [
-          'Inteligência', 'Faturamento', 'Viagens',
+          'Inteligência', 'Faturamento', 'Viagens', 'Projeção de faturamento',
           'Fiscal', 'CT-es', 'Manifestos', 'Trechos de km',
           'Cadastros', 'Clientes', 'Grupos de clientes', 'Grupos de produtos', 'Macro regiões', 'Cidades',
           'Grupos de caminhões', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',
