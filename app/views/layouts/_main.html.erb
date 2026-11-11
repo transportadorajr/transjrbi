@@ -42,6 +42,12 @@
         <ul class="dropdown-menu dropdown-menu-end navbar-dropdown-menu">
           <li class="navbar-dropdown-header"><%= current_user.email %></li>
           <li>
+            <%= link_to edit_account_password_path, class: 'dropdown-item navbar-dropdown-item' do %>
+              <span class="dropdown-item-icon"><%= icon :key %></span>
+              <%= t('layouts.main.change_password') %>
+            <% end %>
+          </li>
+          <li>
             <%= link_to destroy_user_session_path, class: 'dropdown-item navbar-dropdown-item', data: { turbo_method: :delete } do %>
               <span class="dropdown-item-icon"><%= icon :'box-arrow-right' %></span>
               <%= t('layouts.main.logout') %>

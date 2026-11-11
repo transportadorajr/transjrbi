@@ -70,6 +70,15 @@ module UsersHelper
     end
   end
 
+  def user_account_password_button(user)
+    return unless user == current_user
+
+    link_to edit_account_password_path, class: 'btn btn-outline-secondary btn-round' do
+      concat icon(:key, class: 'me-2')
+      concat t('users.show.change_password')
+    end
+  end
+
   def user_create_button
     create_button(t('users.index.new_user')) if can?(:create, User)
   end

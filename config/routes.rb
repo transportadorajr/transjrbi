@@ -41,6 +41,7 @@ Rails.application.routes.draw do
     end
 
     resource :password_change, only: %i[edit update]
+    resource :account_password, only: %i[edit update]
     resource :company, only: %i[show edit update]
     resources :users, only: %i[index show new create edit update destroy] do
       member do

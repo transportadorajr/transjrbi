@@ -1,0 +1,50 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to current_user.name, user_path(current_user) %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.title') %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title'), back_path: user_path(current_user), back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="card form-card">
+    <div class="form-card-header">
+      <p class="form-card-title"><%= t('.password_data') %></p>
+      <p class="form-card-subtitle"><%= t('.password_data_text') %></p>
+    </div>
+    <%= simple_form_for(@account_password_form, url: account_password_path, method: :patch) do |f| %>
+      <div class="form-card-body">
+        <div class="row g-3">
+          <div class="col-12 col-lg-4">
+            <%= f.input :current_password,
+                        as: :password,
+                        required: true,
+                        input_html: { class: 'form-control', autocomplete: 'current-password' } %>
+          </div>
+          <div class="col-12 col-lg-4">
+            <%= f.input :password,
+                        as: :password,
+                        required: true,
+                        hint: t('devise.shared.minimum_password_length', count: Devise.password_length.min),
+                        input_html: { class: 'form-control', autocomplete: 'new-password' } %>
+          </div>
+          <div class="col-12 col-lg-4">
+            <%= f.input :password_confirmation,
+                        as: :password,
+                        required: true,
+                        input_html: { class: 'form-control', autocomplete: 'new-password' } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card-footer">
+        <%= f.button :submit, t('.submit'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+        <%= link_to t('helpers.links.cancel'), user_path(current_user), class: 'btn btn-outline-secondary px-4 btn-round' %>
+      </div>
+    <% end %>
+  </div>
+</div>

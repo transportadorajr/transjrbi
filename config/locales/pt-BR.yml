@@ -487,6 +487,7 @@ pt-BR:
     models:
       user_confirmation_form: Confirmação de conta
       password_change_form: Troca de senha
+      account_password_form: Alteração de senha
     attributes:
       freight_billing_filter_form:
         start_date: Emitidos a partir de
@@ -557,6 +558,10 @@ pt-BR:
         password_confirmation: Confirme a senha
         password_change_required: Exigir troca de senha no primeiro acesso
       password_change_form:
+        password: Nova senha
+        password_confirmation: Confirme a nova senha
+      account_password_form:
+        current_password: Senha atual
         password: Nova senha
         password_confirmation: Confirme a nova senha
       resource_form:
@@ -754,6 +759,12 @@ pt-BR:
               already_confirmed: Este usuário já confirmou a conta.
         password_change_form:
           attributes:
+            password:
+              same_as_current: deve ser diferente da senha atual
+        account_password_form:
+          attributes:
+            current_password:
+              invalid: está incorreta
             password:
               same_as_current: deve ser diferente da senha atual
   enums:
@@ -1034,6 +1045,7 @@ pt-BR:
       back: Voltar para usuários
       user_data: Dados do Usuário
       edit: Alterar
+      change_password: Alterar senha
       blank: '-'
       password_change_pending: Sim
       password_change_not_pending: Não
@@ -1080,6 +1092,15 @@ pt-BR:
         submit: Confirmar conta
       update:
         success: Conta confirmada com sucesso. Bem-vindo ao TransJRBI!
+  account_passwords:
+    edit:
+      title: Alterar Senha
+      back: Voltar para meu usuário
+      password_data: Senha de Acesso
+      password_data_text: Informe a senha atual e escolha uma nova senha que só você conheça.
+      submit: Alterar senha
+    update:
+      success: Senha alterada com sucesso.
   password_changes:
     edit:
       title: Defina sua nova senha
@@ -2205,6 +2226,7 @@ pt-BR:
       toggle_navigation: Abrir navegação
       toggle_sidebar: Recolher menu lateral
       options: Opções
+      change_password: Alterar senha
       logout: Sair
   pwa:
     manifest:
