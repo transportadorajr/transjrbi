@@ -89,7 +89,11 @@ jobs:
 
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
+        run: |
+          dpkg -s libpq-dev > /dev/null 2>&1 || {
+            sudo apt-get -o Acquire::Retries=5 update
+            sudo apt-get -o Acquire::Retries=5 install --no-install-recommends -y libpq-dev
+          }
 
       - name: Checkout code
         uses: actions/checkout@v6
@@ -164,7 +168,11 @@ jobs:
 
     steps:
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libpq-dev libvips
+        run: |
+          dpkg -s libpq-dev > /dev/null 2>&1 || {
+            sudo apt-get -o Acquire::Retries=5 update
+            sudo apt-get -o Acquire::Retries=5 install --no-install-recommends -y libpq-dev
+          }
 
       - name: Checkout code
         uses: actions/checkout@v6
