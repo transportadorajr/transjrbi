@@ -9,6 +9,7 @@
       </ol>
     </nav>
     <%= page_header_tag @user.name, back_path: users_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= user_account_password_button(@user) %>
       <%= user_edit_button(@user) %>
     <% end %>
   </div>

@@ -395,7 +395,7 @@ describe 'Product groups' do
 
         click_on 'SIDERÚRGICO'
 
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
         expect(page).to have_no_link('Novo Subgrupo')
       end
 

@@ -272,7 +272,7 @@ describe 'Cities' do
 
         click_on 'Ipatinga'
 
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'cannot change a city through a forged request' do

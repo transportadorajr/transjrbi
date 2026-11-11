@@ -280,7 +280,7 @@ describe 'Macro regions' do
 
         click_on 'VALE DO AÇO/MG'
 
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'cannot change a region through a forged request' do

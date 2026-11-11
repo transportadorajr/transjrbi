@@ -117,7 +117,7 @@ describe 'Company' do
           'Nome fantasia' => tenant.trade_name,
           'CNPJ' => tenant.legal_id,
         )
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'cannot change the company through a forged request' do

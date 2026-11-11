@@ -287,7 +287,7 @@ describe 'Commission rules' do
 
         click_on 'Nacional'
 
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'cannot change a rule through a forged request' do
