@@ -5,7 +5,7 @@ describe 'Sidebar menu', flipper: :trips_dashboard do
   let!(:resources) do
     %w[
       freight_billing trips transport_documents manifests route_distances customers customer_groups product_groups
-      macro_regions cities truck_groups excluded_issuers drivers vehicles expenses commission_rules tonnage_rates
+      macro_regions cities truck_groups excluded_issuers holidays drivers vehicles expenses commission_rules tonnage_rates
       insurance_rates freight_expenses company users
     ].index_with { |slug| create(:resource, slug:) }
   end
@@ -27,7 +27,7 @@ describe 'Sidebar menu', flipper: :trips_dashboard do
           'Inteligência', 'Faturamento', 'Viagens',
           'Fiscal', 'CT-es', 'Manifestos', 'Trechos de km',
           'Cadastros', 'Clientes', 'Grupos de clientes', 'Grupos de produtos', 'Macro regiões', 'Cidades',
-          'Grupos de caminhões', 'Emissores desconsiderados', 'Motoristas', 'Veículos', 'Despesas',
+          'Grupos de caminhões', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',
           'Regras de comissão', 'Custos por tonelada', 'Alíquota de seguro', 'Despesas de frete',
           'Empresa', 'Usuários'
         ],

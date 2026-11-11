@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_135021) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_182811) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,6 +27,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_135021) do
   create_enum "commission_rule_destination_type", ["national", "foreign"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
   create_enum "freight_expense_kind_type", ["commission", "tonnage", "insurance", "tarp_lining", "fuel"]
+  create_enum "holiday_kind_type", ["holiday", "bridge_day", "optional"]
+  create_enum "holiday_scope_type", ["national", "state", "municipal"]
   create_enum "location_precision_type", ["address", "city"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
@@ -857,6 +859,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_135021) do
     t.index ["scheduled_at"], name: "index_good_jobs_on_scheduled_at", where: "(finished_at IS NULL)"
   end
 
+  create_table "holidays", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.date "date", null: false
+    t.string "name", null: false
+    t.enum "scope_type", default: "national", null: false, enum_type: "holiday_scope_type"
+    t.enum "kind_type", default: "holiday", null: false, enum_type: "holiday_kind_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "date"], name: "index_holidays_on_tenant_id_and_date", unique: true
+    t.index ["tenant_id"], name: "index_holidays_on_tenant_id"
+  end
+
   create_table "insurance_rates", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.decimal "insurance_percentage", precision: 7, scale: 4, null: false
@@ -1076,6 +1090,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_135021) do
   add_foreign_key "freight_expenses", "tenants"
   add_foreign_key "freight_expenses", "tonnage_rates"
   add_foreign_key "freight_expenses", "truck_groups"
+  add_foreign_key "holidays", "tenants"
   add_foreign_key "insurance_rates", "tenants"
   add_foreign_key "macro_regions", "tenants"
   add_foreign_key "product_groups", "product_groups", column: "parent_id"

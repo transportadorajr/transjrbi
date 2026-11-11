@@ -26,6 +26,8 @@ module Admin
         super
         create_owner
       end
+
+      Holidays::SeedNationalCommand.call(tenant)
     end
 
     private

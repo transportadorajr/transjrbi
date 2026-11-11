@@ -31,6 +31,7 @@ class Tenant < ApplicationRecord
   has_many :route_distances, dependent: :delete_all
   has_many :excluded_drivers, dependent: :delete_all
   has_many :drivers, dependent: :delete_all
+  has_many :holidays, dependent: :delete_all
 
   validates :name, :legal_id, :trade_name, presence: true
   validates :legal_id, uniqueness: true

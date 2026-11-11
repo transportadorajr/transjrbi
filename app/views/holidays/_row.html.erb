@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="text-nowrap"><%= holiday_date(item) %></td>
+  <td class="fw-semibold text-break"><%= item.name %></td>
+  <td class="d-none d-md-table-cell"><%= item.scope_type_name %></td>
+  <td class="d-none d-md-table-cell"><%= item.kind_type_name %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(holidays_menu(item)) %>
+  </td>
+</tr>

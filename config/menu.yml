@@ -70,6 +70,11 @@ shared:
           url: /excluded_issuers
           controllers:
             - excluded_issuers
+        - name: holidays
+          resource: holidays
+          url: /holidays
+          controllers:
+            - holidays
         - name: drivers
           resource: drivers
           url: /drivers

@@ -36,6 +36,7 @@ end
   'truck_groups' => { name: 'Grupos de caminhões', writable: true },
   'excluded_issuers' => { name: 'Emissores desconsiderados', writable: true },
   'route_distances' => { name: 'Trechos de km', writable: true },
+  'holidays' => { name: 'Feriados', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)
@@ -51,4 +52,5 @@ Tenant.find_each do |tenant|
   FreightExpenses::CalculateTarpLiningCommand.call(tenant)
   TruckGroups::BackfillCommand.call(tenant)
   ProductGroups::BackfillCommand.call(tenant)
+  Holidays::SeedNationalCommand.call(tenant)
 end
