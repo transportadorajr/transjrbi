@@ -288,6 +288,10 @@ module Atua
       taker&.customer_group&.name.presence || taker_name
     end
 
+    def driver_display_name
+      driver&.display_name.presence || driver_name.presence
+    end
+
     def canceled?
       canceled_at.present?
     end

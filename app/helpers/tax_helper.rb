@@ -28,6 +28,12 @@ module TaxHelper
     t('tax.city', city:, state:)
   end
 
+  def tax_identity(number, plate)
+    return number if plate.blank?
+
+    safe_join([number, content_tag(:span, t('tax.plate', plate:), class: 'd-md-none')], ' ')
+  end
+
   def tax_list(values)
     values.compact_blank.join(', ').presence || t('tax.blank')
   end

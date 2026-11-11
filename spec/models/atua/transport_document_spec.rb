@@ -371,6 +371,28 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '#driver_display_name' do
+    it 'returns the display name of the registered driver' do
+      create(:driver, tenant:, code: 20, display_name: 'MARIA')
+      transport_document = create(:atua_transport_document, tenant:, driver_code: 20, driver_name: 'MARIA SOUZA')
+
+      expect(transport_document.driver_display_name).to eq('MARIA')
+    end
+
+    it 'returns the driver name of the document when the driver is not registered' do
+      create(:driver, tenant: other_tenant, code: 20, display_name: 'MARIA')
+      transport_document = create(:atua_transport_document, tenant:, driver_code: 20, driver_name: 'MARIA SOUZA')
+
+      expect(transport_document.driver_display_name).to eq('MARIA SOUZA')
+    end
+
+    it 'returns no name when the document has no driver' do
+      transport_document = create(:atua_transport_document, tenant:, driver_code: nil, driver_name: '')
+
+      expect(transport_document.driver_display_name).to be_nil
+    end
+  end
+
   describe '#toll_placement' do
     context 'with tolls inside and outside the gross freight' do
       let!(:included) do

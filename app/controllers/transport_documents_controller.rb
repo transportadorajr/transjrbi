@@ -60,7 +60,7 @@ class TransportDocumentsController < BaseController
                Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
                Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
                id: :desc, except: hidden_sort_columns)
-      .preload(taker: :customer_group)
+      .preload(:driver, taker: :customer_group)
   end
 
   def hidden_sort_columns

@@ -62,8 +62,6 @@ module ManifestsHelper
                [Atua::Manifest.human_attribute_name(:documents_total), freight_money(manifest.gross_cents)],
                [Atua::Manifest.human_attribute_name(:gross_per_km), freight_money(manifest.gross_per_km_cents)]]
     details << [Atua::Manifest.human_attribute_name(:net_per_km), freight_money(manifest.net_per_km_cents)] if can?(:read, :freight_expenses)
-    details << [Atua::Manifest.human_attribute_name(:duration), manifest_duration(manifest)]
-    details << [Atua::Manifest.human_attribute_name(:net_per_hour), freight_money(manifest.net_per_hour_cents)] if can?(:read, :freight_expenses)
 
     details + [[Atua::Manifest.human_attribute_name(:customer_group), manifest_names(manifest.customer_groups)],
                [Atua::Manifest.human_attribute_name(:origin), manifest_cities(manifest.origins)],

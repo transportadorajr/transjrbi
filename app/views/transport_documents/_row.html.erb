@@ -1,16 +1,17 @@
 <tr id="<%= dom_id(item) %>">
   <td>
     <div class="table-identity">
-      <%= link_to item.number, transport_document_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
-      <span class="text-muted text-small d-block text-break"><%= tax_value(item.sender_name) %></span>
+      <%= link_to tax_identity(item.number, item.plate), transport_document_path(item), class: 'fw-semibold text-decoration-none text-body text-nowrap' %>
+      <%= render 'mobile_details', item: %>
     </div>
   </td>
-  <td class="text-nowrap"><%= transport_document_kind_name(item) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.plate) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= transport_document_kind_name(item) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= tax_date(item.posted_on) %></td>
-  <td class="d-none d-xl-table-cell"><%= transport_document_route(item) %></td>
-  <td class="d-none d-xl-table-cell text-nowrap"><%= tax_value(item.plate) %></td>
-  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.customer_group_name) %></td>
-  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.driver_name) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.driver_display_name) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_city(item.origin_city, item.origin_state) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_city(item.destination_city, item.destination_state) %></td>
+  <td class="d-none d-xl-table-cell text-break"><%= tax_value(item.customer_group_name) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= tax_money(item.freight) %></td>
   <%= freight_net_cell(item, class: 'd-none d-md-table-cell text-nowrap') %>
   <td class="text-end text-nowrap">

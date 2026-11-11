@@ -254,7 +254,7 @@ module Atua
         .select { |transport_document| transport_document.driver_code && transport_document.document_kind != MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'] }
         .min_by { |transport_document| [-transport_document.freight_cents.to_i, transport_document.id] }
 
-      document&.driver&.display_name.presence || document&.driver_name.presence
+      document&.driver_display_name
     end
 
     def customer_groups

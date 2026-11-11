@@ -50,6 +50,19 @@ module TransportDocumentsHelper
       destination: tax_city(transport_document.destination_city, transport_document.destination_state))
   end
 
+  def transport_document_mobile_details(transport_document)
+    details = [[Atua::TransportDocument.human_attribute_name(:document_kind), transport_document_kind_name(transport_document)],
+               [Atua::TransportDocument.human_attribute_name(:posted_on), tax_date(transport_document.posted_on)],
+               [Atua::TransportDocument.human_attribute_name(:gross), tax_money(transport_document.freight)]]
+    details << [Atua::TransportDocument.human_attribute_name(:net), freight_money(transport_document.net_cents)] if can?(:read, :freight_expenses)
+
+    details + [[Atua::TransportDocument.human_attribute_name(:driver_name), tax_value(transport_document.driver_display_name)],
+               [Atua::TransportDocument.human_attribute_name(:customer_group), tax_value(transport_document.customer_group_name)],
+               [Atua::TransportDocument.human_attribute_name(:origin), tax_city(transport_document.origin_city, transport_document.origin_state)],
+               [Atua::TransportDocument.human_attribute_name(:destination),
+                tax_city(transport_document.destination_city, transport_document.destination_state)]]
+  end
+
   def transport_document_title(key, transport_document)
     t(key, kind: transport_document_kind_name(transport_document), number: transport_document.number)
   end
@@ -156,7 +169,8 @@ module TransportDocumentsHelper
   def transport_documents_pdf_columns
     columns = [pdf_column(Atua::TransportDocument.human_attribute_name(:number)),
                pdf_column(Atua::TransportDocument.human_attribute_name(:document_kind)), pdf_column(Atua::TransportDocument.human_attribute_name(:sender), '2fr'),
-               pdf_column(Atua::TransportDocument.human_attribute_name(:posted_on)), pdf_column(Atua::TransportDocument.human_attribute_name(:route), '2.5fr'),
+               pdf_column(Atua::TransportDocument.human_attribute_name(:posted_on)), pdf_column(Atua::TransportDocument.human_attribute_name(:origin), '1.5fr'),
+               pdf_column(Atua::TransportDocument.human_attribute_name(:destination), '1.5fr'),
                pdf_column(Atua::TransportDocument.human_attribute_name(:plate)), pdf_column(Atua::TransportDocument.human_attribute_name(:customer_group), '2fr'),
                pdf_column(Atua::TransportDocument.human_attribute_name(:driver_name), '2fr'),
                pdf_column(Atua::TransportDocument.human_attribute_name(:gross), align: :right)]
@@ -167,8 +181,9 @@ module TransportDocumentsHelper
 
   def transport_document_pdf_row(transport_document)
     row = [transport_document.number, transport_document_kind_name(transport_document), tax_value(transport_document.sender_name), tax_date(transport_document.posted_on),
-           transport_document_route(transport_document), tax_value(transport_document.plate), tax_value(transport_document.customer_group_name),
-           tax_value(transport_document.driver_name), tax_money(transport_document.freight)]
+           tax_city(transport_document.origin_city, transport_document.origin_state),
+           tax_city(transport_document.destination_city, transport_document.destination_state), tax_value(transport_document.plate),
+           tax_value(transport_document.customer_group_name), tax_value(transport_document.driver_display_name), tax_money(transport_document.freight)]
     row << freight_money(transport_document.net_cents) if can?(:read, :freight_expenses)
 
     row

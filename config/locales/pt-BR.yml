@@ -1145,6 +1145,7 @@ pt-BR:
   tax:
     blank: '-'
     city: '%{city}/%{state}'
+    plate: '- %{plate}'
     situations:
       valid: Válido
       canceled: Cancelado
