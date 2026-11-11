@@ -44,6 +44,14 @@ class Tenant < ApplicationRecord
 
   encrypts :atua_device_token
   encrypts :atua_device_hash
+
+  def billable_freights
+    atua_transport_documents.freights.without_issuers(excluded_issuers.select(:code))
+  end
+
+  def last_synced_at
+    atua_imports.succeeded.maximum(:finished_at)
+  end
 end
 
 # == Schema Information

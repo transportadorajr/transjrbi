@@ -19,7 +19,7 @@ class FreightBillingsController < BaseController
     @product_groups = current_tenant.product_groups.groups.activated.order(:name)
     load_product_options
     @macro_regions = current_tenant.macro_regions.order(:name)
-    @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
+    @last_synced_at = current_tenant.last_synced_at
     @rows = listing_page(@dashboard.sorted_rows(params[:sort], params[:direction]))
 
     respond_with_listing(orientation: :landscape)
@@ -85,7 +85,7 @@ class FreightBillingsController < BaseController
   end
 
   def documents
-    documents = apply_scopes(current_tenant.atua_transport_documents.freights).without_issuers(current_tenant.excluded_issuers.select(:code))
+    documents = apply_scopes(current_tenant.billable_freights)
     truck_group_id = @filter_form.truck_group_id
     return documents if truck_group_id.blank?
 

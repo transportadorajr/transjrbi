@@ -63,7 +63,7 @@ class TripsController < BaseController
     @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
     @product_groups = current_tenant.product_groups.groups.activated.order(:name)
     load_product_options
-    @last_synced_at = current_tenant.atua_imports.succeeded.maximum(:finished_at)
+    @last_synced_at = current_tenant.last_synced_at
   end
 
   def manifests
