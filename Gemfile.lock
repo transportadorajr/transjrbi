@@ -330,7 +330,7 @@ GEM
       racc (~> 1.4)
     orm_adapter (0.5.0)
     ostruct (0.6.3)
-    overcommit (0.74.0)
+    overcommit (0.75.0)
       childprocess (>= 5.0.0, < 6)
       iniparse (~> 1.4)
       rexml (>= 3.4.2)
@@ -837,7 +837,7 @@ CHECKSUMS
   nokogiri (1.19.7-x86_64-linux-musl) sha256=464d1f3dfb0d53cf54c0c6a7e23e8e91cf68ec3cafc2b27dc4a7682f2d9bf546
   orm_adapter (0.5.0) sha256=aa5d0be5d540cbb46d3a93e88061f4ece6a25f6e97d6a47122beb84fe595e9b9
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
-  overcommit (0.74.0) sha256=f31e3f1bc9f4bafe985db753994cff1fa30aaca1f7ee39c05cac6a3bf3bfd289
+  overcommit (0.75.0) sha256=dc0330a76e4c7b11d82e93e6011d181d2f08bc109a3bfbd21f91dea51269e522
   paper_trail (17.0.0) sha256=1c2842061d3874ca7015908e821e2aa14f9b982af2acb2a7974713bf79021c85
   paper_trail-globalid (0.2.0) sha256=6e99dc41251abce355e596c34715df1e85f5d6e4446e0ea3de97c06faccc4a22
   parallel (2.3.0) sha256=f75a3e904101ce6a1ccb6b8dc800cbafd42166d83330192438dcf29395167a6f
