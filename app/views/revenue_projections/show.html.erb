@@ -3,15 +3,23 @@
 <div class="page-shell">
   <%= page_header_tag t('.title'), subtitle: t('.subtitle'), note: revenue_projection_last_sync_label(@last_synced_at) %>
 
-  <div class="row g-3 mb-4">
-    <%= render 'projection_card', projection: @month, id: 'month_projection' %>
-    <%= render 'projection_card', projection: @week, id: 'week_projection' %>
+  <div class="dashboard-filter-bar mb-4">
+    <span class="dashboard-filter-label"><%= t('.period_label') %></span>
+
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.period_label') } do %>
+      <% revenue_projection_periods.each do |period_type| %>
+        <%= link_to revenue_projection_period_label(period_type), revenue_projection_path(period: period_type),
+                    class: revenue_projection_period_link_class(period_type, @period_type) %>
+      <% end %>
+    <% end %>
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-12">
-      <%= render 'freight_billings/chart_card', title: t('.chart_title'), subtitle: t('.chart_subtitle'),
-                                                chart: revenue_projection_chart(@month) %>
+    <%= render 'projection_card', projection: @projection %>
+
+    <div class="col-12 col-xl-7">
+      <%= render 'freight_billings/chart_card', title: revenue_projection_chart_title(@projection), subtitle: t('.chart_subtitle'),
+                                                chart: revenue_projection_charts(@projection) %>
     </div>
   </div>
 

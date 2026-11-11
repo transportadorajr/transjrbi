@@ -1712,6 +1712,9 @@ pt-BR:
       excluded_issuer_data_text: >-
         Escolha o usuário do Atua que emitiu os CT-es ou CEs. Só aparecem os usuários que já emitiram algum documento.
   revenue_projections:
+    periods:
+      week: Sem. atual
+      month: Mês atual
     show:
       title: Projeção de faturamento
       subtitle: Quanto já faturamos e onde devemos fechar o mês e a semana no ritmo atual.
@@ -1726,8 +1729,11 @@ pt-BR:
       holiday: '%{date} %{name}'
       holidays_alert: 'Projeção ajustada pelos feriados do período: %{holidays}.'
       no_history: Ainda não há histórico de faturamento suficiente; a projeção considera só o que já foi faturado.
-      chart_title: Faturamento acumulado do mês
-      chart_subtitle: O faturado até agora e a projeção dia a dia até o fim do mês.
+      period_label: Período
+      chart_title:
+        month: Faturamento acumulado do mês
+        week: Faturamento acumulado da semana
+      chart_subtitle: O faturado até agora e a projeção dia a dia até o fim do período.
       method: >-
         A projeção soma o que já foi faturado ao faturamento típico de cada dia que falta (mediana das últimas 12
         semanas do mesmo dia da semana) e reduz os feriados e as emendas cadastrados em Feriados. A faixa provável vai

@@ -1,5 +1,4 @@
 class RevenueProjectionsController < BaseController
-  PERIOD_TYPES = %i[month week].freeze
   CACHE_TTL = 1.hour
 
   before_action :require_revenue_projection
@@ -8,7 +7,8 @@ class RevenueProjectionsController < BaseController
     authorize!(:read, :revenue_projection)
 
     @last_synced_at = current_tenant.last_synced_at
-    @month, @week = PERIOD_TYPES.map { |period_type| Dashboard::RevenueProjection.new(projection(period_type)) }
+    @period_type = Dashboard::RevenueProjection.sanitize_period_type(params[:period])
+    @projection = Dashboard::RevenueProjection.new(projection(@period_type.to_sym))
   end
 
   private

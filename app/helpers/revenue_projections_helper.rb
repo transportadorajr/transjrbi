@@ -4,6 +4,26 @@ module RevenueProjectionsHelper
     { color: ChartsHelper::BRAND_BLUE, dataset: { borderColor: ChartsHelper::BRAND_BLUE, backgroundColor: ChartsHelper::BRAND_BLUE } },
     { color: PROJECTED_ORANGE, dataset: { borderColor: PROJECTED_ORANGE, backgroundColor: PROJECTED_ORANGE, borderDash: [6, 4] } },
   ].freeze
+  COMPACT_LABEL_ALIGNS = [40, 200].freeze
+  COMPACT_POINT_RADIUS = 4
+  COMPACT_DATE_TICKS = 6
+  COMPACT_VALUE_TICKS = 4
+
+  def revenue_projection_periods
+    Dashboard::RevenueProjection::PERIOD_TYPES
+  end
+
+  def revenue_projection_period_label(period_type)
+    t(period_type, scope: 'revenue_projections.periods')
+  end
+
+  def revenue_projection_period_link_class(period_type, selected)
+    "btn btn-sm #{period_type == selected ? 'btn-primary' : 'btn-outline-secondary'}"
+  end
+
+  def revenue_projection_chart_title(projection)
+    t(projection.period_type, scope: 'revenue_projections.show.chart_title')
+  end
 
   def revenue_projection_last_sync_label(last_synced_at)
     return t('revenue_projections.show.never_synced') unless last_synced_at
@@ -33,13 +53,54 @@ module RevenueProjectionsHelper
     safe_join([revenue_projection_holidays_alert(projection), revenue_projection_history_alert(projection)].compact)
   end
 
+  def revenue_projection_charts(projection)
+    safe_join([
+                tag.div(revenue_projection_chart(projection), class: 'd-none d-md-block'),
+                tag.div(revenue_projection_compact_chart(projection), class: 'd-md-none'),
+              ])
+  end
+
   def revenue_projection_chart(projection)
     line_chart(projection.chart_data.zip(PROJECTION_SERIES).map { |serie, style| serie.merge(style) },
                height: ChartsHelper::CHART_HEIGHT, legend: 'bottom', discrete: true, points: false, **chart_money_options,
                library: chart_bar_library(:x))
   end
 
+  def revenue_projection_compact_chart(projection)
+    line_chart(revenue_projection_compact_series(projection), height: ChartsHelper::CHART_HEIGHT, legend: 'bottom', discrete: true,
+                                                              points: false, **chart_money_options, round: 0, zeros: false,
+                                                              library: revenue_projection_compact_library)
+  end
+
+  def revenue_projection_compact_series(projection)
+    labels_count = projection.period.count
+    last_indexes = [projection.chart_data.first[:data].size - 1, labels_count - 1]
+
+    projection.chart_data.zip(PROJECTION_SERIES, COMPACT_LABEL_ALIGNS, last_indexes).map do |serie, style, align, last_index|
+      serie.merge(style).deep_merge(dataset: revenue_projection_point_dataset(labels_count, last_index, align))
+    end
+  end
+
   private
+
+  def revenue_projection_point_dataset(labels_count, point_index, align)
+    last_point = Array.new(labels_count) { |index| index == point_index }
+
+    {
+      pointRadius: last_point.map { it ? COMPACT_POINT_RADIUS : 0 },
+      datalabels: { display: last_point, align:, offset: 6, clamp: true, font: { size: 11, weight: 700 } },
+    }
+  end
+
+  def revenue_projection_compact_library
+    chart_bar_library(:x).deep_merge(
+      layout: { padding: { top: 16, right: 8 } },
+      scales: {
+        x: { ticks: { autoSkip: true, maxTicksLimit: COMPACT_DATE_TICKS, maxRotation: 0 } },
+        y: { ticks: { maxTicksLimit: COMPACT_VALUE_TICKS } },
+      },
+    )
+  end
 
   def revenue_projection_holidays_alert(projection)
     holidays = projection.upcoming_holidays

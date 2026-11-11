@@ -36,7 +36,7 @@ describe 'Revenue projection', flipper: { revenue_projection: :tenant } do
         create(:atua_import, tenant:, status_type: 'succeeded', finished_at: now)
       end
 
-      scenario 'shows the realized and the projected billing of the month and of the week from the intelligence menu' do
+      scenario 'shows the projection of the current month from the intelligence menu' do
         visit root_path
         within('.sidebar-desktop') do
           click_on 'Inteligência'
@@ -46,20 +46,41 @@ describe 'Revenue projection', flipper: { revenue_projection: :tenant } do
         expect(page).to have_current_path(revenue_projection_path)
         expect(page).to have_css('h1.page-title', text: 'Projeção de faturamento')
         expect(page).to have_text('Dados do Atua até 11/11/2026 15:00')
+        expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Mês atual')
         expect(page).to have_text('Mês de novembro de 2026')
-        expect(dl_to_hash('#month_projection')).to eq(
+        expect(dl_to_hash('#projection')).to eq(
           'Faturado até 11/11/2026 15:00' => 'R$ 8.500,00',
           'Projeção até 30/11/2026 23:59' => 'R$ 23.000,00',
           'Faixa provável' => 'R$ 23.000,00 a R$ 23.000,00',
         )
+        expect(page).to have_text('Faturamento acumulado do mês')
+        expect(page).to have_no_text('Projeção ajustada pelos feriados')
+      end
+
+      scenario 'switches to the projection of the current week' do
+        visit revenue_projection_path
+        click_on 'Sem. atual'
+
+        expect(page).to have_current_path(revenue_projection_path(period: 'week'))
+        expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Sem. atual')
         expect(page).to have_text('Semana de 08/11 a 14/11')
-        expect(dl_to_hash('#week_projection')).to eq(
+        expect(dl_to_hash('#projection')).to eq(
           'Faturado até 11/11/2026 15:00' => 'R$ 3.000,00',
           'Projeção até 14/11/2026 23:59' => 'R$ 5.500,00',
           'Faixa provável' => 'R$ 5.500,00 a R$ 5.500,00',
         )
-        expect(page).to have_text('Faturamento acumulado do mês')
-        expect(page).to have_no_text('Projeção ajustada pelos feriados')
+        expect(page).to have_text('Faturamento acumulado da semana')
+
+        click_on 'Mês atual'
+
+        expect(page).to have_current_path(revenue_projection_path(period: 'month'))
+        expect(page).to have_text('Mês de novembro de 2026')
+      end
+
+      scenario 'falls back to the month with an unknown period' do
+        visit revenue_projection_path(period: 'year')
+
+        expect(page).to have_text('Mês de novembro de 2026')
       end
 
       context 'with a holiday ahead in the month' do
@@ -68,11 +89,13 @@ describe 'Revenue projection', flipper: { revenue_projection: :tenant } do
         scenario 'reduces the projection of the month and warns about the holiday' do
           visit revenue_projection_path
 
-          expect(dl_to_hash('#month_projection')).to include('Projeção até 30/11/2026 23:59' => 'R$ 22.300,00')
-          expect(dl_to_hash('#week_projection')).to include('Projeção até 14/11/2026 23:59' => 'R$ 5.500,00')
-          expect(page).to have_text(
-            'Projeção ajustada pelos feriados do período: 20/11 Dia Nacional de Zumbi e da Consciência Negra.', count: 1
-          )
+          expect(dl_to_hash('#projection')).to include('Projeção até 30/11/2026 23:59' => 'R$ 22.300,00')
+          expect(page).to have_text('Projeção ajustada pelos feriados do período: 20/11 Dia Nacional de Zumbi e da Consciência Negra.')
+
+          click_on 'Sem. atual'
+
+          expect(dl_to_hash('#projection')).to include('Projeção até 14/11/2026 23:59' => 'R$ 5.500,00')
+          expect(page).to have_no_text('Projeção ajustada pelos feriados')
         end
       end
     end
@@ -84,12 +107,12 @@ describe 'Revenue projection', flipper: { revenue_projection: :tenant } do
         visit revenue_projection_path
 
         expect(page).to have_text('Nenhuma importação do Atua concluída ainda')
-        expect(dl_to_hash('#month_projection')).to eq(
+        expect(dl_to_hash('#projection')).to eq(
           'Faturado até 11/11/2026 15:00' => 'R$ 1.000,00',
           'Projeção até 30/11/2026 23:59' => 'R$ 1.000,00',
           'Faixa provável' => 'R$ 1.000,00 a R$ 1.000,00',
         )
-        expect(page).to have_text('Ainda não há histórico de faturamento suficiente', count: 2)
+        expect(page).to have_text('Ainda não há histórico de faturamento suficiente')
       end
     end
   end
@@ -130,12 +153,18 @@ describe 'Revenue projection', flipper: { revenue_projection: :tenant } do
       login_as(owner, scope: :user)
     end
 
-    scenario 'stacks the cards and does not scroll sideways' do
+    scenario 'shows the compact chart and does not scroll sideways' do
       visit revenue_projection_path
       use_mobile_screen
 
-      expect(page).to have_css('#month_projection')
-      expect(page).to have_css('#week_projection')
+      expect(page).to have_css('#projection')
+      expect(page).to have_css('.d-md-none canvas')
+      expect(page).to have_no_css('.d-none.d-md-block canvas', visible: :visible)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+
+      click_on 'Sem. atual'
+
+      expect(page).to have_current_path(revenue_projection_path(period: 'week'))
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end

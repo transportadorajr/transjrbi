@@ -1,11 +1,17 @@
 module Dashboard
   class RevenueProjection
     FEATURE = :revenue_projection
+    PERIOD_TYPES = %w[week month].freeze
+    DEFAULT_PERIOD_TYPE = 'month'.freeze
     LABEL_FORMAT = :chart_week
 
     class << self
       def enabled?(tenant)
         Flipper.enabled?(FEATURE, tenant)
+      end
+
+      def sanitize_period_type(period_type)
+        PERIOD_TYPES.include?(period_type.to_s) ? period_type.to_s : DEFAULT_PERIOD_TYPE
       end
     end
 
@@ -30,22 +36,34 @@ module Dashboard
 
     attr_reader :result
 
+    def anchor_date
+      reference_date == period.last ? reference_date.yesterday : reference_date
+    end
+
     def realized_points
       total = 0
 
-      result.days.take_while { it.date <= reference_date }.to_h do |day|
+      anchored_days.to_h do |day|
         total += day.realized_cents
         [label(day.date), reais(total)]
       end
     end
 
     def projected_points
-      total = result.realized_cents
+      total = anchored_days.sum(&:realized_cents)
+      carried = anchored_days.sum(&:expected_cents)
 
-      result.days.drop_while { it.date < reference_date }.to_h do |day|
-        total += day.expected_cents
-        [label(day.date), reais(total)]
-      end
+      { label(anchor_date) => reais(total) }.merge(
+        result.days.drop(anchored_days.size).to_h do |day|
+          total += day.realized_cents + day.expected_cents + carried
+          carried = 0
+          [label(day.date), reais(total)]
+        end,
+      )
+    end
+
+    def anchored_days
+      @anchored_days ||= result.days.take_while { it.date <= anchor_date }
     end
 
     def label(date)
