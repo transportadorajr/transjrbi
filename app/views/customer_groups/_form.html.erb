@@ -22,6 +22,12 @@
                       hint: t('customer_groups.form.active_hint'),
                       input_html: { class: 'form-check-input me-2' } %>
         </div>
+        <div class="col-12">
+          <%= f.input :toll_reimbursed,
+                      as: :boolean,
+                      hint: t('customer_groups.form.toll_reimbursed_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
       </div>
     </div>
 

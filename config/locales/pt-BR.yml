@@ -176,6 +176,7 @@ pt-BR:
         status: Status
         activated_at: Ativado em
         customers: Clientes
+        toll_reimbursed: Pedágio recobrado
       product_group:
         name: Nome
         parent: Grupo
@@ -572,6 +573,7 @@ pt-BR:
         name: Nome
         terms: Termos
         active: Ativo
+        toll_reimbursed: Pedágio recobrado do cliente
       product_group_form:
         name: Nome
         parent_id: Grupo
@@ -1314,6 +1316,9 @@ pt-BR:
       edit: Alterar
       regroup: Reagrupar
       confirm_regroup: Mover para este grupo os clientes que contêm os termos e ainda estão em um grupo sem termos?
+      toll:
+        reimbursed: Sim, não descontado do frete líquido
+        discounted: Não, descontado do frete líquido
     new:
       title: Novo Grupo
       back: Voltar para grupos de clientes
@@ -1338,6 +1343,9 @@ pt-BR:
         Um termo por linha. Todo cliente cujo nome ou nome fantasia contenha um dos termos entra neste grupo
         (acentos, espaços e pontuação são ignorados).
       active_hint: Desmarque para deixar de usar o grupo sem perder os clientes vinculados.
+      toll_reimbursed_hint: >-
+        Marque quando o pedágio pago pela JR é cobrado do cliente depois, em CT-e de complemento. O pedágio dos CT-es
+        deste grupo deixa de ser descontado do frete líquido.
   product_groups:
     unclassified_alert:
       title:
@@ -1881,7 +1889,7 @@ pt-BR:
         indicators: Indicadores
     toll_legend:
       toll: Pedágio pago pela JR, descontado do frete líquido
-      undiscounted_toll: Pedágio pago pelo cliente em TAG, não descontado do frete líquido
+      undiscounted_toll: Pedágio pago ou recobrado do cliente, não descontado do frete líquido
     freights:
       row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
       total: Total
@@ -1922,7 +1930,7 @@ pt-BR:
       freight_expenses: Despesas de frete
       expenses: Despesas
       toll: Pedágio pago pela JR
-      undiscounted_toll: Pedágio pago pelo cliente (TAG)
+      undiscounted_toll: Pedágio pago ou recobrado do cliente
       toll_total: Pedágio
       net: Frete líquido
       gross_per_km: Bruto/km

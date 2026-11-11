@@ -428,6 +428,29 @@ RSpec.describe Atua::TransportDocument do
         [['74754', 47_770], ['74765', 74_640], ['74800', 50_000], ['74801', 90_000], ['74802', 0], ['74817', 103_544]],
       )
     end
+
+    context 'when the customer group of the taker has its toll reimbursed' do
+      let!(:reimbursed_group) { create(:customer_group, tenant:, name: 'INDEMIL', toll_reimbursed: true) }
+      let!(:other_tenant_group) { create(:customer_group, tenant: create(:tenant), name: 'INDEMIL', toll_reimbursed: true) }
+
+      before do
+        create(:atua_customer, tenant:, code: 341, customer_group: reimbursed_group)
+        create(:atua_customer, tenant: other_tenant_group.tenant, code: 342, customer_group: other_tenant_group)
+        route_without_toll.update!(taker_code: 341)
+        with_toll_in_freight.update!(taker_code: 341)
+        paid_on_tag.update!(taker_code: 342)
+      end
+
+      it 'moves the toll from the discounted toll to the toll paid by the customer' do
+        documents = [with_toll_in_freight, route_without_toll, paid_on_tag]
+        tolls = described_class.where(id: documents).order(:number)
+          .pluck(:number, described_class.discounted_toll, described_class.undiscounted_toll)
+
+        expect(tolls.map { |number, discounted, undiscounted| [number, discounted.to_i, undiscounted.to_i] }).to eq(
+          [['74754', 0, 47_770], ['74765', 0, 74_640], ['74817', 103_544, 0]],
+        )
+      end
+    end
   end
 
   describe 'toll from Atua' do

@@ -15,6 +15,10 @@ module CustomerGroupsHelper
     status_badge(t('customer_groups.index.deactivated'), kind: :danger)
   end
 
+  def customer_group_toll_reimbursed(customer_group)
+    t(customer_group.toll_reimbursed? ? :reimbursed : :discounted, scope: 'customer_groups.show.toll')
+  end
+
   def customer_group_customers_count(customer_group, customer_counts)
     customer_counts.fetch(customer_group.id, 0)
   end

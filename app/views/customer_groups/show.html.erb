@@ -29,6 +29,9 @@
         <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:status) %></dt>
         <dd class="col-12 col-md-9"><%= customer_group_status_badge(@customer_group) %></dd>
 
+        <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:toll_reimbursed) %></dt>
+        <dd class="col-12 col-md-9"><%= customer_group_toll_reimbursed(@customer_group) %></dd>
+
         <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:customers) %></dt>
         <dd class="col-12 col-md-9"><%= @customers.total_count %></dd>
       </dl>

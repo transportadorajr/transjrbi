@@ -230,12 +230,15 @@ module Atua
       def discounted_toll
         Arel::Nodes::Case.new
           .when(toll_outside_freight).then(0)
-          .when(zero_if_null(:toll_cents).gt(0)).then(arel_table[:toll_cents])
-          .else(Arel::Nodes::Grouping.new(toll_vouchers_total.arel))
+          .when(toll_reimbursed_by_taker).then(0)
+          .else(carrier_toll)
       end
 
       def undiscounted_toll
-        Arel::Nodes::Case.new.when(toll_outside_freight).then(arel_table[:toll_cents]).else(0)
+        Arel::Nodes::Case.new
+          .when(toll_outside_freight).then(arel_table[:toll_cents])
+          .when(toll_reimbursed_by_taker).then(carrier_toll)
+          .else(0)
       end
 
       def toll_vouchers_total
@@ -254,6 +257,19 @@ module Atua
       end
 
       private
+
+      def carrier_toll
+        Arel::Nodes::Case.new
+          .when(zero_if_null(:toll_cents).gt(0)).then(arel_table[:toll_cents])
+          .else(Arel::Nodes::Grouping.new(toll_vouchers_total.arel))
+      end
+
+      def toll_reimbursed_by_taker
+        customers = Customer.arel_table
+
+        Customer.joins(:customer_group).where(customers[:tenant_id].eq(arel_table[:tenant_id]))
+          .where(customers[:code].eq(arel_table[:taker_code])).where(customer_groups: { toll_reimbursed: true }).arel.exists
+      end
 
       def toll_outside_freight
         columns = FREIGHT_PARTS.map { |column| zero_if_null(column) }

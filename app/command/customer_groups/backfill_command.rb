@@ -28,6 +28,7 @@ module CustomerGroups
       'MULTIAMIDOS' => ['MULTIAMIDOS'],
       'SOORO' => ['SOORO'],
     }.freeze
+    TOLL_REIMBURSED_GROUPS = %w[INDEMIL SOORO].freeze
 
     class << self
       def call(tenant)
@@ -62,7 +63,8 @@ module CustomerGroups
     end
 
     def find_or_create_group(name, terms)
-      group = tenant.customer_groups.create_with(activated_at: Time.current).find_or_create_by!(name:)
+      group = tenant.customer_groups.create_with(activated_at: Time.current, toll_reimbursed: TOLL_REIMBURSED_GROUPS.include?(name))
+        .find_or_create_by!(name:)
       group.update!(terms:) if group.terms.empty?
       group
     end
