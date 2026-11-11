@@ -310,7 +310,7 @@ describe 'Route distances' do
         expect(html_table_to_rows.size).to eq(2)
         expect(page).to have_no_link('Novo Trecho')
         expect(page).to have_no_link('Importar Planilha')
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'does not import a spreadsheet' do

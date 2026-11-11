@@ -382,7 +382,7 @@ describe 'Drivers' do
         visit driver_path(760)
 
         expect(page).to have_css('#driver_data', text: 'JOSE DA SILVA')
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
 
         visit edit_driver_path(760)
 

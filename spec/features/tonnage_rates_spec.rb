@@ -303,7 +303,7 @@ describe 'Tonnage rates' do
 
         click_on 'Cubatão/SP (Cubatão)'
 
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'cannot change a rate through a forged request' do

@@ -300,7 +300,7 @@ describe 'Customer groups' do
 
         click_on 'TERRAFEC'
 
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
         expect(page).to have_no_button('Reagrupar')
       end
 

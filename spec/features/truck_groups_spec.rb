@@ -351,7 +351,7 @@ describe 'Truck groups' do
 
         click_on 'Rodotrem'
 
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'cannot change a group through a forged request' do

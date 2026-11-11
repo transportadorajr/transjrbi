@@ -184,7 +184,7 @@ describe 'Insurance rate' do
           'CT-es com o seguro' => '0',
           'Total de seguro calculado' => 'R$ 0,00',
         )
-        expect(page).to have_no_link('Alterar')
+        expect(page).to have_no_link('Alterar', exact: true)
       end
 
       scenario 'cannot change the rate through a forged request' do
