@@ -41,13 +41,14 @@ describe 'Transport documents PDF report' do
 
         text = pdf_text
         expect(text).to include('Relatório de CT-es')
-        expect(text).to include('Número', 'Tipo do documento', 'Remetente', 'Dt Emissão', 'Origem / Destino', 'Placa', 'Grupo de clientes', 'Motorista',
+        expect(text).to include('Número', 'Tipo do documento', 'Remetente', 'Dt Emissão', 'Origem', 'Destino', 'Placa', 'Grupo de clientes', 'Motorista',
                                 'Frete bruto', 'Frete líquido')
-        expect(text).to include('74130', 'CT-e', 'USIMINAS & CIA "MG"', '01/10/2026', 'Ipatinga/MG → Betim/MG', 'EXU0F72', 'R$ 555,04')
+        expect(text).to include('74130', 'CT-e', 'USIMINAS & CIA "MG"', '01/10/2026', 'Ipatinga/MG', 'Betim/MG', 'EXU0F72', 'R$ 555,04')
         expect(text).to include('74135', 'GERDAU', '03/10/2026', 'RHJ4E07', 'R$ 1.200,00')
         expect(text).to include('2 registros listados.')
         expect(text).to include('Gerado em 06/11/2026 14:30.')
         expect(text).to include('Página 1')
+        expect(text).not_to include('Origem / Destino')
         expect(text).not_to include('74131')
         expect(text).not_to include('74133')
       end
