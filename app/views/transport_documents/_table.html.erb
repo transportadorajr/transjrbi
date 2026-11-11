@@ -3,14 +3,15 @@
     <thead>
       <tr>
         <th><%= Atua::TransportDocument.human_attribute_name(:number) %></th>
-        <th><%= Atua::TransportDocument.human_attribute_name(:document_kind) %></th>
-        <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:posted_on) %></th>
-        <th class="d-none d-xl-table-cell"><%= Atua::TransportDocument.human_attribute_name(:route) %></th>
-        <th class="d-none d-xl-table-cell"><%= Atua::TransportDocument.human_attribute_name(:plate) %></th>
-        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:customer_group), :customer_name, class: 'd-none d-lg-table-cell') %>
+        <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:plate) %></th>
+        <th class="d-none d-md-table-cell text-nowrap"><%= Atua::TransportDocument.human_attribute_name(:document_kind) %></th>
+        <th class="d-none d-md-table-cell text-nowrap"><%= Atua::TransportDocument.human_attribute_name(:posted_on) %></th>
         <%= sortable_header(Atua::TransportDocument.human_attribute_name(:driver_name), :driver_name, class: 'd-none d-lg-table-cell') %>
-        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:gross), :gross, first_direction: :desc, class: 'd-none d-md-table-cell') %>
-        <%= freight_net_header(Atua::TransportDocument, class: 'd-none d-md-table-cell') %>
+        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:origin) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:destination) %></th>
+        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:customer_group), :customer_name, class: 'd-none d-xl-table-cell') %>
+        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:gross), :gross, first_direction: :desc, class: 'd-none d-md-table-cell text-nowrap') %>
+        <%= freight_net_header(Atua::TransportDocument, class: 'd-none d-md-table-cell text-nowrap') %>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>

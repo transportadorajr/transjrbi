@@ -1,11 +1,11 @@
 <tr id="<%= dom_id(item) %>">
   <td>
     <div class="table-identity">
-      <%= link_to item.number, manifest_path(item), class: 'fw-semibold text-decoration-none text-body text-nowrap' %>
+      <%= link_to tax_identity(item.number, item.plate), manifest_path(item), class: 'fw-semibold text-decoration-none text-body text-nowrap' %>
       <%= render 'mobile_details', item: %>
     </div>
   </td>
-  <td class="text-nowrap"><%= tax_value(item.plate) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.plate) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.main_driver_name) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= manifest_cities(item.origins) %></td>
   <td class="d-none d-lg-table-cell text-break"><%= manifest_final_destination(item) %></td>
