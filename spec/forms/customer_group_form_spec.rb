@@ -68,7 +68,17 @@ RSpec.describe CustomerGroupForm do
       expect(form.name).to eq('TERRAFEC')
       expect(form.terms).to eq("2JM\nTERRAFEC")
       expect(form.active).to be(true)
+      expect(form.toll_reimbursed).to be(false)
       expect(form).to be_persisted
+    end
+
+    it 'marks the toll of the group as reimbursed' do
+      form = described_class.for_customer_group(customer_group)
+      form.assign_attributes(toll_reimbursed: '1')
+
+      expect(form.save).to be(true)
+      expect(customer_group.reload.toll_reimbursed).to be(true)
+      expect(described_class.for_customer_group(customer_group).toll_reimbursed).to be(true)
     end
 
     it 'updates the group keeping its own name available and the activation date' do

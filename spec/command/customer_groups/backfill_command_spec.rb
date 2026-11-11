@@ -45,6 +45,7 @@ RSpec.describe CustomerGroups::BackfillCommand do
         ],
       )
       expect(tenant.customer_groups.not_activated.count).to eq(0)
+      expect(tenant.customer_groups.where(toll_reimbursed: true).pluck(:name)).to contain_exactly('INDEMIL', 'SOORO')
       expect(jm.reload.customer_group.name).to eq('TERRAFEC')
       expect(terrinha.reload.customer_group.name).to eq('TERRAFEC')
       expect(steel.reload.customer_group.name).to eq('ARCELOR')
@@ -149,6 +150,16 @@ RSpec.describe CustomerGroups::BackfillCommand do
 
       expect([beverages, vac, regional, traditional].map { |customer| customer.reload.customer_group.name })
         .to eq([beverages, vac, regional, traditional].map(&:name))
+    end
+  end
+
+  context 'when the user stopped reimbursing the toll of a known group' do
+    let!(:indemil) { create(:customer_group, tenant:, name: 'INDEMIL', terms: ['INDEMIL'], toll_reimbursed: false) }
+
+    it 'keeps the toll discounted as the user chose' do
+      described_class.call(tenant)
+
+      expect(indemil.reload.toll_reimbursed).to be(false)
     end
   end
 

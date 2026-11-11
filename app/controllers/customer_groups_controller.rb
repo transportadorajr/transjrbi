@@ -91,6 +91,6 @@ class CustomerGroupsController < BaseController
   end
 
   def customer_group_params
-    params.expect(customer_group: %i[name terms active])
+    params.expect(customer_group: %i[name terms active toll_reimbursed])
   end
 end

@@ -51,13 +51,14 @@ end
 #
 # Table name: customer_groups
 #
-#  id           :bigint           not null, primary key
-#  activated_at :datetime
-#  name         :string           not null
-#  terms        :string           default([]), not null, is an Array
-#  created_at   :datetime         not null
-#  updated_at   :datetime         not null
-#  tenant_id    :bigint           not null
+#  id              :bigint           not null, primary key
+#  activated_at    :datetime
+#  name            :string           not null
+#  terms           :string           default([]), not null, is an Array
+#  toll_reimbursed :boolean          default(FALSE), not null
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#  tenant_id       :bigint           not null
 #
 # Indexes
 #

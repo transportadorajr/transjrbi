@@ -258,6 +258,28 @@ describe 'Freight billing' do
         expect(page).to have_no_text('OUT1A11')
       end
 
+      context 'when the customer group has its toll reimbursed by a complement' do
+        before { usiminas.update!(toll_reimbursed: true) }
+
+        scenario 'does not discount the toll of its transport documents from the net freight' do
+          visit freight_billing_path(october_by_truck)
+
+          expect(Atua::TollVoucher.count).to eq(1)
+          expect(html_table_to_rows).to eq(
+            [
+              ['Veículo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
+              ['RVR2C34', 'R$ 15.000,00', 'R$ 14.350,00', 'R$ 250,00', '75,0%', ''],
+              ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', 'R$ 0,00', '25,0%', ''],
+              ['Total', 'R$ 20.000,00', 'R$ 19.350,00', 'R$ 250,00', '100,0%', ''],
+            ],
+          )
+          within('.freight-billing-table tr', text: 'RVR2C34') do
+            expect(page).to have_css('.freight-billing-toll-customer', text: 'R$ 250,00')
+            expect(page).to have_no_css('.freight-billing-toll-carrier')
+          end
+        end
+      end
+
       context 'when a truck billed too little to hold its value inside the bar' do
         before do
           create(:atua_manifest, tenant:, code: 41_010, plate: 'RVR1A11', trip_started_at: Time.zone.local(2026, 10, 12, 7))
@@ -599,7 +621,7 @@ describe 'Freight billing' do
 
             detail = row_detail('RVR8J90')
 
-            expect(detail).to include('Pedágio pago pelo cliente (TAG)' => 'R$ 400,00', 'Frete bruto' => 'R$ 11.000,00',
+            expect(detail).to include('Pedágio pago ou recobrado do cliente' => 'R$ 400,00', 'Frete bruto' => 'R$ 11.000,00',
                                       'Frete líquido' => 'R$ 11.000,00')
             expect(detail).not_to have_key('Pedágio pago pela JR')
             expect(html_table_to_rows.find { |row| row.first == 'RVR8J90' }).to include('R$ 400,00')
@@ -608,7 +630,7 @@ describe 'Freight billing' do
           scenario 'shows both tolls when the row mixes a discounted toll and one that is not' do
             visit freight_billing_path(october_by_truck)
 
-            expect(row_detail('Total')).to include('Pedágio pago pela JR' => 'R$ 250,00', 'Pedágio pago pelo cliente (TAG)' => 'R$ 400,00')
+            expect(row_detail('Total')).to include('Pedágio pago pela JR' => 'R$ 250,00', 'Pedágio pago ou recobrado do cliente' => 'R$ 400,00')
           end
 
           scenario 'colors the toll paid by the carrier apart from the toll the customer pays with a tag' do
@@ -628,7 +650,7 @@ describe 'Freight billing' do
               expect(page).to have_css('.freight-billing-toll-customer', text: 'R$ 400,00')
             end
             expect(all('.freight-billing-toll-legend-item').map(&:text)).to eq(
-              ['Pedágio pago pela JR, descontado do frete líquido', 'Pedágio pago pelo cliente em TAG, não descontado do frete líquido'],
+              ['Pedágio pago pela JR, descontado do frete líquido', 'Pedágio pago ou recobrado do cliente, não descontado do frete líquido'],
             )
           end
 
