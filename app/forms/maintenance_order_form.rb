@@ -4,7 +4,7 @@ class MaintenanceOrderForm < BaseForm
                             reported_defect diagnosis performed_service].freeze
 
   attribute :plate, :string
-  attribute :opened_at, :datetime
+  attribute :opened_at, Types::ZonedDateTimeType.new
   attribute :odometer_km, :integer
   attribute :hour_meter, :decimal
   attribute :driver_code, :integer

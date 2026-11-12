@@ -1,7 +1,7 @@
 class MaintenanceOrderFinishForm < BaseForm
   PERMITTED_ATTRIBUTES = %i[finished_at release_test_type next_preventive_km performed_service].freeze
 
-  attribute :finished_at, :datetime
+  attribute :finished_at, Types::ZonedDateTimeType.new
   attribute :release_test_type, :string
   attribute :next_preventive_km, :integer
   attribute :performed_service, :string
