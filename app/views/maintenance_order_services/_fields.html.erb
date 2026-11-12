@@ -1,0 +1,25 @@
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <%= f.input :supplier_id, collection: item_form.suppliers, label_method: :name, value_method: :id, required: true,
+                              include_blank: t('helpers.select.prompt'), hint: t('maintenance_order_services.form.supplier_hint'),
+                              input_html: { class: 'form-select bg-light' } %>
+  </div>
+  <div class="col-12 col-lg-6">
+    <%= f.input :description, required: true, input_html: { class: 'form-control bg-light', autocomplete: 'off' } %>
+  </div>
+  <div class="col-12 col-lg-4">
+    <%= f.input :quote_number, input_html: { class: 'form-control bg-light', autocomplete: 'off' } %>
+  </div>
+  <div class="col-12 col-lg-4">
+    <%= f.input :quoted, as: :money, input_html: { class: 'form-control bg-light' } %>
+  </div>
+  <div class="col-12 col-lg-4">
+    <%= f.input :approved, as: :money, hint: t('maintenance_order_services.form.approved_hint'), input_html: { class: 'form-control bg-light' } %>
+  </div>
+  <div class="col-12 col-lg-6">
+    <%= f.input :approved_by_name, input_html: { class: 'form-control text-uppercase bg-light', autocomplete: 'off' } %>
+  </div>
+  <div class="col-12 col-lg-6">
+    <%= f.input :invoice_number, input_html: { class: 'form-control bg-light', autocomplete: 'off' } %>
+  </div>
+</div>

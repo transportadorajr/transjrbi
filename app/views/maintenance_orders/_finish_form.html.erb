@@ -1,0 +1,27 @@
+<div id="maintenance_order_finish_form">
+  <%= maintenance_order_form_errors(finish_form) %>
+
+  <%= simple_form_for(finish_form, url: finish_maintenance_order_path(finish_form.maintenance_order), method: :patch) do |f| %>
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <%= f.input :finished_at, as: :datetime, html5: true, required: true, input_html: { class: 'form-control bg-light' } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :release_test_type, collection: MaintenanceOrder.enum_options_for_select(:release_test_type), required: true,
+                                        include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select bg-light' } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :next_preventive_km, as: :integer, hint: t('maintenance_orders.finish_modal.next_preventive_km_hint'),
+                                         input_html: { class: 'form-control bg-light', inputmode: :numeric, min: 1 } %>
+      </div>
+      <div class="col-12">
+        <%= f.input :performed_service, as: :text, required: true, input_html: { class: 'form-control bg-light', rows: 4 } %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row-reverse gap-2 mt-4">
+      <%= f.button :submit, t('maintenance_orders.finish_modal.submit'), class: 'btn btn-success btn-round px-4' %>
+      <%= button_tag t('helpers.links.cancel'), type: :button, class: 'btn btn-light btn-round px-4', data: { bs_dismiss: 'modal' } %>
+    </div>
+  <% end %>
+</div>

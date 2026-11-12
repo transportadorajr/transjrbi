@@ -38,6 +38,25 @@ shared:
           url: /route_distances
           controllers:
             - route_distances
+    - name: maintenance
+      icon: wrench-adjustable
+      feature: maintenance
+      menus:
+        - name: maintenance_orders
+          resource: maintenance_orders
+          url: /maintenance_orders
+          controllers:
+            - maintenance_orders
+        - name: workshop_employees
+          resource: workshop_employees
+          url: /workshop_employees
+          controllers:
+            - workshop_employees
+        - name: suppliers
+          resource: suppliers
+          url: /suppliers
+          controllers:
+            - suppliers
     - name: registrations
       icon: card-list
       menus:

@@ -87,6 +87,33 @@ module TypstHelper
     typst_text(t('typst.generated_at', time: l(Time.current, format: :date_time)))
   end
 
+  def typst_section_title(title)
+    typst_markup("#block(width: 100%, inset: (x: 6pt, y: 4pt), fill: rgb(\"#{TYPST_HEADER_FILL}\"), " \
+                 "text(9pt, weight: \"bold\", fill: white, #{typst_text(typst_plain(title).upcase)}))")
+  end
+
+  def typst_field_grid(fields, columns: 2)
+    cells = fields.map do |label, value|
+      "block(width: 100%, inset: (x: 4pt, y: 3pt), [#text(7pt, weight: \"bold\", fill: rgb(\"#{TYPST_MUTED_COLOR}\"), " \
+        "#{typst_text(typst_plain(label).upcase)}) #linebreak() #text(9pt, #{typst_text(typst_plain(value))})])"
+    end
+
+    typst_markup("#grid(columns: (1fr,) * #{columns}, row-gutter: 2pt, #{cells.join(', ')})")
+  end
+
+  def typst_paragraph(value)
+    typst_markup("#block(width: 100%, inset: (x: 4pt, y: 2pt), text(9pt, #{typst_text(value.to_s.strip)}))")
+  end
+
+  def typst_signatures(labels, columns: 2)
+    cells = labels.map do |label|
+      'block(width: 100%, inset: (top: 18pt, x: 8pt), [#line(length: 100%, stroke: 0.5pt) ' \
+        "#align(center, text(8pt, fill: rgb(\"#{TYPST_MUTED_COLOR}\"), #{typst_text(typst_plain(label))}))])"
+    end
+
+    typst_markup("#block(breakable: false, grid(columns: (1fr,) * #{columns}, gutter: 6pt, #{cells.join(', ')}))")
+  end
+
   def pdf_column(label, width = 'auto', align: :left)
     PdfReport::Column.new(label:, width:, align:)
   end

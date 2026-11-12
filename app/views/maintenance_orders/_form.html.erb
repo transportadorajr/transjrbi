@@ -1,0 +1,106 @@
+<%= simple_form_for(maintenance_order_form, url: maintenance_order_form_url(maintenance_order_form)) do |f| %>
+  <div class="card form-card mb-4">
+    <div class="form-card-header">
+      <p class="form-card-title"><%= t('maintenance_orders.form.vehicle_data') %></p>
+      <p class="form-card-subtitle"><%= t('maintenance_orders.form.vehicle_data_text') %></p>
+    </div>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <%= f.label :plate, required: true, for: nil, id: 'plate_select_label', class: 'form-label' %>
+          <%= render 'components/select2', id: 'plate_select', name: "#{f.object_name}[plate]",
+                                           options: maintenance_order_plate_options(@plates), selected: maintenance_order_form.plate,
+                                           placeholder: t('maintenance_orders.form.plate_placeholder') %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :opened_at, as: :datetime, html5: true, required: true, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-2">
+          <%= f.input :odometer_km, as: :integer, input_html: { class: 'form-control', inputmode: :numeric, min: 0 } %>
+        </div>
+        <div class="col-12 col-lg-2">
+          <%= f.input :hour_meter, as: :decimal, input_html: { class: 'form-control', inputmode: :decimal, min: 0, step: 0.1 } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.label :driver_code, for: nil, id: 'driver_code_select_label', class: 'form-label' %>
+          <%= render 'components/select2', id: 'driver_code_select', name: "#{f.object_name}[driver_code]",
+                                           options: maintenance_order_driver_options(@drivers), selected: maintenance_order_form.driver_code,
+                                           placeholder: t('maintenance_orders.form.driver_placeholder') %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :supervisor_id, collection: @supervisors, label_method: :name, value_method: :id,
+                                      include_blank: t('helpers.select.prompt'), hint: t('maintenance_orders.form.supervisor_hint'),
+                                      input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :equipment_type, collection: MaintenanceOrderForm.enum_options_for_select(:equipment_type), required: true,
+                                       include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :equipment_other, hint: t('maintenance_orders.form.equipment_other_hint'),
+                                        input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card form-card mb-4">
+    <div class="form-card-header">
+      <p class="form-card-title"><%= t('maintenance_orders.form.classification') %></p>
+    </div>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <%= f.input :maintenance_type, collection: MaintenanceOrderForm.enum_options_for_select(:maintenance_type), required: true,
+                                         include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :priority_type, collection: MaintenanceOrderForm.enum_options_for_select(:priority_type), required: true,
+                                      include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :execution_place_type, collection: MaintenanceOrderForm.enum_options_for_select(:execution_place_type),
+                                             required: true, include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-8">
+          <%= f.input :affected_system_type, collection: MaintenanceOrderForm.enum_options_for_select(:affected_system_type),
+                                             required: true, include_blank: t('helpers.select.prompt'),
+                                             hint: t('maintenance_orders.form.affected_system_hint'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :vehicle_stopped,
+                      as: :boolean,
+                      hint: t('maintenance_orders.form.vehicle_stopped_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card form-card">
+    <div class="form-card-header">
+      <p class="form-card-title"><%= t('maintenance_orders.form.description') %></p>
+      <p class="form-card-subtitle"><%= t('maintenance_orders.form.description_text') %></p>
+    </div>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <%= f.input :reported_defect, as: :text, required: true, input_html: { class: 'form-control', rows: 3 } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :diagnosis, as: :text, input_html: { class: 'form-control', rows: 3 } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :performed_service, as: :text, input_html: { class: 'form-control', rows: 4 } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, maintenance_order_form_submit_label(maintenance_order_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), maintenance_order_form_cancel_path(maintenance_order_form),
+                  class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  </div>
+<% end %>

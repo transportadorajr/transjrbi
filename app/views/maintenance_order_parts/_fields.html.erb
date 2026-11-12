@@ -1,0 +1,25 @@
+<div class="row g-3">
+  <div class="col-12 col-lg-3">
+    <%= f.input :code, input_html: { class: 'form-control text-uppercase bg-light', autocomplete: 'off' } %>
+  </div>
+  <div class="col-12 col-lg-9">
+    <%= f.input :description, required: true, input_html: { class: 'form-control text-uppercase bg-light', autocomplete: 'off' } %>
+  </div>
+  <div class="col-12 col-lg-3">
+    <%= f.input :quantity, required: true, input_html: { class: 'form-control bg-light', inputmode: :decimal, autocomplete: 'off' } %>
+  </div>
+  <div class="col-12 col-lg-3">
+    <%= f.input :unit, input_html: { class: 'form-control text-uppercase bg-light', autocomplete: 'off' } %>
+  </div>
+  <div class="col-12 col-lg-6">
+    <%= f.input :unit_price, as: :money, input_html: { class: 'form-control bg-light' } %>
+  </div>
+  <div class="col-12 col-lg-6">
+    <%= f.input :source_type, collection: MaintenanceOrderPartForm.enum_options_for_select(:source_type), required: true,
+                              include_blank: t('helpers.select.prompt'), hint: t('maintenance_order_parts.form.source_type_hint'),
+                              input_html: { class: 'form-select bg-light' } %>
+  </div>
+  <div class="col-12 col-lg-6">
+    <%= f.input :document_number, input_html: { class: 'form-control bg-light', autocomplete: 'off' } %>
+  </div>
+</div>

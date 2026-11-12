@@ -85,6 +85,12 @@ pt-BR:
       holiday:
         one: Feriado
         other: Feriados
+      workshop_employee:
+        one: Funcionário da oficina
+        other: Funcionários da oficina
+      maintenance_order:
+        one: Ordem de serviço
+        other: Ordens de serviço
       route_distance:
         one: Trecho de km
         other: Trechos de km
@@ -105,6 +111,67 @@ pt-BR:
         name: Nome
         scope_type: Abrangência
         kind_type: Tipo
+      workshop_employee:
+        name: Nome
+        role_type: Função
+        active: Ativo
+      maintenance_order:
+        number: Nº da OS
+        plate: Placa
+        opened_at: Abertura
+        odometer_km: KM
+        hour_meter: Horímetro
+        driver_code: Motorista
+        driver_name: Motorista
+        supervisor: Encarregado responsável
+        supervisor_id: Encarregado responsável
+        opened_by: Aberta por
+        equipment_type: Tipo de equipamento
+        equipment_other: Outro equipamento
+        maintenance_type: Tipo de manutenção
+        priority_type: Prioridade
+        vehicle_stopped: Veículo parado
+        execution_place_type: Local de execução
+        affected_system_type: Sistema afetado
+        reported_defect: Defeito relatado
+        diagnosis: Diagnóstico
+        performed_service: Serviço executado
+        release_test_type: Teste de liberação
+        status_type: Situação
+        finished_at: Conclusão
+        next_preventive_km: Próxima preventiva
+        parts_total: Total de peças
+        services_total: Total de serviços terceirizados
+        labor_hours: Horas de mão de obra
+        total: Total da OS
+      maintenance_order_part:
+        code: Código
+        description: Descrição
+        quantity: Quantidade
+        unit: Unidade
+        source_type: Origem
+        document_number: Nº requisição / NF
+        unit_price: Valor unitário
+        total: Total
+      maintenance_order_labor:
+        workshop_employee: Mecânico
+        worked_on: Data
+        start_time: Início
+        end_time: Fim
+        hours: Horas
+        activity: Atividade realizada
+      maintenance_order_service:
+        supplier: Fornecedor
+        description: Serviço
+        quote_number: Nº do orçamento
+        quoted: Valor orçado
+        approved: Valor aprovado
+        approved_by_name: Aprovado por
+        invoice_number: Nº da NF
+      supplier:
+        name: Nome
+        document: CNPJ / CPF
+        active: Ativo
       route_distance:
         customer: Cliente
         customer_code: Cliente
@@ -467,6 +534,10 @@ pt-BR:
         creates: Leitura e Edição
     errors:
       models:
+        maintenance_order:
+          attributes:
+            base:
+              transition_not_allowed: A OS não pode mudar de situação porque está %{status}.
         atua/import:
           attributes:
             end_date:
@@ -623,6 +694,59 @@ pt-BR:
         name: Nome
         scope_type: Abrangência
         kind_type: Tipo
+      workshop_employee_form:
+        name: Nome
+        role_type: Função
+        active: Ativo
+      supplier_form:
+        name: Nome
+        document: CNPJ / CPF
+        active: Ativo
+      maintenance_order_part_form:
+        code: Código
+        description: Descrição
+        quantity: Quantidade
+        unit: Unidade
+        source_type: Origem
+        document_number: Nº requisição / NF
+        unit_price: Valor unitário
+      maintenance_order_labor_form:
+        workshop_employee_id: Mecânico
+        worked_on: Data
+        start_time: Início
+        end_time: Fim
+        hours: Horas
+        activity: Atividade realizada
+      maintenance_order_service_form:
+        supplier_id: Fornecedor
+        description: Serviço
+        quote_number: Nº do orçamento
+        quoted: Valor orçado
+        approved: Valor aprovado
+        approved_by_name: Aprovado por
+        invoice_number: Nº da NF
+      maintenance_order_finish_form:
+        finished_at: Data e hora de conclusão
+        release_test_type: Teste de liberação
+        next_preventive_km: Próxima preventiva (km)
+        performed_service: Serviço executado
+      maintenance_order_form:
+        plate: Placa
+        opened_at: Data e hora de abertura
+        odometer_km: KM
+        hour_meter: Horímetro
+        driver_code: Motorista
+        supervisor_id: Encarregado responsável
+        equipment_type: Tipo de equipamento
+        equipment_other: Outro equipamento
+        maintenance_type: Tipo de manutenção
+        priority_type: Prioridade
+        vehicle_stopped: Veículo parado
+        execution_place_type: Local de execução
+        affected_system_type: Sistema afetado
+        reported_defect: Defeito relatado
+        diagnosis: Diagnóstico
+        performed_service: Serviço executado
       route_distance_form:
         customer_code: Cliente
         origin_city: Cidade de origem
@@ -725,6 +849,54 @@ pt-BR:
           attributes:
             date:
               taken: já tem um feriado cadastrado
+        workshop_employee_form:
+          attributes:
+            name:
+              taken: já está cadastrado
+        maintenance_order_form:
+          attributes:
+            plate:
+              inclusion: não está cadastrada no Atua
+            driver_code:
+              inclusion: não foi encontrado no Atua
+            supervisor_id:
+              inclusion: não está cadastrado como encarregado
+        maintenance_order_finish_form:
+          attributes:
+            base:
+              not_pending: A OS não pode ser encerrada porque está %{status}.
+            finished_at:
+              before_opening: não pode ser antes da abertura da OS
+            next_preventive_km:
+              behind_odometer: deve ser maior que o KM da abertura
+        supplier_form:
+          attributes:
+            name:
+              taken: já está cadastrado
+            document:
+              invalid: deve ter 11 dígitos (CPF) ou 14 dígitos (CNPJ)
+        maintenance_order_part_form:
+          attributes:
+            unit_price:
+              invalid: não é um valor válido
+        maintenance_order_labor_form:
+          attributes:
+            base:
+              incomplete_times: Informe o início e o fim do trabalho, ou só as horas
+            workshop_employee_id:
+              inclusion: não está cadastrado como funcionário ativo da oficina
+            end_time:
+              after_start: deve ser depois do início
+            hours:
+              blank_without_times: deve ser informado quando não houver início e fim
+        maintenance_order_service_form:
+          attributes:
+            supplier_id:
+              inclusion: não está cadastrado como fornecedor ativo
+            quoted:
+              invalid: não é um valor válido
+            approved:
+              invalid: não é um valor válido
         route_distance_form:
           attributes:
             base:
@@ -788,6 +960,64 @@ pt-BR:
               same_as_current: deve ser diferente da senha atual
   enums:
   enums:
+    workshop_employee:
+      role_type:
+        mechanic: Mecânico
+        supervisor: Encarregado
+    maintenance_order:
+      equipment_type:
+        truck_tractor: Cavalo mecânico
+        trailer: Carreta / Semirreboque
+        b_train: Bitrem
+        road_train: Rodotrem
+        rigid_truck: Truck
+        light_vehicle: Veículo leve
+        other: Outro
+      maintenance_type:
+        preventive: Preventiva
+        corrective: Corretiva
+        roadside: Socorro (em rota)
+        inspection: Inspeção / Revisão
+        improvement: Melhoria / Reforma
+      priority_type:
+        high: Alta
+        medium: Média
+        low: Baixa
+      execution_place_type:
+        internal_workshop: Oficina interna
+        third_party: Terceiro
+        on_route: Em rota
+      affected_system_type:
+        engine: Motor
+        cooling: Arrefecimento
+        fuel: Alimentação / Combustível
+        clutch: Embreagem
+        transmission: Transmissão / Câmbio
+        axles: Diferencial / Eixos
+        brakes: Freios
+        suspension: Suspensão
+        steering: Direção
+        tires: Pneus / Rodas
+        electrical: Elétrica / Eletrônica
+        pneumatic: Pneumático (ar)
+        cab_body: Cabine / Carroceria
+        implement: Implemento / Carreta
+        lubrication: Lubrificação
+        other: Outros
+      release_test_type:
+        road_test: Rodagem
+        yard_test: Funcionamento em pátio
+        not_applicable: Não se aplica
+      status_type:
+        open: Aberta
+        in_progress: Em execução
+        waiting_parts: Aguardando peça
+        finished: Concluída
+        cancelled: Cancelada
+    maintenance_order_part:
+      source_type:
+        stock: Estoque
+        purchase: Compra direta
     holiday:
       scope_type:
         national: Nacional
@@ -937,6 +1167,18 @@ pt-BR:
       holiday:
         create: Cadastrar Feriado
         update: Salvar Alterações
+      workshop_employee:
+        create: Cadastrar Funcionário
+        update: Salvar Alterações
+      maintenance_order:
+        create: Abrir OS
+        update: Salvar Alterações
+      supplier:
+        create: Cadastrar Fornecedor
+        update: Salvar Alterações
+      maintenance_order_item:
+        create: Adicionar
+        update: Salvar Alterações
       route_distance:
         create: Cadastrar Trecho
         update: Salvar Alterações
@@ -1002,6 +1244,22 @@ pt-BR:
       excluded_issuer:
         destroy: Voltar a considerar
       holiday:
+        edit: Alterar
+        destroy: Excluir
+      workshop_employee:
+        edit: Alterar
+      maintenance_order:
+        show: Visualizar
+        edit: Alterar
+      supplier:
+        edit: Alterar
+      maintenance_order_part:
+        edit: Alterar
+        destroy: Excluir
+      maintenance_order_labor:
+        edit: Alterar
+        destroy: Excluir
+      maintenance_order_service:
         edit: Alterar
         destroy: Excluir
       route_distance:
@@ -1171,6 +1429,9 @@ pt-BR:
         title: Decisões guiadas por dados
         description: Acompanhe o faturamento, os custos e o desempenho da sua frota para enxergar onde a sua operação ganha mais e onde ela pode crescer.
   resource_names:
+    maintenance_orders: Ordens de serviço
+    workshop_employees: Funcionários da oficina
+    suppliers: Fornecedores
     users: Usuários
     transport_documents: CT-es
     manifests: Manifestos
@@ -1828,6 +2089,179 @@ pt-BR:
       kind_type_hint: >-
         Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
         não funciona (ex.: Carnaval).
+  workshop_employees:
+    status:
+      active: Ativo
+      inactive: Inativo
+    index:
+      title: Funcionários da oficina
+      subtitle: Mecânicos e encarregados que aparecem nas ordens de serviço.
+      new_workshop_employee: Novo Funcionário
+    new:
+      title: Novo Funcionário
+      back: Voltar para funcionários da oficina
+    create:
+      success: Funcionário cadastrado com sucesso.
+    edit:
+      title: Alterar Funcionário
+      back: Voltar para funcionários da oficina
+    update:
+      success: Funcionário atualizado com sucesso.
+    form:
+      workshop_employee_data: Dados do Funcionário
+      workshop_employee_data_text: Os funcionários da oficina não acessam o sistema; eles só são escolhidos nas ordens de serviço.
+      active_hint: Funcionários inativos não aparecem para escolha nas novas ordens de serviço.
+  maintenance_orders:
+    title: OS %{number} · %{plate}
+    filters:
+      start_date: Abertas a partir de
+      end_date: Abertas até
+    locked: Esta OS já foi encerrada e não pode mais ser alterada.
+    actions:
+      start: Iniciar execução
+      resume: Retomar execução
+      wait_parts: Aguardando peça
+      finish: Encerrar OS
+      cancel: Cancelar OS
+      confirm_cancel: Tem certeza que deseja cancelar esta OS? Ela não poderá mais ser alterada.
+    finish_modal:
+      title: Encerrar Ordem de Serviço
+      submit: Encerrar OS
+      next_preventive_km_hint: KM em que o veículo deve voltar para a próxima preventiva.
+    start:
+      success: OS em execução.
+    wait_parts:
+      success: OS aguardando peça.
+    cancel:
+      success: OS cancelada.
+    finish:
+      success: OS encerrada com sucesso.
+    equipment_other: 'Outro: %{name}'
+    km: '%{distance} km'
+    hours: '%{hours} h'
+    vehicle_stopped:
+      stopped: Sim
+      running: Não
+    index:
+      title: Ordens de serviço
+      subtitle: Manutenções da frota abertas pela oficina.
+      new_maintenance_order: Nova OS
+      pending: Em aberto
+      stopped: Veículos parados
+      finished_this_month: Concluídas no mês
+    show:
+      back: Voltar para ordens de serviço
+      edit: Alterar
+      parts: Peças e Materiais Aplicados
+      labors: Mão de Obra
+      services: Serviços Terceirizados
+      totals: Totais da OS
+      period: Horário
+      no_parts: Nenhuma peça lançada nesta OS.
+      no_labors: Nenhuma mão de obra lançada nesta OS.
+      no_services: Nenhum serviço terceirizado lançado nesta OS.
+      closing: Encerramento
+      print: Imprimir OS
+      pdf:
+        header: Ficha da Ordem de Serviço nº %{number} - %{company}
+        subtitle: Manutenção da frota · Placa %{plate} · %{status}
+        filename: os_%{number}.pdf
+        signatures:
+          opened_by: Aberto por (encarregado)
+          driver: Motorista / solicitante
+          closed_by: Encarregado (encerramento)
+          mechanic: Mecânico responsável
+          purchasing: Compras (aprovação)
+          released: Motorista (veículo liberado)
+    new:
+      title: Nova Ordem de Serviço
+      back: Voltar para ordens de serviço
+    create:
+      success: OS %{number} aberta com sucesso.
+    edit:
+      title: Alterar Ordem de Serviço
+      back: Voltar para a ordem de serviço
+    update:
+      success: Ordem de serviço atualizada com sucesso.
+    form:
+      vehicle_data: Identificação do Veículo
+      vehicle_data_text: O número da OS é gerado automaticamente ao salvar.
+      plate_placeholder: Escolha a placa
+      driver_placeholder: Escolha o motorista
+      supervisor_hint: Só aparecem os encarregados ativos cadastrados em funcionários da oficina.
+      equipment_other_hint: Preencha só quando o tipo de equipamento for Outro.
+      classification: Classificação da Manutenção
+      affected_system_hint: Marque o sistema principal.
+      vehicle_stopped_hint: Marque quando o veículo não pode rodar até a manutenção terminar.
+      description: Defeito, Diagnóstico e Serviço
+      description_text: O diagnóstico e o serviço executado podem ser preenchidos depois, ao alterar a OS.
+  suppliers:
+    status:
+      active: Ativo
+      inactive: Inativo
+    index:
+      title: Fornecedores
+      subtitle: Oficinas e prestadores dos serviços terceirizados das ordens de serviço.
+      new_supplier: Novo Fornecedor
+    new:
+      title: Novo Fornecedor
+      back: Voltar para fornecedores
+    create:
+      success: Fornecedor cadastrado com sucesso.
+    edit:
+      title: Alterar Fornecedor
+      back: Voltar para fornecedores
+    update:
+      success: Fornecedor atualizado com sucesso.
+    form:
+      supplier_data: Dados do Fornecedor
+      supplier_data_text: Os fornecedores ativos aparecem para escolha nos serviços terceirizados das ordens de serviço.
+      active_hint: Fornecedores inativos não aparecem para escolha nos novos serviços.
+  maintenance_order_items:
+    part:
+      add: Adicionar peça
+      new_title: Nova Peça ou Material
+      edit_title: Alterar Peça ou Material
+      confirm_destroy: Tem certeza que deseja excluir esta peça da OS?
+    labor:
+      add: Adicionar mão de obra
+      new_title: Nova Mão de Obra
+      edit_title: Alterar Mão de Obra
+      confirm_destroy: Tem certeza que deseja excluir esta mão de obra da OS?
+      period: '%{start} às %{end}'
+    service:
+      add: Adicionar serviço
+      new_title: Novo Serviço Terceirizado
+      edit_title: Alterar Serviço Terceirizado
+      confirm_destroy: Tem certeza que deseja excluir este serviço da OS?
+  maintenance_order_parts:
+    form:
+      source_type_hint: Itens do estoque também devem ser lançados.
+    create:
+      success: Peça adicionada à OS.
+    update:
+      success: Peça atualizada.
+    destroy:
+      success: Peça excluída da OS.
+  maintenance_order_labors:
+    form:
+      hours_hint: Preencha só se não informar o início e o fim; com os dois horários as horas são calculadas.
+    create:
+      success: Mão de obra adicionada à OS.
+    update:
+      success: Mão de obra atualizada.
+    destroy:
+      success: Mão de obra excluída da OS.
+  maintenance_order_services:
+    form:
+      supplier_hint: Cadastre novos fornecedores no menu Manutenção.
+      approved_hint: Enquanto não houver valor aprovado, o total da OS considera o valor orçado.
+    create:
+      success: Serviço terceirizado adicionado à OS.
+    update:
+      success: Serviço terceirizado atualizado.
+    destroy:
+      success: Serviço terceirizado excluído da OS.
   route_distances:
     km: '%{distance} km'
     saved:
@@ -2432,6 +2866,10 @@ pt-BR:
       date_time: '%d/%m/%Y %H:%M'
   menus:
     tax: Fiscal
+    maintenance: Manutenção
+    maintenance_orders: Ordens de serviço
+    workshop_employees: Funcionários da oficina
+    suppliers: Fornecedores
     transport_documents: CT-es
     manifests: Manifestos
     route_distances: Trechos de km

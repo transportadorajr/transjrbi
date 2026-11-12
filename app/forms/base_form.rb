@@ -21,6 +21,34 @@ class BaseForm
       model_name.param_key
     end
 
+    def parse_cents(value)
+      return if value.blank?
+
+      (BigDecimal(value.to_s.strip.delete('.').tr(',', '.')) * 100).round(0, BigDecimal::ROUND_HALF_UP).to_i
+    rescue ArgumentError
+      nil
+    end
+
+    def parse_decimal(value)
+      return if value.blank?
+
+      BigDecimal(value.to_s.strip.delete('.').tr(',', '.'))
+    rescue ArgumentError
+      nil
+    end
+
+    def format_cents(cents)
+      return if cents.nil?
+
+      ActiveSupport::NumberHelper.number_to_rounded(cents.to_d / 100, precision: 2, separator: ',', delimiter: '.')
+    end
+
+    def format_decimal(value)
+      return if value.nil?
+
+      ActiveSupport::NumberHelper.number_to_rounded(value, precision: 3, separator: ',', delimiter: '.', strip_insignificant_zeros: true)
+    end
+
     def enum(field, values)
       raise ArgumentError, "Please define #{field.inspect} attribute first" unless attribute_names.include?(field.to_s)
 

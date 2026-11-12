@@ -1,0 +1,12 @@
+<div id="maintenance_order_item_form">
+  <%= maintenance_order_form_errors(item_form) %>
+
+  <%= simple_form_for(item_form, url: maintenance_order_item_form_url(item_form)) do |f| %>
+    <%= render maintenance_order_item_fields_partial(item_form), f:, item_form: %>
+
+    <div class="d-flex flex-column flex-md-row-reverse gap-2 mt-4">
+      <%= f.button :submit, maintenance_order_item_submit_label(item_form), class: 'btn btn-primary btn-round px-4' %>
+      <%= button_tag t('helpers.links.cancel'), type: :button, class: 'btn btn-light btn-round px-4', data: { bs_dismiss: 'modal' } %>
+    </div>
+  <% end %>
+</div>

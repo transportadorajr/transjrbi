@@ -1,0 +1,31 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('workshop_employees.form.workshop_employee_data') %></p>
+    <p class="form-card-subtitle"><%= t('workshop_employees.form.workshop_employee_data_text') %></p>
+  </div>
+  <%= simple_form_for(workshop_employee_form, url: workshop_employee_form_url(workshop_employee_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <%= f.input :name, required: true, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :role_type, collection: WorkshopEmployeeForm.enum_options_for_select(:role_type), required: true,
+                                  include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :active,
+                      as: :boolean,
+                      hint: t('workshop_employees.form.active_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, workshop_employee_form_submit_label(workshop_employee_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), workshop_employees_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

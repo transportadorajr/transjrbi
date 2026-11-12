@@ -1,0 +1,19 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('maintenance_orders.index.title'), maintenance_orders_path %></li>
+        <li class="breadcrumb-item">
+          <%= link_to maintenance_order_title(@maintenance_order), maintenance_order_path(@maintenance_order) %>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.title') %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title'), back_path: maintenance_order_path(@maintenance_order), back_title: t('.back'),
+                                     wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'form', maintenance_order_form: @maintenance_order_form %>
+</div>

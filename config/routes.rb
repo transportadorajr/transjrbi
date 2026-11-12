@@ -73,6 +73,20 @@ Rails.application.routes.draw do
     resources :truck_groups
     resources :excluded_issuers, only: %i[index new create destroy]
     resources :holidays, except: :show
+    resources :maintenance_orders, except: :destroy do
+      member do
+        patch :start
+        patch :wait_parts
+        patch :cancel
+        get :finishing
+        patch :finish
+      end
+      resources :parts, controller: 'maintenance_order_parts', only: %i[new create edit update destroy]
+      resources :labors, controller: 'maintenance_order_labors', only: %i[new create edit update destroy]
+      resources :services, controller: 'maintenance_order_services', only: %i[new create edit update destroy]
+    end
+    resources :workshop_employees, except: %i[show destroy]
+    resources :suppliers, except: %i[show destroy]
     resources :route_distances, except: :show do
       post :import, on: :collection
     end

@@ -1,0 +1,26 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(MaintenanceOrder.human_attribute_name(:number), :number, first_direction: :desc) %>
+        <%= sortable_header(MaintenanceOrder.human_attribute_name(:plate), :plate) %>
+        <%= sortable_header(MaintenanceOrder.human_attribute_name(:opened_at), :opened_at,
+                            first_direction: :desc, class: 'd-none d-md-table-cell') %>
+        <th class="d-none d-lg-table-cell"><%= MaintenanceOrder.human_attribute_name(:maintenance_type) %></th>
+        <th class="d-none d-lg-table-cell"><%= MaintenanceOrder.human_attribute_name(:priority_type) %></th>
+        <th class="d-none d-lg-table-cell"><%= MaintenanceOrder.human_attribute_name(:affected_system_type) %></th>
+        <th><%= MaintenanceOrder.human_attribute_name(:status_type) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

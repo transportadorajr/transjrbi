@@ -1,0 +1,17 @@
+<div class="card detail-card mb-4">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('maintenance_orders.show.closing') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0" id="closing">
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:finished_at) %></dt>
+      <dd class="col-12 col-md-9"><%= maintenance_order_finished_at(maintenance_order) %></dd>
+
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:release_test_type) %></dt>
+      <dd class="col-12 col-md-9"><%= maintenance_order.release_test_type_name %></dd>
+
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:next_preventive_km) %></dt>
+      <dd class="col-12 col-md-9"><%= maintenance_order_next_preventive(maintenance_order) %></dd>
+    </dl>
+  </div>
+</div>
