@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   include Sortable
+  include Exportable
 
   sortable :name
 

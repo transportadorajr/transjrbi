@@ -15,7 +15,7 @@ module Dashboard
       end
     end
 
-    delegate :period_type, :period, :reference_at, :realized, :projected, :low, :high, :upcoming_holidays, :history?, to: :result
+    delegate :period_type, :period, :reference_at, :days, :realized, :projected, :low, :high, :upcoming_holidays, :history?, to: :result
 
     def initialize(result)
       @result = result

@@ -35,7 +35,7 @@ RSpec.describe Export::Column do
   describe '#translated?' do
     it 'tells whether the header comes from the locale files' do
       expect(described_class.for(Atua::Vehicle, 'plate')).to be_translated
-      expect(described_class.for(Atua::TransportDocument, 'ciot')).not_to be_translated
+      expect(described_class.for(Atua::ManifestDocument, 'manifest_code')).not_to be_translated
     end
   end
 

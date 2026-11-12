@@ -1,5 +1,9 @@
 class RouteDistance < ApplicationRecord
   include Sortable
+  include Exportable
+
+  export_field(:customer_name) { |route_distance| route_distance.customer&.name }
+  export_field(:documents_count, :integer) { |route_distance| route_distance[:documents_count] }
 
   sortable :customer_name, -> { sort_text(customer_name) }
   sortable :origin_city

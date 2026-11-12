@@ -1,8 +1,11 @@
 class MacroRegion < ApplicationRecord
   include Sortable
+  include Exportable
 
   OTHERS = 'others'.freeze
   BRAZILIAN_STATES = %w[AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO].freeze
+
+  export_field(:cities) { |macro_region| macro_region.cities.map(&:name).sort }
 
   sortable :name
 

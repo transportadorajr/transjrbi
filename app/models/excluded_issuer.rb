@@ -1,5 +1,9 @@
 class ExcludedIssuer < ApplicationRecord
   include Sortable
+  include Exportable
+
+  export_field(:documents_count, :integer) { |issuer| issuer[:documents_count] }
+  export_field(:freight, :money) { |issuer| issuer[:freight_cents] }
 
   sortable :name
 

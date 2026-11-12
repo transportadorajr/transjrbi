@@ -59,6 +59,14 @@ module DriversHelper
     )
   end
 
+  def drivers_xlsx_sheet(drivers)
+    columns = { driver_code: :integer, driver_name: :string, display_name: :string, driver_document: :string, driver_license: :string,
+                plates: :string, vehicles_count: :integer }
+
+    Export::Sheet.new(name: t('drivers.index.title'), rows: drivers,
+                      columns: columns.map { |name, type| Export::Field.for(Atua::Vehicle, name, type) })
+  end
+
   private
 
   def driver_show_menu(driver)

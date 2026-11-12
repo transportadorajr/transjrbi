@@ -4,6 +4,7 @@
   <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
     <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
     <%= pdf_export_button %>
+    <%= xlsx_export_button %>
     <%= commission_rule_create_button %>
   <% end %>
 

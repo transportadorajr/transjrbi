@@ -15,7 +15,7 @@ class TruckGroupsController < BaseController
     @active_count = counted_truck_groups.activated.count
     @deactivated_count = counted_truck_groups.not_activated.count
 
-    respond_with_listing
+    respond_with_listing(xlsx: @truck_groups)
   end
 
   def show

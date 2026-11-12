@@ -1,9 +1,12 @@
 class CommissionRule < ApplicationRecord
   include Sortable
+  include Exportable
 
   FOREIGN_STATE = 'EX'.freeze
   DESTINATIONS = %i[national foreign].freeze
   BASES = %i[freight freight_without_icms].freeze
+
+  export_field(:customer_group) { |rule| rule.customer_group.name }
 
   sortable :name
 

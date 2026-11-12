@@ -17,7 +17,7 @@ class CommissionRulesController < BaseController
     @active_count = counted_commission_rules.activated.count
     @deactivated_count = counted_commission_rules.not_activated.count
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: @commission_rules)
   end
 
   def show

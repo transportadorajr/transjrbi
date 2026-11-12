@@ -1,8 +1,11 @@
 module Atua
   class Customer < ApplicationRecord
     include Sortable
+    include Exportable
 
     include Importable
+
+    export_field(:customer_group) { |customer| customer.customer_group&.name }
 
     sortable :name
 

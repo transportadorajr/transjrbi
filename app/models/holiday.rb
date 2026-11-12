@@ -1,5 +1,6 @@
 class Holiday < ApplicationRecord
   include Sortable
+  include Exportable
 
   SCOPES = %i[national state municipal].freeze
   KINDS = %i[holiday bridge_day optional].freeze

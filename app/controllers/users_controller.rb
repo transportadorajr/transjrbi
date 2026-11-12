@@ -16,7 +16,7 @@ class UsersController < BaseController
     @active_count = counted_users.activated.count
     @deactivated_count = counted_users.not_activated.count
 
-    respond_with_listing
+    respond_with_listing(xlsx: @users)
   end
 
   def show

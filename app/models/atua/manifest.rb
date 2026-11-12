@@ -2,6 +2,7 @@ module Atua
   class Manifest < ApplicationRecord
     include Importable
     include Sortable
+    include Exportable
 
     CANCELED_STATUS = 'Cancelado'.freeze
 
@@ -19,6 +20,19 @@ module Atua
                                             primary_key: %i[tenant_id number branch_name], inverse_of: :manifest
     has_one :empty_leg, class_name: 'EmptyLeg', foreign_key: %i[tenant_id next_manifest_code], primary_key: %i[tenant_id code],
                         inverse_of: :next_manifest
+
+    export_field(:driver, &:main_driver_name)
+    export_field(:origin) { |manifest| manifest.origins.map { |city, state| [city, state].compact.join('/') } }
+    export_field(:destination) { |manifest| manifest.final_destination&.compact&.join('/') }
+    export_field(:customer_group, &:customer_groups)
+    export_field(:weight_kg, :decimal, &:weight_kg)
+    export_field(:loaded_km, :decimal) { |manifest| manifest[:loaded_km] }
+    export_field(:gross, :money) { |manifest| manifest[:gross_cents] }
+    export_field(:net, :money) { |manifest| manifest[:net_cents] }
+    export_field(:gross_per_km, :money) { |manifest| manifest[:gross_per_km_cents] }
+    export_field(:net_per_km, :money) { |manifest| manifest[:net_per_km_cents] }
+    export_field(:duration_hours, :decimal) { |manifest| manifest[:duration_seconds]&.fdiv(TripDuration::SECONDS_PER_HOUR)&.round(2) }
+    export_field(:net_per_hour, :money) { |manifest| manifest[:net_per_hour_cents] }
 
     monetize :goods_value_cents, allow_nil: true
 

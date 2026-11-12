@@ -7,6 +7,7 @@
                                    note: trips_last_sync_label(@last_synced_at), wrapper_class: 'page-header-inline' do %>
     <%= link_to_filters('#filtersModal', applied: @filter_form.filtered?, class: 'btn btn-outline-secondary btn-round') %>
     <%= pdf_export_button %>
+    <%= xlsx_export_button %>
   <% end %>
 
   <%= render 'filters' %>

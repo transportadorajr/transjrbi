@@ -10,6 +10,8 @@ class HolidaysController < BaseController
 
     @holidays = listing_page(apply_sort(apply_scopes(current_tenant.holidays), :date, :id))
     @years = holiday_years
+
+    respond_with_listing(pdf: false, xlsx: @holidays)
   end
 
   def new

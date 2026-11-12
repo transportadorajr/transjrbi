@@ -17,7 +17,7 @@ class CustomerGroupsController < BaseController
     @active_count = counted_customer_groups.activated.count
     @deactivated_count = counted_customer_groups.not_activated.count
 
-    respond_with_listing
+    respond_with_listing(xlsx: -> { helpers.customer_groups_xlsx_sheet(@customer_groups, @customer_counts) })
   end
 
   def show

@@ -10,6 +10,8 @@ class RevenueProjectionsController < BaseController
     @period_type = Dashboard::RevenueProjection.sanitize_period_type(params[:period])
     @projection = Dashboard::RevenueProjection.new(projection(@period_type.to_sym))
     @memory = Dashboard::RevenueProjectionMemory.new(current_tenant)
+
+    respond_with_listing(pdf: false, xlsx: -> { helpers.revenue_projection_xlsx_sheets(@projection, @memory) })
   end
 
   private

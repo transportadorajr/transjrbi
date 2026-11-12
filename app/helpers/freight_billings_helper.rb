@@ -258,6 +258,20 @@ module FreightBillingsHelper
      pdf_highlight(t('freight_billings.show.empty_share'), freight_billing_percentage(total.empty_share))]
   end
 
+  def freight_billing_xlsx_sheets(dashboard, rows)
+    columns = [xlsx_field(freight_billing_dimension_label(dashboard.dimension), &:label),
+               xlsx_field(t('freight_billings.columns.trips'), :decimal, &:trips_count),
+               xlsx_field(t('freight_billings.columns.loaded_km'), :decimal, &:loaded_km),
+               xlsx_field(t('freight_billings.show.empty_km'), :decimal, &:empty_km),
+               xlsx_field(t('freight_billings.show.empty_share'), :percentage, &:empty_share),
+               *%i[gross freight_expenses expenses toll undiscounted_toll net gross_per_km net_per_km].map do |column|
+                 xlsx_field(t(column, scope: 'freight_billings.columns'), :money, &column)
+               end,
+               xlsx_field(t('freight_billings.columns.share'), :percentage, &:share)]
+
+    [Export::Sheet.new(name: freight_billing_table_title(dashboard), columns:, rows: dashboard.empty? ? rows : [*rows, dashboard.total])]
+  end
+
   private
 
   def freight_billing_detail_tolls(row)

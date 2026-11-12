@@ -208,6 +208,18 @@ module TripsHelper
      pdf_highlight(t('trips.index.net_average'), tax_money(total.net_average)), pdf_highlight(t('trips.index.net_per_km'), tax_money(total.net_per_km))]
   end
 
+  def trips_xlsx_sheets(dashboard, rows)
+    columns = [xlsx_field(trips_dimension_label(dashboard.dimension), &:label),
+               xlsx_field(t('trips.detail.fields.trips'), :integer, &:trips_count),
+               xlsx_field(t('trips.detail.fields.loaded_km'), :decimal, &:loaded_km),
+               *%i[gross expenses net average net_average gross_per_km net_per_km].map do |column|
+                 xlsx_field(t(column, scope: 'trips.detail.fields'), :money, &column)
+               end,
+               xlsx_field(t('trips.xlsx.duration_hours'), :decimal) { |row| row.duration&.seconds&./(TripDuration::SECONDS_PER_HOUR)&.round(2) }]
+
+    [Export::Sheet.new(name: t('trips.index.title'), columns:, rows: dashboard.empty? ? rows : [*rows, dashboard.total])]
+  end
+
   private
 
   def trips_row_show_menu(row)

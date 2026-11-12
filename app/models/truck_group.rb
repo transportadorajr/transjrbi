@@ -1,5 +1,6 @@
 class TruckGroup < ApplicationRecord
   include Sortable
+  include Exportable
 
   AXLE_OPTIONS = (2..9).to_a.freeze
 

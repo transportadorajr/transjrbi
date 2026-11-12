@@ -11,7 +11,7 @@ class DriversController < BaseController
 
     @drivers = listing_page(apply_sort(apply_scopes(current_tenant.atua_vehicles.drivers), :driver_name, :driver_code))
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: -> { helpers.drivers_xlsx_sheet(@drivers) })
   end
 
   def show
