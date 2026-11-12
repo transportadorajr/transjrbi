@@ -38,7 +38,7 @@
         <dd class="col-12 col-md-9"><%= tonnage_rate_per_ton(@tonnage_rate.rate) %></dd>
 
         <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:status) %></dt>
-        <dd class="col-12 col-md-9"><%= tonnage_rate_status_badge(@tonnage_rate) %></dd>
+        <dd class="col-12 col-md-9"><%= tonnage_rate_status_badges(@tonnage_rate) %></dd>
 
         <dt class="col-12 col-md-3"><%= TonnageRate.human_attribute_name(:freight_expenses) %></dt>
         <dd class="col-12 col-md-9"><%= @expenses_count %></dd>

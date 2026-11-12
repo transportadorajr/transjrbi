@@ -233,9 +233,32 @@ describe 'Freight expenses' do
         expect(page).to have_text('Cubatao/SP')
       end
       within('#outdated_tonnage_rates') do
-        expect(page).to have_text('1 custo por tonelada desatualizado')
+        expect(page).to have_text('1 custo por tonelada para revisar')
         expect(page).to have_text('Brasiltec – Ipatinga/MG')
         expect(page).to have_text('07/2026')
+      end
+    end
+  end
+
+  context 'when the owner is signed in and a tonnage cost was copied into the month' do
+    around { |example| travel_to(Time.zone.local(2026, 11, 3, 12)) { example.run } }
+
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+    let!(:october) { create(:tonnage_rate, tenant:, customer_group: usiminas) }
+    let!(:copy) do
+      create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 11, 1), copied_from: october)
+    end
+
+    before { login_as(owner, scope: :user) }
+
+    scenario 'warns that the copied cost waits for review' do
+      visit freight_expenses_path
+
+      within('#outdated_tonnage_rates') do
+        expect(page).to have_text('1 custo por tonelada para revisar')
+        expect(page).to have_text('Brasiltec – Cubatão/SP (Cubatão)')
+        expect(page).to have_text('11/2026')
+        expect(page).to have_text('Copiado de 10/2026 – revisar')
       end
     end
   end

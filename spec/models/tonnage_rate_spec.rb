@@ -146,5 +146,15 @@ RSpec.describe TonnageRate do
     it 'lists the origins whose latest month is more than two months old' do
       expect(described_class.outdated(tenant)).to eq([old])
     end
+
+    context 'when the latest rate of an origin was copied and not reviewed' do
+      let!(:copy) do
+        create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 10, 1), copied_from: current)
+      end
+
+      it 'lists the copy waiting for review' do
+        expect(described_class.outdated(tenant)).to eq([copy, old])
+      end
+    end
   end
 end

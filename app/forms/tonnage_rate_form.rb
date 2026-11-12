@@ -72,7 +72,7 @@ class TonnageRateForm < BaseForm
   def submit
     transaction do
       tonnage_rate.update!(customer_group_id:, name:, nickname: selected_origin.nickname.presence, origin_city: selected_origin.city,
-                           origin_state: selected_origin.state, valid_month: valid_month_value, rate_cents:, activated: active)
+                           origin_state: selected_origin.state, valid_month: valid_month_value, rate_cents:, activated: active, copied_from: nil)
     end
 
     FreightExpenses::CalculateJob.perform_later(tenant.id)

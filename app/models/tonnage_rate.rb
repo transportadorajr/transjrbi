@@ -25,7 +25,9 @@ class TonnageRate < ApplicationRecord
 
   belongs_to :tenant
   belongs_to :customer_group, inverse_of: :tonnage_rates
+  belongs_to :copied_from, class_name: 'TonnageRate', optional: true, inverse_of: :copies
   has_many :freight_expenses, dependent: :restrict_with_error, inverse_of: :tonnage_rate
+  has_many :copies, class_name: 'TonnageRate', foreign_key: :copied_from_id, dependent: :nullify, inverse_of: :copied_from
 
   monetize :rate_cents
 
@@ -93,10 +95,14 @@ class TonnageRate < ApplicationRecord
     def outdated(tenant)
       limit = Date.current.beginning_of_month.months_ago(OUTDATED_MONTHS - 1)
 
-      tenant.tonnage_rates.activated.preload(:customer_group).group_by(&:series_key).values
-        .map { |rates| rates.max_by(&:valid_month) }.select { |rate| rate.valid_month < limit }
+      tenant.tonnage_rates.activated.preload(:customer_group, :copied_from).group_by(&:series_key).values
+        .map { |rates| rates.max_by(&:valid_month) }.select { |rate| rate.valid_month < limit || rate.pending_review? }
         .sort_by { |rate| [rate.name, rate.origin_city] }
     end
+  end
+
+  def pending_review?
+    copied_from_id.present?
   end
 
   def series_key
@@ -130,17 +136,20 @@ end
 #  valid_month       :date             not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
+#  copied_from_id    :bigint
 #  customer_group_id :bigint           not null
 #  tenant_id         :bigint           not null
 #
 # Indexes
 #
+#  index_tonnage_rates_on_copied_from_id             (copied_from_id)
 #  index_tonnage_rates_on_customer_group_id          (customer_group_id)
 #  index_tonnage_rates_on_tenant_id                  (tenant_id)
 #  index_tonnage_rates_on_tenant_id_and_valid_month  (tenant_id,valid_month)
 #
 # Foreign Keys
 #
+#  fk_rails_...  (copied_from_id => tonnage_rates.id)
 #  fk_rails_...  (customer_group_id => customer_groups.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
