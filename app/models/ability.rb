@@ -1,7 +1,7 @@
 class Ability
   include CanCan::Ability
 
-  MAINTENANCE_RESOURCES = %i[maintenance_orders workshop_employees suppliers vehicles].freeze
+  MAINTENANCE_RESOURCES = %i[maintenance maintenance_orders workshop_employees suppliers vehicles].freeze
 
   def initialize(user, resources: nil)
     return unless user

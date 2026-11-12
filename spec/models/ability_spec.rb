@@ -174,12 +174,14 @@ RSpec.describe Ability do
     let(:user) { create(:user, tenant:, user_type: :owner) }
 
     before do
+      create(:resource, slug: 'maintenance', writable: false)
       create(:resource, slug: 'maintenance_orders')
       create(:resource, slug: 'vehicles')
       create(:resource, slug: 'truck_groups')
     end
 
     it 'manages the allowed resources' do
+      expect(ability).to be_able_to(:read, :maintenance)
       expect(ability).to be_able_to(:update, :maintenance_orders)
       expect(ability).to be_able_to(:read, :vehicles)
     end
@@ -202,6 +204,22 @@ RSpec.describe Ability do
     it 'keeps only the accesses to the allowed resources' do
       expect(ability).to be_able_to(:create, :suppliers)
       expect(ability).not_to be_able_to(:read, :drivers)
+    end
+
+    it 'cannot reach the maintenance module without access to it' do
+      expect(ability).not_to be_able_to(:read, :maintenance)
+    end
+  end
+
+  context 'when an admin has access to the maintenance module' do
+    subject(:ability) { described_class.new(user, resources: Ability::MAINTENANCE_RESOURCES) }
+
+    let(:user) { create(:user, tenant:, user_type: :admin) }
+
+    before { create(:access, user:, resource: create(:resource, slug: 'maintenance', writable: false), reads: true) }
+
+    it 'reads the maintenance module' do
+      expect(ability).to be_able_to(:read, :maintenance)
     end
   end
 

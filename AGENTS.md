@@ -379,6 +379,7 @@ The maintenance subdomain serves only the maintenance module (work orders, works
 - The sidebar comes from the `maintenance` key of `config/menu.yml` (`sidebar_menus` in `MenuHelper`). The app's sidebar has no maintenance entry: the module is reached only through its own subdomain.
 - `BaseController#current_ability` builds `Ability` with `resources: Ability::MAINTENANCE_RESOURCES` on the maintenance subdomain, so links to app screens (drivers, CT-es, expenses) are hidden there. Add a resource to that list before exposing a new screen on the subdomain.
 - The whole subdomain answers 404 when the tenant has the `maintenance` Flipper flag off.
+- Entering the subdomain requires read access to the `maintenance` resource (owners have it through every resource). A signed-in user without it is signed out and sent back to the login screen by `require_maintenance_access` (`MaintenanceHost`); the access to each screen is still checked by its own resource.
 - Tag a feature spec with the `:maintenance` metadata so it runs against the maintenance host.
 
 ### Naming Convention

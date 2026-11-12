@@ -1238,6 +1238,7 @@ pt-BR:
   errors:
     messages:
       access_denied: Você não possui acesso a esta funcionalidade.
+      maintenance_access_denied: Você não possui acesso ao módulo de manutenção.
   helpers:
     links:
       cancel: Cancelar
@@ -1550,6 +1551,7 @@ pt-BR:
         title: Sem acesso à manutenção
         description: Seu usuário ainda não tem acesso às telas da manutenção. Peça a liberação ao responsável pela sua empresa.
   resource_names:
+    maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores

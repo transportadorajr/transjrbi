@@ -4,6 +4,7 @@ describe 'Suppliers', :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Fornecedores', slug: 'suppliers') }
+  let!(:maintenance_resource) { create(:resource, name: 'Módulo de manutenção', slug: 'maintenance', writable: false) }
 
   context 'without a signed in user' do
     scenario 'redirects the listing to the login screen' do
@@ -124,6 +125,7 @@ describe 'Suppliers', :maintenance do
 
   context 'when a user without access to the suppliers is signed in', flipper: :maintenance do
     let!(:operator) { create(:user, tenant:) }
+    let!(:maintenance_access) { create(:access, user: operator, resource: maintenance_resource, creates: false) }
 
     before { login_as(operator, scope: :user) }
 

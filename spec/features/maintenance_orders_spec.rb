@@ -4,6 +4,7 @@ describe 'Maintenance orders', :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Ordens de serviço', slug: 'maintenance_orders') }
+  let!(:maintenance_resource) { create(:resource, name: 'Módulo de manutenção', slug: 'maintenance', writable: false) }
 
   before { travel_to(Time.zone.local(2026, 11, 11, 10)) }
 
@@ -290,6 +291,7 @@ describe 'Maintenance orders', :maintenance do
   context 'when the workshop user is signed in', flipper: :maintenance do
     let!(:workshop_user) { create(:user, tenant:, name: 'Rafael Oficina') }
     let!(:access) { create(:access, user: workshop_user, resource:, reads: true, creates: true) }
+    let!(:maintenance_access) { create(:access, user: workshop_user, resource: maintenance_resource, creates: false) }
     let!(:maintenance_order) { create(:maintenance_order, tenant:, number: 1) }
 
     before { login_as(workshop_user, scope: :user) }
@@ -305,6 +307,7 @@ describe 'Maintenance orders', :maintenance do
 
   context 'when a user without access to the maintenance orders is signed in', flipper: :maintenance do
     let!(:operator) { create(:user, tenant:) }
+    let!(:maintenance_access) { create(:access, user: operator, resource: maintenance_resource, creates: false) }
 
     before { login_as(operator, scope: :user) }
 

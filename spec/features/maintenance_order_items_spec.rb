@@ -4,6 +4,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Ordens de serviço', slug: 'maintenance_orders') }
+  let!(:maintenance_resource) { create(:resource, name: 'Módulo de manutenção', slug: 'maintenance', writable: false) }
   let!(:maintenance_order) { create(:maintenance_order, tenant:, number: 7, plate: 'EXU1A23') }
   let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
   let!(:supplier) { create(:supplier, tenant:, name: 'RETÍFICA IPATINGA') }
@@ -228,6 +229,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
   context 'when a user can only read the maintenance orders' do
     let!(:reader) { create(:user, tenant:) }
     let!(:access) { create(:access, user: reader, resource:, reads: true, creates: false) }
+    let!(:maintenance_access) { create(:access, user: reader, resource: maintenance_resource, creates: false) }
     let!(:part) { create(:maintenance_order_part, maintenance_order:) }
 
     before { login_as(reader, scope: :user) }
