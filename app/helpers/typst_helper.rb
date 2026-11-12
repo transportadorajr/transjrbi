@@ -89,7 +89,7 @@ module TypstHelper
 
   def typst_section_title(title)
     typst_markup('#block(width: 100%, inset: (x: 4pt, top: 4pt, bottom: 2pt), ' \
-                 "text(9pt, weight: \"bold\", fill: rgb(\"#{TYPST_HEADER_FILL}\"), #{typst_text(typst_plain(title).upcase)}))")
+                 "underline(text(9pt, weight: \"bold\", fill: black, #{typst_text(typst_plain(title).upcase)})))")
   end
 
   def typst_field_grid(fields, columns: 2)
@@ -106,8 +106,9 @@ module TypstHelper
   end
 
   def typst_signatures(labels, columns: 2, width: '100%')
-    cells = labels.map do |label|
-      'block(width: 100%, inset: (top: 18pt, x: 8pt), [#line(length: 100%, stroke: 0.5pt) ' \
+    cells = labels.map do |label, name|
+      'block(width: 100%, inset: (top: 40pt, x: 8pt), [#line(length: 100%, stroke: 0.5pt) ' \
+        "#{typst_signature_name(name)}" \
         "#align(center, text(8pt, fill: rgb(\"#{TYPST_MUTED_COLOR}\"), #{typst_text(typst_plain(label))}))])"
     end
 
@@ -120,5 +121,13 @@ module TypstHelper
 
   def pdf_highlight(label, value)
     PdfReport::Highlight.new(label:, value:)
+  end
+
+  private
+
+  def typst_signature_name(name)
+    return '' if name.blank?
+
+    "#align(center, text(9pt, weight: \"bold\", #{typst_text(typst_plain(name))}))"
   end
 end

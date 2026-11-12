@@ -57,9 +57,9 @@
 <%= typst_section_title(t('maintenance_orders.show.closing')) %>
 <%= typst_field_grid(maintenance_order_pdf_closing_fields(@maintenance_order), columns: 3) %>
 
-#v(0.3em)
+#v(1.5em)
 
-<%= typst_signatures(maintenance_order_pdf_signatures, columns: 1, width: '50%') %>
+<%= typst_signatures(maintenance_order_pdf_signatures(@maintenance_order), columns: 1, width: '50%') %>
 
 #v(0.1em)
 

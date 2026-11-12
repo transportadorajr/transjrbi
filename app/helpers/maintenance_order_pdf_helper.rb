@@ -107,8 +107,10 @@ module MaintenanceOrderPdfHelper
     render 'shared/pdf_table', report:
   end
 
-  def maintenance_order_pdf_signatures
-    SIGNATURES.map { |signature| t(signature, scope: 'maintenance_orders.show.pdf.signatures') }
+  def maintenance_order_pdf_signatures(maintenance_order)
+    SIGNATURES.map do |signature|
+      [t(signature, scope: 'maintenance_orders.show.pdf.signatures'), maintenance_order.public_send(signature)&.name]
+    end
   end
 
   private
