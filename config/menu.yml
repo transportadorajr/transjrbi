@@ -71,6 +71,11 @@ shared:
           url: /truck_groups
           controllers:
             - truck_groups
+        - name: own_fleet
+          resource: own_fleet
+          url: /own_fleet
+          controllers:
+            - own_fleets
         - name: excluded_issuers
           resource: excluded_issuers
           url: /excluded_issuers

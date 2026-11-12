@@ -45,7 +45,8 @@ class TripsController < BaseController
     return redirect_to(trips_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
     load_filter_options
-    @dashboard = Dashboard::Trip.new(manifests, dimension: @filter_form.dimension, period: @filter_form.period)
+    @dashboard = Dashboard::Trip.new(manifests, dimension: @filter_form.dimension, period: @filter_form.period,
+                                                own_fleet: current_tenant.own_fleet)
   end
 
   def opened_detail_row

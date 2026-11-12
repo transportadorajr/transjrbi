@@ -34,6 +34,7 @@ end
   'trips' => { name: 'Viagens', writable: false },
   'macro_regions' => { name: 'Macro regiões', writable: true },
   'truck_groups' => { name: 'Grupos de caminhões', writable: true },
+  'own_fleet' => { name: 'Frota própria', writable: true },
   'excluded_issuers' => { name: 'Emissores desconsiderados', writable: true },
   'route_distances' => { name: 'Trechos de km', writable: true },
   'holidays' => { name: 'Feriados', writable: true },

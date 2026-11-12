@@ -13,6 +13,7 @@ class Tenant < ApplicationRecord
   has_many :commission_rules, dependent: :delete_all
   has_many :tonnage_rates, dependent: :delete_all
   has_one :insurance_rate, dependent: :delete
+  has_one :own_fleet, dependent: :delete
   has_many :atua_transport_documents, class_name: 'Atua::TransportDocument', dependent: :delete_all
   has_many :atua_transport_document_manifests, class_name: 'Atua::TransportDocumentManifest', dependent: :delete_all
   has_many :atua_manifests, class_name: 'Atua::Manifest', dependent: :delete_all

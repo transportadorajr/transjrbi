@@ -1,0 +1,24 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('own_fleets.form.own_fleet_data') %></p>
+    <p class="form-card-subtitle"><%= t('own_fleets.form.own_fleet_data_text') %></p>
+  </div>
+  <%= simple_form_for(own_fleet_form, url: own_fleet_path, method: :patch) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <%= f.input :plates,
+                      as: :text,
+                      required: false,
+                      hint: t('own_fleets.form.plates_hint'),
+                      input_html: { class: 'form-control text-uppercase', rows: 10, autocomplete: 'off', spellcheck: false } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.own_fleet.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), own_fleet_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,22 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= own_fleet_edit_button %>
+  <% end %>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.own_fleet_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="own_fleet_data">
+        <dt class="col-12 col-md-3"><%= t('.plates_count') %></dt>
+        <dd class="col-12 col-md-9"><%= @own_fleet.plates.size %></dd>
+
+        <dt class="col-12 col-md-3"><%= OwnFleet.human_attribute_name(:plates) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= own_fleet_plates(@own_fleet) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

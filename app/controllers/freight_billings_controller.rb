@@ -81,7 +81,8 @@ class FreightBillingsController < BaseController
     @dashboard = Dashboard::Freight.new(documents,
                                         manifests: current_tenant.atua_manifests,
                                         dimension: @filter_form.dimension,
-                                        period: @filter_form.period)
+                                        period: @filter_form.period,
+                                        own_fleet: current_tenant.own_fleet)
   end
 
   def documents

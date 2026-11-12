@@ -185,6 +185,20 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(%w[BBB2B22 Total])
       end
 
+      context 'when the tenant registered its own fleet' do
+        before do
+          create(:own_fleet, tenant:, plates: %w[AAA1A11])
+          create(:own_fleet, tenant: other_tenant, plates: %w[BBB2B22])
+        end
+
+        scenario 'shows the vehicles outside the own fleet as a single third party row' do
+          visit trips_path(october.merge(dimension: 'vehicle'))
+
+          expect(OwnFleet.count).to eq(2)
+          expect(html_table_to_rows(table: find('.trips-table')).drop(1).map(&:first)).to eq(['Terceiro Melhor', 'AAA1A11 Pior', 'Total'])
+        end
+      end
+
       context 'when the trips carry different products' do
         let!(:flour) { create(:product_group, tenant:, name: 'FARINHA') }
         let!(:wheat_flour) { create(:product_subgroup, tenant:, parent: flour, name: 'FARINHA DE TRIGO') }

@@ -70,6 +70,9 @@ pt-BR:
       insurance_rate:
         one: Alíquota de seguro
         other: Alíquotas de seguro
+      own_fleet:
+        one: Frota própria
+        other: Frotas próprias
       macro_region:
         one: Macro região
         other: Macro regiões
@@ -256,6 +259,8 @@ pt-BR:
         international_insurance_percentage: Alíquota do seguro internacional
         iof_percentage: Alíquota do IOF
         freight_expenses: CT-es com o seguro
+      own_fleet:
+        plates: Placas
       customer_group:
         name: Nome
         terms: Termos
@@ -793,6 +798,8 @@ pt-BR:
         insurance_percentage: Alíquota do seguro (%)
         international_insurance_percentage: Alíquota do seguro internacional (%)
         iof_percentage: Alíquota do IOF (%)
+      own_fleet_form:
+        plates: Placas da frota própria
       macro_region_form:
         name: Nome
         state: UF
@@ -1305,6 +1312,8 @@ pt-BR:
         update: Salvar Alterações
       insurance_rate:
         update: Salvar Alterações
+      own_fleet:
+        update: Salvar Alterações
     tooltips:
       admin/http_request:
         show: Visualizar
@@ -1569,6 +1578,7 @@ pt-BR:
     commission_rules: Regras de comissão
     tonnage_rates: Custos por tonelada
     insurance_rates: Alíquota de seguro
+    own_fleet: Frota própria
     freight_expenses: Despesas de frete
     macro_regions: Macro regiões
     cities: Cidades
@@ -2531,6 +2541,30 @@ pt-BR:
       insurance_percentage_hint: 'Ex.: 0,022.'
       international_insurance_percentage_hint: 'Apólice de viagem internacional (RCTR-VI). Ex.: 0,065.'
       iof_percentage_hint: 'Incide só sobre o seguro internacional. Ex.: 7,38.'
+  own_fleets:
+    third_party: Terceiro
+    show:
+      title: Frota própria
+      subtitle: >-
+        Placas dos veículos da empresa, conforme o extrato do RNTRC da ANTT. Nos detalhamentos por veículo do BI, as placas
+        que não estão nesta lista são somadas em uma única linha Terceiro. A placa INT6R00, usada só no faturamento
+        internacional, continua na sua própria linha.
+      own_fleet_data: Dados da frota
+      plates_count: Quantidade de placas
+      edit: Alterar
+    edit:
+      title: Alterar Frota Própria
+      back: Voltar para frota própria
+    update:
+      success:
+        one: Frota própria atualizada com 1 placa.
+        other: Frota própria atualizada com %{count} placas.
+    form:
+      own_fleet_data: Placas da Frota
+      own_fleet_data_text: >-
+        Cole as placas do extrato do RNTRC (cavalos e implementos). Pode colar o texto do extrato inteiro: as placas são
+        reconhecidas e o restante é ignorado. Com a lista vazia, nenhum veículo aparece como Terceiro.
+      plates_hint: 'Uma placa por linha ou separadas por espaço, vírgula ou ponto e vírgula. Ex.: ALC-6D72/PR, AJR4391.'
   dashboards:
     revenue_projection:
       realized: Faturado
@@ -3021,6 +3055,7 @@ pt-BR:
     macro_regions: Macro regiões
     cities: Cidades
     truck_groups: Grupos de caminhões
+    own_fleet: Frota própria
     excluded_issuers: Emissores desconsiderados
     drivers: Motoristas
     holidays: Feriados
