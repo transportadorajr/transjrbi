@@ -35,8 +35,31 @@ RSpec.describe RevenueProjections::CalculateCommand do
       expect(result.projected).to eq(Money.from_cents(2_300_000))
       expect(result.low).to eq(result.projected)
       expect(result.high).to eq(result.projected)
-      expect(result.history_days).to eq(84)
+      expect(result.history_days).to eq(75)
       expect(result).to be_history
+    end
+
+    it 'consolidates the days missing in the memory before projecting' do
+      expect { described_class.call(tenant, period_type: :month, at: wednesday) }.to change(RevenueProjection::DailyTotal, :count).by(86)
+
+      expect(tenant.revenue_projection_daily_totals.maximum(:date)).to eq(Date.new(2026, 11, 10))
+      expect(tenant.revenue_projection_daily_totals.find_by!(date: Date.new(2026, 10, 30))).to have_attributes(billed_cents: 100_000, day_type: 'month_end')
+    end
+
+    it 'raises the last days of the month with the month end factor learned in the memory' do
+      create(:revenue_projection_factor, tenant:, factor_type: 'month_end', value: 1.2, learned: true)
+
+      result = described_class.call(tenant, period_type: :month, at: wednesday)
+
+      expect(result.projected).to eq(Money.from_cents(2_350_000))
+    end
+
+    it 'corrects each weekday with the bias learned in the memory' do
+      create(:revenue_projection_factor, tenant:, factor_type: 'weekday_bias', wday: 1, value: 1.1, learned: true)
+
+      result = described_class.call(tenant, period_type: :month, at: wednesday)
+
+      expect(result.projected).to eq(Money.from_cents(2_330_000))
     end
 
     it 'projects the end of the week from sunday to saturday' do
@@ -57,24 +80,25 @@ RSpec.describe RevenueProjections::CalculateCommand do
 
         expect(result.projected).to eq(Money.from_cents(2_230_000))
         expect(result.upcoming_holidays).to eq([black_consciousness])
-        expect(result.factors.fetch(:weekday)).to eq(0.30)
+        expect(result.factors.fetch(:weekday_holiday)).to eq(0.30)
       end
 
-      context 'when the past holidays billed less than the regular days' do
+      context 'when the memory learned the factor of the past holidays' do
         before do
           [Date.new(2026, 10, 12), Date.new(2026, 11, 2)].each do |date|
             tenant.atua_transport_documents.where(issued_at: date.all_day).update_all(freight_cents: 40_000)
             create(:holiday, tenant:, date:, name: 'Feriado')
           end
+          create(:revenue_projection_factor, tenant:, factor_type: 'weekday_holiday', value: 0.4, observations_count: 2, learned: true)
         end
 
-        it 'learns the factor of the holidays and keeps them out of the typical billing' do
+        it 'applies the learned factor and keeps the holidays out of the typical billing' do
           result = described_class.call(tenant, period_type: :month, at: wednesday)
 
-          expect(result.factors.fetch(:weekday)).to eq(0.40)
+          expect(result.factors.fetch(:weekday_holiday)).to eq(0.40)
           expect(result.realized).to eq(Money.from_cents(790_000))
           expect(result.projected).to eq(Money.from_cents(2_180_000))
-          expect(result.history_days).to eq(82)
+          expect(result.history_days).to eq(73)
         end
       end
     end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_182811) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -30,6 +30,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_182811) do
   create_enum "holiday_kind_type", ["holiday", "bridge_day", "optional"]
   create_enum "holiday_scope_type", ["national", "state", "municipal"]
   create_enum "location_precision_type", ["address", "city"]
+  create_enum "revenue_projection_day_type", ["regular", "weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end"]
+  create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
   create_enum "user_type", ["owner", "admin", "operator"]
 
   create_table "accesses", force: :cascade do |t|
@@ -930,6 +932,52 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_182811) do
     t.index ["slug"], name: "index_resources_on_slug", unique: true
   end
 
+  create_table "revenue_projection_daily_totals", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.date "date", null: false
+    t.integer "wday", null: false
+    t.enum "day_type", default: "regular", null: false, enum_type: "revenue_projection_day_type"
+    t.bigint "billed_cents", default: 0, null: false
+    t.integer "documents_count", default: 0, null: false
+    t.bigint "hourly_cents", default: [], null: false, array: true
+    t.datetime "consolidated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "date"], name: "index_revenue_projection_daily_totals_on_tenant_id_and_date", unique: true
+  end
+
+  create_table "revenue_projection_day_forecasts", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.date "date", null: false
+    t.integer "wday", null: false
+    t.enum "day_type", default: "regular", null: false, enum_type: "revenue_projection_day_type"
+    t.bigint "typical_cents", null: false
+    t.decimal "factor", precision: 6, scale: 4, null: false
+    t.bigint "forecast_cents", null: false
+    t.bigint "low_cents", null: false
+    t.bigint "high_cents", null: false
+    t.bigint "actual_cents"
+    t.decimal "error_ratio", precision: 8, scale: 4
+    t.boolean "backfilled", default: false, null: false
+    t.datetime "forecast_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "date"], name: "index_revenue_projection_day_forecasts_on_tenant_id_and_date", unique: true
+  end
+
+  create_table "revenue_projection_factors", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.enum "factor_type", null: false, enum_type: "revenue_projection_factor_type"
+    t.integer "wday"
+    t.decimal "value", precision: 6, scale: 4, null: false
+    t.integer "observations_count", default: 0, null: false
+    t.boolean "learned", default: false, null: false
+    t.datetime "learned_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "factor_type", "wday"], name: "idx_on_tenant_id_factor_type_wday_d8a11b5f56", unique: true, nulls_not_distinct: true
+  end
+
   create_table "road_routes", force: :cascade do |t|
     t.bigint "origin_id", null: false
     t.bigint "destination_id", null: false
@@ -1095,6 +1143,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_182811) do
   add_foreign_key "macro_regions", "tenants"
   add_foreign_key "product_groups", "product_groups", column: "parent_id"
   add_foreign_key "product_groups", "tenants"
+  add_foreign_key "revenue_projection_daily_totals", "tenants"
+  add_foreign_key "revenue_projection_day_forecasts", "tenants"
+  add_foreign_key "revenue_projection_factors", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "route_distances", "tenants"

@@ -2,8 +2,6 @@ module RevenueProjections
   class CalculateCommand
     PERIOD_TYPES = %i[month week].freeze
     WEEK_START = :sunday
-    BASELINE_DAYS = 84
-    HOLIDAY_HISTORY_DAYS = 365
 
     class << self
       def call(tenant, period_type:, at: Time.current)
@@ -20,8 +18,10 @@ module RevenueProjections
     end
 
     def call
-      RevenueProjection::Result.new(period_type:, period:, reference_at:, days: period.map { build_day(it) },
-                                    factors: holiday_factors.factors, history_days: baseline.days_count)
+      consolidate_missing_days
+
+      RevenueProjection::Result.new(period_type:, period:, reference_at:, days: period.map { build_day(it) }, factors: factors.to_h,
+                                    history_days: forecaster.history_days(reference_date))
     end
 
     private
@@ -41,25 +41,24 @@ module RevenueProjections
     end
 
     def build_day(date)
-      realized = realized_totals.fetch(date, 0).to_i
-      factor = date < reference_date ? 0.0 : holiday_factors.factor(date) * remaining_share(date)
+      forecast = forecaster.forecast(date, as_of: reference_date) unless date < reference_date
+      share = remaining_share(date)
 
       RevenueProjection::Day.new(
-        date:, realized_cents: realized, holiday: holidays[date],
-        expected_cents: expected(date, RevenueProjection::Baseline::MEDIAN, factor),
-        low_cents: expected(date, RevenueProjection::Baseline::LOW, factor),
-        high_cents: expected(date, RevenueProjection::Baseline::HIGH, factor)
+        date:, realized_cents: realized_totals.fetch(date, 0).to_i, holiday: holidays[date],
+        expected_cents: scaled(forecast&.forecast_cents, share), low_cents: scaled(forecast&.low_cents, share),
+        high_cents: scaled(forecast&.high_cents, share)
       )
     end
 
-    def expected(date, percentile, factor)
-      (baseline.typical(date.wday, percentile) * factor).round
+    def scaled(cents, share)
+      ((cents || 0) * share).round
     end
 
     def remaining_share(date)
-      return 1.0 if date > reference_date
+      return 1.0 unless date == reference_date
 
-      1.0 - baseline.share_until(date.wday, (reference_at - reference_at.beginning_of_day) / 1.hour)
+      1.0 - forecaster.share_until(date.wday, (reference_at - reference_at.beginning_of_day) / 1.hour, as_of: reference_date)
     end
 
     def documents
@@ -70,45 +69,29 @@ module RevenueProjections
       @realized_totals ||= documents.where(issued_at: period.first.beginning_of_day..reference_at).group_by_day(:issued_at).sum(:freight_cents)
     end
 
-    def history_start
-      @history_start ||= begin
-        first_issued_on = documents.minimum(:issued_at)&.to_date || reference_date
+    def consolidate_missing_days
+      first_date = documents.minimum(:issued_at)&.to_date
+      return unless first_date
 
-        [reference_date - HOLIDAY_HISTORY_DAYS - (RevenueProjection::HolidayFactors::NEIGHBOR_WEEKS * 7), first_issued_on].max
-      end
-    end
-
-    def daily_history
-      @daily_history ||= if history_start < reference_date
-                           documents.group_by_day(:issued_at, range: history_start.beginning_of_day...reference_date.beginning_of_day)
-                             .sum(:freight_cents).transform_values(&:to_i)
-                         else
-                           {}
-                         end
-    end
-
-    def baseline_dates
-      @baseline_dates ||= daily_history.keys.select { it >= reference_date - BASELINE_DAYS && !holidays.key?(it) }.to_set
-    end
-
-    def baseline
-      @baseline ||= RevenueProjection::Baseline.new(daily_history.slice(*baseline_dates), hourly_history)
-    end
-
-    def hourly_history
-      return {} if baseline_dates.empty?
-
-      documents.where(issued_at: baseline_dates.min.beginning_of_day...reference_date.beginning_of_day)
-        .group_by_hour(:issued_at).sum(:freight_cents)
-        .select { |time, _cents| baseline_dates.include?(time.to_date) }
+      last_consolidated = tenant.revenue_projection_daily_totals.maximum(:date)
+      start = last_consolidated ? last_consolidated + 1 : first_date
+      ConsolidateDaysCommand.call(tenant, start...reference_date) if start < reference_date
     end
 
     def holidays
-      @holidays ||= tenant.holidays.where(date: history_start..period.last).index_by(&:date)
+      @holidays ||= tenant.holidays.where(date: (reference_date - RevenueProjection::Forecaster::BASELINE_DAYS)..period.last).index_by(&:date)
     end
 
-    def holiday_factors
-      @holiday_factors ||= RevenueProjection::HolidayFactors.new(holidays, daily_history)
+    def factors
+      @factors ||= RevenueProjection::FactorSet.new(RevenueProjection::Factor.where(tenant:))
+    end
+
+    def forecaster
+      @forecaster ||= RevenueProjection::Forecaster.new(
+        tenant.revenue_projection_daily_totals.where(date: (reference_date - RevenueProjection::Forecaster::BASELINE_DAYS)...reference_date)
+          .index_by(&:date),
+        RevenueProjection::Calendar.new(holidays), factors
+      )
     end
   end
 end

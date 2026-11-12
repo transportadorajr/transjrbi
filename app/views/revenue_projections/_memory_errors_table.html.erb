@@ -1,0 +1,19 @@
+<%# locals: (rows:) %>
+
+<div class="table-responsive">
+  <table class="table table-sm app-table align-middle mb-0" id="memory_errors">
+    <thead>
+      <tr>
+        <th><%= t('revenue_projections.memory.day') %></th>
+        <th class="text-end d-none d-md-table-cell"><%= t('revenue_projections.memory.days') %></th>
+        <th class="text-end"><%= t('revenue_projections.memory.mean_error_column') %></th>
+        <th class="text-end"><%= t('revenue_projections.memory.bias_column') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rows.each do |row| %>
+        <%= render 'memory_error_row', row: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>

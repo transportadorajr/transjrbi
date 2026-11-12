@@ -1,0 +1,26 @@
+<%# locals: (memory:) %>
+
+<div class="card table-card mb-4">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('revenue_projections.memory.title') %></p>
+      <p class="table-card-subtitle"><%= t('revenue_projections.memory.subtitle') %></p>
+    </div>
+  </div>
+  <div class="table-card-body">
+    <% if memory.any? %>
+      <div class="row g-2 g-md-3 p-3 counter-grid-compact">
+        <%= counter_card(:dark, t('revenue_projections.memory.mean_error'), revenue_projection_error(memory.mean_absolute_error), col_class: 'col-6') %>
+        <%= counter_card(:warning, t('revenue_projections.memory.bias'), revenue_projection_bias(memory.bias), col_class: 'col-6') %>
+      </div>
+
+      <p class="fw-semibold small text-uppercase text-muted px-3 mb-2"><%= t('revenue_projections.memory.errors_title') %></p>
+      <%= render 'memory_errors_table', rows: memory.error_rows %>
+
+      <p class="fw-semibold small text-uppercase text-muted px-3 mt-4 mb-2"><%= t('revenue_projections.memory.factors_title') %></p>
+      <%= render 'memory_factors_table', rows: memory.factor_rows %>
+    <% else %>
+      <p class="text-muted small p-3 mb-0"><%= t('revenue_projections.memory.empty') %></p>
+    <% end %>
+  </div>
+</div>

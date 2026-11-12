@@ -32,9 +32,55 @@ module RevenueProjectionsHelper
   end
 
   def revenue_projection_title(projection)
-    return t('revenue_projections.show.month_title', month: l(projection.period.first, format: :month_name)) if projection.period_type == :month
+    revenue_projection_period_name(projection.period_type, projection.period.first, projection.period.last)
+  end
 
-    t('revenue_projections.show.week_title', start: l(projection.period.first, format: :chart_week), finish: l(projection.period.last, format: :chart_week))
+  def revenue_projection_period_name(period_type, period_start, period_end)
+    return t('revenue_projections.show.month_title', month: l(period_start, format: :month_name)) if period_type.to_s == 'month'
+
+    t('revenue_projections.show.week_title', start: l(period_start, format: :chart_week), finish: l(period_end, format: :chart_week))
+  end
+
+  def revenue_projection_day_label(day_type, wday)
+    return t('date.day_names')[wday].capitalize if day_type.to_sym == :regular
+
+    t(day_type, scope: 'revenue_projections.memory.day_types')
+  end
+
+  def revenue_projection_factor_label(factor_type, wday)
+    return t('revenue_projections.memory.weekday_bias', day: t('date.day_names')[wday]) if factor_type.to_sym == :weekday_bias
+
+    t(factor_type, scope: 'revenue_projections.memory.day_types')
+  end
+
+  def revenue_projection_factor_value(value)
+    t('revenue_projections.memory.factor_value', value: number_to_percentage(value * 100, precision: 0))
+  end
+
+  def revenue_projection_factor_status(row)
+    return status_badge(t('revenue_projections.memory.learned'), kind: :success) if row.learned
+
+    status_badge(t('revenue_projections.memory.default'), kind: :secondary)
+  end
+
+  def revenue_projection_error(ratio)
+    return t('revenue_projections.memory.missing') unless ratio
+
+    number_to_percentage(ratio * 100, precision: 1)
+  end
+
+  def revenue_projection_bias(ratio)
+    return t('revenue_projections.memory.missing') unless ratio
+    return t('revenue_projections.memory.bias_none') if ratio.round(3).zero?
+
+    t(ratio.negative? ? 'revenue_projections.memory.bias_below' : 'revenue_projections.memory.bias_above',
+      value: number_to_percentage(ratio.abs * 100, precision: 1))
+  end
+
+  def revenue_projection_signed_error(ratio)
+    return t('revenue_projections.memory.missing') unless ratio
+
+    "#{'+' unless ratio.negative?}#{number_to_percentage(ratio * 100, precision: 1)}"
   end
 
   def revenue_projection_deadline_label(projection)

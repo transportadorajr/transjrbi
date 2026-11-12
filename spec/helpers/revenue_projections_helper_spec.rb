@@ -33,4 +33,22 @@ RSpec.describe RevenueProjectionsHelper do
       expect(helper.revenue_projection_period_link_class('month', 'week')).to eq('btn btn-sm btn-outline-secondary')
     end
   end
+
+  describe 'memory labels' do
+    it 'names the days and the factors of the memory' do
+      expect(helper.revenue_projection_day_label(:regular, 1)).to eq('Segunda-feira')
+      expect(helper.revenue_projection_day_label(:month_end, nil)).to eq('Fim de mês')
+      expect(helper.revenue_projection_factor_label(:weekday_bias, 3)).to eq('Correção de quarta-feira')
+      expect(helper.revenue_projection_factor_label(:bridge_day, nil)).to eq('Emenda')
+      expect(helper.revenue_projection_factor_value(1.12)).to eq('112% do típico')
+    end
+
+    it 'formats the error and the bias' do
+      expect(helper.revenue_projection_error(0.0237)).to eq('2,4%')
+      expect(helper.revenue_projection_signed_error(0.05)).to eq('+5,0%')
+      expect(helper.revenue_projection_signed_error(-0.05)).to eq('-5,0%')
+      expect(helper.revenue_projection_bias(-0.029)).to eq('2,9% abaixo do real')
+      expect(helper.revenue_projection_bias(0.0001)).to eq('Sem tendência')
+    end
+  end
 end
