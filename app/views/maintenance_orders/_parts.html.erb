@@ -1,0 +1,42 @@
+<div class="card detail-card mb-4" id="parts">
+  <div class="detail-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <p class="detail-card-title mb-0"><%= t('maintenance_orders.show.parts') %></p>
+    <%= maintenance_order_item_add_button(maintenance_order, :part) %>
+  </div>
+  <div class="detail-card-body">
+    <% if parts.any? %>
+      <div class="table-responsive">
+        <table class="table app-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="d-none d-md-table-cell"><%= MaintenanceOrderPart.human_attribute_name(:code) %></th>
+              <th><%= MaintenanceOrderPart.human_attribute_name(:description) %></th>
+              <th class="d-none d-md-table-cell text-end"><%= MaintenanceOrderPart.human_attribute_name(:quantity) %></th>
+              <th class="d-none d-lg-table-cell"><%= MaintenanceOrderPart.human_attribute_name(:source_type) %></th>
+              <th class="d-none d-lg-table-cell"><%= MaintenanceOrderPart.human_attribute_name(:document_number) %></th>
+              <th class="d-none d-lg-table-cell text-end"><%= MaintenanceOrderPart.human_attribute_name(:unit_price) %></th>
+              <th class="text-end"><%= MaintenanceOrderPart.human_attribute_name(:total) %></th>
+              <th class="text-end"><%= t('shared.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% parts.each do |part| %>
+              <tr id="<%= dom_id(part) %>">
+                <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(part.code) %></td>
+                <td class="fw-semibold text-break"><%= part.description %></td>
+                <td class="d-none d-md-table-cell text-end text-nowrap"><%= maintenance_order_part_quantity(part) %></td>
+                <td class="d-none d-lg-table-cell"><%= part.source_type_name %></td>
+                <td class="d-none d-lg-table-cell"><%= tax_value(part.document_number) %></td>
+                <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(part.unit_price) %></td>
+                <td class="text-end text-nowrap"><%= tax_money(part.total) %></td>
+                <td class="text-end text-nowrap"><%= responsive_actions_menu(maintenance_order_items_menu(part)) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0"><%= t('maintenance_orders.show.no_parts') %></p>
+    <% end %>
+  </div>
+</div>

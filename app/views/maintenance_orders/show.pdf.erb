@@ -1,0 +1,66 @@
+<%= typst_page_setup(margin: '(x: 1.3cm, top: 1cm, bottom: 1.4cm)') %>
+
+#set text(size: 9pt)
+
+#align(center)[
+  #text(15pt, weight: "bold", fill: rgb("<%= TypstHelper::TYPST_HEADER_FILL %>"), <%= typst_text(maintenance_order_pdf_title(@maintenance_order)) %>)
+]
+
+<%= typst_subtitle(maintenance_order_pdf_subtitle(@maintenance_order)) %>
+
+#v(0.2em)
+
+<%= typst_section_title(t('maintenance_orders.form.vehicle_data')) %>
+<%= typst_field_grid(maintenance_order_pdf_vehicle_fields(@maintenance_order), columns: 4) %>
+
+#v(0.15em)
+
+<%= typst_section_title(t('maintenance_orders.form.classification')) %>
+<%= typst_field_grid(maintenance_order_pdf_classification_fields(@maintenance_order), columns: 3) %>
+
+#v(0.15em)
+
+<%= typst_section_title(MaintenanceOrder.human_attribute_name(:reported_defect)) %>
+<%= typst_paragraph(maintenance_order_pdf_text(@maintenance_order.reported_defect)) %>
+
+<%= typst_section_title(MaintenanceOrder.human_attribute_name(:diagnosis)) %>
+<%= typst_paragraph(maintenance_order_pdf_text(@maintenance_order.diagnosis)) %>
+
+<%= typst_section_title(MaintenanceOrder.human_attribute_name(:performed_service)) %>
+<%= typst_paragraph(maintenance_order_pdf_text(@maintenance_order.performed_service)) %>
+
+#v(0.15em)
+
+<%= typst_section_title(t('maintenance_orders.show.parts')) %>
+#v(0.2em)
+<%= maintenance_order_pdf_items(maintenance_order_pdf_parts(@parts), t('maintenance_orders.show.no_parts')) %>
+
+#v(0.15em)
+
+<%= typst_section_title(t('maintenance_orders.show.labors')) %>
+#v(0.2em)
+<%= maintenance_order_pdf_items(maintenance_order_pdf_labors(@labors), t('maintenance_orders.show.no_labors')) %>
+
+#v(0.15em)
+
+<%= typst_section_title(t('maintenance_orders.show.services')) %>
+#v(0.2em)
+<%= maintenance_order_pdf_items(maintenance_order_pdf_services(@services), t('maintenance_orders.show.no_services')) %>
+
+#v(0.15em)
+
+<%= typst_section_title(t('maintenance_orders.show.totals')) %>
+<%= typst_field_grid(maintenance_order_pdf_total_fields(@maintenance_order, @labor_hours), columns: 4) %>
+
+#v(0.15em)
+
+<%= typst_section_title(t('maintenance_orders.show.closing')) %>
+<%= typst_field_grid(maintenance_order_pdf_closing_fields(@maintenance_order), columns: 3) %>
+
+#v(1.5em)
+
+<%= typst_signatures(maintenance_order_pdf_signatures(@maintenance_order), columns: 1, width: '50%') %>
+
+#v(0.1em)
+
+#align(right, text(8pt, style: "italic", <%= typst_generated_at %>))

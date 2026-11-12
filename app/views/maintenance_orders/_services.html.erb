@@ -1,0 +1,42 @@
+<div class="card detail-card mb-4" id="services">
+  <div class="detail-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <p class="detail-card-title mb-0"><%= t('maintenance_orders.show.services') %></p>
+    <%= maintenance_order_item_add_button(maintenance_order, :service) %>
+  </div>
+  <div class="detail-card-body">
+    <% if services.any? %>
+      <div class="table-responsive">
+        <table class="table app-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th><%= MaintenanceOrderService.human_attribute_name(:supplier) %></th>
+              <th class="d-none d-md-table-cell"><%= MaintenanceOrderService.human_attribute_name(:description) %></th>
+              <th class="d-none d-lg-table-cell"><%= MaintenanceOrderService.human_attribute_name(:quote_number) %></th>
+              <th class="d-none d-lg-table-cell text-end"><%= MaintenanceOrderService.human_attribute_name(:quoted) %></th>
+              <th class="text-end"><%= MaintenanceOrderService.human_attribute_name(:approved) %></th>
+              <th class="d-none d-lg-table-cell"><%= MaintenanceOrderService.human_attribute_name(:approved_by_name) %></th>
+              <th class="d-none d-lg-table-cell"><%= MaintenanceOrderService.human_attribute_name(:invoice_number) %></th>
+              <th class="text-end"><%= t('shared.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% services.each do |service| %>
+              <tr id="<%= dom_id(service) %>">
+                <td class="fw-semibold text-break"><%= service.supplier.name %></td>
+                <td class="d-none d-md-table-cell text-break"><%= service.description %></td>
+                <td class="d-none d-lg-table-cell"><%= tax_value(service.quote_number) %></td>
+                <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(service.quoted) %></td>
+                <td class="text-end text-nowrap"><%= tax_money(service.approved) %></td>
+                <td class="d-none d-lg-table-cell"><%= tax_value(service.approved_by_name) %></td>
+                <td class="d-none d-lg-table-cell"><%= tax_value(service.invoice_number) %></td>
+                <td class="text-end text-nowrap"><%= responsive_actions_menu(maintenance_order_items_menu(service)) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0"><%= t('maintenance_orders.show.no_services') %></p>
+    <% end %>
+  </div>
+</div>

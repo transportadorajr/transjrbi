@@ -1,0 +1,6 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'maintenance_order_item_modal', title: maintenance_order_item_modal_title(item_form),
+                     title_icon: maintenance_order_item_icon(item_form), dialog_class: 'modal-lg modal-fullscreen-sm-down',
+                     auto_show: true, show_footer: false } do %>
+  <%= render 'maintenance_order_items/form', item_form: %>
+<% end %>

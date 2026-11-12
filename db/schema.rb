@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_012759) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -30,9 +30,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
   create_enum "holiday_kind_type", ["holiday", "bridge_day", "optional"]
   create_enum "holiday_scope_type", ["national", "state", "municipal"]
   create_enum "location_precision_type", ["address", "city"]
+  create_enum "maintenance_order_affected_system_type", ["engine", "cooling", "fuel", "clutch", "transmission", "axles", "brakes", "suspension", "steering", "tires", "electrical", "pneumatic", "cab_body", "implement", "lubrication", "other"]
+  create_enum "maintenance_order_equipment_type", ["truck_tractor", "trailer", "b_train", "road_train", "rigid_truck", "light_vehicle", "other"]
+  create_enum "maintenance_order_execution_place_type", ["internal_workshop", "third_party", "on_route"]
+  create_enum "maintenance_order_maintenance_type", ["preventive", "corrective", "roadside", "inspection", "improvement"]
+  create_enum "maintenance_order_part_source_type", ["stock", "purchase"]
+  create_enum "maintenance_order_priority_type", ["high", "medium", "low"]
+  create_enum "maintenance_order_release_test_type", ["road_test", "yard_test", "not_applicable"]
+  create_enum "maintenance_order_status_type", ["open", "in_progress", "waiting_parts", "finished", "cancelled"]
   create_enum "revenue_projection_day_type", ["regular", "weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end"]
   create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
   create_enum "user_type", ["owner", "admin", "operator"]
+  create_enum "workshop_employee_role_type", ["mechanic", "supervisor"]
 
   create_table "accesses", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -910,6 +919,94 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
     t.index ["tenant_id"], name: "index_macro_regions_on_tenant_id"
   end
 
+  create_table "maintenance_order_labors", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "maintenance_order_id", null: false
+    t.bigint "workshop_employee_id", null: false
+    t.date "worked_on", null: false
+    t.time "start_time"
+    t.time "end_time"
+    t.decimal "hours", precision: 6, scale: 2
+    t.text "activity"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["maintenance_order_id"], name: "index_maintenance_order_labors_on_maintenance_order_id"
+    t.index ["tenant_id"], name: "index_maintenance_order_labors_on_tenant_id"
+    t.index ["workshop_employee_id"], name: "index_maintenance_order_labors_on_workshop_employee_id"
+  end
+
+  create_table "maintenance_order_parts", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "maintenance_order_id", null: false
+    t.string "code"
+    t.string "description", null: false
+    t.decimal "quantity", precision: 12, scale: 3, null: false
+    t.string "unit"
+    t.enum "source_type", default: "stock", null: false, enum_type: "maintenance_order_part_source_type"
+    t.string "document_number"
+    t.bigint "unit_price_cents", default: 0, null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["maintenance_order_id"], name: "index_maintenance_order_parts_on_maintenance_order_id"
+    t.index ["tenant_id"], name: "index_maintenance_order_parts_on_tenant_id"
+  end
+
+  create_table "maintenance_order_services", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "maintenance_order_id", null: false
+    t.bigint "supplier_id", null: false
+    t.string "description", null: false
+    t.string "quote_number"
+    t.bigint "quoted_cents"
+    t.bigint "approved_cents"
+    t.string "approved_by_name"
+    t.string "invoice_number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["maintenance_order_id"], name: "index_maintenance_order_services_on_maintenance_order_id"
+    t.index ["supplier_id"], name: "index_maintenance_order_services_on_supplier_id"
+    t.index ["tenant_id"], name: "index_maintenance_order_services_on_tenant_id"
+  end
+
+  create_table "maintenance_orders", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "number", null: false
+    t.string "plate", null: false
+    t.datetime "opened_at", null: false
+    t.integer "odometer_km"
+    t.decimal "hour_meter", precision: 10, scale: 1
+    t.bigint "driver_code"
+    t.string "driver_name"
+    t.bigint "supervisor_id"
+    t.bigint "opened_by_id"
+    t.enum "equipment_type", null: false, enum_type: "maintenance_order_equipment_type"
+    t.string "equipment_other"
+    t.enum "maintenance_type", null: false, enum_type: "maintenance_order_maintenance_type"
+    t.enum "priority_type", default: "medium", null: false, enum_type: "maintenance_order_priority_type"
+    t.boolean "vehicle_stopped", default: false, null: false
+    t.enum "execution_place_type", default: "internal_workshop", null: false, enum_type: "maintenance_order_execution_place_type"
+    t.enum "affected_system_type", null: false, enum_type: "maintenance_order_affected_system_type"
+    t.text "reported_defect", null: false
+    t.text "diagnosis"
+    t.text "performed_service"
+    t.enum "release_test_type", enum_type: "maintenance_order_release_test_type"
+    t.enum "status_type", default: "open", null: false, enum_type: "maintenance_order_status_type"
+    t.datetime "finished_at"
+    t.integer "next_preventive_km"
+    t.bigint "parts_total_cents", default: 0, null: false
+    t.bigint "services_total_cents", default: 0, null: false
+    t.bigint "total_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["opened_by_id"], name: "index_maintenance_orders_on_opened_by_id"
+    t.index ["supervisor_id"], name: "index_maintenance_orders_on_supervisor_id"
+    t.index ["tenant_id", "number"], name: "index_maintenance_orders_on_tenant_id_and_number", unique: true
+    t.index ["tenant_id", "plate"], name: "index_maintenance_orders_on_tenant_id_and_plate"
+    t.index ["tenant_id", "status_type"], name: "index_maintenance_orders_on_tenant_id_and_status_type"
+    t.index ["tenant_id"], name: "index_maintenance_orders_on_tenant_id"
+  end
+
   create_table "product_groups", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "parent_id"
@@ -1003,6 +1100,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
     t.index ["tenant_id"], name: "index_route_distances_on_tenant_id"
   end
 
+  create_table "suppliers", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.string "document"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_suppliers_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_suppliers_on_tenant_id"
+  end
+
   create_table "tenants", force: :cascade do |t|
     t.string "name", null: false
     t.string "legal_id", null: false
@@ -1086,6 +1194,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
     t.index ["tenant_id"], name: "index_users_on_tenant_id_where_owner_user_type", unique: true, where: "(user_type = 'owner'::user_type)"
   end
 
+  create_table "workshop_employees", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.enum "role_type", default: "mechanic", null: false, enum_type: "workshop_employee_role_type"
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_workshop_employees_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_workshop_employees_on_tenant_id"
+  end
+
   add_foreign_key "accesses", "resources"
   add_foreign_key "accesses", "tenants"
   add_foreign_key "accesses", "users"
@@ -1141,6 +1260,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
   add_foreign_key "holidays", "tenants"
   add_foreign_key "insurance_rates", "tenants"
   add_foreign_key "macro_regions", "tenants"
+  add_foreign_key "maintenance_order_labors", "maintenance_orders"
+  add_foreign_key "maintenance_order_labors", "tenants"
+  add_foreign_key "maintenance_order_labors", "workshop_employees"
+  add_foreign_key "maintenance_order_parts", "maintenance_orders"
+  add_foreign_key "maintenance_order_parts", "tenants"
+  add_foreign_key "maintenance_order_services", "maintenance_orders"
+  add_foreign_key "maintenance_order_services", "suppliers"
+  add_foreign_key "maintenance_order_services", "tenants"
+  add_foreign_key "maintenance_orders", "tenants"
+  add_foreign_key "maintenance_orders", "users", column: "opened_by_id"
+  add_foreign_key "maintenance_orders", "workshop_employees", column: "supervisor_id"
   add_foreign_key "product_groups", "product_groups", column: "parent_id"
   add_foreign_key "product_groups", "tenants"
   add_foreign_key "revenue_projection_daily_totals", "tenants"
@@ -1149,9 +1279,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_204206) do
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "route_distances", "tenants"
+  add_foreign_key "suppliers", "tenants"
   add_foreign_key "tonnage_rates", "customer_groups"
   add_foreign_key "tonnage_rates", "tenants"
   add_foreign_key "truck_group_fuel_rates", "truck_groups", on_delete: :cascade
   add_foreign_key "truck_groups", "tenants"
   add_foreign_key "users", "tenants"
+  add_foreign_key "workshop_employees", "tenants"
 end

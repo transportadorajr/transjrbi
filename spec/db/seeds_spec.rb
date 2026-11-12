@@ -35,7 +35,7 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(22)
+    expect { run_seeds }.to change(Resource, :count).by(25)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
@@ -46,13 +46,17 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'trips')).to have_attributes(name: 'Viagens', writable: false)
     expect(Resource.find_by!(slug: 'holidays')).to have_attributes(name: 'Feriados', writable: true)
     expect(Resource.find_by!(slug: 'revenue_projection')).to have_attributes(name: 'Projeção de faturamento', writable: false)
+    expect(Resource.find_by!(slug: 'maintenance_orders')).to have_attributes(name: 'Ordens de serviço', writable: true)
+    expect(Resource.find_by!(slug: 'workshop_employees')).to have_attributes(name: 'Funcionários da oficina', writable: true)
+    expect(Resource.find_by!(slug: 'suppliers')).to have_attributes(name: 'Fornecedores', writable: true)
   end
 
-  it 'registers the trips dashboard flag turned off' do
+  it 'registers the trips dashboard and maintenance flags turned off' do
     run_seeds
 
-    expect(Flipper.features.map(&:key)).to include('trips_dashboard')
+    expect(Flipper.features.map(&:key)).to include('trips_dashboard', 'maintenance')
     expect(Flipper.enabled?(:trips_dashboard, tenant)).to be(false)
+    expect(Flipper.enabled?(:maintenance, tenant)).to be(false)
   end
 
   it 'registers the revenue projection flag turned off' do
@@ -72,7 +76,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(21)
+      expect { run_seeds }.to change(Resource, :count).by(24)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end

@@ -1,0 +1,38 @@
+<div class="card detail-card mb-4" id="labors">
+  <div class="detail-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <p class="detail-card-title mb-0"><%= t('maintenance_orders.show.labors') %></p>
+    <%= maintenance_order_item_add_button(maintenance_order, :labor) %>
+  </div>
+  <div class="detail-card-body">
+    <% if labors.any? %>
+      <div class="table-responsive">
+        <table class="table app-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th><%= MaintenanceOrderLabor.human_attribute_name(:workshop_employee) %></th>
+              <th class="d-none d-md-table-cell"><%= MaintenanceOrderLabor.human_attribute_name(:worked_on) %></th>
+              <th class="d-none d-lg-table-cell"><%= t('maintenance_orders.show.period') %></th>
+              <th class="text-end"><%= MaintenanceOrderLabor.human_attribute_name(:hours) %></th>
+              <th class="d-none d-lg-table-cell"><%= MaintenanceOrderLabor.human_attribute_name(:activity) %></th>
+              <th class="text-end"><%= t('shared.actions') %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% labors.each do |labor| %>
+              <tr id="<%= dom_id(labor) %>">
+                <td class="fw-semibold text-break"><%= labor.workshop_employee.name %></td>
+                <td class="d-none d-md-table-cell text-nowrap"><%= l(labor.worked_on) %></td>
+                <td class="d-none d-lg-table-cell text-nowrap"><%= maintenance_order_labor_period(labor) %></td>
+                <td class="text-end text-nowrap"><%= maintenance_order_labor_hours(labor.hours) %></td>
+                <td class="d-none d-lg-table-cell text-break"><%= tax_value(labor.activity) %></td>
+                <td class="text-end text-nowrap"><%= responsive_actions_menu(maintenance_order_items_menu(labor)) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-muted mb-0"><%= t('maintenance_orders.show.no_labors') %></p>
+    <% end %>
+  </div>
+</div>

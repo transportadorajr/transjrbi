@@ -1,0 +1,20 @@
+<div class="card detail-card" id="totals_card">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('maintenance_orders.show.totals') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0" id="totals">
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:parts_total) %></dt>
+      <dd class="col-12 col-md-9"><%= tax_money(maintenance_order.parts_total) %></dd>
+
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:services_total) %></dt>
+      <dd class="col-12 col-md-9"><%= tax_money(maintenance_order.services_total) %></dd>
+
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:labor_hours) %></dt>
+      <dd class="col-12 col-md-9"><%= maintenance_order_labor_hours(labor_hours) %></dd>
+
+      <dt class="col-12 col-md-3 fw-bold"><%= MaintenanceOrder.human_attribute_name(:total) %></dt>
+      <dd class="col-12 col-md-9 fw-bold"><%= tax_money(maintenance_order.total) %></dd>
+    </dl>
+  </div>
+</div>

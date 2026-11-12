@@ -1,0 +1,106 @@
+<% content_for :title, maintenance_order_title(@maintenance_order) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('maintenance_orders.index.title'), maintenance_orders_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= maintenance_order_title(@maintenance_order) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag maintenance_order_title(@maintenance_order), back_path: maintenance_orders_path, back_title: t('.back'),
+                                                                     wrapper_class: 'mb-0' do %>
+      <%= maintenance_order_status_actions(@maintenance_order) %>
+      <%= maintenance_order_pdf_button(@maintenance_order) %>
+      <%= maintenance_order_edit_button(@maintenance_order) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('maintenance_orders.form.vehicle_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="vehicle_data">
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:number) %></dt>
+        <dd class="col-12 col-md-9"><%= @maintenance_order.number %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:status_type) %></dt>
+        <dd class="col-12 col-md-9"><%= maintenance_order_status_badge(@maintenance_order) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:opened_at) %></dt>
+        <dd class="col-12 col-md-9"><%= maintenance_order_opened_at(@maintenance_order) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:plate) %></dt>
+        <dd class="col-12 col-md-9"><%= @maintenance_order.plate %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:odometer_km) %></dt>
+        <dd class="col-12 col-md-9"><%= maintenance_order_odometer(@maintenance_order) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:hour_meter) %></dt>
+        <dd class="col-12 col-md-9"><%= maintenance_order_hour_meter(@maintenance_order) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:driver_name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@maintenance_order.driver_name) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:supervisor) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@maintenance_order.supervisor&.name) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:equipment_type) %></dt>
+        <dd class="col-12 col-md-9"><%= maintenance_order_equipment(@maintenance_order) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:opened_by) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@maintenance_order.opened_by&.name) %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('maintenance_orders.form.classification') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="classification">
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:maintenance_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @maintenance_order.maintenance_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:priority_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @maintenance_order.priority_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:vehicle_stopped) %></dt>
+        <dd class="col-12 col-md-9"><%= maintenance_order_vehicle_stopped(@maintenance_order) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:execution_place_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @maintenance_order.execution_place_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:affected_system_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @maintenance_order.affected_system_type_name %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('maintenance_orders.form.description') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="description">
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:reported_defect) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= maintenance_order_text(@maintenance_order.reported_defect) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:diagnosis) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= maintenance_order_text(@maintenance_order.diagnosis) %></dd>
+
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:performed_service) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= maintenance_order_text(@maintenance_order.performed_service) %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <%= maintenance_order_closing_card(@maintenance_order) %>
+
+  <%= render 'parts', maintenance_order: @maintenance_order, parts: @parts %>
+  <%= render 'labors', maintenance_order: @maintenance_order, labors: @labors %>
+  <%= render 'services', maintenance_order: @maintenance_order, services: @services %>
+  <%= render 'totals', maintenance_order: @maintenance_order, labor_hours: @labor_hours %>
+</div>

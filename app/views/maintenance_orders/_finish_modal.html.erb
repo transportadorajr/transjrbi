@@ -1,0 +1,5 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'maintenance_order_finish_modal', title: t('maintenance_orders.finish_modal.title'), title_icon: :'check2-circle',
+                     dialog_class: 'modal-lg modal-fullscreen-sm-down', auto_show: true, show_footer: false } do %>
+  <%= render 'maintenance_orders/finish_form', finish_form: %>
+<% end %>
