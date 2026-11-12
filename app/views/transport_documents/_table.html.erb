@@ -4,7 +4,6 @@
       <tr>
         <th><%= Atua::TransportDocument.human_attribute_name(:number) %></th>
         <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:plate) %></th>
-        <th class="d-none d-md-table-cell text-nowrap"><%= Atua::TransportDocument.human_attribute_name(:document_kind) %></th>
         <th class="d-none d-md-table-cell text-nowrap"><%= Atua::TransportDocument.human_attribute_name(:posted_on) %></th>
         <%= sortable_header(Atua::TransportDocument.human_attribute_name(:driver_name), :driver_name, class: 'd-none d-lg-table-cell') %>
         <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:origin) %></th>
