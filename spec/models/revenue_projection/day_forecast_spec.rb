@@ -10,4 +10,8 @@ RSpec.describe RevenueProjection::DayForecast do
     expect(build(:revenue_projection_day_forecast, tenant:)).not_to be_valid
     expect(described_class.with_actual).to eq([compared])
   end
+
+  it 'translates the day type' do
+    expect(build(:revenue_projection_day_forecast, day_type: 'bridge_day').day_type_name).to eq('Emenda')
+  end
 end

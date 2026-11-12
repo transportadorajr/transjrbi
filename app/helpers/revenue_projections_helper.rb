@@ -41,16 +41,22 @@ module RevenueProjectionsHelper
     t('revenue_projections.show.week_title', start: l(period_start, format: :chart_week), finish: l(period_end, format: :chart_week))
   end
 
+  def revenue_projection_memory_body(memory)
+    return render('revenue_projections/memory_summary', memory:) if memory.any?
+
+    tag.p(t('revenue_projections.memory.empty'), class: 'text-muted small p-3 mb-0')
+  end
+
   def revenue_projection_day_label(day_type, wday)
     return t('date.day_names')[wday].capitalize if day_type.to_sym == :regular
 
-    t(day_type, scope: 'revenue_projections.memory.day_types')
+    RevenueProjection::DayForecast.human_enum_name(:day_type, day_type)
   end
 
   def revenue_projection_factor_label(factor_type, wday)
     return t('revenue_projections.memory.weekday_bias', day: t('date.day_names')[wday]) if factor_type.to_sym == :weekday_bias
 
-    t(factor_type, scope: 'revenue_projections.memory.day_types')
+    RevenueProjection::Factor.human_enum_name(:factor_type, factor_type)
   end
 
   def revenue_projection_factor_value(value)

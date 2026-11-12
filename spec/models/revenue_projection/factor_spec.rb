@@ -13,4 +13,10 @@ RSpec.describe RevenueProjection::Factor do
 
     expect { create(:revenue_projection_factor, tenant: factor.tenant) }.to raise_error(ActiveRecord::RecordNotUnique)
   end
+
+  it 'translates every factor type' do
+    expect(described_class.factor_types.keys.map { described_class.human_enum_name(:factor_type, it) }).to eq(
+      ['Feriado em dia útil', 'Feriado no sábado', 'Emenda', 'Ponto facultativo', 'Fim de mês', 'Correção do dia da semana'],
+    )
+  end
 end

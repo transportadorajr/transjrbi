@@ -16,3 +16,27 @@ module RevenueProjection
     validates :wday, presence: true, if: :weekday_bias?
   end
 end
+
+# == Schema Information
+#
+# Table name: revenue_projection_factors
+#
+#  id                 :bigint           not null, primary key
+#  factor_type        :enum             not null
+#  learned            :boolean          default(FALSE), not null
+#  learned_at         :datetime         not null
+#  observations_count :integer          default(0), not null
+#  value              :decimal(6, 4)    not null
+#  wday               :integer
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  tenant_id          :bigint           not null
+#
+# Indexes
+#
+#  idx_on_tenant_id_factor_type_wday_d8a11b5f56  (tenant_id,factor_type,wday) UNIQUE NULLS NOT DISTINCT
+#
+# Foreign Keys
+#
+#  fk_rails_...  (tenant_id => tenants.id)
+#
