@@ -1,0 +1,23 @@
+<%# locals: (projection:) %>
+
+<div class="col-12 col-xl-5">
+  <div class="card detail-card h-100">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= revenue_projection_title(projection) %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="projection">
+        <dt class="col-12"><%= revenue_projection_realized_label(projection) %></dt>
+        <dd class="col-12"><%= tax_money(projection.realized) %></dd>
+
+        <dt class="col-12"><%= revenue_projection_deadline_label(projection) %></dt>
+        <dd class="col-12 fs-4 fw-bold text-primary text-nowrap"><%= tax_money(projection.projected) %></dd>
+
+        <dt class="col-12"><%= t('revenue_projections.show.range') %></dt>
+        <dd class="col-12"><%= revenue_projection_range(projection) %></dd>
+      </dl>
+
+      <%= revenue_projection_alerts(projection) %>
+    </div>
+  </div>
+</div>

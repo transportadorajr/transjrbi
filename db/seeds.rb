@@ -37,6 +37,7 @@ end
   'excluded_issuers' => { name: 'Emissores desconsiderados', writable: true },
   'route_distances' => { name: 'Trechos de km', writable: true },
   'holidays' => { name: 'Feriados', writable: true },
+  'revenue_projection' => { name: 'Projeção de faturamento', writable: false },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)
@@ -44,6 +45,7 @@ end
 end
 
 Flipper.add(Dashboard::Trip::FEATURE)
+Flipper.add(Dashboard::RevenueProjection::FEATURE)
 
 Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?
 

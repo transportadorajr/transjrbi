@@ -1176,6 +1176,7 @@ pt-BR:
     company: Dados da empresa
     freight_billing: Faturamento
     trips: Viagens
+    revenue_projection: Projeção de faturamento
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -1710,6 +1711,33 @@ pt-BR:
       excluded_issuer_data: Emissor
       excluded_issuer_data_text: >-
         Escolha o usuário do Atua que emitiu os CT-es ou CEs. Só aparecem os usuários que já emitiram algum documento.
+  revenue_projections:
+    periods:
+      week: Sem. atual
+      month: Mês atual
+    show:
+      title: Projeção de faturamento
+      subtitle: Quanto já faturamos e onde devemos fechar o mês e a semana no ritmo atual.
+      last_sync: Dados do Atua até %{time}
+      never_synced: Nenhuma importação do Atua concluída ainda
+      month_title: Mês de %{month}
+      week_title: Semana de %{start} a %{finish}
+      realized_until: Faturado até %{time}
+      projected_until: Projeção até %{time}
+      range: Faixa provável
+      range_value: '%{low} a %{high}'
+      holiday: '%{date} %{name}'
+      holidays_alert: 'Projeção ajustada pelos feriados do período: %{holidays}.'
+      no_history: Ainda não há histórico de faturamento suficiente; a projeção considera só o que já foi faturado.
+      period_label: Período
+      chart_title:
+        month: Faturamento acumulado do mês
+        week: Faturamento acumulado da semana
+      chart_subtitle: O faturado até agora e a projeção dia a dia até o fim do período.
+      method: >-
+        A projeção soma o que já foi faturado ao faturamento típico de cada dia que falta (mediana das últimas 12
+        semanas do mesmo dia da semana) e reduz os feriados e as emendas cadastrados em Feriados. A faixa provável vai
+        de uma semana mais fraca a uma mais forte do mesmo período.
   holidays:
     national:
       new_year: Confraternização Universal
@@ -1891,6 +1919,9 @@ pt-BR:
       international_insurance_percentage_hint: 'Apólice de viagem internacional (RCTR-VI). Ex.: 0,065.'
       iof_percentage_hint: 'Incide só sobre o seguro internacional. Ex.: 7,38.'
   dashboards:
+    revenue_projection:
+      realized: Faturado
+      projected: Projeção
     freight:
       total: Total
       gross: Frete bruto
@@ -2350,6 +2381,7 @@ pt-BR:
       chart_month: '%b/%Y'
       chart_week: '%d/%m'
       with_weekday: '%d/%m/%Y (%A)'
+      month_name: '%B de %Y'
   time:
     formats:
       date_time: '%d/%m/%Y %H:%M'
@@ -2361,6 +2393,7 @@ pt-BR:
     intelligence: Inteligência
     freight_billing: Faturamento
     trips: Viagens
+    revenue_projection: Projeção de faturamento
     registrations: Cadastros
     customers: Clientes
     customer_groups: Grupos de clientes
