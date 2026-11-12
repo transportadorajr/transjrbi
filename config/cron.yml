@@ -10,6 +10,10 @@ shared:
     cron: '0 5 1 12 * America/Sao_Paulo'
     class: 'Holidays::SeedNationalJob'
     description: 'Registers the national holidays of the next year of every tenant'
+  tonnage_rates_monthly_copy:
+    cron: '5 0 1 * * America/Sao_Paulo'
+    class: 'TonnageRates::ReplicateMonthJob'
+    description: 'Copies the active tonnage rates of every tenant into the new month, keeping the same values until they are reviewed'
   revenue_projection_memory:
     cron: '0 6 * * * America/Sao_Paulo'
     class: 'RevenueProjections::RefreshMemoryJob'

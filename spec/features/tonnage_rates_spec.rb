@@ -244,6 +244,37 @@ describe 'Tonnage rates' do
       end
     end
 
+    context 'when a rate was copied into the new month' do
+      let!(:october) { create(:tonnage_rate, tenant:, customer_group: usiminas) }
+      let!(:copy) do
+        create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 11, 1), copied_from: october)
+      end
+
+      scenario 'flags the copy until the logistics team reviews it' do
+        visit tonnage_rates_path
+
+        expect(TonnageRate.count).to eq(2)
+        expect(html_table_to_rows.drop(1)).to eq(
+          [['Cubatão/SP (Cubatão)', 'Brasiltec', 'USIMINAS', '11/2026', '10/2026', 'R$ 12,57/t', 'Ativo Copiado de 10/2026 – revisar',
+            'Opções Visualizar Alterar Excluir']],
+        )
+
+        click_on 'Cubatão/SP (Cubatão)'
+
+        expect(dl_to_hash('#tonnage_rate_data')).to include('Vigência' => '11/2026', 'Status' => 'Ativo Copiado de 10/2026 – revisar')
+
+        click_on 'Alterar'
+        fill_in 'Valor por tonelada', with: '13,10'
+
+        expect { click_on 'Salvar Alterações' }.to not_change(TonnageRate, :count)
+          .and have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
+
+        expect(page).to have_text('Custo atualizado com sucesso.')
+        expect(dl_to_hash('#tonnage_rate_data')).to include('Status' => 'Ativo')
+        expect(copy.reload).to have_attributes(rate_cents: 1_310, copied_from_id: nil, valid_month: Date.new(2026, 11, 1))
+      end
+    end
+
     context 'when removing a rate' do
       let!(:tonnage_rate) { create(:tonnage_rate, tenant:, customer_group: usiminas) }
 

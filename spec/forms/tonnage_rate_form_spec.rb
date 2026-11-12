@@ -108,6 +108,16 @@ RSpec.describe TonnageRateForm do
         expect(cubatao.reload.rate_cents).to eq(1_280)
       end
 
+      it 'marks a copied rate as reviewed when it is saved' do
+        copy = create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 11, 1), copied_from: cubatao)
+        form = described_class.for_tonnage_rate(copy)
+        form.assign_attributes(rate: '13,10')
+
+        expect(form.save).to be(true)
+        expect(copy.reload).to have_attributes(rate_cents: 1_310, copied_from_id: nil)
+        expect(copy).not_to be_pending_review
+      end
+
       it 'loads the rate formatted for the form' do
         form = described_class.for_tonnage_rate(cubatao)
 

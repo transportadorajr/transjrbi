@@ -249,6 +249,8 @@ pt-BR:
         freight_expenses: CT-es com o custo
         amount: Valor
         calculated_at: Calculada em
+        copied_from: Copiado de
+        copies: Cópias
       insurance_rate:
         insurance_percentage: Alíquota do seguro
         international_insurance_percentage: Alíquota do seguro internacional
@@ -2452,6 +2454,7 @@ pt-BR:
     label: '%{name} – %{origin}'
     origin_with_nickname: '%{origin} (%{nickname})'
     per_ton: '%{rate}/t'
+    pending_review: Copiado de %{month} – revisar
     weight: '%{weight} t'
     index:
       title: Custos por tonelada
@@ -2497,8 +2500,9 @@ pt-BR:
       unlock: Alterar grupo e nome
       origin_hint: Cidade de origem do CT-e. Escolha a mesma origem todo mês para manter o histórico do custo.
       valid_month_hint: >-
-        Mês em que o valor é usado. Cadastre no mês a média do mês anterior. Enquanto o mês não tiver valor, vale o do mês
-        anterior; ao cadastrar, os CT-es do mês são recalculados.
+        Mês em que o valor é usado. Todo dia 1º os custos ativos são copiados para o mês novo com o mesmo valor; altere a
+        cópia com a média do mês anterior. Ao salvar, o custo deixa de aparecer como pendente de revisão e os CT-es do mês
+        são recalculados.
       rate_hint: 'Ex.: 12,57.'
       active_hint: Desmarque para deixar de usar este valor. Toda alteração recalcula as despesas de todos os CT-es.
   insurance_rates:
@@ -2815,9 +2819,11 @@ pt-BR:
     per_transport_document: '%{rate} por CT-e'
     outdated_alert:
       title:
-        one: 1 custo por tonelada desatualizado
-        other: '%{count} custos por tonelada desatualizados'
-      text: A última vigência cadastrada tem mais de 2 meses. Cadastre os valores do mês para calcular os CT-es com o valor certo.
+        one: 1 custo por tonelada para revisar
+        other: '%{count} custos por tonelada para revisar'
+      text: >-
+        Os custos abaixo foram copiados do mês anterior e ainda não foram revisados, ou a última vigência cadastrada tem mais
+        de 2 meses. Confira e salve os valores do mês para calcular os CT-es com o valor certo.
     net_freight:
       title: Frete líquido
       freight: Frete bruto

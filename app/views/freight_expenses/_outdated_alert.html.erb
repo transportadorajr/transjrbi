@@ -6,6 +6,7 @@
       <li>
         <%= freight_expense_tonnage_rate(tonnage_rate) %>
         <span class="text-body-secondary"><%= tonnage_rate_month(tonnage_rate.valid_month) %></span>
+        <%= tonnage_rate_review_badge(tonnage_rate) %>
       </li>
     <% end %>
   </ul>

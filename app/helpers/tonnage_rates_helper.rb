@@ -15,6 +15,16 @@ module TonnageRatesHelper
     status_badge(t('tonnage_rates.index.deactivated'), kind: :danger)
   end
 
+  def tonnage_rate_status_badges(tonnage_rate)
+    safe_join([tonnage_rate_status_badge(tonnage_rate), tonnage_rate_review_badge(tonnage_rate)].compact, ' ')
+  end
+
+  def tonnage_rate_review_badge(tonnage_rate)
+    return unless tonnage_rate.pending_review?
+
+    status_badge(t('tonnage_rates.pending_review', month: tonnage_rate_month(tonnage_rate.copied_from.valid_month)), kind: :warning)
+  end
+
   def tonnage_rate_origin(tonnage_rate)
     tonnage_origin_label(tonnage_rate.origin)
   end
