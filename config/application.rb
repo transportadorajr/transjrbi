@@ -9,6 +9,7 @@ Bundler.require(*Rails.groups)
 module Transjrbi
   APP_SUBDOMAIN = 'app'.freeze
   ADMIN_SUBDOMAIN = 'admin'.freeze
+  MAINTENANCE_SUBDOMAIN = 'manutencao'.freeze
 
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -37,6 +38,7 @@ module Transjrbi
     config.x.domain = ENV.fetch('APP_DOMAIN', 'localhost')
     config.x.app_host = "#{APP_SUBDOMAIN}.#{config.x.domain}"
     config.x.admin_host = "#{ADMIN_SUBDOMAIN}.#{config.x.domain}"
+    config.x.maintenance_host = "#{MAINTENANCE_SUBDOMAIN}.#{config.x.domain}"
     config.action_dispatch.tld_length = config.x.domain.count('.')
   end
 end

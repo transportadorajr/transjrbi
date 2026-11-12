@@ -168,6 +168,43 @@ RSpec.describe Ability do
     end
   end
 
+  context 'when the ability is restricted to some resources' do
+    subject(:ability) { described_class.new(user, resources: Ability::MAINTENANCE_RESOURCES) }
+
+    let(:user) { create(:user, tenant:, user_type: :owner) }
+
+    before do
+      create(:resource, slug: 'maintenance_orders')
+      create(:resource, slug: 'vehicles')
+      create(:resource, slug: 'truck_groups')
+    end
+
+    it 'manages the allowed resources' do
+      expect(ability).to be_able_to(:update, :maintenance_orders)
+      expect(ability).to be_able_to(:read, :vehicles)
+    end
+
+    it 'cannot reach the other resources' do
+      expect(ability).not_to be_able_to(:read, :truck_groups)
+    end
+  end
+
+  context 'when an admin has accesses out of the restricted resources' do
+    subject(:ability) { described_class.new(user, resources: Ability::MAINTENANCE_RESOURCES) }
+
+    let(:user) { create(:user, tenant:, user_type: :admin) }
+
+    before do
+      create(:access, user:, resource: create(:resource, slug: 'suppliers'), reads: true, creates: true)
+      create(:access, user:, resource: create(:resource, slug: 'drivers'), reads: true)
+    end
+
+    it 'keeps only the accesses to the allowed resources' do
+      expect(ability).to be_able_to(:create, :suppliers)
+      expect(ability).not_to be_able_to(:read, :drivers)
+    end
+  end
+
   context 'without a signed in user' do
     let(:user) { nil }
 

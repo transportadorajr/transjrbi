@@ -1,8 +1,12 @@
 class Ability
   include CanCan::Ability
 
-  def initialize(user)
+  MAINTENANCE_RESOURCES = %i[maintenance_orders workshop_employees suppliers vehicles].freeze
+
+  def initialize(user, resources: nil)
     return unless user
+
+    @resources = resources
 
     can %i[read update], User, id: user.id
 
@@ -24,11 +28,15 @@ class Ability
 
   def access_privileges(user)
     user.accesses.preload(:resource).find_each do |access|
-      can(access.abilities, access.resource_symbol) if access.abilities.any?
+      can(access.abilities, access.resource_symbol) if access.abilities.any? && resource_allowed?(access.resource_symbol)
     end
   end
 
   def resource_privileges
-    Resource.pluck(:slug).each { |slug| can(:manage, slug.to_sym) }
+    Resource.pluck(:slug).map(&:to_sym).select { |slug| resource_allowed?(slug) }.each { |slug| can(:manage, slug) }
+  end
+
+  def resource_allowed?(slug)
+    @resources.nil? || @resources.include?(slug)
   end
 end

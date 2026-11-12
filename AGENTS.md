@@ -365,9 +365,21 @@ The application is served from two subdomains, both derived from `config.x.domai
 - `River::APP_SUBDOMAIN` (`app`) — the product used by our customers, reachable at `config.x.app_host`.
 - `River::ADMIN_SUBDOMAIN` (`admin`) — the internal back office, reachable at `config.x.admin_host`.
 
+- `Transjrbi::MAINTENANCE_SUBDOMAIN` (`manutencao`) — the workshop's maintenance module, reachable at `config.x.maintenance_host`.
+
 Each subdomain gets its own `constraints subdomain: ...` block in `config/routes.rb`, and the admin block wraps a `namespace :admin, path: '/'` so the back office lives at the root of its own subdomain (`admin.<domain>/`, `admin.<domain>/login`, …). Both hosts are whitelisted in `config.hosts` (`config/environments/production.rb`); locally they resolve through `app.localhost` / `admin.localhost` with no extra setup.
 
 On the VPS both hosts are served by Traefik (`deploy/compose.yaml`): the `web` service's router matches `app.${APP_DOMAIN}` and `admin.${APP_DOMAIN}` and Traefik issues a Let's Encrypt certificate for each one. A new subdomain needs its DNS record pointing at the VPS and its own `Host(...)` in that router rule; any other host gets Traefik's 404.
+
+### Maintenance Subdomain
+
+The maintenance subdomain serves only the maintenance module (work orders, workshop employees, suppliers) and the vehicles registration — never the truck groups or any other app screen. It uses the same `User` login, the `application` layout and the same styles:
+
+- Routes shared by the app and the maintenance subdomain (Devise, password screens, `vehicles`) live in the `constraints subdomain: [APP_SUBDOMAIN, MAINTENANCE_SUBDOMAIN]` block; the maintenance routes live only in the `MAINTENANCE_SUBDOMAIN` block, whose root (`MaintenanceHomeController`) redirects to the first maintenance screen the user can read.
+- The sidebar comes from the `maintenance` key of `config/menu.yml` (`sidebar_menus` in `MenuHelper`). The app's sidebar has no maintenance entry: the module is reached only through its own subdomain.
+- `BaseController#current_ability` builds `Ability` with `resources: Ability::MAINTENANCE_RESOURCES` on the maintenance subdomain, so links to app screens (drivers, CT-es, expenses) are hidden there. Add a resource to that list before exposing a new screen on the subdomain.
+- The whole subdomain answers 404 when the tenant has the `maintenance` Flipper flag off.
+- Tag a feature spec with the `:maintenance` metadata so it runs against the maintenance host.
 
 ### Naming Convention
 

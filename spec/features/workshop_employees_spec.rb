@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Workshop employees' do
+describe 'Workshop employees', :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Funcionários da oficina', slug: 'workshop_employees') }
@@ -49,7 +49,6 @@ describe 'Workshop employees' do
       scenario 'lists the employees from the maintenance menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Manutenção'
           click_on 'Funcionários da oficina'
         end
 

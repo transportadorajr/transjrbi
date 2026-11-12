@@ -33,7 +33,7 @@ Rails.application.routes.draw do
   get 'manifest' => 'rails/pwa#manifest', as: :pwa_manifest
   get 'service-worker' => 'rails/pwa#service_worker', as: :pwa_service_worker
 
-  constraints subdomain: Transjrbi::APP_SUBDOMAIN do
+  constraints subdomain: [Transjrbi::APP_SUBDOMAIN, Transjrbi::MAINTENANCE_SUBDOMAIN] do
     devise_for :users, controllers: { confirmations: 'users/confirmations', sessions: 'users/sessions' }
 
     devise_scope :user do
@@ -42,6 +42,28 @@ Rails.application.routes.draw do
 
     resource :password_change, only: %i[edit update]
     resource :account_password, only: %i[edit update]
+    resources :vehicles, only: %i[index show]
+  end
+
+  constraints subdomain: Transjrbi::MAINTENANCE_SUBDOMAIN do
+    resources :maintenance_orders, except: :destroy do
+      member do
+        patch :start
+        patch :wait_parts
+        patch :cancel
+        get :finishing
+        patch :finish
+      end
+      resources :parts, controller: 'maintenance_order_parts', only: %i[new create edit update destroy]
+      resources :labors, controller: 'maintenance_order_labors', only: %i[new create edit update destroy]
+      resources :services, controller: 'maintenance_order_services', only: %i[new create edit update destroy]
+    end
+    resources :workshop_employees, except: %i[show destroy]
+    resources :suppliers, except: %i[show destroy]
+    root 'maintenance_home#index', as: :maintenance_root
+  end
+
+  constraints subdomain: Transjrbi::APP_SUBDOMAIN do
     resource :company, only: %i[show edit update]
     resources :users, only: %i[index show new create edit update destroy] do
       member do
@@ -65,7 +87,6 @@ Rails.application.routes.draw do
     end
     resources :product_groups
     resources :drivers, only: %i[index show edit update destroy]
-    resources :vehicles, only: %i[index show]
     resources :expenses, only: %i[index show]
     resources :commission_rules
     resources :macro_regions
@@ -73,20 +94,6 @@ Rails.application.routes.draw do
     resources :truck_groups
     resources :excluded_issuers, only: %i[index new create destroy]
     resources :holidays, except: :show
-    resources :maintenance_orders, except: :destroy do
-      member do
-        patch :start
-        patch :wait_parts
-        patch :cancel
-        get :finishing
-        patch :finish
-      end
-      resources :parts, controller: 'maintenance_order_parts', only: %i[new create edit update destroy]
-      resources :labors, controller: 'maintenance_order_labors', only: %i[new create edit update destroy]
-      resources :services, controller: 'maintenance_order_services', only: %i[new create edit update destroy]
-    end
-    resources :workshop_employees, except: %i[show destroy]
-    resources :suppliers, except: %i[show destroy]
     resources :route_distances, except: :show do
       post :import, on: :collection
     end

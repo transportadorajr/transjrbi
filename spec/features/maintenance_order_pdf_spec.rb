@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Maintenance order PDF', flipper: :maintenance do
+describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
   let!(:tenant) { create(:tenant, trade_name: 'Transportadora JR') }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Ordens de serviço', slug: 'maintenance_orders') }

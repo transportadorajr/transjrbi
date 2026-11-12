@@ -38,25 +38,6 @@ shared:
           url: /route_distances
           controllers:
             - route_distances
-    - name: maintenance
-      icon: wrench-adjustable
-      feature: maintenance
-      menus:
-        - name: maintenance_orders
-          resource: maintenance_orders
-          url: /maintenance_orders
-          controllers:
-            - maintenance_orders
-        - name: workshop_employees
-          resource: workshop_employees
-          url: /workshop_employees
-          controllers:
-            - workshop_employees
-        - name: suppliers
-          resource: suppliers
-          url: /suppliers
-          controllers:
-            - suppliers
     - name: registrations
       icon: card-list
       menus:
@@ -148,6 +129,34 @@ shared:
       url: /users
       controllers:
         - users
+  maintenance:
+    - name: maintenance_orders
+      resource: maintenance_orders
+      icon: wrench-adjustable
+      url: /maintenance_orders
+      controllers:
+        - maintenance_orders
+        - maintenance_order_parts
+        - maintenance_order_labors
+        - maintenance_order_services
+    - name: workshop_employees
+      resource: workshop_employees
+      icon: person-badge
+      url: /workshop_employees
+      controllers:
+        - workshop_employees
+    - name: suppliers
+      resource: suppliers
+      icon: shop
+      url: /suppliers
+      controllers:
+        - suppliers
+    - name: vehicles
+      resource: vehicles
+      icon: truck
+      url: /vehicles
+      controllers:
+        - vehicles
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

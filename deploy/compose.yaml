@@ -20,7 +20,7 @@ services:
       start_interval: 2s
     labels:
       traefik.enable: "true"
-      traefik.http.routers.web.rule: "Host(`app.${APP_DOMAIN:?APP_DOMAIN must be set in .env}`) || Host(`admin.${APP_DOMAIN}`)"
+      traefik.http.routers.web.rule: "Host(`app.${APP_DOMAIN:?APP_DOMAIN must be set in .env}`) || Host(`admin.${APP_DOMAIN}`) || Host(`manutencao.${APP_DOMAIN}`)"
       traefik.http.routers.web.entrypoints: websecure
       traefik.http.routers.web.tls.certresolver: letsencrypt
       traefik.http.services.web.loadbalancer.server.port: "3000"

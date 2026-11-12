@@ -16,7 +16,7 @@
   <div class="offcanvas-body p-0">
     <div class="sidebar-wrapper">
       <ul class="nav">
-        <%= render 'shared/menu', menus: Menu.find_and_wrap(:companies) %>
+        <%= render 'shared/menu', menus: sidebar_menus %>
       </ul>
     </div>
   </div>
@@ -33,7 +33,7 @@
 
   <div class="sidebar-wrapper">
     <ul class="nav">
-      <%= render 'shared/menu', menus: Menu.find_and_wrap(:companies) %>
+      <%= render 'shared/menu', menus: sidebar_menus %>
     </ul>
   </div>
 </div>

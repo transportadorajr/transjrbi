@@ -7,6 +7,10 @@ module MenuHelper
     request.path == url || request.path.start_with?("#{url}/")
   end
 
+  def sidebar_menus
+    Menu.find_and_wrap(maintenance_host? ? :maintenance : :companies)
+  end
+
   def visible_menus(menus)
     Array(menus).select { |menu| menu.show?(current_ability) }
   end

@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Maintenance orders' do
+describe 'Maintenance orders', :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Ordens de serviço', slug: 'maintenance_orders') }
@@ -20,12 +20,7 @@ describe 'Maintenance orders' do
 
     before { login_as(owner, scope: :user) }
 
-    scenario 'hides the menu and does not open the listing' do
-      visit root_path
-
-      expect(page).to have_css('.sidebar-desktop')
-      expect(page).to have_no_link('Ordens de serviço')
-
+    scenario 'does not open the listing' do
       visit maintenance_orders_path
 
       expect(page.status_code).to eq(404)
@@ -72,7 +67,6 @@ describe 'Maintenance orders' do
       scenario 'lists the orders from the maintenance menu, newest first' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Manutenção'
           click_on 'Ordens de serviço'
         end
 
@@ -300,10 +294,10 @@ describe 'Maintenance orders' do
 
     before { login_as(workshop_user, scope: :user) }
 
-    scenario 'sees only the maintenance menu and can open an order' do
+    scenario 'sees only the maintenance orders in the menu and can open an order' do
       visit maintenance_orders_path
 
-      expect(page.all('.sidebar-desktop .nav-link').map { it.text.squish }.compact_blank).to eq(['Manutenção', 'Ordens de serviço'])
+      expect(page.all('.sidebar-desktop .nav-link').map { it.text.squish }.compact_blank).to eq(['Ordens de serviço'])
       expect(html_table_to_rows.drop(1).map(&:first)).to eq(['1'])
       expect(page).to have_link('Nova OS', href: new_maintenance_order_path)
     end
