@@ -4,6 +4,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
   let!(:tenant) { create(:tenant, trade_name: 'Transportadora JR') }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Ordens de serviço', slug: 'maintenance_orders') }
+  let!(:maintenance_resource) { create(:resource, name: 'Módulo de manutenção', slug: 'maintenance', writable: false) }
   let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
   let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
   let!(:supplier) { create(:supplier, tenant:, name: 'RETÍFICA IPATINGA') }
@@ -84,6 +85,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
 
   context 'when a user without access to the maintenance orders is signed in' do
     let!(:operator) { create(:user, tenant:) }
+    let!(:maintenance_access) { create(:access, user: operator, resource: maintenance_resource, creates: false) }
 
     before { login_as(operator, scope: :user) }
 

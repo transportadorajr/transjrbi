@@ -3,6 +3,7 @@ require 'rails_helper'
 describe 'Maintenance order closing', :maintenance, flipper: :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:resource) { create(:resource, name: 'Ordens de serviço', slug: 'maintenance_orders') }
+  let!(:maintenance_resource) { create(:resource, name: 'Módulo de manutenção', slug: 'maintenance', writable: false) }
   let!(:maintenance_order) do
     create(:maintenance_order, tenant:, number: 7, plate: 'EXU1A23', odometer_km: 452_300, opened_at: Time.zone.local(2026, 11, 11, 8))
   end
@@ -153,6 +154,7 @@ describe 'Maintenance order closing', :maintenance, flipper: :maintenance do
   context 'when a user can only read the maintenance orders' do
     let!(:reader) { create(:user, tenant:) }
     let!(:access) { create(:access, user: reader, resource:, reads: true, creates: false) }
+    let!(:maintenance_access) { create(:access, user: reader, resource: maintenance_resource, creates: false) }
 
     before { login_as(reader, scope: :user) }
 

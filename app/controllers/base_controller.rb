@@ -8,6 +8,7 @@ class BaseController < ApplicationController
   before_action :set_error_tracking_context
   before_action :set_current_tenant
   before_action :require_maintenance_host_feature
+  before_action :require_maintenance_access
 
   private
 

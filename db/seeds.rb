@@ -38,6 +38,7 @@ end
   'route_distances' => { name: 'Trechos de km', writable: true },
   'holidays' => { name: 'Feriados', writable: true },
   'revenue_projection' => { name: 'Projeção de faturamento', writable: false },
+  'maintenance' => { name: 'Módulo de manutenção', writable: false },
   'maintenance_orders' => { name: 'Ordens de serviço', writable: true },
   'workshop_employees' => { name: 'Funcionários da oficina', writable: true },
   'suppliers' => { name: 'Fornecedores', writable: true },

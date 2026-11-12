@@ -3,7 +3,7 @@ require 'rails_helper'
 describe 'Maintenance subdomain', :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:resources) do
-    %w[maintenance_orders workshop_employees suppliers vehicles truck_groups drivers expenses transport_documents customers].index_with do |slug|
+    %w[maintenance maintenance_orders workshop_employees suppliers vehicles truck_groups drivers expenses transport_documents customers].index_with do |slug|
       create(:resource, slug:)
     end
   end
@@ -100,10 +100,39 @@ describe 'Maintenance subdomain', :maintenance do
     end
   end
 
-  context 'when a user without access to the maintenance is signed in', flipper: :maintenance do
+  context 'when a user without access to the maintenance module is signed in', flipper: :maintenance do
+    let!(:operator) { create(:user, tenant:) }
+
+    before do
+      create(:access, user: operator, resource: resources['maintenance_orders'], reads: true, creates: true)
+      login_as(operator, scope: :user)
+    end
+
+    scenario 'is signed out and sent to the login screen' do
+      visit '/'
+
+      expect(page).to have_current_path(new_user_session_path)
+      expect(page).to have_text('Você não possui acesso ao módulo de manutenção.')
+    end
+
+    scenario 'is signed out when opening a maintenance screen' do
+      visit maintenance_orders_path
+
+      expect(page).to have_current_path(new_user_session_path)
+
+      visit maintenance_orders_path
+
+      expect(page).to have_current_path(new_user_session_path)
+    end
+  end
+
+  context 'when a user with access to the maintenance module only is signed in', flipper: :maintenance do
     let!(:operator) { create(:user, tenant:, name: 'Carlos Operador') }
 
-    before { login_as(operator, scope: :user) }
+    before do
+      create(:access, user: operator, resource: resources['maintenance'], creates: false)
+      login_as(operator, scope: :user)
+    end
 
     scenario 'sees the welcome page with an empty menu' do
       visit '/'
@@ -126,6 +155,7 @@ describe 'Maintenance subdomain', :maintenance do
     let!(:workshop_user) { create(:user, tenant:) }
 
     before do
+      create(:access, user: workshop_user, resource: resources['maintenance'], creates: false)
       create(:access, user: workshop_user, resource: resources['suppliers'], reads: true, creates: true)
       login_as(workshop_user, scope: :user)
     end
