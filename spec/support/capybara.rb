@@ -43,4 +43,13 @@ RSpec.configure do |config|
     Capybara.app_host = original_app_host
     Capybara.always_include_port = original_always_include_port
   end
+
+  config.around(:each, :maintenance, type: :feature) do |example|
+    original_app_host = Capybara.app_host
+    Capybara.app_host = "http://#{Rails.application.config.x.maintenance_host}"
+
+    example.run
+  ensure
+    Capybara.app_host = original_app_host
+  end
 end

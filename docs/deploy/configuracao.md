@@ -49,8 +49,8 @@ CSS/JS ao container antigo, que não tem esses arquivos.
    Gere o `XLSX_EXPORT_TOKEN` com `openssl rand -hex 32`. Sem ele o `docker compose` recusa
    subir os serviços, então adicione-o **antes** do primeiro deploy que traz o serviço `xlsx`.
 
-   O Traefik atende `app.<APP_DOMAIN>` e `admin.<APP_DOMAIN>`. Os dois registros DNS precisam
-   apontar para a VPS.
+   O Traefik atende `app.<APP_DOMAIN>`, `admin.<APP_DOMAIN>` e `manutencao.<APP_DOMAIN>`. Os três
+   registros DNS precisam apontar para a VPS.
 
 2. Confira se a VPS tem o Docker Engine 25 ou mais novo (`docker version`). O healthcheck do
    `web` usa o `start_interval`, que só existe a partir dessa versão.

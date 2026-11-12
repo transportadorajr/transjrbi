@@ -1541,6 +1541,14 @@ pt-BR:
       intro:
         title: Decisões guiadas por dados
         description: Acompanhe o faturamento, os custos e o desempenho da sua frota para enxergar onde a sua operação ganha mais e onde ela pode crescer.
+  maintenance_home:
+    index:
+      title: Início
+      welcome: Bem-vindo à manutenção, %{name}!
+      subtitle: As ordens de serviço da oficina em um só lugar.
+      intro:
+        title: Sem acesso à manutenção
+        description: Seu usuário ainda não tem acesso às telas da manutenção. Peça a liberação ao responsável pela sua empresa.
   resource_names:
     maintenance_orders: Ordens de serviço
     workshop_employees: Funcionários da oficina
@@ -2988,7 +2996,6 @@ pt-BR:
       date_time: '%d/%m/%Y %H:%M'
   menus:
     tax: Fiscal
-    maintenance: Manutenção
     maintenance_orders: Ordens de serviço
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores

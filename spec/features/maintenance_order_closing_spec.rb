@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Maintenance order closing', flipper: :maintenance do
+describe 'Maintenance order closing', :maintenance, flipper: :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:resource) { create(:resource, name: 'Ordens de serviço', slug: 'maintenance_orders') }
   let!(:maintenance_order) do

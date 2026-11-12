@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Suppliers' do
+describe 'Suppliers', :maintenance do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Fornecedores', slug: 'suppliers') }
@@ -48,7 +48,6 @@ describe 'Suppliers' do
       scenario 'lists the suppliers from the maintenance menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Manutenção'
           click_on 'Fornecedores'
         end
 

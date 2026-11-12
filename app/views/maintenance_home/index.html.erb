@@ -1,0 +1,10 @@
+<% content_for :title, t('.title') %>
+
+<%= page_header_tag t('.welcome', name: current_user.name), subtitle: t('.subtitle') %>
+
+<div class="card">
+  <div class="card-body p-4">
+    <h2 class="h5 card-title"><%= icon(:'wrench-adjustable', class: 'me-2') %><%= t('.intro.title') %></h2>
+    <p class="card-text text-body-secondary mb-0"><%= t('.intro.description') %></p>
+  </div>
+</div>
