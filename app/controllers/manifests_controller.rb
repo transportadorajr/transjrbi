@@ -22,7 +22,7 @@ class ManifestsController < BaseController
 
     @manifests = listing_page(apply_sort(manifests, Atua::Manifest.arel_table[:issued_on].desc.nulls_last, id: :desc, except: manifest_sort_exceptions))
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: -> { Export::Sheet.for(@manifests, name: t('.title'), except: manifest_export_exceptions) })
   end
 
   def customer_options
@@ -53,6 +53,10 @@ class ManifestsController < BaseController
 
   def manifest_sort_exceptions
     can?(:read, :freight_expenses) ? [] : %w[net_per_km net_per_hour]
+  end
+
+  def manifest_export_exceptions
+    can?(:read, :freight_expenses) ? [] : %w[net net_per_km net_per_hour]
   end
 
   def load_filter_options

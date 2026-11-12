@@ -1,5 +1,8 @@
 class City < ApplicationRecord
   include Sortable
+  include Exportable
+
+  export_field(:macro_region) { |city| city.macro_region&.name }
 
   sortable :name
   sortable :state

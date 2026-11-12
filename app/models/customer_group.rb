@@ -1,5 +1,6 @@
 class CustomerGroup < ApplicationRecord
   include Sortable
+  include Exportable
 
   sortable :name
 

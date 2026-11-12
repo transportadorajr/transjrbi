@@ -18,7 +18,7 @@ class TonnageRatesController < BaseController
     @active_count = counted_tonnage_rates.activated.count
     @deactivated_count = counted_tonnage_rates.not_activated.count
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: @tonnage_rates)
   end
 
   def show

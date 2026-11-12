@@ -1,6 +1,7 @@
 module Atua
   class Expense < ApplicationRecord
     include Sortable
+    include Exportable
 
     include Importable
 
@@ -12,6 +13,9 @@ module Atua
     UNLOADING_HISTORY_CODES = [72, 474, 476].freeze
     FUEL_HISTORY_CODES = [11, 396, 482].freeze
     UNLOADING_DOCUMENT_NUMBER = /\A\s*(?:(\d{3,7})(?:\.0)?\s*|(\d{4,7})(?:\.0)?\D.*)\z/im
+
+    export_field(:allocation, &:allocation_name)
+    export_field(:origin) { |expense| expense.cost_object.try(:number) || expense.cost_object.try(:plate) }
 
     sortable :payee_name
 

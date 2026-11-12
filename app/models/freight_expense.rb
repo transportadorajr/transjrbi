@@ -1,7 +1,16 @@
 class FreightExpense < ApplicationRecord
   include Sortable
+  include Exportable
 
   KINDS = %i[commission tonnage insurance tarp_lining fuel].freeze
+
+  export_field(:transport_document) { |expense| expense.transport_document.number }
+  export_field(:commission_rule) { |expense| expense.commission_rule&.name }
+  export_field(:tonnage_rate) { |expense| expense.tonnage_rate&.name }
+  export_field(:insurance_rate, :percentage) { |expense| expense.insurance_rate&.insurance_percentage }
+  export_field(:truck_group) { |expense| expense.truck_group&.name }
+  export_field(:transport_document_issued_at, :datetime) { |expense| expense.transport_document.issued_at }
+  export_field(:taker_name) { |expense| expense.transport_document.taker_name }
 
   sortable :customer_name, -> { sort_text(Atua::TransportDocument.arel_table[:taker_name]) }
 

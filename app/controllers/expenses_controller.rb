@@ -11,10 +11,10 @@ class ExpensesController < BaseController
 
     expenses = current_tenant.atua_expenses.active
 
-    @expenses = listing_page(apply_sort(apply_scopes(expenses), Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc))
+    @expenses = listing_page(apply_sort(apply_scopes(expenses).preload(:cost_object), Atua::Expense.arel_table[:posted_at].desc.nulls_last, id: :desc))
     @histories = expenses.where.not(history_code: nil).distinct.order(:history_name, :history_code).pluck(:history_name, :history_code)
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: @expenses)
   end
 
   def show

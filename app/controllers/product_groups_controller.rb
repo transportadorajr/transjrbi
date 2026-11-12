@@ -19,7 +19,7 @@ class ProductGroupsController < BaseController
     @deactivated_count = counted_product_groups.not_activated.count
     @unclassified_products = product_name_counts(documents.where(product_group_id: nil))
 
-    respond_with_listing
+    respond_with_listing(xlsx: -> { helpers.product_groups_xlsx_sheet(@product_groups, @subgroup_counts, @document_counts) })
   end
 
   def show

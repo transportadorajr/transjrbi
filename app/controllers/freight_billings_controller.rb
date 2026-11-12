@@ -22,7 +22,7 @@ class FreightBillingsController < BaseController
     @last_synced_at = current_tenant.last_synced_at
     @rows = listing_page(@dashboard.sorted_rows(params[:sort], params[:direction]))
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: -> { helpers.freight_billing_xlsx_sheets(@dashboard, @rows) })
   end
 
   def detail

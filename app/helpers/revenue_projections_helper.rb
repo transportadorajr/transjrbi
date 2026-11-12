@@ -133,7 +133,42 @@ module RevenueProjectionsHelper
     end
   end
 
+  def revenue_projection_xlsx_sheets(projection, memory)
+    [revenue_projection_xlsx_summary(projection), revenue_projection_xlsx_days(projection),
+     *(revenue_projection_xlsx_memory(memory) if memory.any?)]
+  end
+
   private
+
+  def revenue_projection_xlsx_summary(projection)
+    columns = [xlsx_field(t('revenue_projections.xlsx.period')) { revenue_projection_title(projection) },
+               xlsx_field(t('revenue_projections.xlsx.reference_at'), :datetime) { projection.reference_at },
+               *%i[realized projected low high].map { |column| xlsx_field(t(column, scope: 'revenue_projections.xlsx'), :money) { projection.public_send(column) } }]
+
+    Export::Sheet.new(name: t('revenue_projections.xlsx.summary'), columns:, rows: [projection])
+  end
+
+  def revenue_projection_xlsx_days(projection)
+    columns = [xlsx_field(t('revenue_projections.xlsx.date'), :date, &:date),
+               *%i[realized expected low high].map { |column| xlsx_field(t(column, scope: 'revenue_projections.xlsx'), :money, &:"#{column}_cents") },
+               xlsx_field(t('revenue_projections.xlsx.holiday')) { |day| day.holiday&.name }]
+
+    Export::Sheet.new(name: t('revenue_projections.xlsx.days'), columns:, rows: projection.days)
+  end
+
+  def revenue_projection_xlsx_memory(memory)
+    errors = [xlsx_field(t('revenue_projections.memory.day')) { |row| revenue_projection_day_label(row.day_type, row.wday) },
+              xlsx_field(t('revenue_projections.memory.days'), :integer, &:days),
+              xlsx_field(t('revenue_projections.memory.mean_error_column'), :percentage) { |row| row.mean_absolute_error&.*(100) },
+              xlsx_field(t('revenue_projections.memory.bias_column'), :percentage) { |row| row.bias&.*(100) }]
+    factors = [xlsx_field(t('revenue_projections.memory.factor')) { |row| revenue_projection_factor_label(row.factor_type, row.wday) },
+               xlsx_field(t('revenue_projections.memory.value'), :percentage) { |row| row.value * 100 },
+               xlsx_field(t('revenue_projections.memory.observations'), :integer, &:observations_count),
+               xlsx_field(t('revenue_projections.memory.status')) { |row| t(row.learned ? 'learned' : 'default', scope: 'revenue_projections.memory') }]
+
+    [Export::Sheet.new(name: t('revenue_projections.memory.errors_title'), columns: errors, rows: memory.error_rows),
+     Export::Sheet.new(name: t('revenue_projections.memory.factors_title'), columns: factors, rows: memory.factor_rows)]
+  end
 
   def revenue_projection_point_dataset(labels_count, point_index, align)
     last_point = Array.new(labels_count) { |index| index == point_index }

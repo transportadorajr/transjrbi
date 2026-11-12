@@ -36,7 +36,7 @@ module Export
     end
 
     def to_h
-      { header:, type:, format: }.compact
+      { header:, type:, format: Format.for(type) }.compact
     end
 
     def value(record)
@@ -44,26 +44,7 @@ module Export
       return if raw.nil?
       return I18n.t("enums.#{model.model_name.i18n_key}.#{name}.#{raw}") if model.defined_enums.key?(name)
 
-      case type
-      when :date then raw.iso8601
-      when :datetime then raw.in_time_zone.iso8601
-      when :string then text(raw)
-      else raw
-      end
-    end
-
-    private
-
-    def format
-      I18n.t('xlsx_export.formats.money', unit: I18n.t('number.currency.format.unit')) if type == :money
-    end
-
-    def text(raw)
-      case raw
-      when Array then raw.join(', ')
-      when Hash then raw.to_json
-      else raw.to_s
-      end
+      Value.cast(type, raw)
     end
   end
 end

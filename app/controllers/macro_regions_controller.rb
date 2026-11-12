@@ -8,7 +8,7 @@ class MacroRegionsController < BaseController
 
     @macro_regions = listing_page(apply_sort(apply_scopes(current_tenant.macro_regions.preload(:cities)), :state, :name, :id))
 
-    respond_with_listing
+    respond_with_listing(xlsx: @macro_regions)
   end
 
   def show

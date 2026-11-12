@@ -207,9 +207,9 @@ O serviço entra em `deploy/compose.yaml` como mais um serviço da rede interna 
 | --- | --- |
 | 0 | Microserviço `xlsx_export` com testes e Dockerfile. **Feito.** |
 | 1 | Infra Rails (MIME, cliente, `Exportable` + `Export::Column`/`Export::Sheet`, comando, concern `ListingExport`, botão, flag, spec support) + deploy do serviço + tela piloto **Veículos**. **Feito.** |
-| 2 | Cadastros: cidades, macrorregiões, grupos de clientes/produtos/caminhões, regras de comissão, tarifas por tonelada, distâncias de rota, emitentes excluídos, usuários. |
-| 3 | Telas do Atua: CT-e, MDF-e, despesas, despesas de frete, clientes, motoristas. |
-| 4 | Dashboards: início, faturamento de frete, viagens. |
+| 2 | Cadastros: cidades, macrorregiões, grupos de clientes/produtos/caminhões, regras de comissão, tarifas por tonelada, distâncias de rota, emitentes excluídos, usuários, feriados. **Feito.** |
+| 3 | Telas do Atua: CT-e, MDF-e, despesas, despesas de frete, clientes, motoristas. **Feito.** |
+| 4 | Dashboards: faturamento de frete (tabela do agrupamento + total), viagens (tabela + total) e projeção de faturamento (resumo, dia a dia e memória). O início só redireciona para o faturamento. **Feito.** |
 | 5 | Admin: importações, requisições HTTP, tenants, recursos. |
 | 6 | Exportações grandes em segundo plano: acima de um limite (sugestão: 20 mil linhas), um job GoodJob gera a planilha, guarda no Active Storage e avisa o usuário com o link; abaixo do limite continua síncrono. |
 

@@ -38,6 +38,10 @@ module ApplicationHelper
     end
   end
 
+  def xlsx_field(header, type = :string, &)
+    Export::Field.computed(header, type, &)
+  end
+
   def create_button(title, path = new_record_path, **)
     link_to path, class: 'btn btn-primary btn-primary-action btn-round', ** do
       concat icon(:'plus-circle', class: 'me-2')

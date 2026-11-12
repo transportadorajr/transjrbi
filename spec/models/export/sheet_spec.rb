@@ -7,9 +7,9 @@ RSpec.describe Export::Sheet do
   let!(:trailer) { create(:atua_vehicle, tenant:, plate: 'BEV4G50', manufacture_year: nil) }
   let!(:stranger) { create(:atua_vehicle, tenant: other_tenant, plate: 'ZIZ7D35') }
 
-  describe '#to_h' do
+  describe '.for' do
     it 'builds the sheet with the columns of the model and one row per record of the relation, in its order' do
-      sheet = described_class.new(name: 'Veículos', relation: tenant.atua_vehicles.order(:plate)).to_h
+      sheet = described_class.for(tenant.atua_vehicles.order(:plate), name: 'Veículos').to_h
       plate = sheet[:columns].index { |column| column[:header] == 'Placa' }
       year = sheet[:columns].index { |column| column[:header] == 'Ano de fabricação' }
 
@@ -22,10 +22,32 @@ RSpec.describe Export::Sheet do
     end
 
     it 'keeps the header row when the relation is empty' do
-      sheet = described_class.new(name: 'Veículos', relation: tenant.atua_vehicles.none).to_h
+      sheet = described_class.for(tenant.atua_vehicles.none, name: 'Veículos').to_h
 
       expect(sheet[:columns].size).to eq(41)
       expect(sheet[:rows]).to eq([])
+    end
+
+    it 'leaves out the excepted columns and appends the extra fields' do
+      field = Export::Field.computed('Placa invertida') { |vehicle| vehicle.plate.reverse }
+      sheet = described_class.for(tenant.atua_vehicles.order(:plate), name: 'Veículos', except: %i[model_year], fields: [field]).to_h
+
+      expect(sheet[:columns].pluck(:header)).not_to include('Ano do modelo')
+      expect(sheet[:columns].last).to eq(header: 'Placa invertida', type: :string)
+      expect(sheet[:rows].map(&:last)).to eq(%w[05G4VEB 27F0UXE])
+    end
+  end
+
+  describe '#to_h' do
+    it 'reads any row through the columns given' do
+      columns = [Export::Field.computed('Nome', &:first), Export::Field.computed('Frete', :money, &:last)]
+      sheet = described_class.new(name: 'Resumo', columns:, rows: [['Usiminas', Money.from_cents(150_000)], ['Gerdau', nil]]).to_h
+
+      expect(sheet).to eq(
+        name: 'Resumo',
+        columns: [{ header: 'Nome', type: :string }, { header: 'Frete', type: :money, format: '"R$" #,##0.00' }],
+        rows: [['Usiminas', 150_000], ['Gerdau', nil]],
+      )
     end
   end
 end

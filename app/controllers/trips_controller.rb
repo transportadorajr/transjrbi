@@ -16,7 +16,7 @@ class TripsController < BaseController
     @rows = listing_page(@dashboard.sorted_rows(params[:sort], params[:direction]))
     @highlights = @dashboard.highlights(params[:sort])
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: -> { helpers.trips_xlsx_sheets(@dashboard, @rows) })
   end
 
   def detail

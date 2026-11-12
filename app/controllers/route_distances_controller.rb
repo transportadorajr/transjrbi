@@ -14,7 +14,7 @@ class RouteDistancesController < BaseController
                                                :origin_city, :destination_city, :id))
     @route_distance_import_form = RouteDistanceImportForm.new(tenant: current_tenant)
 
-    respond_with_listing
+    respond_with_listing(xlsx: @route_distances)
   end
 
   def new

@@ -2,6 +2,7 @@ module Atua
   class TransportDocument < ApplicationRecord
     include Importable
     include Sortable
+    include Exportable
 
     INACTIVITY_PERIOD = 12.months
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze
@@ -47,6 +48,12 @@ module Atua
     has_many :freight_expenses, dependent: :delete_all, inverse_of: :transport_document
     has_many :toll_vouchers, class_name: 'Atua::TollVoucher', foreign_key: %i[tenant_id transport_document_number branch_code],
                              primary_key: %i[tenant_id number branch_code], inverse_of: :transport_document
+
+    export_field(:origin_macro_region) { |document| document.origin_macro_region&.name }
+    export_field(:product_group) { |document| document.product_group&.name }
+    export_field(:complemented_transport_document) { |document| document.complemented_transport_document&.number }
+    export_field(:customer_group, &:customer_group_name)
+    export_field(:net, :money) { |document| document[:net_cents] }
 
     monetize :goods_value_cents, :freight_cents, :weight_freight_cents, :value_freight_cents, :ad_valorem_cents,
              :other_charges_cents, :toll_cents, :icms_base_cents, :icms_cents, :icms_st_cents, :federal_tax_cents,

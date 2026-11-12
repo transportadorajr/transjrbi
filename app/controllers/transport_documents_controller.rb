@@ -20,7 +20,7 @@ class TransportDocumentsController < BaseController
     @drivers = current_tenant.atua_transport_documents.drivers
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: -> { Export::Sheet.for(@transport_documents, name: t('.title'), except: hidden_sort_columns) })
   end
 
   def customer_options
@@ -60,7 +60,7 @@ class TransportDocumentsController < BaseController
                Atua::TransportDocument.arel_table[:posted_on].desc.nulls_last,
                Atua::TransportDocument.arel_table[:issued_at].desc.nulls_last,
                id: :desc, except: hidden_sort_columns)
-      .preload(:driver, taker: :customer_group)
+      .preload(:driver, :origin_macro_region, :product_group, :complemented_transport_document, taker: :customer_group)
   end
 
   def hidden_sort_columns

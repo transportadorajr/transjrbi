@@ -1,7 +1,9 @@
 <% content_for :title, t('.title') %>
 
 <div class="page-shell">
-  <%= page_header_tag t('.title'), subtitle: t('.subtitle'), note: revenue_projection_last_sync_label(@last_synced_at) %>
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle'), note: revenue_projection_last_sync_label(@last_synced_at) do %>
+    <%= xlsx_export_button %>
+  <% end %>
 
   <div class="dashboard-filter-bar mb-4">
     <span class="dashboard-filter-label"><%= t('.period_label') %></span>

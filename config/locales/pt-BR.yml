@@ -182,6 +182,7 @@ pt-BR:
         destination_state: UF de destino
         distance_km: KM considerado
         documents_count: CT-es
+        customer_name: Nome do cliente
       truck_group:
         name: Nome
         axles: Quantidades de eixos
@@ -225,6 +226,14 @@ pt-BR:
         rate: Taxa
         weight_tons: Peso
         amount: Valor
+        calculated_at: Calculada em
+        iof_percentage: Alíquota do IOF
+        iof: IOF
+        international_percentage: Alíquota do seguro internacional
+        international_insurance: Seguro internacional
+        truck_group: Grupo de caminhões
+        transport_document_issued_at: CT-e emitido em
+        taker_name: Tomador
       tonnage_rate:
         name: Nome
         nickname: Apelido
@@ -259,6 +268,7 @@ pt-BR:
         status: Status
         subgroups: Subgrupos
         transport_documents: CT-es
+        activated_at: Ativado em
       empty_leg:
         previous_manifest: Viagem anterior
         trip_on: Data da viagem
@@ -319,6 +329,69 @@ pt-BR:
         goods_value: Valor da mercadoria
         icms_base: Base do ICMS
         icms: ICMS
+        code: Código
+        arrival_on: Chegada em
+        branch_code: Código da filial
+        headquarters_code: Código da matriz
+        headquarters_name: Matriz
+        agency_code: Código da agência
+        agency_name: Agência
+        origin_city: Cidade de origem
+        origin_state: UF de origem
+        origin_city_code: Código da cidade de origem
+        destination_city: Cidade de destino
+        destination_state: UF de destino
+        destination_city_code: Código da cidade de destino
+        sender_code: Código do remetente
+        sender_name: Remetente
+        sender_document: CPF/CNPJ do remetente
+        recipient_code: Código do destinatário
+        recipient_name: Destinatário
+        recipient_document: CPF/CNPJ do destinatário
+        payer_code: Código do pagador
+        payer_name: Pagador
+        payer_document: CPF/CNPJ do pagador
+        taker_code: Código do tomador
+        taker_name: Tomador
+        consignee_code: Código do consignatário
+        consignee_name: Consignatário
+        consignee_document: CPF/CNPJ do consignatário
+        driver_code: Código do motorista
+        driver_document: CPF do motorista
+        vehicle_code: Código do veículo
+        axles: Eixos
+        vehicle_ownership: Propriedade do veículo
+        weight_tons: Peso (t)
+        product_quantity: Quantidade do produto
+        ncm: NCM
+        goods_invoice_keys: Chaves das notas fiscais
+        complemented_number: Número do CT-e complementado
+        manifest_numbers: MDF-es
+        ciot: CIOT
+        operational_unit: Unidade operacional
+        shipment_number: Número do embarque
+        billing_number: Número da fatura
+        charged_at: Faturado em
+        nfse_pending_at: NFS-e pendente desde
+        icms_st: ICMS ST
+        federal_tax: Tributos federais
+        ibs: IBS
+        cbs: CBS
+        result: Resultado
+        driver_freight: Frete do motorista
+        advance: Adiantamento
+        commission: Comissão
+        insurance: Seguro
+        cost: Custo
+        result_margin_percentage: Margem do resultado
+        due_dates: Vencimentos
+        issuer_code: Código do emissor
+        issuer_name: Emissor
+        original_distance_km: Distância original (km)
+        distance_adjusted_at: Distância ajustada em
+        distance_edited_at: Distância editada em
+        origin_macro_region: Macrorregião de origem
+        product_group: Produto
       atua/manifest:
         total_freight: Valor total do frete
         number: Número
@@ -342,6 +415,18 @@ pt-BR:
         trip_started_at: Início da viagem
         duration: Duração
         net_per_hour: Líquido/hora
+        code: Código
+        model: Modelo
+        series: Série
+        company_state: UF da filial
+        departure_on: Saída em
+        notes: Observações
+        access_key: Chave de acesso
+        goods_value: Valor da mercadoria
+        status: Situação na Atua
+        gross: Frete bruto
+        net: Frete líquido
+        duration_hours: Duração (horas)
       atua/manifest_document:
         transport_document_number: CT-e
         customer_name: Cliente
@@ -367,6 +452,16 @@ pt-BR:
         payment_method: Forma de pagamento
         payment_term: Prazo de pagamento
         customer_group: Grupo
+        street: Logradouro
+        complement: Complemento
+        district: Bairro
+        city_code: Código da cidade
+        state_code: Código da UF
+        state: UF
+        updated_month_on: Mês de atualização
+        whatsapp_at: WhatsApp confirmado em
+        exporter_at: Exportador desde
+        simples_optant_at: Optante pelo Simples desde
       atua/vehicle:
         code: Código
         plate: Placa
@@ -460,6 +555,18 @@ pt-BR:
         icms_credit_percentage: Alíquota do crédito de ICMS
         pis_credit: Crédito de PIS
         cofins_credit: Crédito de COFINS
+        movement_code: Código da movimentação
+        movement_on: Data da movimentação
+        payee_code: Código do favorecido
+        payee_document: CPF/CNPJ do favorecido
+        history_code: Código do histórico
+        branch_code: Código da filial
+        document_number: Número do documento
+        document_series: Série do documento
+        trip_driver_code: Código do motorista da viagem
+        transport_document_code: Código do CT-e
+        transport_document_number: Número do CT-e
+        transport_document_series: Série do CT-e
       atua/device_registration:
         tenant: Empresa
         status_type: Situação
@@ -524,6 +631,7 @@ pt-BR:
         status: Status
         activated_at: Ativado em
         password_change_required: Troca de senha pendente
+        password_change_required_at: Troca de senha solicitada em
       resource:
         name: Nome
         slug: Identificador
@@ -563,6 +671,11 @@ pt-BR:
         truck_group:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um grupo que já gerou despesas de combustível. Desative o grupo para deixar de usá-lo.
+  attributes:
+    created_at: Criado em
+    updated_at: Atualizado em
+    imported_at: Importado em
+    removed_from_atua_at: Removido da Atua em
   activemodel:
     models:
       user_confirmation_form: Confirmação de conta
@@ -2020,6 +2133,18 @@ pt-BR:
     periods:
       week: Sem. atual
       month: Mês atual
+    xlsx:
+      summary: Resumo
+      days: Dia a dia
+      period: Período
+      reference_at: Faturado até
+      date: Data
+      realized: Faturado
+      expected: Previsto
+      projected: Projeção
+      low: Mínimo provável
+      high: Máximo provável
+      holiday: Feriado
     show:
       title: Projeção de faturamento
       subtitle: Quanto já faturamos e onde devemos fechar o mês e a semana no ritmo atual.
@@ -2560,6 +2685,8 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
   trips:
     km: '%{distance} km'
+    xlsx:
+      duration_hours: Tempo médio (horas)
     detail:
       row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
       sections:

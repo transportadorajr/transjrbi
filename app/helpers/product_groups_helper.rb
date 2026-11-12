@@ -130,6 +130,13 @@ module ProductGroupsHelper
     )
   end
 
+  def product_groups_xlsx_sheet(product_groups, subgroup_counts, document_counts)
+    Export::Sheet.for(product_groups, name: t('product_groups.index.title'), fields: [
+      xlsx_field(ProductGroup.human_attribute_name(:subgroups), :integer) { |product_group| subgroup_counts.fetch(product_group.id, 0) },
+      xlsx_field(ProductGroup.human_attribute_name(:transport_documents), :integer) { |product_group| document_counts.fetch(product_group.id, 0) },
+    ])
+  end
+
   private
 
   def product_group_product_name_options(product_group_form)

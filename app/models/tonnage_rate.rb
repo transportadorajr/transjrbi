@@ -1,5 +1,6 @@
 class TonnageRate < ApplicationRecord
   include Sortable
+  include Exportable
 
   WEIGHT_KG_ABOVE = 200
   OUTDATED_MONTHS = 2
@@ -19,6 +20,8 @@ class TonnageRate < ApplicationRecord
   ].freeze
 
   sortable :name
+
+  export_field(:customer_group) { |rate| rate.customer_group.name }
 
   belongs_to :tenant
   belongs_to :customer_group, inverse_of: :tonnage_rates

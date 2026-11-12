@@ -12,7 +12,7 @@ class CitiesController < BaseController
     @macro_regions = current_tenant.macro_regions.order(:state, :name)
     @unassigned_origins = MacroRegion.unassigned_origins(current_tenant)
 
-    respond_with_listing
+    respond_with_listing(xlsx: @cities)
   end
 
   def show

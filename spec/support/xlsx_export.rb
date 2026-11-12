@@ -57,22 +57,31 @@ module XlsxExportService
 end
 
 module XlsxDownloads
-  def downloaded_xlsx_sheet
+  def downloaded_xlsx_workbook
     file = Tempfile.new(%w[download .xlsx], binmode: true)
     file.write(page.body)
     file.close
 
-    Roo::Excelx.new(file.path).sheet(0)
+    Roo::Excelx.new(file.path)
   end
 
-  def downloaded_xlsx_rows
-    sheet = downloaded_xlsx_sheet
+  def downloaded_xlsx_sheet_names
+    downloaded_xlsx_workbook.sheets
+  end
+
+  def downloaded_xlsx_sheet(sheet = 0)
+    downloaded_xlsx_workbook.sheet(sheet)
+  end
+
+  def downloaded_xlsx_rows(sheet = 0)
+    sheet = downloaded_xlsx_sheet(sheet)
+    return [] unless sheet.first_row
 
     (sheet.first_row..sheet.last_row).map { |index| sheet.row(index) }
   end
 
-  def downloaded_xlsx_records
-    headers, *rows = downloaded_xlsx_rows
+  def downloaded_xlsx_records(sheet = 0)
+    headers, *rows = downloaded_xlsx_rows(sheet)
 
     rows.map { |row| headers.zip(row).to_h }
   end

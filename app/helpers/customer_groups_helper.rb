@@ -77,6 +77,12 @@ module CustomerGroupsHelper
     )
   end
 
+  def customer_groups_xlsx_sheet(customer_groups, customer_counts)
+    Export::Sheet.for(customer_groups, name: t('customer_groups.index.title'), fields: [
+      xlsx_field(CustomerGroup.human_attribute_name(:customers), :integer) { |customer_group| customer_counts.fetch(customer_group.id, 0) },
+    ])
+  end
+
   private
 
   def customer_group_show_menu(customer_group)

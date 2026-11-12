@@ -23,7 +23,7 @@ class FreightExpensesController < BaseController
     @outdated_tonnage_rates = TonnageRate.outdated(current_tenant)
     @insurance_rate = InsuranceRate.find_by(tenant: current_tenant)
 
-    respond_with_listing(orientation: :landscape)
+    respond_with_listing(orientation: :landscape, xlsx: @freight_expenses)
   end
 
   def recalculate
