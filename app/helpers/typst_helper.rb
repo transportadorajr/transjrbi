@@ -88,8 +88,8 @@ module TypstHelper
   end
 
   def typst_section_title(title)
-    typst_markup("#block(width: 100%, inset: (x: 6pt, y: 4pt), fill: rgb(\"#{TYPST_HEADER_FILL}\"), " \
-                 "text(9pt, weight: \"bold\", fill: white, #{typst_text(typst_plain(title).upcase)}))")
+    typst_markup('#block(width: 100%, inset: (x: 4pt, top: 4pt, bottom: 2pt), ' \
+                 "text(9pt, weight: \"bold\", fill: rgb(\"#{TYPST_HEADER_FILL}\"), #{typst_text(typst_plain(title).upcase)}))")
   end
 
   def typst_field_grid(fields, columns: 2)
@@ -105,13 +105,13 @@ module TypstHelper
     typst_markup("#block(width: 100%, inset: (x: 4pt, y: 2pt), text(9pt, #{typst_text(value.to_s.strip)}))")
   end
 
-  def typst_signatures(labels, columns: 2)
+  def typst_signatures(labels, columns: 2, width: '100%')
     cells = labels.map do |label|
       'block(width: 100%, inset: (top: 18pt, x: 8pt), [#line(length: 100%, stroke: 0.5pt) ' \
         "#align(center, text(8pt, fill: rgb(\"#{TYPST_MUTED_COLOR}\"), #{typst_text(typst_plain(label))}))])"
     end
 
-    typst_markup("#block(breakable: false, grid(columns: (1fr,) * #{columns}, gutter: 6pt, #{cells.join(', ')}))")
+    typst_markup("#align(center, block(breakable: false, width: #{width}, grid(columns: (1fr,) * #{columns}, gutter: 6pt, #{cells.join(', ')})))")
   end
 
   def pdf_column(label, width = 'auto', align: :left)

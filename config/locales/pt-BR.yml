@@ -2167,12 +2167,7 @@ pt-BR:
         subtitle: Manutenção da frota · Placa %{plate} · %{status}
         filename: os_%{number}.pdf
         signatures:
-          opened_by: Aberto por (encarregado)
-          driver: Motorista / solicitante
-          closed_by: Encarregado (encerramento)
-          mechanic: Mecânico responsável
-          purchasing: Compras (aprovação)
-          released: Motorista (veículo liberado)
+          supervisor: Encarregado responsável
     new:
       title: Nova Ordem de Serviço
       back: Voltar para ordens de serviço

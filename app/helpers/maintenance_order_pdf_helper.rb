@@ -1,5 +1,5 @@
 module MaintenanceOrderPdfHelper
-  SIGNATURES = %i[opened_by driver closed_by mechanic purchasing released].freeze
+  SIGNATURES = %i[supervisor].freeze
 
   def maintenance_order_pdf_title(maintenance_order)
     t('maintenance_orders.show.pdf.header', number: maintenance_order.number, company: maintenance_order.tenant.trade_name)

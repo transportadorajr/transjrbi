@@ -59,7 +59,8 @@ describe 'Maintenance order PDF', flipper: :maintenance do
       expect(text).to include('RETÍFICA IPATINGA', 'Retífica do tambor', 'R$ 450,00', 'R$ 420,00', 'MARCOS')
       expect(text).to include('R$ 760,00')
       expect(text).to include('11/11/2026 17:30', 'Rodagem', '482.300 km')
-      expect(text).to include('Mecânico responsável', 'Motorista (veículo liberado)')
+      expect(text).to include('Encarregado responsável')
+      expect(text).not_to include('Mecânico responsável', 'Motorista (veículo liberado)', 'Compras (aprovação)')
       expect(text).to include('Gerado em 12/11/2026 09:00.')
     end
 
