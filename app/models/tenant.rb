@@ -32,6 +32,9 @@ class Tenant < ApplicationRecord
   has_many :excluded_drivers, dependent: :delete_all
   has_many :drivers, dependent: :delete_all
   has_many :holidays, dependent: :delete_all
+  has_many :revenue_projection_daily_totals, class_name: 'RevenueProjection::DailyTotal', dependent: :delete_all
+  has_many :revenue_projection_day_forecasts, class_name: 'RevenueProjection::DayForecast', dependent: :delete_all
+  has_many :revenue_projection_factors, class_name: 'RevenueProjection::Factor', dependent: :delete_all
 
   validates :name, :legal_id, :trade_name, presence: true
   validates :legal_id, uniqueness: true

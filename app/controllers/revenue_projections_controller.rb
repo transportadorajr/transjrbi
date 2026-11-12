@@ -9,6 +9,7 @@ class RevenueProjectionsController < BaseController
     @last_synced_at = current_tenant.last_synced_at
     @period_type = Dashboard::RevenueProjection.sanitize_period_type(params[:period])
     @projection = Dashboard::RevenueProjection.new(projection(@period_type.to_sym))
+    @memory = Dashboard::RevenueProjectionMemory.new(current_tenant)
   end
 
   private
