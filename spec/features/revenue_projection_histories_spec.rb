@@ -61,7 +61,8 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page).to have_current_path(revenue_projection_history_path)
         expect(page).to have_css('h1.page-title', text: 'Histórico da projeção')
         expect(page).to have_no_link('Exportar Excel')
-        expect(page).to have_css('#history_month', text: 'Novembro de 2026')
+        expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Mensal')
+        expect(page).to have_select('Mês', selected: 'Novembro de 2026', options: ['Novembro de 2026', 'Outubro de 2026'])
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
           ['Projeção na abertura (01/11) R$ 23.000,00', 'Projeção atual (04/11) R$ 23.300,00', 'Faturado até 03/11 R$ 1.600,00',
            'Variação da projeção desde a abertura +R$ 300,00 (+1,3%)'],
@@ -82,22 +83,45 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(RevenueProjection::Snapshot.where(tenant:).month.count).to eq(4)
       end
 
-      scenario 'navigates to a previous closed month' do
+      scenario 'chooses a previous closed month', :js do
         visit revenue_projection_history_path
-        click_on 'Mês anterior'
+        select 'Outubro de 2026', from: 'Mês'
 
-        expect(page).to have_current_path(revenue_projection_history_path(month: '2026-10'))
-        expect(page).to have_css('#history_month', text: 'Outubro de 2026')
+        expect(page).to have_current_path(revenue_projection_history_path(period: 'month', start: '2026-10-01'))
+        expect(page).to have_select('Mês', selected: 'Outubro de 2026')
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
-          ['Projeção na abertura (01/10) R$ 20.000,00', 'Última projeção (01/10) R$ 20.000,00', 'Faturado no mês R$ 0,00',
-           'Faturado x projeção na abertura -R$ 20.000,00 (-100,0%)'],
+          ['PROJEÇÃO NA ABERTURA (01/10) R$ 20.000,00', 'ÚLTIMA PROJEÇÃO (01/10) R$ 20.000,00', 'FATURADO NO MÊS R$ 0,00',
+           'FATURADO X PROJEÇÃO NA ABERTURA -R$ 20.000,00 (-100,0%)'],
         )
         expect(page).to have_text('A projeção não chegou a ficar a menos de 5% do faturado.')
         expect(page).to have_no_text('reconstruídas')
+      end
 
-        click_on 'Próximo mês'
+      scenario 'switches to the history of the weeks' do
+        visit revenue_projection_history_path
+        click_on 'Semanal'
 
-        expect(page).to have_css('#history_month', text: 'Novembro de 2026')
+        expect(page).to have_current_path(revenue_projection_history_path(period: 'week'))
+        expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Semanal')
+        expect(page).to have_select('Semana', selected: '01/11 a 07/11/2026', options: ['01/11 a 07/11/2026'])
+        expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
+          ['Projeção na abertura (01/11) R$ 0,00', 'Projeção atual (01/11) R$ 0,00', 'Faturado até 03/11 R$ 1.600,00',
+           'Variação da projeção desde a abertura +R$ 0,00'],
+        )
+        expect(page).to have_text('A semana ainda está em andamento; o faturado considera só os dias já encerrados.')
+        expect(page).to have_text('Evolução da projeção da semana')
+        expect(page).to have_no_table('history_weeks')
+        expect(html_table_to_rows(table: find_by_id('history_days'))).to eq(
+          [['Dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Projeção da semana na manhã', 'Ações'],
+           ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 0,00', ''],
+           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', '-', ''],
+           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', '']],
+        )
+        expect(RevenueProjection::Snapshot.where(tenant:).week.count).to eq(1)
+
+        click_on 'Mensal'
+
+        expect(page).to have_select('Mês', selected: 'Novembro de 2026')
       end
     end
 
@@ -130,7 +154,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       end
 
       expect(page).to have_text('Anotação salva.')
-      expect(page).to have_current_path(revenue_projection_history_path(month: '2026-11'))
+      expect(page).to have_current_path(revenue_projection_history_path(period: 'month', start: '2026-11-01'))
       expect(page).to have_css('#history_days .history-note-row', text: 'Greve no porto parou o carregamento — Bruna Dona')
       note = RevenueProjection::DayNote.last
       expect(note).to have_attributes(tenant:, user: owner, date: Date.new(2026, 11, 2), body: 'Greve no porto parou o carregamento')
@@ -154,6 +178,22 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page).to have_text('Anotação salva.')
         expect(page).to have_no_css('#history_days .history-note-row')
       end
+    end
+
+    scenario 'writes a note from the history of the week and stays on it' do
+      visit revenue_projection_history_path(period: 'week')
+      find_by_id('history_days').find('tr', text: '03/11 ter').click_on('Anotar o dia 03/11/2026')
+
+      within('#revenue_projection_day_note_modal') do
+        fill_in 'Anotação', with: 'Chuva na usina'
+
+        expect { click_on 'Salvar anotação' }.to change(RevenueProjection::DayNote, :count).by(1)
+      end
+
+      expect(page).to have_text('Anotação salva.')
+      expect(page).to have_current_path(revenue_projection_history_path(period: 'week', start: '2026-11-01'))
+      expect(page).to have_select('Semana', selected: '01/11 a 07/11/2026')
+      expect(RevenueProjection::DayNote.last).to have_attributes(date: Date.new(2026, 11, 3), body: 'Chuva na usina')
     end
   end
 

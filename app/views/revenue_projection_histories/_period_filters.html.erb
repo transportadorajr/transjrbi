@@ -1,0 +1,20 @@
+<%# locals: (history:) %>
+
+<div class="dashboard-filter-bar mb-3">
+  <span class="dashboard-filter-label"><%= t('revenue_projection_histories.show.period_label') %></span>
+
+  <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('revenue_projection_histories.show.period_label') } do %>
+    <% revenue_projection_history_period_types.each do |period_type| %>
+      <%= link_to t(period_type, scope: 'revenue_projection_histories.periods'), revenue_projection_history_path(period: period_type),
+                  class: revenue_projection_period_link_class(period_type, history.period_type) %>
+    <% end %>
+  <% end %>
+</div>
+
+<%= form_with url: revenue_projection_history_path, method: :get, id: 'history_period', class: 'dashboard-filter-bar mb-4',
+              data: { controller: 'auto-submit' } do %>
+  <%= hidden_field_tag :period, history.period_type, id: nil %>
+  <%= label_tag :start, t(history.period_type, scope: 'revenue_projection_histories.show.start_label'), class: 'dashboard-filter-label mb-0' %>
+  <%= select_tag :start, options_for_select(revenue_projection_history_start_options(history), history.start.iso8601),
+                 class: 'form-select form-select-sm dashboard-filter-select', data: { action: 'change->auto-submit#submit' } %>
+<% end %>

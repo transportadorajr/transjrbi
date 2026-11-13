@@ -18,17 +18,23 @@ module RevenueProjectionHistoriesHelper
     render 'revenue_projection_histories/content', history:
   end
 
-  def revenue_projection_history_month_title(history)
-    l(history.month, format: :month_name).capitalize
+  def revenue_projection_history_period_types
+    Dashboard::RevenueProjectionHistory::PERIOD_TYPES
   end
 
-  def revenue_projection_history_month_link(month, direction)
-    label = direction == :previous ? t('revenue_projection_histories.show.previous_month') : t('revenue_projection_histories.show.next_month')
-    icon_name = direction == :previous ? :'chevron-left' : :'chevron-right'
-    return tag.span(icon(icon_name), class: 'btn btn-sm btn-outline-secondary disabled', aria: { label:, disabled: true }) unless month
+  def revenue_projection_history_start_options(history)
+    history.starts.map { [revenue_projection_history_period_name(history.period_type, it), it.iso8601] }
+  end
 
-    link_to icon(icon_name), revenue_projection_history_path(month: Dashboard::RevenueProjectionHistory.month_param(month)),
-            class: 'btn btn-sm btn-outline-secondary', title: label, aria: { label: }
+  def revenue_projection_history_period_name(period_type, start)
+    return l(start, format: :month_name).capitalize if period_type.to_s == 'month'
+
+    finish = start.end_of_week(RevenueProjections::CalculateCommand::WEEK_START)
+    t('revenue_projection_histories.show.week_option', start: l(start, format: :chart_week), finish: l(finish))
+  end
+
+  def revenue_projection_history_weeks(history)
+    render 'revenue_projection_histories/weeks_table', rows: history.week_rows if history.month?
   end
 
   def revenue_projection_history_cards(history)
@@ -113,9 +119,9 @@ module RevenueProjectionHistoriesHelper
     cents.negative? ? 'text-danger' : 'text-success'
   end
 
-  def revenue_projection_history_day_menu(row)
+  def revenue_projection_history_day_menu(row, history)
     menus = []
-    menus << revenue_projection_history_note_menu(row) if can?(:update, :revenue_projection_notes)
+    menus << revenue_projection_history_note_menu(row, history) if can?(:update, :revenue_projection_notes)
     menus
   end
 
@@ -138,18 +144,23 @@ module RevenueProjectionHistoriesHelper
     return [Export::Sheet.new(name: t('revenue_projection_histories.xlsx.summary'), columns: revenue_projection_history_xlsx_summary_columns, rows: [])] unless history.any?
 
     [Export::Sheet.new(name: t('revenue_projection_histories.xlsx.summary'), columns: revenue_projection_history_xlsx_summary_columns, rows: [history]),
-     Export::Sheet.new(name: t('revenue_projection_histories.xlsx.evolution'), columns: revenue_projection_history_xlsx_evolution_columns,
+     Export::Sheet.new(name: t('revenue_projection_histories.xlsx.evolution'), columns: revenue_projection_history_xlsx_evolution_columns(history),
                        rows: history.snapshots),
-     Export::Sheet.new(name: t('revenue_projection_histories.show.weeks_title'), columns: revenue_projection_history_xlsx_week_columns,
-                       rows: history.week_rows),
-     Export::Sheet.new(name: t('revenue_projection_histories.show.days_title'), columns: revenue_projection_history_xlsx_day_columns,
-                       rows: history.day_rows)]
+     revenue_projection_history_xlsx_weeks(history),
+     Export::Sheet.new(name: t('revenue_projection_histories.show.days_title'), columns: revenue_projection_history_xlsx_day_columns(history),
+                       rows: history.day_rows)].compact
   end
 
   private
 
-  def revenue_projection_history_note_menu(row)
-    Menu.new(name: :note, record: row, url: edit_revenue_projection_day_note_path(row.date.iso8601), icon: :'journal-text',
+  def revenue_projection_history_xlsx_weeks(history)
+    return unless history.month?
+
+    Export::Sheet.new(name: t('revenue_projection_histories.show.weeks_title'), columns: revenue_projection_history_xlsx_week_columns, rows: history.week_rows)
+  end
+
+  def revenue_projection_history_note_menu(row, history)
+    Menu.new(name: :note, record: row, url: edit_revenue_projection_day_note_path(row.date.iso8601, period: history.period_type), icon: :'journal-text',
              data: { turbo_stream: true })
   end
 
@@ -162,7 +173,7 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_xlsx_summary_columns
-    [xlsx_field(revenue_projection_history_xlsx_header(:month)) { |history| revenue_projection_history_month_title(history) },
+    [xlsx_field(revenue_projection_history_xlsx_header(:period)) { |history| revenue_projection_history_period_name(history.period_type, history.start) },
      xlsx_field(revenue_projection_history_xlsx_header(:opening_date), :date) { |history| history.opening.taken_on },
      xlsx_field(revenue_projection_history_xlsx_header(:opening), :money) { |history| history.opening.projected_cents },
      xlsx_field(revenue_projection_history_xlsx_header(:latest_date), :date) { |history| history.latest.taken_on },
@@ -175,11 +186,11 @@ module RevenueProjectionHistoriesHelper
      xlsx_field(t('revenue_projection_histories.xlsx.hit_since', tolerance: revenue_projection_history_tolerance), :date, &:hit_since)]
   end
 
-  def revenue_projection_history_xlsx_evolution_columns
+  def revenue_projection_history_xlsx_evolution_columns(history)
     [xlsx_field(revenue_projection_history_xlsx_header(:taken_on), :date, &:taken_on),
      xlsx_field(revenue_projection_history_xlsx_header(:reference_at), :datetime, &:reference_at),
      xlsx_field(revenue_projection_history_xlsx_header(:realized), :money, &:realized_cents),
-     xlsx_field(revenue_projection_history_xlsx_header(:projected), :money, &:projected_cents),
+     xlsx_field(t(history.period_type, scope: 'revenue_projection_histories.xlsx.projected'), :money, &:projected_cents),
      xlsx_field(revenue_projection_history_xlsx_header(:low), :money, &:low_cents),
      xlsx_field(revenue_projection_history_xlsx_header(:high), :money, &:high_cents),
      xlsx_field(revenue_projection_history_xlsx_header(:reconstructed)) { |snapshot| t(snapshot.reconstructed.to_s, scope: 'revenue_projection_histories.xlsx.booleans') }]
@@ -196,7 +207,7 @@ module RevenueProjectionHistoriesHelper
      xlsx_field(t('revenue_projection_histories.show.status')) { |row| t(row.closed ? 'closed' : 'in_progress', scope: 'revenue_projection_histories.show') }]
   end
 
-  def revenue_projection_history_xlsx_day_columns
+  def revenue_projection_history_xlsx_day_columns(history)
     [xlsx_field(t('revenue_projection_histories.show.date'), :date, &:date),
      xlsx_field(revenue_projection_history_xlsx_header(:day_type)) { |row| RevenueProjection::DailyTotal.human_enum_name(:day_type, row.day_type) },
      xlsx_field(t('revenue_projection_histories.show.forecast'), :money, &:forecast_cents),
@@ -204,7 +215,7 @@ module RevenueProjectionHistoriesHelper
      xlsx_field(t('revenue_projection_histories.show.difference'), :money, &:difference_cents),
      revenue_projection_history_xlsx_ratio(revenue_projection_history_xlsx_header(:difference_ratio)),
      xlsx_field(t('revenue_projection_histories.show.documents'), :integer, &:documents_count),
-     xlsx_field(t('revenue_projection_histories.show.month_projection'), :money, &:month_projected_cents),
+     xlsx_field(t(history.period_type, scope: 'revenue_projection_histories.show.projection_morning'), :money, &:projected_cents),
      xlsx_field(revenue_projection_history_xlsx_header(:note)) { |row| row.note&.body },
      xlsx_field(revenue_projection_history_xlsx_header(:note_author)) { |row| row.note&.user&.name }]
   end
@@ -219,7 +230,7 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_billed_label(history)
-    return t('revenue_projection_histories.show.billed_month') if history.closed?
+    return t(history.period_type, scope: 'revenue_projection_histories.show.billed_period') if history.closed?
 
     t('revenue_projection_histories.show.billed_until', date: l(history.last_closed_date, format: :chart_week))
   end
@@ -233,7 +244,7 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_hit_note(history)
-    return t('revenue_projection_histories.show.in_progress_note') unless history.closed?
+    return t(history.period_type, scope: 'revenue_projection_histories.show.in_progress_note') unless history.closed?
 
     hit_since = history.hit_since
     return t('revenue_projection_histories.show.never_hit', tolerance: revenue_projection_history_tolerance) unless hit_since

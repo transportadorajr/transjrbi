@@ -2221,28 +2221,41 @@ pt-BR:
     update:
       success: Anotação salva.
   revenue_projection_histories:
+    periods:
+      month: Mensal
+      week: Semanal
     show:
       title: Histórico da projeção
-      subtitle: O que a projeção indicava a cada dia do mês e quanto foi faturado de fato, dia a dia e semana a semana.
-      month_label: Mês
-      previous_month: Mês anterior
-      next_month: Próximo mês
+      subtitle: O que a projeção indicava a cada manhã e quanto foi faturado de fato, dia a dia e semana a semana.
+      period_label: Período
+      start_label:
+        month: Mês
+        week: Semana
+      week_option: '%{start} a %{finish}'
       opening: Projeção na abertura (%{date})
       latest_projection: Projeção atual (%{date})
       final_projection: Última projeção (%{date})
-      billed_month: Faturado no mês
+      billed_period:
+        month: Faturado no mês
+        week: Faturado na semana
       billed_until: Faturado até %{date}
       difference_open: Variação da projeção desde a abertura
       difference_closed: Faturado x projeção na abertura
       difference_value: '%{value} (%{ratio})'
-      in_progress_note: O mês ainda está em andamento; o faturado considera só os dias já encerrados.
+      in_progress_note:
+        month: O mês ainda está em andamento; o faturado considera só os dias já encerrados.
+        week: A semana ainda está em andamento; o faturado considera só os dias já encerrados.
       hit_since: A projeção ficou a menos de %{tolerance} do faturado a partir de %{date}.
       never_hit: A projeção não chegou a ficar a menos de %{tolerance} do faturado.
       reconstructed: >-
         As projeções de %{start} a %{finish} foram reconstruídas a partir do histórico, com o que se sabia em cada um
         desses dias.
-      chart_title: Evolução da projeção do mês
-      chart_subtitle: A projeção do fechamento do mês em cada manhã, a faixa provável e o faturado acumulado até aquele dia.
+      chart_title:
+        month: Evolução da projeção do mês
+        week: Evolução da projeção da semana
+      chart_subtitle:
+        month: A projeção do fechamento do mês em cada manhã, a faixa provável e o faturado acumulado até aquele dia.
+        week: A projeção do fechamento da semana em cada manhã, a faixa provável e o faturado acumulado até aquele dia.
       weeks_title: Semana a semana
       weeks_subtitle: >-
         A projeção da semana no domingo em que ela começou comparada com o faturado. Semanas que cruzam a virada do mês
@@ -2260,7 +2273,9 @@ pt-BR:
       billed: Faturado
       difference: Diferença
       documents: CT-es
-      month_projection: Projeção do mês na manhã
+      projection_morning:
+        month: Projeção do mês na manhã
+        week: Projeção da semana na manhã
       status: Situação
       closed: Encerrada
       in_progress: Em andamento
@@ -2270,7 +2285,7 @@ pt-BR:
     xlsx:
       summary: Resumo
       evolution: Evolução da projeção
-      month: Mês
+      period: Período
       opening_date: Data da abertura
       opening: Projeção na abertura
       latest_date: Data da última projeção
@@ -2279,12 +2294,14 @@ pt-BR:
       billed: Faturado
       difference: Diferença
       difference_ratio: Diferença (%)
-      closed: Mês encerrado
+      closed: Período encerrado
       hit_since: Projeção a menos de %{tolerance} desde
       taken_on: Data
       reference_at: Dados do Atua até
       realized: Faturado acumulado
-      projected: Projeção do mês
+      projected:
+        month: Projeção do mês
+        week: Projeção da semana
       low: Mínimo provável
       high: Máximo provável
       reconstructed: Reconstruída
@@ -2675,11 +2692,15 @@ pt-BR:
       realized: Faturado
       projected: Projeção
     revenue_projection_history:
-      projected: Projeção do mês
+      projected:
+        month: Projeção do mês
+        week: Projeção da semana
       low: Mínimo provável
       high: Máximo provável
       realized: Faturado acumulado
-      billed: Faturado no mês
+      billed:
+        month: Faturado no mês
+        week: Faturado na semana
     freight:
       total: Total
       gross: Frete bruto

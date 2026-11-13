@@ -42,3 +42,6 @@ application.register('unlock', UnlockController);
 
 import DateRangeController from './date_range_controller';
 application.register('date-range', DateRangeController);
+
+import AutoSubmitController from './auto_submit_controller';
+application.register('auto-submit', AutoSubmitController);

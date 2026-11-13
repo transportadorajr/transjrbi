@@ -699,6 +699,17 @@
     letter-spacing: 0.04em;
     color: #a9a9a9;
   }
+
+  .dashboard-filter-select {
+    flex: 1 1 auto;
+    width: auto;
+    border-radius: 999px;
+
+    @media (min-width: 768px) {
+      flex: 0 0 auto;
+      min-width: 16rem;
+    }
+  }
 }
 
 .dashboard-segmented {

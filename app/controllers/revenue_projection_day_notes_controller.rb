@@ -34,7 +34,9 @@ class RevenueProjectionDayNotesController < BaseController
   end
 
   def history_path
-    revenue_projection_history_path(month: Dashboard::RevenueProjectionHistory.month_param(@date))
+    period = Dashboard::RevenueProjectionHistory.sanitize_period_type(params[:period])
+
+    revenue_projection_history_path(period:, start: Dashboard::RevenueProjectionHistory.period_start(period, @date).iso8601)
   end
 
   def day_note_params

@@ -1,13 +1,6 @@
 <%# locals: (history:) %>
 
-<div class="dashboard-filter-bar mb-4">
-  <span class="dashboard-filter-label"><%= t('revenue_projection_histories.show.month_label') %></span>
-  <%= tag.div class: 'd-flex align-items-center gap-2', id: 'history_month' do %>
-    <%= revenue_projection_history_month_link(history.previous_month, :previous) %>
-    <span class="fw-semibold"><%= revenue_projection_history_month_title(history) %></span>
-    <%= revenue_projection_history_month_link(history.next_month, :next) %>
-  <% end %>
-</div>
+<%= render 'period_filters', history: %>
 
 <div class="row g-3 mb-2" id="history_cards">
   <%= revenue_projection_history_cards(history) %>
@@ -18,10 +11,10 @@
 </div>
 
 <div class="mb-4">
-  <%= render 'freight_billings/chart_card', title: t('revenue_projection_histories.show.chart_title'),
-                                            subtitle: t('revenue_projection_histories.show.chart_subtitle'),
+  <%= render 'freight_billings/chart_card', title: t(history.period_type, scope: 'revenue_projection_histories.show.chart_title'),
+                                            subtitle: t(history.period_type, scope: 'revenue_projection_histories.show.chart_subtitle'),
                                             chart: revenue_projection_history_chart(history) %>
 </div>
 
-<%= render 'weeks_table', rows: history.week_rows %>
-<%= render 'days_table', rows: history.day_rows %>
+<%= revenue_projection_history_weeks(history) %>
+<%= render 'days_table', history: %>

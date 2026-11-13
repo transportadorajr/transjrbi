@@ -160,9 +160,9 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       expect(page.response_headers['Content-Disposition']).to include('attachment', 'filename="historico-da-projecao-2026-11-04.xlsx"')
       expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Evolução da projeção', 'Semana a semana', 'Dia a dia'])
       expect(downloaded_xlsx_records('Resumo')).to match(
-        [{ 'Mês' => 'Novembro de 2026', 'Data da abertura' => Date.new(2026, 11, 1), 'Projeção na abertura' => 23_000,
+        [{ 'Período' => 'Novembro de 2026', 'Data da abertura' => Date.new(2026, 11, 1), 'Projeção na abertura' => 23_000,
            'Data da última projeção' => Date.new(2026, 11, 4), 'Última projeção' => 23_300, 'Faturado até' => Date.new(2026, 11, 3),
-           'Faturado' => 400, 'Diferença' => 300, 'Diferença (%)' => be_within(0.0001).of(0.013), 'Mês encerrado' => 'Não',
+           'Faturado' => 400, 'Diferença' => 300, 'Diferença (%)' => be_within(0.0001).of(0.013), 'Período encerrado' => 'Não',
            'Projeção a menos de 5% desde' => nil }],
       )
       expect(downloaded_xlsx_records('Evolução da projeção')).to eq(
@@ -182,6 +182,23 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
            'Anotação' => 'Greve no porto', 'Autor da anotação' => 'Bruna Dona' },
          { 'Dia' => Date.new(2026, 11, 3), 'Tipo do dia' => 'Dia normal', 'Previsto' => nil, 'Faturado' => 0, 'Diferença' => nil, 'CT-es' => 0,
            'Anotação' => nil, 'Autor da anotação' => nil }],
+      )
+    end
+
+    scenario 'exports the history of the week without the sheet of the weeks' do
+      visit revenue_projection_history_path(period: 'week')
+      click_on 'Exportar Excel'
+
+      expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Evolução da projeção', 'Dia a dia'])
+      expect(downloaded_xlsx_records('Resumo').map { it.slice('Período', 'Projeção na abertura', 'Faturado', 'Período encerrado') }).to eq(
+        [{ 'Período' => '01/11 a 07/11/2026', 'Projeção na abertura' => 23_000, 'Faturado' => 400, 'Período encerrado' => 'Não' }],
+      )
+      expect(downloaded_xlsx_records('Evolução da projeção').map { it.slice('Data', 'Projeção da semana') }).to eq(
+        [{ 'Data' => Date.new(2026, 11, 1), 'Projeção da semana' => 23_000 }],
+      )
+      expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Projeção da semana na manhã') }).to eq(
+        [{ 'Dia' => Date.new(2026, 11, 1), 'Projeção da semana na manhã' => 23_000 }, { 'Dia' => Date.new(2026, 11, 2), 'Projeção da semana na manhã' => nil },
+         { 'Dia' => Date.new(2026, 11, 3), 'Projeção da semana na manhã' => nil }],
       )
     end
   end
