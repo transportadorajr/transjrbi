@@ -150,6 +150,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
                                            taken_on: Date.new(2026, 11, 1), days: [{ date: '2026-11-02', realized_cents: 0, expected_cents: 30_000 }])
       create(:revenue_projection_daily_total, tenant:, date: Date.new(2026, 11, 2), billed_cents: 40_000, documents_count: 2, day_type: 'weekday_holiday')
       create(:revenue_projection_day_forecast, tenant:, date: Date.new(2026, 11, 2), forecast_cents: 30_000, day_type: 'weekday_holiday')
+      create(:revenue_projection_day_note, tenant:, user: owner, date: Date.new(2026, 11, 2), body: 'Greve no porto')
     end
 
     scenario 'exports the summary, the evolution of the projection, the weeks and the days of the month' do
@@ -174,10 +175,13 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
         [{ 'Início' => Date.new(2026, 11, 1), 'Fim' => Date.new(2026, 11, 7), 'Projeção na abertura' => 300, 'Soma das previsões diárias' => 300,
            'Faturado' => 400, 'Diferença' => nil, 'Diferença (%)' => nil, 'Situação' => 'Em andamento' }],
       )
-      expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Tipo do dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es') }).to eq(
-        [{ 'Dia' => Date.new(2026, 11, 1), 'Tipo do dia' => 'Dia normal', 'Previsto' => nil, 'Faturado' => 0, 'Diferença' => nil, 'CT-es' => 0 },
-         { 'Dia' => Date.new(2026, 11, 2), 'Tipo do dia' => 'Feriado em dia útil', 'Previsto' => 300, 'Faturado' => 400, 'Diferença' => 100, 'CT-es' => 2 },
-         { 'Dia' => Date.new(2026, 11, 3), 'Tipo do dia' => 'Dia normal', 'Previsto' => nil, 'Faturado' => 0, 'Diferença' => nil, 'CT-es' => 0 }],
+      expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Tipo do dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Anotação', 'Autor da anotação') }).to eq(
+        [{ 'Dia' => Date.new(2026, 11, 1), 'Tipo do dia' => 'Dia normal', 'Previsto' => nil, 'Faturado' => 0, 'Diferença' => nil, 'CT-es' => 0,
+           'Anotação' => nil, 'Autor da anotação' => nil },
+         { 'Dia' => Date.new(2026, 11, 2), 'Tipo do dia' => 'Feriado em dia útil', 'Previsto' => 300, 'Faturado' => 400, 'Diferença' => 100, 'CT-es' => 2,
+           'Anotação' => 'Greve no porto', 'Autor da anotação' => 'Bruna Dona' },
+         { 'Dia' => Date.new(2026, 11, 3), 'Tipo do dia' => 'Dia normal', 'Previsto' => nil, 'Faturado' => 0, 'Diferença' => nil, 'CT-es' => 0,
+           'Anotação' => nil, 'Autor da anotação' => nil }],
       )
     end
   end

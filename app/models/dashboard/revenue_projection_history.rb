@@ -4,7 +4,13 @@ module Dashboard
     LABEL_FORMAT = :chart_week
     MONTH_PARAM_FORMAT = '%Y-%m'.freeze
 
-    DayRow = Data.define(:date, :day_type, :forecast_cents, :billed_cents, :documents_count, :month_projected_cents) do
+    DayRow = Data.define(:date, :day_type, :forecast_cents, :billed_cents, :documents_count, :month_projected_cents, :note) do
+      extend ActiveModel::Naming
+
+      def confirmation_name
+        I18n.l(date)
+      end
+
       def difference_cents
         billed_cents - forecast_cents if forecast_cents
       end
@@ -110,7 +116,7 @@ module Dashboard
 
         DayRow.new(date:, day_type: (total || forecast)&.day_type || 'regular', forecast_cents: forecast&.forecast_cents,
                    billed_cents: total&.billed_cents.to_i, documents_count: total&.documents_count.to_i,
-                   month_projected_cents: snapshots_by_date[date]&.projected_cents)
+                   month_projected_cents: snapshots_by_date[date]&.projected_cents, note: notes[date])
       end
     end
 
@@ -161,6 +167,10 @@ module Dashboard
 
     def totals
       @totals ||= tenant.revenue_projection_daily_totals.where(date: period).index_by(&:date)
+    end
+
+    def notes
+      @notes ||= tenant.revenue_projection_day_notes.where(date: period).preload(:user).index_by(&:date)
     end
 
     def forecasts

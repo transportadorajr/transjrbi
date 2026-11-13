@@ -1,0 +1,7 @@
+<%# locals: (day_note_form:) %>
+
+<%= render layout: 'components/new_modal',
+           locals: { id: 'revenue_projection_day_note_modal', title: revenue_projection_day_note_title(day_note_form), title_icon: :'journal-text',
+                     auto_show: true, show_footer: false } do %>
+  <%= render 'revenue_projection_day_notes/form', day_note_form: %>
+<% end %>

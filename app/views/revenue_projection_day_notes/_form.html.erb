@@ -1,0 +1,15 @@
+<%# locals: (day_note_form:) %>
+
+<div id="revenue_projection_day_note_form">
+  <%= simple_form_for(day_note_form, url: revenue_projection_day_note_path(day_note_form), method: :patch) do |f| %>
+    <%= f.error :date, class: 'alert alert-danger small' %>
+    <%= f.input :body, as: :text, hint: t('revenue_projection_day_notes.form.hint', count: RevenueProjection::DayNote::BODY_MAX_LENGTH),
+                       input_html: { class: 'form-control bg-light', rows: 4, maxlength: RevenueProjection::DayNote::BODY_MAX_LENGTH,
+                                     placeholder: t('revenue_projection_day_notes.form.placeholder') } %>
+
+    <div class="d-flex flex-column flex-md-row-reverse gap-2 mt-4">
+      <%= f.button :submit, t('revenue_projection_day_notes.form.submit'), class: 'btn btn-primary btn-round px-4' %>
+      <%= button_tag t('helpers.links.cancel'), type: :button, class: 'btn btn-light btn-round px-4', data: { bs_dismiss: 'modal' } %>
+    </div>
+  <% end %>
+</div>
