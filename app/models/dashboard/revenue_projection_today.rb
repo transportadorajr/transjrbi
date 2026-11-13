@@ -1,8 +1,10 @@
 module Dashboard
   class RevenueProjectionToday
-    def initialize(tenant, today: Date.current)
+    def initialize(tenant, today: Date.current, memory: ::RevenueProjection::StoredMemory.new(tenant), documents: tenant.billable_freights)
       @tenant = tenant
       @today = today
+      @memory = memory
+      @documents = documents
     end
 
     attr_reader :today
@@ -51,20 +53,20 @@ module Dashboard
 
     private
 
-    attr_reader :tenant
+    attr_reader :tenant, :memory
 
     def forecast
       return @forecast if defined?(@forecast)
 
-      @forecast = tenant.revenue_projection_day_forecasts.find_by(date: today)
+      @forecast = memory.forecasts(today..today)[today]
     end
 
     def snapshots
-      @snapshots ||= tenant.revenue_projection_snapshots.where(taken_on: today).index_by(&:period_type)
+      @snapshots ||= ::RevenueProjection::Snapshot::PERIOD_TYPES.filter_map { memory.snapshots_taken(it, today..today).first }.index_by(&:period_type)
     end
 
     def documents
-      tenant.billable_freights.active.not_canceled.where(issued_at: today.all_day)
+      @documents.active.not_canceled.where(issued_at: today.all_day)
     end
   end
 end

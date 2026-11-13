@@ -8,6 +8,7 @@
 
   <%= render 'filters', filter_form: @filter_form %>
   <%= render 'period_filters', history: @history, filter_form: @filter_form %>
+  <%= revenue_projection_history_cut(@cut_items) %>
 
   <%= revenue_projection_history_body(@history) %>
 </div>

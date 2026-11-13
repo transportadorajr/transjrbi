@@ -30,6 +30,18 @@ RSpec.describe RevenueProjectionHistoryFilterForm do
     expect(form.query_params).to eq(start_date: Date.new(2026, 11, 2), end_date: Date.new(2026, 11, 11))
   end
 
+  it 'keeps the cut of the documents chosen in the filters' do
+    form = described_class.new(plate: 'BBB2B22', customer_group_id: '7', driver_code: '', truck_group_id: '3')
+
+    expect(form).to be_cut
+    expect(form).to be_filtered
+    expect(form.cut_params).to eq(plate: 'BBB2B22', customer_group_id: 7, truck_group_id: '3')
+    expect(form.query_params).to eq(start_date: Date.new(2026, 11, 1), end_date: Date.new(2026, 11, 30), plate: 'BBB2B22', customer_group_id: 7,
+                                    truck_group_id: '3')
+    expect(described_class.new).not_to be_cut
+    expect(described_class.new(truck_group_id: 'abc')).not_to be_valid
+  end
+
   it 'does not accept an end date before the start date' do
     form = described_class.new(start_date: '2026-11-10', end_date: '2026-11-02')
 

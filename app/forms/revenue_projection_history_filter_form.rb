@@ -2,13 +2,22 @@ class RevenueProjectionHistoryFilterForm < BaseForm
   PERIOD_PRESETS = FreightBillingFilterForm::PERIOD_PRESETS
   DEFAULT_PRESET = :month
   SNAPSHOT_PERIOD_TYPES = %w[month week].freeze
+  CUT_ATTRIBUTES = FreightDocumentFilters::FILTER_PARAMS
 
   attribute :start_date, :date
   attribute :end_date, :date
   attribute :period, :string
   attribute :start, :date
+  attribute :plate, :string
+  attribute :driver_code, :integer
+  attribute :customer_group_id, :integer
+  attribute :product_group_id, :integer
+  attribute :product_id, :integer
+  attribute :macro_region_id, :string
+  attribute :truck_group_id, :string
 
   validates :start_date, :end_date, presence: true
+  validates :truck_group_id, format: { with: FreightBillingFilterForm::TRUCK_GROUP_ID_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 
   class << self
@@ -41,12 +50,20 @@ class RevenueProjectionHistoryFilterForm < BaseForm
     PERIOD_PRESETS.find { self.class.preset_period(it) == date_range }
   end
 
+  def cut?
+    cut_params.any?
+  end
+
+  def cut_params
+    CUT_ATTRIBUTES.index_with { public_send(it) }.compact_blank
+  end
+
   def filtered?
-    date_range != self.class.preset_period(DEFAULT_PRESET)
+    date_range != self.class.preset_period(DEFAULT_PRESET) || cut?
   end
 
   def query_params
-    { start_date:, end_date: }
+    { start_date:, end_date:, **cut_params }
   end
 
   private

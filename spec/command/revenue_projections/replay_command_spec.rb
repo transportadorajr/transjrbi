@@ -41,13 +41,13 @@ RSpec.describe RevenueProjections::ReplayCommand do
     end
 
     it 'rebuilds the same daily totals and the same forecast of today' do
-      expect(replay.totals.keys.minmax).to eq([Date.new(2026, 8, 9), Date.new(2026, 11, 10)])
+      expect(replay.totals_by_date.keys.minmax).to eq([Date.new(2026, 8, 9), Date.new(2026, 11, 10)])
       tenant.revenue_projection_daily_totals.where(date: Date.new(2026, 8, 17)..).find_each do |total|
-        expect(replay.totals[total.date].attributes.slice('billed_cents', 'documents_count', 'day_type', 'hourly_cents'))
+        expect(replay.totals_by_date[total.date].attributes.slice('billed_cents', 'documents_count', 'day_type', 'hourly_cents'))
           .to eq(total.attributes.slice('billed_cents', 'documents_count', 'day_type', 'hourly_cents'))
       end
-      expect(replay.forecasts[at.to_date].forecast_cents).to eq(tenant.revenue_projection_day_forecasts.find_by!(date: at.to_date).forecast_cents)
-      expect(replay.forecasts.keys).to eq((Date.new(2026, 11, 1)..Date.new(2026, 11, 11)).to_a)
+      expect(replay.forecasts_by_date[at.to_date].forecast_cents).to eq(tenant.revenue_projection_day_forecasts.find_by!(date: at.to_date).forecast_cents)
+      expect(replay.forecasts_by_date.keys).to eq((Date.new(2026, 11, 1)..Date.new(2026, 11, 11)).to_a)
     end
   end
 
@@ -63,15 +63,15 @@ RSpec.describe RevenueProjections::ReplayCommand do
       expect(projection(replay.snapshots, 'month', Date.new(2026, 11, 1)).projected_cents).to eq(1_150_000)
       expect(projection(tenant.revenue_projection_snapshots, 'month', Date.new(2026, 11, 1)).projected_cents).to eq(3_450_000)
       expect(projection(replay.snapshots, 'week', Date.new(2026, 11, 8))).to have_attributes(realized_cents: 0, projected_cents: 275_000)
-      expect(replay.totals[Date.new(2026, 11, 10)]).to have_attributes(billed_cents: 50_000, documents_count: 1)
-      expect(replay.forecasts[Date.new(2026, 11, 11)].forecast_cents).to eq(50_000)
+      expect(replay.totals_by_date[Date.new(2026, 11, 10)]).to have_attributes(billed_cents: 50_000, documents_count: 1)
+      expect(replay.forecasts_by_date[Date.new(2026, 11, 11)].forecast_cents).to eq(50_000)
     end
   end
 
   it 'has nothing to replay for a period that has not started' do
     replay = described_class.call(tenant, tenant.billable_freights, Date.new(2026, 12, 1).all_month, today: at.to_date)
 
-    expect(replay.forecasts).to eq({})
+    expect(replay.forecasts_by_date).to eq({})
     expect(replay.snapshots.map(&:taken_on).uniq).to eq([])
   end
 end

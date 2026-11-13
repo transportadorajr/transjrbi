@@ -15,6 +15,61 @@
         <%= f.label :end_date, RevenueProjectionHistoryFilterForm.human_attribute_name(:end_date), class: 'form-label fw-medium' %>
         <%= f.date_field :end_date, value: filter_form.end_date, class: 'form-control bg-light', data: { date_range_target: 'end' } %>
       </div>
+
+      <div class="col-12">
+        <%= f.label :plate, RevenueProjectionHistoryFilterForm.human_attribute_name(:plate), class: 'form-label fw-medium' %>
+        <%= f.text_field :plate, value: filter_form.plate, class: 'form-control bg-light text-uppercase', autocomplete: :off,
+                                 placeholder: RevenueProjectionHistoryFilterForm.human_attribute_name(:plate) %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :customer_group_id, RevenueProjectionHistoryFilterForm.human_attribute_name(:customer_group_id), for: nil,
+                                                                                                                     id: 'customer_group_id_select_label',
+                                                                                                                     class: 'form-label fw-medium' %>
+        <%= render 'components/select2', id: 'customer_group_id_select', name: :customer_group_id,
+                                         options: freight_billing_customer_group_options(@customer_groups),
+                                         selected: filter_form.customer_group_id, placeholder: t('shared.all') %>
+      </div>
+
+      <%= tag.div class: 'col-12', data: { controller: 'dependent-frame', dependent_frame_url_value: product_options_revenue_projection_history_path,
+                                           dependent_frame_param_value: 'product_group_id', dependent_frame_selected_param_value: 'product_id' } do %>
+        <%= f.label :product_group_id, RevenueProjectionHistoryFilterForm.human_attribute_name(:product_group_id), for: nil,
+                                                                                                                   id: 'product_group_id_select_label',
+                                                                                                                   class: 'form-label fw-medium' %>
+        <%= tag.div data: { action: 'change->dependent-frame#reload' }, class: 'mb-3' do %>
+          <%= render 'components/select2', id: 'product_group_id_select', name: :product_group_id,
+                                           options: freight_billing_product_group_options(@product_groups),
+                                           selected: filter_form.product_group_id, placeholder: t('shared.all') %>
+        <% end %>
+
+        <%= f.label :product_id, RevenueProjectionHistoryFilterForm.human_attribute_name(:product_id), for: nil, id: 'product_id_select_label',
+                                                                                                       class: 'form-label fw-medium' %>
+        <%= render 'product_options/select', products: @products, selected: @selected_product_id %>
+      <% end %>
+
+      <div class="col-12">
+        <%= f.label :driver_code, RevenueProjectionHistoryFilterForm.human_attribute_name(:driver_code), for: nil, id: 'driver_code_select_label',
+                                                                                                         class: 'form-label fw-medium' %>
+        <%= render 'components/select2', id: 'driver_code_select', name: :driver_code, options: freight_billing_driver_options(@drivers),
+                                         selected: filter_form.driver_code, placeholder: t('shared.all') %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :macro_region_id, RevenueProjectionHistoryFilterForm.human_attribute_name(:macro_region_id), class: 'form-label fw-medium' %>
+        <%= f.select :macro_region_id,
+                     freight_billing_macro_region_options(@macro_regions, filter_form.macro_region_id),
+                     { include_blank: t('shared.all') },
+                     { class: 'form-select bg-light' } %>
+      </div>
+
+      <div class="col-12">
+        <%= f.label :truck_group_id, RevenueProjectionHistoryFilterForm.human_attribute_name(:truck_group_id), class: 'form-label fw-medium' %>
+        <%= f.select :truck_group_id,
+                     freight_billing_truck_group_options(@truck_groups, filter_form.truck_group_id),
+                     { include_blank: t('shared.all') },
+                     { class: 'form-select bg-light', aria: { describedby: 'truck_group_hint' } } %>
+        <%= tag.div t('freight_billings.filters.truck_group_hint'), id: 'truck_group_hint', class: 'form-text' %>
+      </div>
     </div>
 
     <%= tag.p t('revenue_projection_histories.filters.hint'), class: 'form-text mb-0 mt-3' %>
