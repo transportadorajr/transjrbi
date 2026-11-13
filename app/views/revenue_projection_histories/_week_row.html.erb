@@ -1,0 +1,15 @@
+<%# locals: (row:) %>
+
+<tr>
+  <td class="fw-semibold"><%= revenue_projection_history_week_label(row) %></td>
+  <td class="text-end text-nowrap"><%= revenue_projection_history_money(row.opening_cents) %></td>
+  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= revenue_projection_history_money(row.forecast_cents) %></td>
+  <td class="text-end text-nowrap">
+    <%= revenue_projection_history_money(row.billed_cents) %>
+    <%= revenue_projection_history_compact_ratio(row) %>
+  </td>
+  <td class="text-end text-nowrap d-none d-md-table-cell <%= revenue_projection_history_difference_class(row.difference_cents) %>">
+    <%= revenue_projection_history_difference(row.difference_cents, row.difference_ratio) %>
+  </td>
+  <td class="text-end d-none d-md-table-cell"><%= revenue_projection_history_week_status(row) %></td>
+</tr>
