@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_203341) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_143217) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -40,6 +40,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_203341) do
   create_enum "maintenance_order_status_type", ["open", "in_progress", "waiting_parts", "finished", "cancelled"]
   create_enum "revenue_projection_day_type", ["regular", "weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end"]
   create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
+  create_enum "revenue_projection_period_type", ["month", "week"]
   create_enum "user_type", ["owner", "admin", "operator"]
   create_enum "workshop_employee_role_type", ["mechanic", "supervisor"]
 
@@ -1083,6 +1084,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_203341) do
     t.index ["tenant_id", "factor_type", "wday"], name: "idx_on_tenant_id_factor_type_wday_d8a11b5f56", unique: true, nulls_not_distinct: true
   end
 
+  create_table "revenue_projection_snapshots", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.enum "period_type", null: false, enum_type: "revenue_projection_period_type"
+    t.date "period_start", null: false
+    t.date "period_end", null: false
+    t.date "taken_on", null: false
+    t.datetime "reference_at", null: false
+    t.bigint "realized_cents", default: 0, null: false
+    t.bigint "projected_cents", default: 0, null: false
+    t.bigint "low_cents", default: 0, null: false
+    t.bigint "high_cents", default: 0, null: false
+    t.jsonb "days", default: [], null: false
+    t.boolean "reconstructed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "period_type", "period_start", "taken_on"], name: "idx_on_tenant_id_period_type_period_start_taken_on_fad3550f68", unique: true
+  end
+
   create_table "road_routes", force: :cascade do |t|
     t.bigint "origin_id", null: false
     t.bigint "destination_id", null: false
@@ -1287,6 +1306,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_203341) do
   add_foreign_key "revenue_projection_daily_totals", "tenants"
   add_foreign_key "revenue_projection_day_forecasts", "tenants"
   add_foreign_key "revenue_projection_factors", "tenants"
+  add_foreign_key "revenue_projection_snapshots", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "route_distances", "tenants"

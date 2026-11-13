@@ -7,6 +7,10 @@ module RevenueProjections
       def call(tenant, at: Time.current)
         new(tenant, at).call
       end
+
+      def factor_set(tenant, at:)
+        new(tenant, at).factor_set
+      end
     end
 
     def initialize(tenant, at)
@@ -15,16 +19,23 @@ module RevenueProjections
     end
 
     def call
-      rows = bias_rows + day_type_rows
       RevenueProjection::Factor.upsert_all(rows, unique_by: %i[tenant_id factor_type wday],
                                                  update_only: %i[value observations_count learned learned_at])
 
       rows.size
     end
 
+    def factor_set
+      RevenueProjection::FactorSet.new(rows.map { RevenueProjection::Factor.new(it.slice(:factor_type, :wday, :value)) })
+    end
+
     private
 
     attr_reader :tenant, :at
+
+    def rows
+      @rows ||= bias_rows + day_type_rows
+    end
 
     def forecasts(days)
       tenant.revenue_projection_day_forecasts.with_actual.where(date: (at.to_date - days)...at.to_date).where(typical_cents: 1..)

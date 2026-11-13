@@ -36,6 +36,26 @@ RSpec.describe RevenueProjections::RefreshMemoryCommand do
         .to not_change(RevenueProjection::DailyTotal, :count).and not_change(RevenueProjection::DayForecast, :count)
     end
 
+    it 'reconstructs the snapshots of the days of the month before today and takes the snapshot of today' do
+      described_class.call(tenant, at:)
+
+      snapshots = tenant.revenue_projection_snapshots
+      expect(snapshots.count).to eq(22)
+      expect(snapshots.where(taken_on: ...at.to_date).pluck(:reconstructed).uniq).to eq([true])
+      expect(snapshots.where(taken_on: at.to_date).pluck(:reconstructed)).to eq([false, false])
+      expect(snapshots.find_by!(period_type: 'month', taken_on: Date.new(2026, 11, 1)))
+        .to have_attributes(period_start: Date.new(2026, 11, 1), realized_cents: 0, projected_cents: 2_300_000)
+      expect(snapshots.find_by!(period_type: 'week', taken_on: Date.new(2026, 11, 1)))
+        .to have_attributes(period_start: Date.new(2026, 11, 1), period_end: Date.new(2026, 11, 7), realized_cents: 0, projected_cents: 550_000)
+    end
+
+    it 'does not reconstruct again the snapshots of the days already stored' do
+      described_class.call(tenant, at:)
+
+      expect { described_class.call(tenant, at: at + 1.day) }.to change(RevenueProjection::Snapshot, :count).by(2)
+      expect(tenant.revenue_projection_snapshots.find_by!(period_type: 'month', taken_on: at.to_date).reconstructed).to be(false)
+    end
+
     it 'reclassifies the days when a holiday is registered later' do
       described_class.call(tenant, at:)
       create(:holiday, tenant:, date: Date.new(2026, 10, 12), name: 'Nossa Senhora Aparecida')

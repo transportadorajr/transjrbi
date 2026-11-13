@@ -4,15 +4,16 @@ module RevenueProjections
     WEEK_START = :sunday
 
     class << self
-      def call(tenant, period_type:, at: Time.current)
-        new(tenant, period_type, at).call
+      def call(tenant, period_type:, at: Time.current, factors: nil)
+        new(tenant, period_type, at, factors).call
       end
     end
 
-    def initialize(tenant, period_type, at)
+    def initialize(tenant, period_type, at, factors)
       @tenant = tenant
       @period_type = period_type.to_sym
       @at = at
+      @factors = factors
 
       raise ArgumentError, "unknown period type: #{period_type}" unless PERIOD_TYPES.include?(@period_type)
     end
@@ -33,7 +34,11 @@ module RevenueProjections
     end
 
     def reference_at
-      @reference_at ||= (tenant.last_synced_at || at).clamp(period.first.beginning_of_day, at)
+      @reference_at ||= (last_synced_at || at).clamp(period.first.beginning_of_day, at)
+    end
+
+    def last_synced_at
+      tenant.atua_imports.succeeded.where(finished_at: ..at).maximum(:finished_at)
     end
 
     def reference_date

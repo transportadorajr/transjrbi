@@ -3,6 +3,7 @@ module RevenueProjections
     RECONSOLIDATE_DAYS = 35
     BACKFILL_WARMUP_DAYS = 28
     BACKFILL_SLICE_DAYS = 7
+    SNAPSHOT_HOUR = 6
 
     class << self
       def call(tenant, at: Time.current)
@@ -23,6 +24,8 @@ module RevenueProjections
       backfill_forecasts
       LearnFactorsCommand.call(tenant, at:)
       ForecastDaysCommand.call(tenant, today..today)
+      reconstruct_snapshots
+      SnapshotCommand.call(tenant, at:)
     end
 
     private
@@ -51,6 +54,17 @@ module RevenueProjections
       totals.pluck(:date).group_by { calendar.day_type(it) }.each do |day_type, dates|
         totals.where(date: dates).where.not(day_type:).update_all(day_type:, updated_at: Time.current)
         tenant.revenue_projection_day_forecasts.where(date: dates).where.not(day_type:).update_all(day_type:, updated_at: Time.current)
+      end
+    end
+
+    def reconstruct_snapshots
+      dates = [today.beginning_of_month, first_date].max...today
+      taken = tenant.revenue_projection_snapshots.where(taken_on: dates).group(:taken_on).count
+
+      dates.each do |date|
+        next if taken.fetch(date, 0) == RevenueProjection::Snapshot::PERIOD_TYPES.size
+
+        SnapshotCommand.call(tenant, at: date.in_time_zone.change(hour: SNAPSHOT_HOUR), reconstructed: true)
       end
     end
 

@@ -36,6 +36,7 @@ class Tenant < ApplicationRecord
   has_many :revenue_projection_daily_totals, class_name: 'RevenueProjection::DailyTotal', dependent: :delete_all
   has_many :revenue_projection_day_forecasts, class_name: 'RevenueProjection::DayForecast', dependent: :delete_all
   has_many :revenue_projection_factors, class_name: 'RevenueProjection::Factor', dependent: :delete_all
+  has_many :revenue_projection_snapshots, class_name: 'RevenueProjection::Snapshot', dependent: :delete_all
   has_many :maintenance_orders, dependent: :destroy
   has_many :workshop_employees, dependent: :delete_all
   has_many :suppliers, dependent: :delete_all
