@@ -1,0 +1,14 @@
+<%# locals: (history:, filter_form:) %>
+
+<div class="dashboard-filter-bar mb-3">
+  <span class="dashboard-filter-label"><%= t('revenue_projection_histories.show.period_label') %></span>
+
+  <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('revenue_projection_histories.show.period_label') } do %>
+    <% revenue_projection_history_period_presets.each do |preset| %>
+      <%= link_to t(preset, scope: 'revenue_projection_histories.period_presets'), revenue_projection_history_preset_path(preset),
+                  class: revenue_projection_period_link_class(preset, filter_form.preset) %>
+    <% end %>
+  <% end %>
+</div>
+
+<%= revenue_projection_history_start_select(history) %>

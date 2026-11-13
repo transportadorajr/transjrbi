@@ -1,0 +1,10 @@
+<%# locals: (history:) %>
+
+<%= form_with url: revenue_projection_history_path, method: :get, id: 'history_period', class: 'dashboard-filter-bar mb-4',
+              data: { controller: 'auto-submit' } do %>
+  <%= hidden_field_tag :period, history.period_type, id: nil %>
+  <%= label_tag :start, t(history.period_type, scope: 'revenue_projection_histories.show.start_label'), class: 'dashboard-filter-label mb-0' %>
+  <%= select_tag :start, options_for_select(revenue_projection_history_start_options(history), history.start.iso8601),
+                 include_blank: history.starts.exclude?(history.start), class: 'form-select form-select-sm dashboard-filter-select',
+                 data: { action: 'change->auto-submit#submit' } %>
+<% end %>

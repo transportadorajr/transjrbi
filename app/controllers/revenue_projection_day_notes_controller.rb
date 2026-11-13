@@ -34,7 +34,14 @@ class RevenueProjectionDayNotesController < BaseController
   end
 
   def history_path
-    revenue_projection_history_path(month: Dashboard::RevenueProjectionHistory.month_param(@date))
+    filter_form = RevenueProjectionHistoryFilterForm.new(history_filter_params)
+    filter_form = RevenueProjectionHistoryFilterForm.new(period: 'month', start: @date) unless history_filter_params.present? && filter_form.valid?
+
+    revenue_projection_history_path(filter_form.query_params)
+  end
+
+  def history_filter_params
+    params.permit(:start_date, :end_date)
   end
 
   def day_note_params

@@ -1,4 +1,4 @@
-<%# locals: (row:) %>
+<%# locals: (row:, history:) %>
 
 <tr>
   <td class="fw-semibold text-nowrap">
@@ -14,7 +14,7 @@
     <%= revenue_projection_history_difference(row.difference_cents, row.difference_ratio) %>
   </td>
   <td class="text-end d-none d-lg-table-cell"><%= row.documents_count %></td>
-  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= revenue_projection_history_money(row.month_projected_cents) %></td>
-  <td class="text-end"><%= responsive_actions_menu(revenue_projection_history_day_menu(row)) %></td>
+  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= revenue_projection_history_money(row.projected_cents) %></td>
+  <td class="text-end"><%= responsive_actions_menu(revenue_projection_history_day_menu(row, history)) %></td>
 </tr>
 <%= revenue_projection_history_note_row(row) %>
