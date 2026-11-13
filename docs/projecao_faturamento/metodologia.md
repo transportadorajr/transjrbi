@@ -160,6 +160,8 @@ Ordem da atualização diária:
 
 Na primeira execução, a memória é **reconstruída a partir do histórico**: os dias são consolidados desde o primeiro CT-e, e as previsões dos dias passados são refeitas semana a semana, cada uma só com os dados e os fatores que existiam antes daquele dia. Essas previsões ficam marcadas como reconstruídas (`backfilled`).
 
+A cada madrugada a memória também guarda a projeção do mês e da semana daquela manhã, que alimenta o **Histórico da projeção**. As manhãs do mês anterior e do mês atual que ainda não estão guardadas são reconstruídas da mesma forma, com o que se sabia em cada dia, e ficam marcadas como reconstruídas.
+
 A tela mostra a memória na seção **Memória da projeção**: o erro médio por dia e a tendência dos últimos 90 dias, onde a projeção erra (por dia da semana, feriados e fim de mês) e o que ela aprendeu.
 
 ## 7. Precisão medida
