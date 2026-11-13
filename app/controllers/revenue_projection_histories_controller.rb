@@ -15,7 +15,7 @@ class RevenueProjectionHistoriesController < BaseController
     @cut_items = cut_items
     @history = history
 
-    respond_with_listing(pdf: false, xlsx: -> { helpers.revenue_projection_history_xlsx_sheets(@history) })
+    respond_with_listing(pdf: false, xlsx: -> { helpers.revenue_projection_history_xlsx_sheets(@history, cut_items: @cut_items) })
   end
 
   def product_options
