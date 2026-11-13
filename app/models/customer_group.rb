@@ -9,6 +9,7 @@ class CustomerGroup < ApplicationRecord
   has_many :customers, class_name: 'Atua::Customer', inverse_of: :customer_group, dependent: :restrict_with_error
   has_many :commission_rules, inverse_of: :customer_group, dependent: :restrict_with_error
   has_many :tonnage_rates, inverse_of: :customer_group, dependent: :restrict_with_error
+  has_many :revenue_goals, inverse_of: :customer_group, dependent: :delete_all
 
   time_based_flag :activated
 

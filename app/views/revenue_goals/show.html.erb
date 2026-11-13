@@ -1,0 +1,41 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= revenue_goals_panel_button(@month) %>
+    <%= revenue_goals_replicate_button(@month) %>
+    <%= revenue_goals_edit_button(@month) %>
+  <% end %>
+
+  <%= goal_month_nav(@month, :revenue_goals_path) %>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.company_title') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="revenue_goals_company">
+        <dt class="col-12 col-md-4"><%= t('.month') %></dt>
+        <dd class="col-12 col-md-8"><%= goal_month_name(@month) %></dd>
+
+        <dt class="col-12 col-md-4"><%= RevenueGoalsForm.human_attribute_name(:company) %></dt>
+        <dd class="col-12 col-md-8"><%= goal_money(@revenue_goals_form.company_cents) %></dd>
+
+        <dt class="col-12 col-md-4"><%= t('.vehicles_total') %></dt>
+        <dd class="col-12 col-md-8"><%= goal_money(@revenue_goals_form.vehicles_total_cents) %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="card table-card mb-4">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.vehicles_title') %></p>
+        <p class="table-card-subtitle"><%= t('.vehicles_subtitle') %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <%= revenue_goals_vehicles(@revenue_goals_form) %>
+    </div>
+  </div>
+</div>

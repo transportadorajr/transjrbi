@@ -1,0 +1,22 @@
+<%# locals: (rows:, third_party_row:) %>
+
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="goal_vehicles_table">
+    <thead>
+      <tr>
+        <th class="text-end"><%= t('goals.show.columns.position') %></th>
+        <%= sortable_header(t('goals.show.columns.plate'), :label, anchor: 'goal_vehicles') %>
+        <th class="text-end d-none d-md-table-cell"><%= t('goals.show.columns.goal') %></th>
+        <%= sortable_header(t('goals.show.columns.realized'), :realized, first_direction: :desc, anchor: 'goal_vehicles', class: 'text-end d-none d-md-table-cell') %>
+        <th class="text-end d-none d-lg-table-cell"><%= t('goals.show.columns.missing') %></th>
+        <%= sortable_header(t('goals.show.columns.ratio'), :ratio, first_direction: :desc, anchor: 'goal_vehicles', class: 'text-end') %>
+        <th class="text-end d-none d-lg-table-cell"><%= t('goals.show.columns.projected') %></th>
+        <th class="text-end"><%= t('goals.show.columns.status') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'goals/vehicle_row', collection: rows, as: :row, locals: { position: nil } %>
+      <%= render 'goals/vehicle_row', row: third_party_row, position: '' if third_party_row %>
+    </tbody>
+  </table>
+</div>

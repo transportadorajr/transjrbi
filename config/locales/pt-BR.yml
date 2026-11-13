@@ -73,6 +73,9 @@ pt-BR:
       own_fleet:
         one: Frota própria
         other: Frotas próprias
+      revenue_goal:
+        one: Meta de faturamento
+        other: Metas de faturamento
       macro_region:
         one: Macro região
         other: Macro regiões
@@ -265,6 +268,12 @@ pt-BR:
         freight_expenses: CT-es com o seguro
       own_fleet:
         plates: Placas
+      revenue_goal:
+        month: Mês
+        target_type: Tipo de meta
+        plate: Placa
+        customer_group: Grupo de clientes
+        amount: Meta
       customer_group:
         name: Nome
         terms: Termos
@@ -816,6 +825,14 @@ pt-BR:
         iof_percentage: Alíquota do IOF (%)
       own_fleet_form:
         plates: Placas da frota própria
+      revenue_goals_form:
+        month: Mês
+        company: Meta da transportadora
+      revenue_goals_form/vehicle_line:
+        plate: Placa
+        amount: Meta do veículo
+      goal_filter_form:
+        month: Mês
       macro_region_form:
         name: Nome
         state: UF
@@ -923,6 +940,11 @@ pt-BR:
           attributes:
             end_date:
               before_start_date: não pode ser anterior à data inicial
+        revenue_goals_form:
+          attributes:
+            base:
+              invalid_vehicle_amount: A meta do veículo %{plate} deve ser maior que 0.
+              unknown_vehicle: O veículo %{plate} não está na frota própria.
         admin/login_form:
           attributes:
             base:
@@ -1109,6 +1131,11 @@ pt-BR:
               same_as_current: deve ser diferente da senha atual
   enums:
   enums:
+    revenue_goal:
+      target_type:
+        company: Transportadora
+        vehicle: Veículo
+        customer_group: Grupo de clientes
     workshop_employee:
       role_type:
         mechanic: Mecânico
@@ -1345,6 +1372,8 @@ pt-BR:
         update: Salvar Alterações
       own_fleet:
         update: Salvar Alterações
+      revenue_goals:
+        update: Salvar Metas
     tooltips:
       admin/http_request:
         show: Visualizar
@@ -1625,6 +1654,8 @@ pt-BR:
     trips: Viagens
     revenue_projection: Projeção de faturamento
     revenue_projection_notes: Anotações da projeção
+    revenue_goals: Metas de faturamento
+    goals: Painel de metas
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -2644,6 +2675,74 @@ pt-BR:
       insurance_percentage_hint: 'Ex.: 0,022.'
       international_insurance_percentage_hint: 'Apólice de viagem internacional (RCTR-VI). Ex.: 0,065.'
       iof_percentage_hint: 'Incide só sobre o seguro internacional. Ex.: 7,38.'
+  goals:
+    no_goal: Sem meta
+    month_nav:
+      label: Mês
+      previous: Mês anterior
+      next: Próximo mês
+    statuses:
+      on_track: No ritmo
+      attention: Atenção
+      behind: Abaixo da meta
+    show:
+      title: Metas
+      subtitle: Quanto a transportadora e cada veículo faturaram no mês, quanto deveriam faturar e a projeção de fechamento.
+      goal: Meta do mês
+      realized: Faturado no mês
+      missing: Falta para a meta
+      ratio: Atingimento
+      projected: Projeção de fechamento
+      required_daily: Ritmo necessário por dia útil
+      missing_goal: A meta da transportadora deste mês ainda não foi cadastrada.
+      register_goals: Cadastrar metas
+      vehicles_title: Ranking dos veículos
+      vehicles_subtitle: >-
+        Faturamento bruto de cada placa da frota própria no mês. As placas fora da frota própria são somadas na linha Terceiro.
+      columns:
+        position: '#'
+        plate: Placa
+        goal: Meta
+        realized: Faturado
+        missing: Falta
+        ratio: Atingimento
+        projected: Projeção
+        status: Situação
+      pace_notes:
+        learned: >-
+          Projeção pelo ritmo atual, ajustada pelo peso de cada dia da semana e pelos feriados aprendidos na projeção de faturamento.
+        business_days: Projeção pelo ritmo atual, com %{elapsed} de %{total} dias úteis do mês já decorridos.
+        closed: Mês encerrado. A projeção é o próprio faturado.
+        not_started: O mês ainda não começou.
+  revenue_goals:
+    show:
+      title: Metas de faturamento
+      subtitle: Metas mensais de faturamento bruto da transportadora e de cada veículo da frota própria.
+      month: Mês
+      company_title: Meta da transportadora
+      vehicles_total: Soma das metas dos veículos
+      vehicles_title: Metas por veículo
+      vehicles_subtitle: Placas da frota própria. Placas sem meta não entram no atingimento.
+      edit: Alterar metas
+      replicate: Copiar mês anterior
+      confirm_replicate: Copiar as metas de %{month} para este mês? As metas já cadastradas neste mês são mantidas.
+      panel: Ver painel
+    edit:
+      title: Alterar Metas
+      back: Voltar para metas
+    update:
+      success: Metas salvas com sucesso.
+    replicate:
+      success:
+        zero: Nenhuma meta copiada. O mês anterior não tem metas que faltem neste mês.
+        one: 1 meta copiada do mês anterior.
+        other: '%{count} metas copiadas do mês anterior.'
+    form:
+      title: Metas do mês
+      text: Informe o faturamento bruto esperado. Deixe em branco para ficar sem meta.
+      company_hint: Meta total de faturamento da transportadora no mês.
+      vehicles_title: Metas por veículo
+      vehicles_text: Uma meta por placa da frota própria. Para incluir uma placa, cadastre-a na Frota própria.
   own_fleets:
     third_party: Terceiro
     show:
@@ -2669,6 +2768,8 @@ pt-BR:
         reconhecidas e o restante é ignorado. Com a lista vazia, nenhum veículo aparece como Terceiro.
       plates_hint: 'Uma placa por linha ou separadas por espaço, vírgula ou ponto e vírgula. Ex.: ALC-6D72/PR, AJR4391.'
   dashboards:
+    goals:
+      company: Transportadora
     revenue_projection_history:
       projected:
         month: Projeção do mês
@@ -3158,8 +3259,9 @@ pt-BR:
     intelligence: Inteligência
     freight_billing: Faturamento
     trips: Viagens
-    revenue_projections: Projeções de faturamento
+    revenue_projections: Metas e projeções
     revenue_projection_history: Histórico da projeção
+    goals: Metas
     registrations: Cadastros
     customers: Clientes
     customer_groups: Grupos de clientes
@@ -3169,6 +3271,7 @@ pt-BR:
     truck_groups: Grupos de caminhões
     own_fleet: Frota própria
     excluded_issuers: Emissores desconsiderados
+    revenue_goals: Metas de faturamento
     drivers: Motoristas
     holidays: Feriados
     vehicles: Veículos

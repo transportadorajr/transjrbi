@@ -1,0 +1,16 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('revenue_goals.show.title'), revenue_goals_path(month: goal_month_param(@month)) %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.title') %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title'), subtitle: goal_month_name(@month), back_path: revenue_goals_path(month: goal_month_param(@month)),
+                                     back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'form', revenue_goals_form: @revenue_goals_form, month: @month %>
+</div>

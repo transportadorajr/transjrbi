@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_145849) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_195031) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -38,6 +38,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_145849) do
   create_enum "maintenance_order_priority_type", ["high", "medium", "low"]
   create_enum "maintenance_order_release_test_type", ["road_test", "yard_test", "not_applicable"]
   create_enum "maintenance_order_status_type", ["open", "in_progress", "waiting_parts", "finished", "cancelled"]
+  create_enum "revenue_goal_target_type", ["company", "vehicle", "customer_group"]
   create_enum "revenue_projection_day_type", ["regular", "weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end"]
   create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
   create_enum "revenue_projection_period_type", ["month", "week"]
@@ -1038,6 +1039,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_145849) do
     t.index ["slug"], name: "index_resources_on_slug", unique: true
   end
 
+  create_table "revenue_goals", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.date "month", null: false
+    t.enum "target_type", null: false, enum_type: "revenue_goal_target_type"
+    t.string "plate"
+    t.bigint "customer_group_id"
+    t.bigint "amount_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_group_id"], name: "index_revenue_goals_on_customer_group_id"
+    t.index ["tenant_id", "month", "target_type", "plate", "customer_group_id"], name: "index_revenue_goals_on_target", unique: true, nulls_not_distinct: true
+    t.index ["tenant_id"], name: "index_revenue_goals_on_tenant_id"
+  end
+
   create_table "revenue_projection_daily_totals", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.date "date", null: false
@@ -1314,6 +1329,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_145849) do
   add_foreign_key "own_fleets", "tenants"
   add_foreign_key "product_groups", "product_groups", column: "parent_id"
   add_foreign_key "product_groups", "tenants"
+  add_foreign_key "revenue_goals", "customer_groups"
+  add_foreign_key "revenue_goals", "tenants"
   add_foreign_key "revenue_projection_daily_totals", "tenants"
   add_foreign_key "revenue_projection_day_forecasts", "tenants"
   add_foreign_key "revenue_projection_day_notes", "tenants"

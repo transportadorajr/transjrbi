@@ -35,7 +35,7 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(28)
+    expect { run_seeds }.to change(Resource, :count).by(30)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
@@ -48,6 +48,8 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'holidays')).to have_attributes(name: 'Feriados', writable: true)
     expect(Resource.find_by!(slug: 'own_fleet')).to have_attributes(name: 'Frota própria', writable: true)
     expect(Resource.find_by!(slug: 'revenue_projection')).to have_attributes(name: 'Projeção de faturamento', writable: false)
+    expect(Resource.find_by!(slug: 'revenue_goals')).to have_attributes(name: 'Metas de faturamento', writable: true)
+    expect(Resource.find_by!(slug: 'goals')).to have_attributes(name: 'Painel de metas', writable: false)
     expect(Resource.find_by!(slug: 'maintenance')).to have_attributes(name: 'Módulo de manutenção', writable: false)
     expect(Resource.find_by!(slug: 'maintenance_orders')).to have_attributes(name: 'Ordens de serviço', writable: true)
     expect(Resource.find_by!(slug: 'workshop_employees')).to have_attributes(name: 'Funcionários da oficina', writable: true)
@@ -69,6 +71,13 @@ RSpec.describe 'db/seeds.rb' do
     expect(Flipper.enabled?(:revenue_projection, tenant)).to be(false)
   end
 
+  it 'registers the revenue goals flag turned off' do
+    run_seeds
+
+    expect(Flipper.features.map(&:key)).to include('revenue_goals')
+    expect(Flipper.enabled?(:revenue_goals, tenant)).to be(false)
+  end
+
   it 'does not duplicate the access resources when run again' do
     run_seeds
 
@@ -79,7 +88,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(27)
+      expect { run_seeds }.to change(Resource, :count).by(29)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end
