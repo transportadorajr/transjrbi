@@ -251,6 +251,23 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end
 
+      scenario 'writes a note on the projection of a truck and stays on the cut', :js do
+        visit revenue_projection_history_path(plate: 'BBB2B22')
+        find_by_id('history_days').find('tr', text: '02/11 seg').click_on('Anotar o dia 02/11/2026')
+
+        within('#revenue_projection_day_note_modal') do
+          fill_in 'Anotação', with: 'Caminhão parado na oficina'
+
+          expect { click_on 'Salvar anotação' }.to change(RevenueProjection::DayNote, :count).by(1)
+        end
+
+        expect(page).to have_text('Anotação salva.')
+        expect(page).to have_current_path(/plate=BBB2B22/)
+        expect(page).to have_css('#history_cut', text: 'Placa: BBB2B22')
+        expect(page).to have_css('#history_days .history-note-row', text: 'Caminhão parado na oficina')
+        expect(RevenueProjection::DayNote.last).to have_attributes(tenant:, date: Date.new(2026, 11, 2), body: 'Caminhão parado na oficina')
+      end
+
       scenario 'recalculates the projection of a customer group and of today' do
         visit revenue_projection_history_path(customer_group_id: CustomerGroup.find_by!(name: 'GERDAU').id)
 

@@ -137,6 +137,50 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
+  context 'with the documents of two trucks in the revenue projection history', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
+    let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
+
+    before do
+      travel_to(Time.zone.local(2026, 11, 4, 10))
+      create(:atua_customer, tenant:, code: 7100, customer_group: create(:customer_group, tenant:, name: 'USIMINAS'))
+      (Date.new(2026, 8, 17)..Date.new(2026, 11, 3)).each do |date|
+        next if date.sunday?
+
+        issued_at = date.in_time_zone.change(hour: 10)
+        create(:atua_transport_document, tenant:, plate: 'AAA1A11', issued_at:, freight_cents: date.saturday? ? 50_000 : 100_000)
+        create(:atua_transport_document, tenant:, plate: 'BBB2B22', taker_code: 7100, issued_at:, freight_cents: date.saturday? ? 25_000 : 50_000)
+      end
+      RevenueProjections::RefreshMemoryCommand.call(tenant, at: Time.zone.local(2026, 11, 4, 6))
+    end
+
+    scenario 'exports the projection recalculated for a cut and tells which cut it is' do
+      visit revenue_projection_history_path(plate: 'BBB2B22', customer_group_id: CustomerGroup.find_by!(name: 'USIMINAS').id)
+      click_on 'Exportar Excel'
+
+      expect(downloaded_xlsx_records('Resumo').map { it.slice('Período', 'Recorte', 'Projeção na abertura', 'Faturado') }).to eq(
+        [{ 'Período' => 'Novembro de 2026', 'Recorte' => 'Placa: BBB2B22, Grupo de clientes: USIMINAS', 'Projeção na abertura' => 11_500, 'Faturado' => 1_000 }],
+      )
+      expect(downloaded_xlsx_records('Evolução da projeção').map { it.slice('Data', 'Projeção do mês', 'Reconstruída') }).to eq(
+        [{ 'Data' => Date.new(2026, 11, 1), 'Projeção do mês' => 11_500, 'Reconstruída' => 'Sim' },
+         { 'Data' => Date.new(2026, 11, 2), 'Projeção do mês' => 11_500, 'Reconstruída' => 'Sim' },
+         { 'Data' => Date.new(2026, 11, 3), 'Projeção do mês' => 11_500, 'Reconstruída' => 'Sim' },
+         { 'Data' => Date.new(2026, 11, 4), 'Projeção do mês' => 11_500, 'Reconstruída' => 'Sim' }],
+      )
+      expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Previsto', 'Faturado') }.last).to eq(
+        'Dia' => Date.new(2026, 11, 3), 'Previsto' => 500, 'Faturado' => 500,
+      )
+    end
+
+    scenario 'exports the forecast of today of a cut' do
+      visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04', plate: 'AAA1A11')
+      click_on 'Exportar Excel'
+
+      expect(downloaded_xlsx_records('Resumo').map { it.slice('Dia', 'Recorte', 'Previsão do dia', 'Projeção do mês hoje') }).to eq(
+        [{ 'Dia' => Date.new(2026, 11, 4), 'Recorte' => 'Placa: AAA1A11', 'Previsão do dia' => 1_000, 'Projeção do mês hoje' => 23_000 }],
+      )
+    end
+  end
+
   context 'with access to the revenue projection history', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
     let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 
@@ -160,7 +204,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       expect(page.response_headers['Content-Disposition']).to include('attachment', 'filename="historico-da-projecao-2026-11-04.xlsx"')
       expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Evolução da projeção', 'Semana a semana', 'Dia a dia'])
       expect(downloaded_xlsx_records('Resumo')).to match(
-        [{ 'Período' => 'Novembro de 2026', 'Data da abertura' => Date.new(2026, 11, 1), 'Projeção na abertura' => 23_000,
+        [{ 'Período' => 'Novembro de 2026', 'Recorte' => 'Empresa inteira', 'Data da abertura' => Date.new(2026, 11, 1), 'Projeção na abertura' => 23_000,
            'Data da última projeção' => Date.new(2026, 11, 4), 'Última projeção' => 23_300, 'Faturado até' => Date.new(2026, 11, 3),
            'Faturado' => 400, 'Diferença' => 300, 'Diferença (%)' => be_within(0.0001).of(0.013), 'Período encerrado' => 'Não',
            'Projeção a menos de 5% desde' => nil }],
@@ -222,7 +266,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
 
       expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Semana a semana', 'Dia a dia'])
       expect(downloaded_xlsx_records('Resumo')).to match(
-        [{ 'Período' => '02/11/2026 a 03/11/2026', 'Faturado até' => Date.new(2026, 11, 3), 'Soma das previsões diárias' => 300, 'Faturado' => 400,
+        [{ 'Período' => '02/11/2026 a 03/11/2026', 'Recorte' => 'Empresa inteira', 'Faturado até' => Date.new(2026, 11, 3), 'Soma das previsões diárias' => 300, 'Faturado' => 400,
            'Diferença' => 100, 'Diferença (%)' => be_within(0.0001).of(0.3333), 'Período encerrado' => 'Sim' }],
       )
       expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Projeção do mês na manhã') }).to eq(

@@ -1,8 +1,10 @@
 module RevenueProjectionHistoryExportsHelper
-  def revenue_projection_history_xlsx_sheets(history)
-    return [revenue_projection_history_xlsx_today(history)] if history.period_type == 'today'
+  def revenue_projection_history_xlsx_sheets(history, cut_items: [])
+    cut = revenue_projection_history_xlsx_cut(cut_items)
+    return [revenue_projection_history_xlsx_today(history, cut)] if history.period_type == 'today'
 
     summary_columns = history.snapshot_period? ? revenue_projection_history_xlsx_summary_columns : revenue_projection_history_xlsx_range_columns
+    summary_columns.insert(1, cut)
     return [Export::Sheet.new(name: t('revenue_projection_histories.xlsx.summary'), columns: summary_columns, rows: [])] unless history.any?
 
     [Export::Sheet.new(name: t('revenue_projection_histories.xlsx.summary'), columns: summary_columns, rows: [history]),
@@ -20,6 +22,13 @@ module RevenueProjectionHistoryExportsHelper
 
   def revenue_projection_history_xlsx_ratio(header)
     xlsx_field(header, :percentage) { |row| row.difference_ratio&.*(100) }
+  end
+
+  def revenue_projection_history_xlsx_cut(cut_items)
+    text = cut_items.map { |label, value| t('revenue_projection_histories.show.cut_item', label:, value:) }.join(', ')
+    text = t('revenue_projection_histories.xlsx.whole_company') if text.empty?
+
+    xlsx_field(revenue_projection_history_xlsx_header(:cut)) { text }
   end
 
   def revenue_projection_history_xlsx_boolean(value)
@@ -101,8 +110,9 @@ module RevenueProjectionHistoryExportsHelper
      xlsx_field(revenue_projection_history_xlsx_header(:note_author)) { |row| row.note&.user&.name }]
   end
 
-  def revenue_projection_history_xlsx_today(today)
+  def revenue_projection_history_xlsx_today(today, cut)
     columns = [xlsx_field(t('revenue_projection_histories.show.date'), :date, &:today),
+               cut,
                xlsx_field(revenue_projection_history_xlsx_header(:day_type)) { |row| RevenueProjection::DailyTotal.human_enum_name(:day_type, row.day_type) },
                xlsx_field(t('revenue_projection_histories.today.forecast'), :money, &:forecast_cents),
                xlsx_field(t('revenue_projection_histories.today.billed'), :money, &:billed_cents),
