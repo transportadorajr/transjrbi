@@ -2240,6 +2240,33 @@ pt-BR:
       closed: Encerrada
       in_progress: Em andamento
       missing: '-'
+    xlsx:
+      summary: Resumo
+      evolution: Evolução da projeção
+      month: Mês
+      opening_date: Data da abertura
+      opening: Projeção na abertura
+      latest_date: Data da última projeção
+      latest: Última projeção
+      billed_until: Faturado até
+      billed: Faturado
+      difference: Diferença
+      difference_ratio: Diferença (%)
+      closed: Mês encerrado
+      hit_since: Projeção a menos de %{tolerance} desde
+      taken_on: Data
+      reference_at: Dados do Atua até
+      realized: Faturado acumulado
+      projected: Projeção do mês
+      low: Mínimo provável
+      high: Máximo provável
+      reconstructed: Reconstruída
+      week_start: Início
+      week_end: Fim
+      day_type: Tipo do dia
+      booleans:
+        'true': Sim
+        'false': Não
   holidays:
     national:
       new_year: Confraternização Universal

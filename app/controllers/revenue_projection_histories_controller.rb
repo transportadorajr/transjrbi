@@ -5,6 +5,8 @@ class RevenueProjectionHistoriesController < BaseController
     authorize!(:read, :revenue_projection)
 
     @history = Dashboard::RevenueProjectionHistory.new(current_tenant, params[:month])
+
+    respond_with_listing(pdf: false, xlsx: -> { helpers.revenue_projection_history_xlsx_sheets(@history) })
   end
 
   private

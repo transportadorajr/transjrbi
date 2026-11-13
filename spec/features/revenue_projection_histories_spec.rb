@@ -59,6 +59,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
 
         expect(page).to have_current_path(revenue_projection_history_path)
         expect(page).to have_css('h1.page-title', text: 'Histórico da projeção')
+        expect(page).to have_no_link('Exportar Excel')
         expect(page).to have_css('#history_month', text: 'Novembro de 2026')
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
           ['Projeção na abertura (01/11) R$ 23.000,00', 'Projeção atual (04/11) R$ 23.300,00', 'Faturado até 03/11 R$ 1.600,00',
@@ -99,11 +100,12 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       end
     end
 
-    scenario 'tells that there is no history yet' do
+    scenario 'tells that there is no history yet', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
       visit revenue_projection_history_path
 
       expect(page).to have_text('Nenhum registro encontrado')
       expect(page).to have_no_css('#history_cards')
+      expect(page).to have_no_link('Exportar Excel')
     end
   end
 

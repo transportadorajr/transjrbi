@@ -136,4 +136,49 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       )
     end
   end
+
+  context 'with access to the revenue projection history', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
+    let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
+
+    before do
+      travel_to(Time.zone.local(2026, 11, 4, 10))
+      [[Date.new(2026, 11, 1), 2_300_000, true], [Date.new(2026, 11, 4), 2_330_000, false]].each do |taken_on, projected_cents, reconstructed|
+        create(:revenue_projection_snapshot, tenant:, taken_on:, reference_at: taken_on.in_time_zone.change(hour: 5), realized_cents: 0, projected_cents:,
+                                             low_cents: projected_cents, high_cents: projected_cents, reconstructed:)
+      end
+      create(:revenue_projection_snapshot, tenant:, period_type: 'week', period_start: Date.new(2026, 11, 1), period_end: Date.new(2026, 11, 7),
+                                           taken_on: Date.new(2026, 11, 1), days: [{ date: '2026-11-02', realized_cents: 0, expected_cents: 30_000 }])
+      create(:revenue_projection_daily_total, tenant:, date: Date.new(2026, 11, 2), billed_cents: 40_000, documents_count: 2, day_type: 'weekday_holiday')
+      create(:revenue_projection_day_forecast, tenant:, date: Date.new(2026, 11, 2), forecast_cents: 30_000, day_type: 'weekday_holiday')
+    end
+
+    scenario 'exports the summary, the evolution of the projection, the weeks and the days of the month' do
+      visit revenue_projection_history_path
+      click_on 'Exportar Excel'
+
+      expect(page.response_headers['Content-Disposition']).to include('attachment', 'filename="historico-da-projecao-2026-11-04.xlsx"')
+      expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Evolução da projeção', 'Semana a semana', 'Dia a dia'])
+      expect(downloaded_xlsx_records('Resumo')).to match(
+        [{ 'Mês' => 'Novembro de 2026', 'Data da abertura' => Date.new(2026, 11, 1), 'Projeção na abertura' => 23_000,
+           'Data da última projeção' => Date.new(2026, 11, 4), 'Última projeção' => 23_300, 'Faturado até' => Date.new(2026, 11, 3),
+           'Faturado' => 400, 'Diferença' => 300, 'Diferença (%)' => be_within(0.0001).of(0.013), 'Mês encerrado' => 'Não',
+           'Projeção a menos de 5% desde' => nil }],
+      )
+      expect(downloaded_xlsx_records('Evolução da projeção')).to eq(
+        [{ 'Data' => Date.new(2026, 11, 1), 'Dados do Atua até' => DateTime.new(2026, 11, 1, 5), 'Faturado acumulado' => 0, 'Projeção do mês' => 23_000,
+           'Mínimo provável' => 23_000, 'Máximo provável' => 23_000, 'Reconstruída' => 'Sim' },
+         { 'Data' => Date.new(2026, 11, 4), 'Dados do Atua até' => DateTime.new(2026, 11, 4, 5), 'Faturado acumulado' => 0, 'Projeção do mês' => 23_300,
+           'Mínimo provável' => 23_300, 'Máximo provável' => 23_300, 'Reconstruída' => 'Não' }],
+      )
+      expect(downloaded_xlsx_records('Semana a semana')).to eq(
+        [{ 'Início' => Date.new(2026, 11, 1), 'Fim' => Date.new(2026, 11, 7), 'Projeção na abertura' => 300, 'Soma das previsões diárias' => 300,
+           'Faturado' => 400, 'Diferença' => nil, 'Diferença (%)' => nil, 'Situação' => 'Em andamento' }],
+      )
+      expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Tipo do dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es') }).to eq(
+        [{ 'Dia' => Date.new(2026, 11, 1), 'Tipo do dia' => 'Dia normal', 'Previsto' => nil, 'Faturado' => 0, 'Diferença' => nil, 'CT-es' => 0 },
+         { 'Dia' => Date.new(2026, 11, 2), 'Tipo do dia' => 'Feriado em dia útil', 'Previsto' => 300, 'Faturado' => 400, 'Diferença' => 100, 'CT-es' => 2 },
+         { 'Dia' => Date.new(2026, 11, 3), 'Tipo do dia' => 'Dia normal', 'Previsto' => nil, 'Faturado' => 0, 'Diferença' => nil, 'CT-es' => 0 }],
+      )
+    end
+  end
 end
