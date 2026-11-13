@@ -1424,6 +1424,57 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when the tenant registered its own fleet' do
+        let!(:rented) do
+          create(:atua_transport_document, tenant:, number: '74004', freight_cents: 300_000, plate: 'PUR1A81',
+                                           vehicle_ownership: 'Próprio')
+        end
+        let!(:hired) do
+          create(:atua_transport_document, tenant:, number: '74005', freight_cents: 200_000, plate: 'BYA5A86',
+                                           vehicle_ownership: 'Terceiro')
+        end
+        let!(:international) do
+          create(:atua_transport_document, tenant:, number: '74006', freight_cents: 100_000, plate: 'INT6R00',
+                                           vehicle_ownership: 'Próprio')
+        end
+
+        before do
+          create(:own_fleet, tenant:, plates: %w[RVR2C34 RVR8J90])
+          create(:own_fleet, tenant: other_tenant, plates: %w[PUR1A81 BYA5A86])
+        end
+
+        scenario 'sums the vehicles outside the own fleet in a single third party row' do
+          visit freight_billing_path(october_by_truck)
+
+          expect(OwnFleet.count).to eq(2)
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1) }).to eq(
+            [
+              ['Veículo', 'Frete bruto'],
+              ['RVR2C34', 'R$ 15.000,00'],
+              ['RVR8J90', 'R$ 5.000,00'],
+              ['Terceiro', 'R$ 5.000,00'],
+              ['INT6R00', 'R$ 1.000,00'],
+              ['Total', 'R$ 26.000,00'],
+            ],
+          )
+        end
+
+        scenario 'lists the transport documents of every third party vehicle' do
+          visit freights_freight_billing_path(october_by_truck.merge(key: 'third_party'))
+
+          expect(page).to have_text('74004')
+          expect(page).to have_text('74005')
+          expect(page).to have_no_text('74006')
+        end
+
+        scenario 'keeps the plates in the other breakdowns' do
+          visit freight_billing_path(october.merge(dimension: 'driver'))
+
+          expect(html_table_to_rows.first.first).to eq('Motorista')
+          expect(html_table_to_rows.map(&:first)).not_to include('Terceiro')
+        end
+      end
+
       context 'when the empty km of a trip could not be calculated' do
         before do
           create(:empty_leg, tenant:, plate: 'RVR8J90', previous_manifest_code: 41_000, next_manifest_code: 41_002,

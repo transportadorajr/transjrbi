@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_12_182044) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_12_203341) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1007,6 +1007,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_182044) do
     t.index ["tenant_id"], name: "index_maintenance_orders_on_tenant_id"
   end
 
+  create_table "own_fleets", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "plates", default: [], null: false, array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id"], name: "index_own_fleets_on_tenant_id", unique: true
+  end
+
   create_table "product_groups", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "parent_id"
@@ -1273,6 +1281,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_12_182044) do
   add_foreign_key "maintenance_orders", "tenants"
   add_foreign_key "maintenance_orders", "users", column: "opened_by_id"
   add_foreign_key "maintenance_orders", "workshop_employees", column: "supervisor_id"
+  add_foreign_key "own_fleets", "tenants"
   add_foreign_key "product_groups", "product_groups", column: "parent_id"
   add_foreign_key "product_groups", "tenants"
   add_foreign_key "revenue_projection_daily_totals", "tenants"

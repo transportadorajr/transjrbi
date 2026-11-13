@@ -11,6 +11,7 @@ module Dashboard
     RANKING_LIMIT = 15
     FOZ_ORIGIN_KEYS = ['FOZ DO IGUACU|PR|export', 'FOZ DO IGUACU|PR|national'].freeze
     TOTAL_KEY = 'total'.freeze
+    THIRD_PARTY_KEY = 'third_party'.freeze
     ABBREVIATED_DIMENSIONS = %w[driver customer_group].freeze
     PER_KM_RANKING_DIMENSIONS = %w[customer_group macro_region].freeze
     NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
@@ -75,11 +76,12 @@ module Dashboard
       end
     end
 
-    def initialize(documents, manifests:, dimension:, period:)
+    def initialize(documents, manifests:, dimension:, period:, own_fleet: nil)
       @documents = documents
       @manifests = manifests
       @dimension = self.class.sanitize_dimension(dimension)
       @period = period
+      @own_fleet = own_fleet
     end
 
     delegate :empty?, to: :entries
@@ -443,7 +445,7 @@ module Dashboard
 
     def key_for(entry)
       case dimension
-      when 'vehicle' then entry.plate.presence
+      when 'vehicle' then vehicle_key(entry.plate.presence)
       when 'driver' then entry.driver_code
       when 'customer_group' then entry.customer_group_id
       when 'product_group' then entry.product_group_id
@@ -453,9 +455,17 @@ module Dashboard
       end
     end
 
+    def vehicle_key(plate)
+      @own_fleet&.third_party?(plate) ? THIRD_PARTY_KEY : plate
+    end
+
+    def vehicle_label(key)
+      key == THIRD_PARTY_KEY ? I18n.t('own_fleets.third_party') : key
+    end
+
     def label_for(key, grouped)
       label = case dimension
-              when 'vehicle' then key
+              when 'vehicle' then vehicle_label(key)
               when 'driver' then driver_display_names[key].presence || grouped.filter_map { |entry| entry.driver_name.presence }.first
               when 'customer_group' then customer_group_names[key]
               when 'product_group', 'product_subgroup' then product_group_names[key]

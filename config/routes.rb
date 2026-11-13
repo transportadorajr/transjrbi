@@ -92,6 +92,7 @@ Rails.application.routes.draw do
     resources :macro_regions
     resources :cities
     resources :truck_groups
+    resource :own_fleet, only: %i[show edit update]
     resources :excluded_issuers, only: %i[index new create destroy]
     resources :holidays, except: :show
     resources :route_distances, except: :show do

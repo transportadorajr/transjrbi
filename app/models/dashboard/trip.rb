@@ -11,6 +11,7 @@ module Dashboard
     WEEK_START = :sunday
     RANKING_LIMIT = 15
     TOTAL_KEY = 'total'.freeze
+    THIRD_PARTY_KEY = 'third_party'.freeze
     FEATURE = :trips_dashboard
 
     Fact = Data.define(:id, :code, :number, :trip_on, :plate, :driver_code, :driver_name, :gross_cents, :net_cents, :loaded_km, :duration_fact) do
@@ -52,10 +53,11 @@ module Dashboard
       end
     end
 
-    def initialize(manifests, dimension:, period:)
+    def initialize(manifests, dimension:, period:, own_fleet: nil)
       @manifests = manifests
       @dimension = self.class.sanitize_dimension(dimension)
       @period = period
+      @own_fleet = own_fleet
     end
 
     delegate :empty?, to: :period_facts
@@ -255,11 +257,19 @@ module Dashboard
     end
 
     def key_for(fact)
-      dimension == 'vehicle' ? fact.plate : fact.driver_code
+      dimension == 'vehicle' ? vehicle_key(fact.plate) : fact.driver_code
+    end
+
+    def vehicle_key(plate)
+      @own_fleet&.third_party?(plate) ? THIRD_PARTY_KEY : plate
+    end
+
+    def vehicle_label(key)
+      key == THIRD_PARTY_KEY ? I18n.t('own_fleets.third_party') : key
     end
 
     def label_for(key, grouped)
-      label = dimension == 'vehicle' ? key : driver_display_names[key].presence || grouped.filter_map(&:driver_name).first
+      label = dimension == 'vehicle' ? vehicle_label(key) : driver_display_names[key].presence || grouped.filter_map(&:driver_name).first
 
       label.presence || I18n.t(dimension, scope: 'dashboards.trip.none')
     end
