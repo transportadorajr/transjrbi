@@ -107,7 +107,6 @@ Rails.application.routes.draw do
       get :week
       get :product_options
     end
-    resource :revenue_projection, only: :show
     resource :revenue_projection_history, only: :show do
       get :product_options
     end

@@ -51,10 +51,11 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         snapshot(other_tenant, Date.new(2026, 11, 4), 9_900_000)
       end
 
-      scenario 'compares the projection with the billing day by day and week by week from the intelligence menu' do
+      scenario 'compares the projection with the billing day by day and week by week from the revenue projections menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Inteligência'
+          click_on 'Projeções de faturamento'
+          expect(page).to have_no_link('Projeção de faturamento')
           click_on 'Histórico da projeção'
         end
 
@@ -389,6 +390,18 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       within('.sidebar-desktop') { expect(page).to have_no_link('Histórico da projeção') }
 
       visit revenue_projection_history_path
+
+      expect(page.status_code).to eq(404)
+    end
+  end
+
+  context 'when the removed revenue projection screen is reached' do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+
+    before { login_as(owner, scope: :user) }
+
+    scenario 'answers not found' do
+      visit '/revenue_projection'
 
       expect(page.status_code).to eq(404)
     end

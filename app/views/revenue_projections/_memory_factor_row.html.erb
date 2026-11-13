@@ -1,8 +1,0 @@
-<%# locals: (row:) %>
-
-<tr>
-  <td class="fw-semibold"><%= revenue_projection_factor_label(row.factor_type, row.wday) %></td>
-  <td class="text-end text-nowrap"><%= revenue_projection_factor_value(row.value) %></td>
-  <td class="text-end d-none d-md-table-cell"><%= row.observations_count %></td>
-  <td class="text-end"><%= revenue_projection_factor_status(row) %></td>
-</tr>

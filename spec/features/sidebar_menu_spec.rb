@@ -24,7 +24,7 @@ describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection] do
 
       expect(sidebar_items).to eq(
         [
-          'Inteligência', 'Faturamento', 'Viagens', 'Projeção de faturamento', 'Histórico da projeção',
+          'Inteligência', 'Faturamento', 'Viagens', 'Projeções de faturamento', 'Histórico da projeção',
           'Fiscal', 'CT-es', 'Manifestos', 'Trechos de km',
           'Cadastros', 'Clientes', 'Grupos de clientes', 'Grupos de produtos', 'Macro regiões', 'Cidades',
           'Grupos de caminhões', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',

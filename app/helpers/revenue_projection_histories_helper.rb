@@ -1,8 +1,9 @@
 module RevenueProjectionHistoriesHelper
+  HISTORY_PROJECTED_ORANGE = '#f97316'.freeze
   HISTORY_LOW_HIGH_GRAY = '#cbd5e1'.freeze
-  HISTORY_PROJECTED_STYLE = { color: RevenueProjectionsHelper::PROJECTED_ORANGE,
-                              dataset: { borderColor: RevenueProjectionsHelper::PROJECTED_ORANGE,
-                                         backgroundColor: RevenueProjectionsHelper::PROJECTED_ORANGE } }.freeze
+  HISTORY_PROJECTED_STYLE = { color: HISTORY_PROJECTED_ORANGE,
+                              dataset: { borderColor: HISTORY_PROJECTED_ORANGE,
+                                         backgroundColor: HISTORY_PROJECTED_ORANGE } }.freeze
   HISTORY_RANGE_STYLE = { color: HISTORY_LOW_HIGH_GRAY,
                           dataset: { borderColor: HISTORY_LOW_HIGH_GRAY, backgroundColor: HISTORY_LOW_HIGH_GRAY, borderDash: [4, 4], borderWidth: 1 } }.freeze
   HISTORY_REALIZED_STYLE = { color: ChartsHelper::BRAND_BLUE,
@@ -15,6 +16,10 @@ module RevenueProjectionHistoriesHelper
   HISTORY_CARD_COLUMNS = 'col-12 col-md-6 col-xxl-3'.freeze
   HISTORY_RANGE_CARD_COLUMNS = 'col-12 col-md-6 col-xxl-4'.freeze
   HISTORY_DAY_COLUMNS = 7
+
+  def revenue_projection_period_link_class(period_type, selected)
+    "btn btn-sm #{period_type == selected ? 'btn-primary' : 'btn-outline-secondary'}"
+  end
 
   def revenue_projection_history_body(history)
     return render('shared/no_content') unless history.any?
