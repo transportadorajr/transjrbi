@@ -151,7 +151,7 @@ module Dashboard
         { name: I18n.t(period_type, scope: 'dashboards.revenue_projection_history.projected'), data: chart_points(&:projected_cents) },
         { name: I18n.t('dashboards.revenue_projection_history.low'), data: chart_points(&:low_cents) },
         { name: I18n.t('dashboards.revenue_projection_history.high'), data: chart_points(&:high_cents) },
-        { name: I18n.t('dashboards.revenue_projection_history.realized'), data: chart_points(&:realized_cents) },
+        { name: I18n.t('dashboards.revenue_projection_history.realized'), data: billed_points },
       ]
       series << { name: I18n.t(period_type, scope: 'dashboards.revenue_projection_history.billed'), data: chart_points { billed_cents } } if closed?
       series
@@ -194,6 +194,16 @@ module Dashboard
 
     def chart_points(&)
       snapshots.to_h { [I18n.l(it.taken_on, format: LABEL_FORMAT), Money.from_cents(yield(it)).to_f] }
+    end
+
+    def billed_points
+      accumulated = accumulated_billed
+      snapshots.select { accumulated.key?(it.taken_on) }.to_h { [I18n.l(it.taken_on, format: LABEL_FORMAT), Money.from_cents(accumulated[it.taken_on]).to_f] }
+    end
+
+    def accumulated_billed
+      sum = 0
+      closed_days.index_with { |date| sum += totals[date]&.billed_cents.to_i }
     end
 
     def range_chart_data

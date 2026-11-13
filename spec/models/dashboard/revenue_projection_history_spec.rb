@@ -111,6 +111,7 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
     it 'charts the projection of each morning with the billing accumulated until then' do
       expect(history.chart_data.map { it[:name] }).to eq(['Projeção do mês', 'Mínimo provável', 'Máximo provável', 'Faturado acumulado'])
       expect(history.chart_data.first[:data]).to eq('01/11' => 23_000.0, '02/11' => 23_100.0, '04/11' => 23_300.0)
+      expect(history.chart_data.last[:data]).to eq('01/11' => 0.0, '02/11' => 400.0)
     end
   end
 
@@ -132,6 +133,13 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
       expect(history.hit_since).to eq(Date.new(2026, 10, 15))
       expect(history.reconstructed_period).to be_nil
       expect(history.chart_data.last).to eq(name: 'Faturado no mês', data: { '01/10' => 22_000.0, '15/10' => 22_000.0, '31/10' => 22_000.0 })
+    end
+
+    it 'accumulates the billing until the end of each day so the last day matches the billing of the month' do
+      realized = history.chart_data.find { it[:name] == 'Faturado acumulado' }
+
+      expect(realized[:data]).to eq('01/10' => 0.0, '15/10' => 22_000.0, '31/10' => 22_000.0)
+      expect(realized[:data].values.last).to eq(Money.from_cents(history.billed_cents).to_f)
     end
 
     it 'cuts the weeks at the limits of the month' do
