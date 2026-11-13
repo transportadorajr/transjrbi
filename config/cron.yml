@@ -21,7 +21,7 @@ shared:
   atua_movements:
     cron: '0 7-23 * * 1-6 America/Sao_Paulo'
     class: 'Atua::ScheduleMovementsJob'
-    description: 'Imports the current day of movements of every enabled tenant, hourly from 7h to 23h, Monday to Saturday'
+    description: 'Imports the current day of movements and the last 7 days of manifests of every enabled tenant, hourly from 7h to 23h, Monday to Saturday'
   atua_movements_business_hours:
     cron: '30 8-17 * * 1-6 America/Sao_Paulo'
     class: 'Atua::ScheduleMovementsJob'
