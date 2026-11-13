@@ -698,6 +698,13 @@ pt-BR:
         end_date: Data final
         period: Período
         start: Início
+        plate: Placa
+        driver_code: Motorista
+        customer_group_id: Grupo de clientes
+        product_group_id: Grupo de produtos
+        product_id: Produto
+        macro_region_id: Macro região de origem
+        truck_group_id: Tipo de conjunto
       freight_billing_filter_form:
         start_date: Emitidos a partir de
         end_date: Emitidos até
@@ -2258,6 +2265,11 @@ pt-BR:
         week: Semana
       week_option: '%{start} a %{finish}'
       range_option: '%{start} a %{finish}'
+      cut_label: Recorte
+      cut_item: '%{label}: %{value}'
+      cut_note: >-
+        A projeção de cada manhã foi recalculada só com os CT-es deste recorte, com o que se sabia em cada dia. Os ajustes
+        de feriado, fim de mês e dia da semana são os da empresa.
       range_forecast: Soma das previsões diárias até %{date}
       difference_range: Faturado x previsões diárias
       opening: Projeção na abertura (%{date})

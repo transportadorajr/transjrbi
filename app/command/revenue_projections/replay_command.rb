@@ -14,7 +14,7 @@ module RevenueProjections
     end
 
     def call
-      RevenueProjection::Replay.new(totals:, forecasts:, snapshots:)
+      RevenueProjection::Replay.new(totals_by_date: totals, forecasts_by_date: forecasts, snapshots:)
     end
 
     private

@@ -4,6 +4,6 @@ module RevenueProjectionDayNotesHelper
   end
 
   def revenue_projection_day_note_history_params
-    params.permit(:start_date, :end_date).to_h.symbolize_keys
+    params.permit(:start_date, :end_date, *FreightDocumentFilters::FILTER_PARAMS).to_h.symbolize_keys
   end
 end

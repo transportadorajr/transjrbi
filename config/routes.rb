@@ -108,7 +108,9 @@ Rails.application.routes.draw do
       get :product_options
     end
     resource :revenue_projection, only: :show
-    resource :revenue_projection_history, only: :show
+    resource :revenue_projection_history, only: :show do
+      get :product_options
+    end
     resources :revenue_projection_day_notes, only: %i[edit update], param: :date, constraints: { date: /\d{4}-\d{2}-\d{2}/ }
     resources :trips, only: :index do
       get :detail, on: :collection

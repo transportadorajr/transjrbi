@@ -41,7 +41,7 @@ class RevenueProjectionDayNotesController < BaseController
   end
 
   def history_filter_params
-    params.permit(:start_date, :end_date)
+    params.permit(:start_date, :end_date, *FreightDocumentFilters::FILTER_PARAMS)
   end
 
   def day_note_params

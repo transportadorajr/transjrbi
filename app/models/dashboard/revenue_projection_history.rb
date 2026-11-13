@@ -32,11 +32,12 @@ module Dashboard
 
     attr_reader :period_type, :period
 
-    def initialize(tenant, period_type, period, today: Date.current)
+    def initialize(tenant, period_type, period, today: Date.current, memory: ::RevenueProjection::StoredMemory.new(tenant))
       @tenant = tenant
       @period_type = period_type.to_s
       @period = period
       @today = today
+      @memory = memory
     end
 
     def start
@@ -76,7 +77,7 @@ module Dashboard
     def snapshots
       return [] unless snapshot_period?
 
-      @snapshots ||= tenant.revenue_projection_snapshots.where(period_type:, period_start: start).order(:taken_on).to_a
+      @snapshots ||= memory.snapshots_of(period_type, start)
     end
 
     def opening
@@ -114,6 +115,8 @@ module Dashboard
     end
 
     def reconstructed_period
+      return if memory.recalculated?
+
       reconstructed = snapshots.select(&:reconstructed)
       reconstructed.first.taken_on..reconstructed.last.taken_on if reconstructed.any?
     end
@@ -156,19 +159,18 @@ module Dashboard
 
     private
 
-    attr_reader :tenant, :today
+    attr_reader :tenant, :today, :memory
 
     def closed_days
       period.first..last_closed_date
     end
 
     def snapshots_by_date
-      @snapshots_by_date ||= (snapshot_period? ? snapshots : tenant.revenue_projection_snapshots.month.where(taken_on: period)).index_by(&:taken_on)
+      @snapshots_by_date ||= (snapshot_period? ? snapshots : memory.snapshots_taken('month', period)).index_by(&:taken_on)
     end
 
     def week_snapshots
-      @week_snapshots ||= tenant.revenue_projection_snapshots.week.where(period_end: period.first.., period_start: ..period.last)
-        .order(:taken_on).group_by(&:period_start)
+      @week_snapshots ||= memory.week_snapshots_within(period).group_by(&:period_start)
     end
 
     def week_opening_cents(range)
@@ -179,7 +181,7 @@ module Dashboard
     end
 
     def totals
-      @totals ||= tenant.revenue_projection_daily_totals.where(date: period).index_by(&:date)
+      @totals ||= memory.totals(period)
     end
 
     def notes
@@ -187,7 +189,7 @@ module Dashboard
     end
 
     def forecasts
-      @forecasts ||= tenant.revenue_projection_day_forecasts.where(date: period).index_by(&:date)
+      @forecasts ||= memory.forecasts(period)
     end
 
     def chart_points(&)

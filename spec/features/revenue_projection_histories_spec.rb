@@ -133,7 +133,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           click_on 'Aplicar Filtros'
         end
 
-        expect(page).to have_current_path('/revenue_projection_history?start_date=2026-11-02&end_date=2026-11-03')
+        expect(page).to have_current_path(%r{\A/revenue_projection_history\?start_date=2026-11-02&end_date=2026-11-03&plate=&})
         expect(page).to have_no_css('.dashboard-segmented .btn-primary')
         expect(page).to have_no_select('Mês')
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
@@ -179,6 +179,90 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           expect(page).to have_text('o faturado vai até a última sincronização com o Atua (04/11/2026 09:30)')
           expect(page).to have_no_table('history_days')
         end
+      end
+    end
+
+    context 'with the documents of two trucks of two customer groups' do
+      before do
+        create(:atua_customer, tenant:, code: 7100, customer_group: create(:customer_group, tenant:, name: 'USIMINAS'))
+        create(:atua_customer, tenant:, code: 7200, customer_group: create(:customer_group, tenant:, name: 'GERDAU'))
+        (Date.new(2026, 8, 17)..Date.new(2026, 11, 3)).each do |date|
+          next if date.sunday?
+
+          issued_at = date.in_time_zone.change(hour: 10)
+          create(:atua_transport_document, tenant:, plate: 'AAA1A11', taker_code: 7200, issued_at:, freight_cents: date.saturday? ? 50_000 : 100_000)
+          create(:atua_transport_document, tenant:, plate: 'BBB2B22', taker_code: 7100, issued_at:, freight_cents: date.saturday? ? 25_000 : 50_000)
+        end
+        create(:atua_transport_document, tenant: other_tenant, plate: 'BBB2B22', issued_at: Time.zone.local(2026, 11, 3, 10), freight_cents: 9_900_000)
+        RevenueProjections::RefreshMemoryCommand.call(tenant, at: Time.zone.local(2026, 11, 4, 6))
+      end
+
+      scenario 'recalculates the projection of each morning only with the documents of a truck' do
+        visit revenue_projection_history_path
+
+        expect(all('#history_cards .counter-card').map { it.text.squish }.first).to eq('Projeção na abertura (01/11) R$ 34.500,00')
+        expect(page).to have_no_css('#history_cut')
+        within('#filtersModal') do
+          expect(page).to have_select('Macro região de origem')
+          expect(page).to have_select('Tipo de conjunto')
+          fill_in 'Placa', with: 'bbb2b22'
+          click_on 'Aplicar Filtros'
+        end
+
+        expect(page).to have_current_path(/plate=bbb2b22/)
+        expect(page).to have_css('#history_cut', text: 'Placa: BBB2B22')
+        expect(page).to have_text('A projeção de cada manhã foi recalculada só com os CT-es deste recorte')
+        expect(page).to have_no_text('foram reconstruídas a partir do histórico')
+        expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
+          ['Projeção na abertura (01/11) R$ 11.500,00', 'Projeção atual (04/11) R$ 11.500,00', 'Faturado até 03/11 R$ 1.000,00',
+           'Variação da projeção desde a abertura +R$ 0,00 (+0,0%)'],
+        )
+        expect(html_table_to_rows(table: find_by_id('history_days')).drop(1).map { it.values_at(0, 1, 2) }).to eq(
+          [['01/11 dom', 'R$ 0,00', 'R$ 0,00'], ['02/11 seg', 'R$ 500,00', 'R$ 500,00 +0,0%'], ['03/11 ter', 'R$ 500,00', 'R$ 500,00 +0,0%']],
+        )
+        expect(RevenueProjection::Snapshot.where(tenant:).count).to eq(8)
+
+        click_on 'Sem. atual'
+
+        expect(page).to have_current_path(/plate=bbb2b22/)
+        expect(all('#history_cards .counter-card').map { it.text.squish }.first).to eq('Projeção na abertura (01/11) R$ 2.750,00')
+      end
+
+      scenario 'chooses the customer group and the product in the filters on a phone', :js do
+        parent = create(:product_group, tenant:, name: 'AÇO', activated_at: Time.current)
+        create(:product_group, tenant:, name: 'BOBINA', parent:)
+        use_mobile_screen(width: 360)
+        visit revenue_projection_history_path
+        find(:link, href: '#filtersModal').click
+
+        within('#customer_group_id_select') do
+          find('.select2-trigger').click
+          find('.select2-option', text: 'USIMINAS').click
+        end
+        within('#product_group_id_select') do
+          find('.select2-trigger').click
+          find('.select2-option', text: 'AÇO').click
+        end
+        within('#product_id_select') do
+          find('.select2-trigger').click
+          expect(all('.select2-option').map(&:text)).to eq(['BOBINA (AÇO)'])
+        end
+
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
+
+      scenario 'recalculates the projection of a customer group and of today' do
+        visit revenue_projection_history_path(customer_group_id: CustomerGroup.find_by!(name: 'GERDAU').id)
+
+        expect(page).to have_css('#history_cut', text: 'Grupo de clientes: GERDAU')
+        expect(all('#history_cards .counter-card').map { it.text.squish }.first).to eq('Projeção na abertura (01/11) R$ 23.000,00')
+
+        click_on 'Hoje'
+
+        expect(page).to have_css('#history_cut', text: 'Grupo de clientes: GERDAU')
+        expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
+          ['Previsão do dia R$ 1.000,00', 'Faturado hoje R$ 0,00', 'Projeção do mês hoje R$ 23.000,00', 'Projeção da semana hoje R$ 5.500,00'],
+        )
       end
     end
 

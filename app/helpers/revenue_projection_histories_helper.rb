@@ -30,7 +30,28 @@ module RevenueProjectionHistoriesHelper
   def revenue_projection_history_preset_path(preset)
     period = RevenueProjectionHistoryFilterForm.preset_period(preset)
 
-    revenue_projection_history_path(start_date: period.first, end_date: period.last)
+    revenue_projection_history_path(start_date: period.first, end_date: period.last, **revenue_projection_history_cut_params)
+  end
+
+  def revenue_projection_history_cut_params
+    request.query_parameters.slice(*FreightDocumentFilters::FILTER_PARAMS.map(&:to_s)).compact_blank.symbolize_keys
+  end
+
+  def revenue_projection_history_cut(cut_items)
+    return if cut_items.empty?
+
+    items = cut_items.map { |label, value| t('revenue_projection_histories.show.cut_item', label:, value:) }
+    tag.div(id: 'history_cut', class: 'mb-4') do
+      safe_join([tag.div(safe_join([tag.span(t('revenue_projection_histories.show.cut_label'), class: 'dashboard-filter-label'),
+                                    tag.span(items.join(' · '), class: 'small fw-semibold')]), class: 'dashboard-filter-bar mb-1'),
+                 tag.p(t('revenue_projection_histories.show.cut_note'), class: 'small text-muted mb-0')])
+    end
+  end
+
+  def revenue_projection_history_macro_region_name(macro_regions, value)
+    return t('dashboards.freight.none.macro_region') if value == MacroRegion::OTHERS
+
+    macro_regions.find_by(id: value)&.name
   end
 
   def revenue_projection_history_start_select(history)
@@ -186,8 +207,10 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_note_menu(row, history)
-    Menu.new(name: :note, record: row, url: edit_revenue_projection_day_note_path(row.date.iso8601, start_date: history.period.first, end_date: history.period.last),
-             icon: :'journal-text', data: { turbo_stream: true })
+    url = edit_revenue_projection_day_note_path(row.date.iso8601, start_date: history.period.first, end_date: history.period.last,
+                                                                  **revenue_projection_history_cut_params)
+
+    Menu.new(name: :note, record: row, url:, icon: :'journal-text', data: { turbo_stream: true })
   end
 
   def revenue_projection_history_opening_label(history)

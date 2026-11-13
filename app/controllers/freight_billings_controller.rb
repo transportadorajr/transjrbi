@@ -1,12 +1,5 @@
 class FreightBillingsController < BaseController
-  include ProductOptions
-
-  has_scope :by_plate, as: :plate
-  has_scope :by_driver, as: :driver_code
-  has_scope :by_customer_group, as: :customer_group_id
-  has_scope :by_product_group, as: :product_group_id
-  has_scope :by_product, as: :product_id
-  has_scope :by_origin_macro_region, as: :macro_region_id
+  include FreightDocumentFilters
 
   DETAIL_PARAM = 'detail'.freeze
 
@@ -14,11 +7,7 @@ class FreightBillingsController < BaseController
 
   def show
     @detail_row = opened_detail_row
-    @drivers = current_tenant.atua_transport_documents.drivers
-    @customer_groups = current_tenant.customer_groups.activated.order(:name)
-    @product_groups = current_tenant.product_groups.groups.activated.order(:name)
-    load_product_options
-    @macro_regions = current_tenant.macro_regions.order(:name)
+    load_freight_filter_options
     @last_synced_at = current_tenant.last_synced_at
     @rows = listing_page(@dashboard.sorted_rows(params[:sort], params[:direction]))
 
@@ -77,25 +66,15 @@ class FreightBillingsController < BaseController
     @filter_form = FreightBillingFilterForm.new(filter_params)
     return redirect_to(freight_billing_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
-    @truck_groups = current_tenant.truck_groups.activated.where(remaining_axles: false).order(:name)
-    @dashboard = Dashboard::Freight.new(documents,
+    @truck_groups = freight_truck_groups
+    @dashboard = Dashboard::Freight.new(filtered_freights(@filter_form.truck_group_id),
                                         manifests: current_tenant.atua_manifests,
                                         dimension: @filter_form.dimension,
                                         period: @filter_form.period,
                                         own_fleet: current_tenant.own_fleet)
   end
 
-  def documents
-    documents = apply_scopes(current_tenant.billable_freights)
-    truck_group_id = @filter_form.truck_group_id
-    return documents if truck_group_id.blank?
-
-    truck_group = @truck_groups.find_by(id: truck_group_id)
-    truck_group ? documents.by_truck_group(truck_group, @truck_groups.flat_map(&:plates)) : documents.none
-  end
-
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, :plate, :driver_code, :customer_group_id, :product_group_id, :product_id, :macro_region_id,
-                  :truck_group_id)
+    params.permit(:start_date, :end_date, :dimension, *FreightDocumentFilters::FILTER_PARAMS)
   end
 end
