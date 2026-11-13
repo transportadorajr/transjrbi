@@ -4,22 +4,24 @@ module RevenueProjections
     WEEK_START = :sunday
 
     class << self
-      def call(tenant, period_type:, at: Time.current, factors: nil)
-        new(tenant, period_type, at, factors).call
+      def call(tenant, period_type:, at: Time.current, factors: nil, documents: nil, daily_totals: nil)
+        new(tenant, period_type, at, factors:, documents:, daily_totals:).call
       end
     end
 
-    def initialize(tenant, period_type, at, factors)
+    def initialize(tenant, period_type, at, factors: nil, documents: nil, daily_totals: nil)
       @tenant = tenant
       @period_type = period_type.to_sym
       @at = at
       @factors = factors
+      @documents = documents
+      @daily_totals = daily_totals
 
       raise ArgumentError, "unknown period type: #{period_type}" unless PERIOD_TYPES.include?(@period_type)
     end
 
     def call
-      consolidate_missing_days
+      consolidate_missing_days unless @daily_totals
 
       RevenueProjection::Result.new(period_type:, period:, reference_at:, days: period.map { build_day(it) }, factors: factors.to_h,
                                     history_days: forecaster.history_days(reference_date))
@@ -67,7 +69,7 @@ module RevenueProjections
     end
 
     def documents
-      tenant.billable_freights.active.not_canceled
+      (@documents || tenant.billable_freights).active.not_canceled
     end
 
     def realized_totals
@@ -92,11 +94,12 @@ module RevenueProjections
     end
 
     def forecaster
-      @forecaster ||= RevenueProjection::Forecaster.new(
-        tenant.revenue_projection_daily_totals.where(date: (reference_date - RevenueProjection::Forecaster::BASELINE_DAYS)...reference_date)
-          .index_by(&:date),
-        RevenueProjection::Calendar.new(holidays), factors
-      )
+      @forecaster ||= RevenueProjection::Forecaster.new(daily_totals, RevenueProjection::Calendar.new(holidays), factors)
+    end
+
+    def daily_totals
+      @daily_totals || tenant.revenue_projection_daily_totals.where(date: (reference_date - RevenueProjection::Forecaster::BASELINE_DAYS)...reference_date)
+        .index_by(&:date)
     end
   end
 end
