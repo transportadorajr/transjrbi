@@ -4,6 +4,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
+  let!(:notes_resource) { create(:resource, name: 'Anotações da projeção', slug: 'revenue_projection_notes', writable: true) }
 
   before { travel_to(Time.zone.local(2026, 11, 4, 10)) }
 
@@ -73,10 +74,10 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
            ['01/11 a 07/11', 'R$ 1.800,00', 'R$ 1.300,00', 'R$ 1.600,00', '-', 'Em andamento']],
         )
         expect(html_table_to_rows(table: find_by_id('history_days'))).to eq(
-          [['Dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Projeção do mês na manhã'],
-           ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 23.000,00'],
-           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', 'R$ 23.100,00'],
-           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-']],
+          [['Dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Projeção do mês na manhã', 'Ações'],
+           ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 23.000,00', ''],
+           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', 'R$ 23.100,00', ''],
+           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', '']],
         )
         expect(RevenueProjection::Snapshot.where(tenant:).month.count).to eq(4)
       end
@@ -106,6 +107,76 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       expect(page).to have_text('Nenhum registro encontrado')
       expect(page).to have_no_css('#history_cards')
       expect(page).to have_no_link('Exportar Excel')
+    end
+  end
+
+  context 'when the owner writes the notes of the days', :js do
+    let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
+
+    before do
+      build_history(tenant)
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'writes a note explaining a day' do
+      visit revenue_projection_history_path
+      find_by_id('history_days').find('tr', text: '02/11 seg').click_on('Anotar o dia 02/11/2026')
+
+      within('#revenue_projection_day_note_modal') do
+        expect(page).to have_text('Anotação de 02/11/2026 (segunda-feira)')
+        fill_in 'Anotação', with: 'Greve no porto parou o carregamento'
+
+        expect { click_on 'Salvar anotação' }.to change(RevenueProjection::DayNote, :count).by(1)
+      end
+
+      expect(page).to have_text('Anotação salva.')
+      expect(page).to have_current_path(revenue_projection_history_path(month: '2026-11'))
+      expect(page).to have_css('#history_days .history-note-row', text: 'Greve no porto parou o carregamento — Bruna Dona')
+      note = RevenueProjection::DayNote.last
+      expect(note).to have_attributes(tenant:, user: owner, date: Date.new(2026, 11, 2), body: 'Greve no porto parou o carregamento')
+    end
+
+    context 'with a note already written' do
+      let!(:note) { create(:revenue_projection_day_note, tenant:, user: owner, date: Date.new(2026, 11, 3), body: 'Chuva na usina') }
+
+      scenario 'erases the note leaving it blank' do
+        visit revenue_projection_history_path
+        expect(page).to have_css('#history_days .history-note-row', text: 'Chuva na usina — Bruna Dona')
+
+        find_by_id('history_days').find('tr', text: '03/11 ter').click_on('Anotar o dia 03/11/2026')
+        within('#revenue_projection_day_note_modal') do
+          expect(page).to have_field('Anotação', with: 'Chuva na usina')
+          fill_in 'Anotação', with: ''
+
+          expect { click_on 'Salvar anotação' }.to change(RevenueProjection::DayNote, :count).by(-1)
+        end
+
+        expect(page).to have_text('Anotação salva.')
+        expect(page).to have_no_css('#history_days .history-note-row')
+      end
+    end
+  end
+
+  context 'when a user who only reads the projection is signed in' do
+    let!(:operator) { create(:user, tenant:, user_type: :operator) }
+    let!(:access) { create(:access, user: operator, resource:, reads: true) }
+
+    before do
+      build_history(tenant)
+      create(:revenue_projection_day_note, tenant:, date: Date.new(2026, 11, 2), body: 'Greve no porto')
+      login_as(operator, scope: :user)
+    end
+
+    scenario 'sees the notes but cannot write them' do
+      visit revenue_projection_history_path
+
+      expect(page).to have_css('#history_days .history-note-row', text: 'Greve no porto')
+      expect(page).to have_no_link('Anotar o dia 02/11/2026')
+
+      page.driver.submit :patch, revenue_projection_day_note_path('2026-11-02'), { revenue_projection_day_note: { body: 'Outra' } }
+
+      expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
+      expect(RevenueProjection::DayNote.pluck(:body)).to eq(['Greve no porto'])
     end
   end
 
@@ -153,6 +224,9 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       expect(page).to have_no_css('#history_days th', text: 'DIFERENÇA', visible: :visible)
       expect(page).to have_css('#history_days td', text: '+33,3%', visible: :visible)
       expect(page).to have_css('#history_weeks th', text: 'ABERTURA', visible: :visible)
+      expect(page).to have_link('Anotar o dia 02/11/2026', visible: :visible)
+      expect(page.evaluate_script("document.querySelector('#history_days').scrollWidth <= document.querySelector('#history_days').parentElement.clientWidth"))
+        .to be(true)
       expect(page.evaluate_script("document.querySelector('#history_weeks').scrollWidth <= document.querySelector('#history_weeks').parentElement.clientWidth"))
         .to be(true)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)

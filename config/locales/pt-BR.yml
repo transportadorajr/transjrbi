@@ -114,6 +114,10 @@ pt-BR:
         name: Nome
         scope_type: Abrangência
         kind_type: Tipo
+      revenue_projection/day_note:
+        date: Dia
+        body: Anotação
+        user: Autor
       workshop_employee:
         name: Nome
         role_type: Função
@@ -816,6 +820,9 @@ pt-BR:
         name: Nome
         scope_type: Abrangência
         kind_type: Tipo
+      revenue_projection_day_note_form:
+        date: Dia
+        body: Anotação
       workshop_employee_form:
         name: Nome
         role_type: Função
@@ -971,6 +978,10 @@ pt-BR:
           attributes:
             date:
               taken: já tem um feriado cadastrado
+        revenue_projection_day_note_form:
+          attributes:
+            date:
+              future: não pode ser um dia que ainda não terminou
         workshop_employee_form:
           attributes:
             name:
@@ -1321,6 +1332,8 @@ pt-BR:
     tooltips:
       admin/http_request:
         show: Visualizar
+      dashboard/revenue_projection_history/day_row:
+        note: Anotar o dia %{model}
       dashboard/freight/row:
         show: Visualizar
       dashboard/trip/row:
@@ -1595,6 +1608,7 @@ pt-BR:
     freight_billing: Faturamento
     trips: Viagens
     revenue_projection: Projeção de faturamento
+    revenue_projection_notes: Anotações da projeção
   tax:
     blank: '-'
     city: '%{city}/%{state}'
@@ -2195,6 +2209,17 @@ pt-BR:
         semanas do mesmo dia da semana), ajustado pelo que a memória aprendeu: feriados e emendas cadastrados em
         Feriados, o fim de mês e a correção de cada dia da semana. A faixa provável vai de uma semana mais fraca a uma
         mais forte do mesmo período.
+  revenue_projection_day_notes:
+    modal:
+      title: Anotação de %{date}
+    form:
+      hint:
+        one: Até %{count} caractere. Deixe em branco para apagar a anotação.
+        other: Até %{count} caracteres. Deixe em branco para apagar a anotação.
+      placeholder: 'Ex.: chuva parou o carregamento na usina; greve no porto.'
+      submit: Salvar anotação
+    update:
+      success: Anotação salva.
   revenue_projection_histories:
     show:
       title: Histórico da projeção
@@ -2240,6 +2265,8 @@ pt-BR:
       closed: Encerrada
       in_progress: Em andamento
       missing: '-'
+      actions: Ações
+      note_author: — %{name}
     xlsx:
       summary: Resumo
       evolution: Evolução da projeção
@@ -2264,6 +2291,8 @@ pt-BR:
       week_start: Início
       week_end: Fim
       day_type: Tipo do dia
+      note: Anotação
+      note_author: Autor da anotação
       booleans:
         'true': Sim
         'false': Não

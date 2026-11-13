@@ -10,6 +10,7 @@ module RevenueProjectionHistoriesHelper
   ].freeze
   HISTORY_DATE_TICKS = 8
   HISTORY_CARD_COLUMNS = 'col-12 col-md-6 col-xxl-3'.freeze
+  HISTORY_DAY_COLUMNS = 7
 
   def revenue_projection_history_body(history)
     return render('shared/no_content') unless history.any?
@@ -112,6 +113,23 @@ module RevenueProjectionHistoriesHelper
     cents.negative? ? 'text-danger' : 'text-success'
   end
 
+  def revenue_projection_history_day_menu(row)
+    menus = []
+    menus << revenue_projection_history_note_menu(row) if can?(:update, :revenue_projection_notes)
+    menus
+  end
+
+  def revenue_projection_history_note_row(row)
+    return unless row.note
+
+    tag.tr(class: 'history-note-row') do
+      tag.td(colspan: HISTORY_DAY_COLUMNS, class: 'small text-muted pt-0') do
+        safe_join([icon(:'journal-text'), tag.span(row.note.body, class: 'fst-italic text-wrap'),
+                   tag.span(t('revenue_projection_histories.show.note_author', name: row.note.user.name))], ' ')
+      end
+    end
+  end
+
   def revenue_projection_history_export_button(history)
     xlsx_export_button if history.any?
   end
@@ -129,6 +147,11 @@ module RevenueProjectionHistoriesHelper
   end
 
   private
+
+  def revenue_projection_history_note_menu(row)
+    Menu.new(name: :note, record: row, url: edit_revenue_projection_day_note_path(row.date.iso8601), icon: :'journal-text',
+             data: { turbo_stream: true })
+  end
 
   def revenue_projection_history_xlsx_header(key)
     t(key, scope: 'revenue_projection_histories.xlsx')
@@ -181,7 +204,9 @@ module RevenueProjectionHistoriesHelper
      xlsx_field(t('revenue_projection_histories.show.difference'), :money, &:difference_cents),
      revenue_projection_history_xlsx_ratio(revenue_projection_history_xlsx_header(:difference_ratio)),
      xlsx_field(t('revenue_projection_histories.show.documents'), :integer, &:documents_count),
-     xlsx_field(t('revenue_projection_histories.show.month_projection'), :money, &:month_projected_cents)]
+     xlsx_field(t('revenue_projection_histories.show.month_projection'), :money, &:month_projected_cents),
+     xlsx_field(revenue_projection_history_xlsx_header(:note)) { |row| row.note&.body },
+     xlsx_field(revenue_projection_history_xlsx_header(:note_author)) { |row| row.note&.user&.name }]
   end
 
   def revenue_projection_history_opening_label(history)

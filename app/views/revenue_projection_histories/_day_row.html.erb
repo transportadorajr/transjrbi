@@ -5,7 +5,7 @@
     <%= revenue_projection_history_day_label(row) %>
     <%= revenue_projection_history_day_type(row) %>
   </td>
-  <td class="text-end text-nowrap"><%= revenue_projection_history_money(row.forecast_cents) %></td>
+  <td class="text-end text-nowrap d-none d-sm-table-cell"><%= revenue_projection_history_money(row.forecast_cents) %></td>
   <td class="text-end text-nowrap">
     <%= revenue_projection_history_money(row.billed_cents) %>
     <%= revenue_projection_history_compact_ratio(row) %>
@@ -15,4 +15,6 @@
   </td>
   <td class="text-end d-none d-lg-table-cell"><%= row.documents_count %></td>
   <td class="text-end text-nowrap d-none d-lg-table-cell"><%= revenue_projection_history_money(row.month_projected_cents) %></td>
+  <td class="text-end"><%= responsive_actions_menu(revenue_projection_history_day_menu(row)) %></td>
 </tr>
+<%= revenue_projection_history_note_row(row) %>

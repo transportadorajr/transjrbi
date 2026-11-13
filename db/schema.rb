@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_143217) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_13_145849) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1071,6 +1071,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_143217) do
     t.index ["tenant_id", "date"], name: "index_revenue_projection_day_forecasts_on_tenant_id_and_date", unique: true
   end
 
+  create_table "revenue_projection_day_notes", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "user_id", null: false
+    t.date "date", null: false
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "date"], name: "index_revenue_projection_day_notes_on_tenant_id_and_date", unique: true
+    t.index ["user_id"], name: "index_revenue_projection_day_notes_on_user_id"
+  end
+
   create_table "revenue_projection_factors", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.enum "factor_type", null: false, enum_type: "revenue_projection_factor_type"
@@ -1305,6 +1316,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_143217) do
   add_foreign_key "product_groups", "tenants"
   add_foreign_key "revenue_projection_daily_totals", "tenants"
   add_foreign_key "revenue_projection_day_forecasts", "tenants"
+  add_foreign_key "revenue_projection_day_notes", "tenants"
+  add_foreign_key "revenue_projection_day_notes", "users"
   add_foreign_key "revenue_projection_factors", "tenants"
   add_foreign_key "revenue_projection_snapshots", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
