@@ -54,7 +54,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       scenario 'compares the projection with the billing day by day and week by week from the revenue projections menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Projeções de faturamento'
+          click_on 'Metas e projeções'
           expect(page).to have_no_link('Projeção de faturamento')
           click_on 'Histórico da projeção'
         end

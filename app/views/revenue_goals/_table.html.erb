@@ -1,0 +1,15 @@
+<%# locals: (vehicles:) %>
+
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="revenue_goals_vehicles">
+    <thead>
+      <tr>
+        <th><%= RevenueGoalsForm::VehicleLine.human_attribute_name(:plate) %></th>
+        <th class="text-end"><%= RevenueGoalsForm::VehicleLine.human_attribute_name(:amount) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'revenue_goals/row', collection: vehicles, as: :vehicle %>
+    </tbody>
+  </table>
+</div>
