@@ -25,34 +25,8 @@ module RevenueProjections
 
     attr_reader :tenant, :dates
 
-    def documents
-      tenant.billable_freights.active.not_canceled.where(issued_at: dates.first.beginning_of_day..dates.last.end_of_day)
-    end
-
-    def hourly_totals
-      @hourly_totals ||= documents.group_by_hour(:issued_at).sum(:freight_cents)
-        .each_with_object(Hash.new { |hash, date| hash[date] = Array.new(RevenueProjection::DailyTotal::HOURS, 0) }) do |(time, cents), totals|
-        totals[time.to_date][time.hour] += cents.to_i
-      end
-    end
-
-    def documents_counts
-      @documents_counts ||= documents.group_by_day(:issued_at).count
-    end
-
-    def calendar
-      @calendar ||= RevenueProjection::Calendar.new(tenant.holidays.where(date: dates).index_by(&:date))
-    end
-
     def rows
-      now = Time.current
-
-      dates.map do |date|
-        hourly = hourly_totals.fetch(date) { Array.new(RevenueProjection::DailyTotal::HOURS, 0) }
-
-        { tenant_id: tenant.id, date:, wday: date.wday, day_type: calendar.day_type(date), billed_cents: hourly.sum, hourly_cents: hourly,
-          documents_count: documents_counts.fetch(date, 0), consolidated_at: now, created_at: now, updated_at: now }
-      end
+      BuildDailyTotalsCommand.call(tenant, tenant.billable_freights, dates)
     end
 
     def fill_forecast_actuals
