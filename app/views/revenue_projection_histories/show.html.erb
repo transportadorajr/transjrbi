@@ -1,7 +1,9 @@
 <% content_for :title, t('.title') %>
 
 <div class="page-shell">
-  <%= page_header_tag t('.title'), subtitle: t('.subtitle') %>
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= revenue_projection_history_export_button(@history) %>
+  <% end %>
 
   <%= revenue_projection_history_body(@history) %>
 </div>

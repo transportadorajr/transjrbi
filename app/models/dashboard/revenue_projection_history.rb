@@ -67,6 +67,10 @@ module Dashboard
       [period.last, today.yesterday].min
     end
 
+    def snapshots
+      @snapshots ||= tenant.revenue_projection_snapshots.month.where(period_start: month).order(:taken_on).to_a
+    end
+
     def opening
       snapshots.first
     end
@@ -137,10 +141,6 @@ module Dashboard
 
     def closed_days
       period.first..last_closed_date
-    end
-
-    def snapshots
-      @snapshots ||= tenant.revenue_projection_snapshots.month.where(period_start: month).order(:taken_on).to_a
     end
 
     def snapshots_by_date
