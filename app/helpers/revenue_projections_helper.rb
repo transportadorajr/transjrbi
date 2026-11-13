@@ -41,54 +41,6 @@ module RevenueProjectionsHelper
     t('revenue_projections.show.week_title', start: l(period_start, format: :chart_week), finish: l(period_end, format: :chart_week))
   end
 
-  def revenue_projection_memory_body(memory)
-    return render('revenue_projections/memory_summary', memory:) if memory.any?
-
-    tag.p(t('revenue_projections.memory.empty'), class: 'text-muted small p-3 mb-0')
-  end
-
-  def revenue_projection_day_label(day_type, wday)
-    return t('date.day_names')[wday].capitalize if day_type.to_sym == :regular
-
-    RevenueProjection::DayForecast.human_enum_name(:day_type, day_type)
-  end
-
-  def revenue_projection_factor_label(factor_type, wday)
-    return t('revenue_projections.memory.weekday_bias', day: t('date.day_names')[wday]) if factor_type.to_sym == :weekday_bias
-
-    RevenueProjection::Factor.human_enum_name(:factor_type, factor_type)
-  end
-
-  def revenue_projection_factor_value(value)
-    t('revenue_projections.memory.factor_value', value: number_to_percentage(value * 100, precision: 0))
-  end
-
-  def revenue_projection_factor_status(row)
-    return status_badge(t('revenue_projections.memory.learned'), kind: :success) if row.learned
-
-    status_badge(t('revenue_projections.memory.default'), kind: :secondary)
-  end
-
-  def revenue_projection_error(ratio)
-    return t('revenue_projections.memory.missing') unless ratio
-
-    number_to_percentage(ratio * 100, precision: 1)
-  end
-
-  def revenue_projection_bias(ratio)
-    return t('revenue_projections.memory.missing') unless ratio
-    return t('revenue_projections.memory.bias_none') if ratio.round(3).zero?
-
-    t(ratio.negative? ? 'revenue_projections.memory.bias_below' : 'revenue_projections.memory.bias_above',
-      value: number_to_percentage(ratio.abs * 100, precision: 1))
-  end
-
-  def revenue_projection_signed_error(ratio)
-    return t('revenue_projections.memory.missing') unless ratio
-
-    "#{'+' unless ratio.negative?}#{number_to_percentage(ratio * 100, precision: 1)}"
-  end
-
   def revenue_projection_deadline_label(projection)
     t('revenue_projections.show.projected_until', time: l(projection.period.last.end_of_day, format: :date_time))
   end
@@ -133,9 +85,8 @@ module RevenueProjectionsHelper
     end
   end
 
-  def revenue_projection_xlsx_sheets(projection, memory)
-    [revenue_projection_xlsx_summary(projection), revenue_projection_xlsx_days(projection),
-     *(revenue_projection_xlsx_memory(memory) if memory.any?)]
+  def revenue_projection_xlsx_sheets(projection)
+    [revenue_projection_xlsx_summary(projection), revenue_projection_xlsx_days(projection)]
   end
 
   private
@@ -154,20 +105,6 @@ module RevenueProjectionsHelper
                xlsx_field(t('revenue_projections.xlsx.holiday')) { |day| day.holiday&.name }]
 
     Export::Sheet.new(name: t('revenue_projections.xlsx.days'), columns:, rows: projection.days)
-  end
-
-  def revenue_projection_xlsx_memory(memory)
-    errors = [xlsx_field(t('revenue_projections.memory.day')) { |row| revenue_projection_day_label(row.day_type, row.wday) },
-              xlsx_field(t('revenue_projections.memory.days'), :integer, &:days),
-              xlsx_field(t('revenue_projections.memory.mean_error_column'), :percentage) { |row| row.mean_absolute_error&.*(100) },
-              xlsx_field(t('revenue_projections.memory.bias_column'), :percentage) { |row| row.bias&.*(100) }]
-    factors = [xlsx_field(t('revenue_projections.memory.factor')) { |row| revenue_projection_factor_label(row.factor_type, row.wday) },
-               xlsx_field(t('revenue_projections.memory.value'), :percentage) { |row| row.value * 100 },
-               xlsx_field(t('revenue_projections.memory.observations'), :integer, &:observations_count),
-               xlsx_field(t('revenue_projections.memory.status')) { |row| t(row.learned ? 'learned' : 'default', scope: 'revenue_projections.memory') }]
-
-    [Export::Sheet.new(name: t('revenue_projections.memory.errors_title'), columns: errors, rows: memory.error_rows),
-     Export::Sheet.new(name: t('revenue_projections.memory.factors_title'), columns: factors, rows: memory.factor_rows)]
   end
 
   def revenue_projection_point_dataset(labels_count, point_index, align)

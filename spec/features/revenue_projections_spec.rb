@@ -77,41 +77,18 @@ describe 'Revenue projection', flipper: { revenue_projection: :tenant } do
         expect(page).to have_text('Mês de novembro de 2026')
       end
 
-      scenario 'tells that the memory is built overnight' do
-        visit revenue_projection_path
-
-        expect(page).to have_text('Memória da projeção')
-        expect(page).to have_text('A memória é montada toda madrugada')
-        expect(page).to have_no_table('memory_errors')
-      end
-
       context 'with the memory refreshed' do
-        before do
-          create(:holiday, tenant:, date: Date.new(2026, 10, 12), name: 'Nossa Senhora Aparecida')
-          RevenueProjections::RefreshMemoryCommand.call(tenant, at: now.change(hour: 6))
-        end
+        before { RevenueProjections::RefreshMemoryCommand.call(tenant, at: now.change(hour: 6)) }
 
-        scenario 'shows where the projection misses and what it learned' do
+        scenario 'keeps the memory stored without showing it on the screen' do
           visit revenue_projection_path
 
           expect(RevenueProjection::DayForecast.where(tenant:).with_actual.count).to eq(58)
-          expect(page).to have_text(/Erro médio por dia \(90 dias\)\s+1,4%/)
-          expect(page).to have_text(/Tendência \(90 dias\)\s+1,4% abaixo do real/)
-          expect(html_table_to_rows(table: find_by_id('memory_errors'))).to eq(
-            [
-              ['Dia', 'Dias', 'Erro médio', 'Tendência'],
-              ['Segunda-feira', '7', '0,0%', '+0,0%'], ['Terça-feira', '8', '0,0%', '+0,0%'], ['Quarta-feira', '7', '0,0%', '+0,0%'],
-              ['Quinta-feira', '7', '0,0%', '+0,0%'], ['Sexta-feira', '7', '0,0%', '+0,0%'], ['Sábado', '7', '0,0%', '+0,0%'],
-              ['Feriado em dia útil', '1', '70,0%', '-70,0%'], ['Fim de mês', '6', '0,0%', '+0,0%']
-            ],
-          )
-          expect(html_table_to_rows(table: find_by_id('memory_factors'))).to include(
-            ['Ajuste', 'Valor', 'Base (dias)', 'Situação'],
-            ['Feriado em dia útil', '30% do típico', '1', 'Padrão'],
-            ['Fim de mês', '100% do típico', '6', 'Aprendido'],
-            ['Correção de segunda-feira', '100% do típico', '6', 'Aprendido'],
-            ['Correção de domingo', '100% do típico', '0', 'Padrão'],
-          )
+          expect(RevenueProjection::Factor.where(tenant:).count).to eq(12)
+          expect(page).to have_text('Mês de novembro de 2026')
+          expect(page).to have_no_text('Memória da projeção')
+          expect(page).to have_no_table('memory_errors')
+          expect(page).to have_no_table('memory_factors')
         end
       end
 

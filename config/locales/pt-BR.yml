@@ -2144,32 +2144,6 @@ pt-BR:
       excluded_issuer_data_text: >-
         Escolha o usuário do Atua que emitiu os CT-es ou CEs. Só aparecem os usuários que já emitiram algum documento.
   revenue_projections:
-    memory:
-      title: Memória da projeção
-      subtitle: >-
-        Toda madrugada o sistema guarda o faturamento de cada dia, compara com o que tinha previsto para ele e reaprende
-        os ajustes que a projeção usa. Inclui os dias reconstruídos a partir do histórico.
-      empty: A memória é montada toda madrugada a partir do faturamento de cada dia. Volte amanhã para ver a primeira comparação.
-      mean_error: Erro médio por dia (90 dias)
-      bias: Tendência (90 dias)
-      errors_title: Onde a projeção erra
-      factors_title: O que a projeção aprendeu
-      day: Dia
-      days: Dias
-      mean_error_column: Erro médio
-      bias_column: Tendência
-      factor: Ajuste
-      value: Valor
-      observations: Base (dias)
-      status: Situação
-      learned: Aprendido
-      default: Padrão
-      factor_value: '%{value} do típico'
-      weekday_bias: Correção de %{day}
-      bias_below: '%{value} abaixo do real'
-      bias_above: '%{value} acima do real'
-      bias_none: Sem tendência
-      missing: '-'
     periods:
       week: Sem. atual
       month: Mês atual
