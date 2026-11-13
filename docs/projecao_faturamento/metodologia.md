@@ -8,7 +8,7 @@ Responder, a qualquer momento do mês ou da semana, a pergunta:
 
 > Hoje, às 15:17, faturamos R$ X. No nosso ritmo, onde vamos fechar o mês (dia 30 às 23:59) e a semana (sábado às 23:59)?
 
-A projeção aparece em **Inteligência > Projeção de faturamento**, com um card para o mês e outro para a semana.
+A projeção aparece em **Projeções de faturamento > Histórico da projeção**, que mostra a projeção de cada manhã do mês e da semana comparada com o faturado. A tela própria da projeção (Projeção de faturamento) foi removida.
 
 ## 2. O que é "faturamento" aqui
 
@@ -162,8 +162,6 @@ Na primeira execução, a memória é **reconstruída a partir do histórico**: 
 
 A cada madrugada a memória também guarda a projeção do mês e da semana daquela manhã, que alimenta o **Histórico da projeção**. As manhãs do mês anterior e do mês atual que ainda não estão guardadas são reconstruídas da mesma forma, com o que se sabia em cada dia, e ficam marcadas como reconstruídas.
 
-A tela mostra a memória na seção **Memória da projeção**: o erro médio por dia e a tendência dos últimos 90 dias, onde a projeção erra (por dia da semana, feriados e fim de mês) e o que ela aprendeu.
-
 ## 7. Precisão medida
 
 Backtest com os dados locais: projeção às 17h dos dias 5, 10, 15, 20, 25 e 28 de setembro e outubro/2026 (mês), e de segunda a sexta às 17h de 07/09 a 07/11/2026 (semana). Em cada data, os fatores foram reaprendidos só com o que se sabia até ela.
@@ -181,7 +179,7 @@ A correção do dia da semana praticamente corta pela metade o erro do mês. Na 
 - **Ainda fica um pouco abaixo do real no mês** (−2% em média no backtest).
 - **Não prevê eventos novos.** Um contrato novo ou um cliente que parou só entram na conta conforme o faturamento real aparece nas semanas seguintes.
 - **Poucos feriados no histórico:** enquanto houver menos de 2 do mesmo tipo no último ano, vale o fator inicial.
-- **Empresa sem histórico:** a projeção é igual ao faturado, e a tela avisa.
+- **Empresa sem histórico:** a projeção é igual ao faturado.
 
 ## 9. Próximos passos
 
@@ -198,6 +196,6 @@ A correção do dia da semana praticamente corta pela metade o erro do mês. Na 
 | Atualização diária da memória | `app/command/revenue_projections/refresh_memory_command.rb` |
 | Consolidado diário, previsão do dia e aprendizado | `consolidate_days_command.rb`, `forecast_days_command.rb` e `learn_factors_command.rb` em `app/command/revenue_projections/` |
 | Resultado (totais e faixa) | `app/models/revenue_projection/result.rb` |
-| Dados do gráfico | `app/models/dashboard/revenue_projection.rb` |
-| Tela | `app/controllers/revenue_projections_controller.rb` e `app/views/revenue_projections/` |
+| Flag da funcionalidade | `app/models/dashboard/revenue_projection.rb` |
+| Tela | `app/controllers/revenue_projection_histories_controller.rb` e `app/views/revenue_projection_histories/` |
 | Feriados nacionais | `app/command/holidays/seed_national_command.rb` |

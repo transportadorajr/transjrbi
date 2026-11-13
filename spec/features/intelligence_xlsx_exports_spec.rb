@@ -101,42 +101,6 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
-  context 'with access to the revenue projection', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
-    let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
-    let(:now) { Time.zone.local(2026, 11, 11, 15) }
-
-    before do
-      travel_to(now)
-      (Date.new(2026, 8, 17)..Date.new(2026, 11, 11)).each do |date|
-        next if date.sunday?
-
-        create(:atua_transport_document, tenant:, issued_at: date.in_time_zone.change(hour: 10), freight_cents: date.saturday? ? 50_000 : 100_000)
-      end
-      create(:atua_import, tenant:, status_type: 'succeeded', finished_at: now)
-      RevenueProjections::RefreshMemoryCommand.call(tenant, at: now.change(hour: 6))
-    end
-
-    scenario 'exports the projection, the day by day billing and the memory of the projection' do
-      visit revenue_projection_path
-      click_on 'Exportar Excel'
-
-      expect(page.response_headers['Content-Disposition']).to include('attachment', 'filename="projecao-de-faturamento-2026-11-11.xlsx"')
-      expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Dia a dia', 'Onde a projeção erra', 'O que a projeção aprendeu'])
-      expect(downloaded_xlsx_records('Resumo')).to eq(
-        [{ 'Período' => 'Mês de novembro de 2026', 'Faturado até' => DateTime.new(2026, 11, 11, 15), 'Faturado' => 8_500, 'Projeção' => 23_000,
-           'Mínimo provável' => 23_000, 'Máximo provável' => 23_000 }],
-      )
-      expect(downloaded_xlsx_records('Dia a dia').size).to eq(30)
-      expect(downloaded_xlsx_records('Dia a dia').first).to eq(
-        'Data' => Date.new(2026, 11, 1), 'Faturado' => 0, 'Previsto' => 0, 'Mínimo provável' => 0, 'Máximo provável' => 0, 'Feriado' => nil,
-      )
-      expect(downloaded_xlsx_rows('Onde a projeção erra').first).to eq(['Dia', 'Dias', 'Erro médio', 'Tendência'])
-      expect(downloaded_xlsx_records('O que a projeção aprendeu')).to include(
-        'Ajuste' => 'Fim de mês', 'Valor' => 1, 'Base (dias)' => 6, 'Situação' => 'Aprendido',
-      )
-    end
-  end
-
   context 'with the documents of two trucks in the revenue projection history', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
     let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 

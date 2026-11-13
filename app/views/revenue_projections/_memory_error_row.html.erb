@@ -1,8 +1,0 @@
-<%# locals: (row:) %>
-
-<tr>
-  <td class="fw-semibold"><%= revenue_projection_day_label(row.day_type, row.wday) %></td>
-  <td class="text-end d-none d-md-table-cell"><%= row.days %></td>
-  <td class="text-end text-nowrap"><%= revenue_projection_error(row.mean_absolute_error) %></td>
-  <td class="text-end text-nowrap"><%= revenue_projection_signed_error(row.bias) %></td>
-</tr>
