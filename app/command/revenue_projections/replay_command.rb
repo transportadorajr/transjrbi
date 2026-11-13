@@ -34,8 +34,16 @@ module RevenueProjections
     end
 
     def totals
-      @totals ||= BuildDailyTotalsCommand.call(tenant, documents, (first_morning - RevenueProjection::Forecaster::BASELINE_DAYS)..[period.last, today - 1].min)
+      @totals ||= BuildDailyTotalsCommand.call(tenant, documents, totals_start..[period.last, today - 1].min)
         .map { RevenueProjection::DailyTotal.new(it) }.index_by(&:date)
+    end
+
+    def totals_start
+      [first_morning - RevenueProjection::Forecaster::BASELINE_DAYS, first_company_date].compact.max
+    end
+
+    def first_company_date
+      tenant.billable_freights.active.not_canceled.minimum(:issued_at)&.to_date
     end
 
     def forecasts

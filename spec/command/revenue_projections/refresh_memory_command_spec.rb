@@ -36,11 +36,14 @@ RSpec.describe RevenueProjections::RefreshMemoryCommand do
         .to not_change(RevenueProjection::DailyTotal, :count).and not_change(RevenueProjection::DayForecast, :count)
     end
 
-    it 'reconstructs the snapshots of the days of the month before today and takes the snapshot of today' do
+    it 'reconstructs the snapshots of the days of last month and of this month before today and takes the snapshot of today' do
       described_class.call(tenant, at:)
 
       snapshots = tenant.revenue_projection_snapshots
-      expect(snapshots.count).to eq(22)
+      expect(snapshots.count).to eq(84)
+      expect(snapshots.month.where(period_start: Date.new(2026, 10, 1)).pluck(:taken_on)).to eq((Date.new(2026, 10, 1)..Date.new(2026, 10, 31)).to_a)
+      expect(snapshots.find_by!(period_type: 'month', taken_on: Date.new(2026, 10, 1)))
+        .to have_attributes(period_end: Date.new(2026, 10, 31), realized_cents: 0, reconstructed: true)
       expect(snapshots.where(taken_on: ...at.to_date).pluck(:reconstructed).uniq).to eq([true])
       expect(snapshots.where(taken_on: at.to_date).pluck(:reconstructed)).to eq([false, false])
       expect(snapshots.find_by!(period_type: 'month', taken_on: Date.new(2026, 11, 1)))

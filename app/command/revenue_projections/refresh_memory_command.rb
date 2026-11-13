@@ -4,6 +4,7 @@ module RevenueProjections
     BACKFILL_WARMUP_DAYS = 28
     BACKFILL_SLICE_DAYS = 7
     SNAPSHOT_HOUR = 6
+    RECONSTRUCTED_MONTHS = 1
 
     class << self
       def call(tenant, at: Time.current)
@@ -58,7 +59,7 @@ module RevenueProjections
     end
 
     def reconstruct_snapshots
-      dates = [today.beginning_of_month, first_date].max...today
+      dates = [today.beginning_of_month.months_ago(RECONSTRUCTED_MONTHS), first_date].max...today
       taken = tenant.revenue_projection_snapshots.where(taken_on: dates).group(:taken_on).count
 
       dates.each do |date|

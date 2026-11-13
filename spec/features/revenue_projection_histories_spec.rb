@@ -220,7 +220,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(html_table_to_rows(table: find_by_id('history_days')).drop(1).map { it.values_at(0, 1, 2) }).to eq(
           [['01/11 dom', 'R$ 0,00', 'R$ 0,00'], ['02/11 seg', 'R$ 500,00', 'R$ 500,00 +0,0%'], ['03/11 ter', 'R$ 500,00', 'R$ 500,00 +0,0%']],
         )
-        expect(RevenueProjection::Snapshot.where(tenant:).count).to eq(8)
+        expect(RevenueProjection::Snapshot.where(tenant:).count).to eq(70)
 
         click_on 'Sem. atual'
 
