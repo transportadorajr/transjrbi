@@ -1,0 +1,31 @@
+<%# locals: (rows:) %>
+
+<div class="card table-card mb-4">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('revenue_projection_histories.show.weeks_title') %></p>
+      <p class="table-card-subtitle"><%= t('revenue_projection_histories.show.weeks_subtitle') %></p>
+    </div>
+  </div>
+  <div class="table-card-body">
+    <div class="table-responsive">
+      <table class="table table-sm app-table align-middle mb-0" id="history_weeks">
+        <thead>
+          <tr>
+            <th><%= t('revenue_projection_histories.show.week') %></th>
+            <th class="text-end"><%= revenue_projection_history_header(:week_opening) %></th>
+            <th class="text-end d-none d-lg-table-cell"><%= t('revenue_projection_histories.show.week_forecast') %></th>
+            <th class="text-end"><%= t('revenue_projection_histories.show.billed') %></th>
+            <th class="text-end d-none d-md-table-cell"><%= t('revenue_projection_histories.show.difference') %></th>
+            <th class="text-end d-none d-md-table-cell"><%= t('revenue_projection_histories.show.status') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rows.each do |row| %>
+            <%= render 'week_row', row: %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

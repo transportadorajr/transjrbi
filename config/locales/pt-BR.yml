@@ -2195,6 +2195,51 @@ pt-BR:
         semanas do mesmo dia da semana), ajustado pelo que a memória aprendeu: feriados e emendas cadastrados em
         Feriados, o fim de mês e a correção de cada dia da semana. A faixa provável vai de uma semana mais fraca a uma
         mais forte do mesmo período.
+  revenue_projection_histories:
+    show:
+      title: Histórico da projeção
+      subtitle: O que a projeção indicava a cada dia do mês e quanto foi faturado de fato, dia a dia e semana a semana.
+      month_label: Mês
+      previous_month: Mês anterior
+      next_month: Próximo mês
+      opening: Projeção na abertura (%{date})
+      latest_projection: Projeção atual (%{date})
+      final_projection: Última projeção (%{date})
+      billed_month: Faturado no mês
+      billed_until: Faturado até %{date}
+      difference_open: Variação da projeção desde a abertura
+      difference_closed: Faturado x projeção na abertura
+      difference_value: '%{value} (%{ratio})'
+      in_progress_note: O mês ainda está em andamento; o faturado considera só os dias já encerrados.
+      hit_since: A projeção ficou a menos de %{tolerance} do faturado a partir de %{date}.
+      never_hit: A projeção não chegou a ficar a menos de %{tolerance} do faturado.
+      reconstructed: >-
+        As projeções de %{start} a %{finish} foram reconstruídas a partir do histórico, com o que se sabia em cada um
+        desses dias.
+      chart_title: Evolução da projeção do mês
+      chart_subtitle: A projeção do fechamento do mês em cada manhã, a faixa provável e o faturado acumulado até aquele dia.
+      weeks_title: Semana a semana
+      weeks_subtitle: >-
+        A projeção da semana no domingo em que ela começou comparada com o faturado. Semanas que cruzam a virada do mês
+        mostram só os dias deste mês.
+      week: Semana
+      week_period: '%{start} a %{finish}'
+      week_opening: Projeção na abertura
+      week_opening_short: Abertura
+      week_forecast: Soma das previsões diárias
+      days_title: Dia a dia
+      days_subtitle: A previsão feita na manhã de cada dia comparada com o que foi faturado nele.
+      date: Dia
+      day: '%{date} %{weekday}'
+      forecast: Previsto
+      billed: Faturado
+      difference: Diferença
+      documents: CT-es
+      month_projection: Projeção do mês na manhã
+      status: Situação
+      closed: Encerrada
+      in_progress: Em andamento
+      missing: '-'
   holidays:
     national:
       new_year: Confraternização Universal
@@ -2573,6 +2618,12 @@ pt-BR:
     revenue_projection:
       realized: Faturado
       projected: Projeção
+    revenue_projection_history:
+      projected: Projeção do mês
+      low: Mínimo provável
+      high: Máximo provável
+      realized: Faturado acumulado
+      billed: Faturado no mês
     freight:
       total: Total
       gross: Frete bruto
@@ -3052,6 +3103,7 @@ pt-BR:
     freight_billing: Faturamento
     trips: Viagens
     revenue_projection: Projeção de faturamento
+    revenue_projection_history: Histórico da projeção
     registrations: Cadastros
     customers: Clientes
     customer_groups: Grupos de clientes

@@ -20,6 +20,12 @@ shared:
           feature: revenue_projection
           controllers:
             - revenue_projections
+        - name: revenue_projection_history
+          resource: revenue_projection
+          url: /revenue_projection_history
+          feature: revenue_projection
+          controllers:
+            - revenue_projection_histories
     - name: tax
       icon: receipt
       menus:

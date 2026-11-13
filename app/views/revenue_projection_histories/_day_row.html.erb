@@ -1,0 +1,18 @@
+<%# locals: (row:) %>
+
+<tr>
+  <td class="fw-semibold text-nowrap">
+    <%= revenue_projection_history_day_label(row) %>
+    <%= revenue_projection_history_day_type(row) %>
+  </td>
+  <td class="text-end text-nowrap"><%= revenue_projection_history_money(row.forecast_cents) %></td>
+  <td class="text-end text-nowrap">
+    <%= revenue_projection_history_money(row.billed_cents) %>
+    <%= revenue_projection_history_compact_ratio(row) %>
+  </td>
+  <td class="text-end text-nowrap d-none d-md-table-cell <%= revenue_projection_history_difference_class(row.difference_cents) %>">
+    <%= revenue_projection_history_difference(row.difference_cents, row.difference_ratio) %>
+  </td>
+  <td class="text-end d-none d-lg-table-cell"><%= row.documents_count %></td>
+  <td class="text-end text-nowrap d-none d-lg-table-cell"><%= revenue_projection_history_money(row.month_projected_cents) %></td>
+</tr>
