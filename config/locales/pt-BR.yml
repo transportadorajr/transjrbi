@@ -1167,6 +1167,10 @@ pt-BR:
         optional_day: Ponto facultativo
         month_end: Fim de mês
         weekday_bias: Correção do dia da semana
+    revenue_projection/snapshot:
+      period_type:
+        month: Mês
+        week: Semana
     commission_rule:
       destination_type:
         national: Nacional (qualquer UF brasileira)

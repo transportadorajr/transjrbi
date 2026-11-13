@@ -38,6 +38,12 @@ RSpec.describe RevenueProjections::LearnFactorsCommand do
       expect(factor('weekday_holiday').value).to eq(BigDecimal('0.35'))
     end
 
+    it 'learns the factors of a past moment without storing them' do
+      expect(described_class.factor_set(tenant, at: Time.zone.local(2026, 10, 27, 6)).value(:weekday_holiday)).to eq(0.3)
+      expect(described_class.factor_set(tenant, at:).value(:weekday_holiday)).to eq(0.385)
+      expect(RevenueProjection::Factor.count).to eq(0)
+    end
+
     it 'updates the factors when run again' do
       described_class.call(tenant, at:)
 
