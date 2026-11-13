@@ -1,0 +1,12 @@
+<%# locals: (row:, position:, row_counter: nil) %>
+
+<tr>
+  <td class="text-end text-muted"><%= goal_position(position, row_counter) %></td>
+  <td class="fw-semibold"><%= row.label %></td>
+  <td class="text-end d-none d-md-table-cell"><%= goal_money(row.goal_cents) %></td>
+  <td class="text-end d-none d-md-table-cell"><%= goal_money(row.realized_cents) %></td>
+  <td class="text-end d-none d-lg-table-cell"><%= goal_money(row.missing_cents) %></td>
+  <td class="text-end"><%= goal_ratio(row.ratio) %></td>
+  <td class="text-end d-none d-lg-table-cell"><%= goal_money(row.projected_cents) %></td>
+  <td class="text-end"><%= goal_status_badge(row) %></td>
+</tr>

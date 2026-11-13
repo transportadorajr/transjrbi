@@ -889,3 +889,40 @@
     background-color: var(--freight-billing-toll-color);
   }
 }
+
+.goal-progress {
+  --goal-progress-color: var(--bs-dark);
+
+  display: block;
+  width: 100%;
+  height: 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  appearance: none;
+  background-color: var(--bs-tertiary-bg);
+
+  &::-webkit-progress-bar {
+    background-color: var(--bs-tertiary-bg);
+  }
+
+  &::-webkit-progress-value {
+    background-color: var(--goal-progress-color);
+  }
+
+  &::-moz-progress-bar {
+    background-color: var(--goal-progress-color);
+  }
+}
+
+.goal-progress-success {
+  --goal-progress-color: var(--bs-success);
+}
+
+.goal-progress-warning {
+  --goal-progress-color: var(--bs-warning);
+}
+
+.goal-progress-danger {
+  --goal-progress-color: var(--bs-danger);
+}

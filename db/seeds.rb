@@ -40,6 +40,8 @@ end
   'holidays' => { name: 'Feriados', writable: true },
   'revenue_projection' => { name: 'Projeção de faturamento', writable: false },
   'revenue_projection_notes' => { name: 'Anotações da projeção', writable: true },
+  'revenue_goals' => { name: 'Metas de faturamento', writable: true },
+  'goals' => { name: 'Painel de metas', writable: false },
   'maintenance' => { name: 'Módulo de manutenção', writable: false },
   'maintenance_orders' => { name: 'Ordens de serviço', writable: true },
   'workshop_employees' => { name: 'Funcionários da oficina', writable: true },
@@ -52,6 +54,7 @@ end
 
 Flipper.add(Dashboard::Trip::FEATURE)
 Flipper.add(Dashboard::RevenueProjection::FEATURE)
+Flipper.add(Dashboard::Goals::FEATURE)
 Flipper.add(MaintenanceOrder::FEATURE)
 
 Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?

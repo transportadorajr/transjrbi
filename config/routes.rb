@@ -93,6 +93,9 @@ Rails.application.routes.draw do
     resources :cities
     resources :truck_groups
     resource :own_fleet, only: %i[show edit update]
+    resource :revenue_goals, only: %i[show edit update] do
+      post :replicate
+    end
     resources :excluded_issuers, only: %i[index new create destroy]
     resources :holidays, except: :show
     resources :route_distances, except: :show do
@@ -110,6 +113,7 @@ Rails.application.routes.draw do
     resource :revenue_projection_history, only: :show do
       get :product_options
     end
+    resource :goals, only: :show
     resources :revenue_projection_day_notes, only: %i[edit update], param: :date, constraints: { date: /\d{4}-\d{2}-\d{2}/ }
     resources :trips, only: :index do
       get :detail, on: :collection
