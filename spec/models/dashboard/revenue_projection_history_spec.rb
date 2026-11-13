@@ -20,7 +20,7 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
   end
 
   it 'has nothing to show without snapshots' do
-    expect(described_class.new(tenant, nil, nil, today:)).not_to be_any
+    expect(described_class.new(tenant, 'month', Date.new(2026, 11, 1).all_month, today:)).not_to be_any
   end
 
   context 'with the current month in progress' do
@@ -42,19 +42,17 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
       forecast(Date.new(2026, 11, 4), 100_000)
     end
 
-    let(:history) { described_class.new(tenant, nil, nil, today:) }
+    let(:history) { described_class.new(tenant, 'month', Date.new(2026, 11, 1).all_month, today:) }
 
-    it 'opens the latest month and lists the months with snapshots' do
+    it 'lists the months with snapshots' do
       expect(history).to be_month
+      expect(history).to be_snapshot_period
       expect(history.start).to eq(Date.new(2026, 11, 1))
-      expect(history.period).to eq(Date.new(2026, 11, 1)..Date.new(2026, 11, 30))
       expect(history.starts).to eq([Date.new(2026, 11, 1), Date.new(2026, 10, 1)])
-      expect(described_class.new(tenant, 'month', '2026-10-01', today:).start).to eq(Date.new(2026, 10, 1))
-      expect(described_class.new(tenant, 'year', '2025-01-01', today:)).to have_attributes(period_type: 'month', start: Date.new(2026, 11, 1))
     end
 
     it 'follows the projection of the week the same way' do
-      week = described_class.new(tenant, 'week', nil, today:)
+      week = described_class.new(tenant, 'week', Date.new(2026, 11, 1)..Date.new(2026, 11, 7), today:)
 
       expect(week).to be_week
       expect(week.starts).to eq([Date.new(2026, 11, 1)])
@@ -64,6 +62,25 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
       expect(week.day_rows.map { [it.date.day, it.projected_cents] }).to eq([[1, 0], [2, nil], [3, nil]])
       expect(week.week_rows).to eq([])
       expect(week.chart_data.first[:name]).to eq('Projeção da semana')
+    end
+
+    it 'compares the daily forecasts with the billing of any other range of days' do
+      range = described_class.new(tenant, 'range', Date.new(2026, 11, 2)..Date.new(2026, 11, 3), today:)
+
+      expect(range).to be_any
+      expect(range).not_to be_snapshot_period
+      expect(range.snapshots).to eq([])
+      expect(range).to be_closed
+      expect(range.forecast_cents).to eq(130_000)
+      expect(range.billed_cents).to eq(160_000)
+      expect(range.difference_cents).to eq(30_000)
+      expect(range.difference_ratio.round(3)).to eq(0.231)
+      expect(range.day_rows.map { [it.date.day, it.projected_cents] }).to eq([[2, 2_310_000], [3, nil]])
+      expect(range.week_rows.map(&:period)).to eq([Date.new(2026, 11, 2)..Date.new(2026, 11, 3)])
+      expect(range.chart_data).to eq(
+        [{ name: 'Previsto acumulado', data: { '02/11' => 300.0, '03/11' => 1_300.0 } },
+         { name: 'Faturado acumulado', data: { '02/11' => 400.0, '03/11' => 1_600.0 } }],
+      )
     end
 
     it 'compares the latest projection with the opening one while the month is open' do
@@ -105,7 +122,7 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
       total(Date.new(2026, 10, 10), 2_200_000)
     end
 
-    let(:history) { described_class.new(tenant, 'month', '2026-10-01', today:) }
+    let(:history) { described_class.new(tenant, 'month', Date.new(2026, 10, 1).all_month, today:) }
 
     it 'compares the billing of the month with the opening projection and tells since when the projection hit it' do
       expect(history).to be_closed

@@ -2,8 +2,7 @@ module Dashboard
   class RevenueProjectionHistory
     HIT_TOLERANCE = 0.05
     LABEL_FORMAT = :chart_week
-    PERIOD_TYPES = %w[month week].freeze
-    DEFAULT_PERIOD_TYPE = 'month'.freeze
+    SNAPSHOT_PERIOD_TYPES = %w[month week].freeze
 
     DayRow = Data.define(:date, :day_type, :forecast_cents, :billed_cents, :documents_count, :projected_cents, :note) do
       extend ActiveModel::Naming
@@ -31,28 +30,27 @@ module Dashboard
       end
     end
 
-    class << self
-      def sanitize_period_type(period_type)
-        PERIOD_TYPES.include?(period_type.to_s) ? period_type.to_s : DEFAULT_PERIOD_TYPE
-      end
+    attr_reader :period_type, :period
 
-      def period_start(period_type, date)
-        period_type.to_s == 'week' ? date.beginning_of_week(RevenueProjections::CalculateCommand::WEEK_START) : date.beginning_of_month
-      end
+    def initialize(tenant, period_type, period, today: Date.current)
+      @tenant = tenant
+      @period_type = period_type.to_s
+      @period = period
+      @today = today
     end
 
-    attr_reader :period_type, :start, :starts
+    def start
+      period.first
+    end
 
-    def initialize(tenant, period_type, start_param, today: Date.current)
-      @tenant = tenant
-      @today = today
-      @period_type = self.class.sanitize_period_type(period_type)
-      @starts = tenant.revenue_projection_snapshots.where(period_type: @period_type).distinct.order(period_start: :desc).pluck(:period_start)
-      @start = @starts.find { it.iso8601 == start_param.to_s } || @starts.first
+    def starts
+      @starts ||= tenant.revenue_projection_snapshots.where(period_type:).distinct.order(period_start: :desc).pluck(:period_start)
     end
 
     def any?
-      start.present?
+      return snapshots.any? if snapshot_period?
+
+      totals.any? || forecasts.any?
     end
 
     def month?
@@ -63,8 +61,8 @@ module Dashboard
       period_type == 'week'
     end
 
-    def period
-      month? ? start.all_month : start.all_week(RevenueProjections::CalculateCommand::WEEK_START)
+    def snapshot_period?
+      SNAPSHOT_PERIOD_TYPES.include?(period_type)
     end
 
     def closed?
@@ -76,6 +74,8 @@ module Dashboard
     end
 
     def snapshots
+      return [] unless snapshot_period?
+
       @snapshots ||= tenant.revenue_projection_snapshots.where(period_type:, period_start: start).order(:taken_on).to_a
     end
 
@@ -91,12 +91,19 @@ module Dashboard
       closed_days.sum { totals[it]&.billed_cents.to_i }
     end
 
+    def forecast_cents
+      forecasts.values_at(*closed_days).compact.sum(&:forecast_cents)
+    end
+
     def difference_cents
+      return billed_cents - forecast_cents unless snapshot_period?
+
       (closed? ? billed_cents : latest.projected_cents) - opening.projected_cents
     end
 
     def difference_ratio
-      difference_cents.to_f / opening.projected_cents if opening.projected_cents.positive?
+      base = snapshot_period? ? opening.projected_cents : forecast_cents
+      difference_cents.to_f / base if base.positive?
     end
 
     def hit_since
@@ -135,6 +142,8 @@ module Dashboard
     end
 
     def chart_data
+      return range_chart_data unless snapshot_period?
+
       series = [
         { name: I18n.t(period_type, scope: 'dashboards.revenue_projection_history.projected'), data: chart_points(&:projected_cents) },
         { name: I18n.t('dashboards.revenue_projection_history.low'), data: chart_points(&:low_cents) },
@@ -154,7 +163,7 @@ module Dashboard
     end
 
     def snapshots_by_date
-      @snapshots_by_date ||= snapshots.index_by(&:taken_on)
+      @snapshots_by_date ||= (snapshot_period? ? snapshots : tenant.revenue_projection_snapshots.month.where(taken_on: period)).index_by(&:taken_on)
     end
 
     def week_snapshots
@@ -183,6 +192,21 @@ module Dashboard
 
     def chart_points(&)
       snapshots.to_h { [I18n.l(it.taken_on, format: LABEL_FORMAT), Money.from_cents(yield(it)).to_f] }
+    end
+
+    def range_chart_data
+      [
+        { name: I18n.t('dashboards.revenue_projection_history.forecast_accumulated'), data: accumulated_points { forecasts[it]&.forecast_cents.to_i } },
+        { name: I18n.t('dashboards.revenue_projection_history.realized'), data: accumulated_points { totals[it]&.billed_cents.to_i } },
+      ]
+    end
+
+    def accumulated_points
+      sum = 0
+      closed_days.to_h do |date|
+        sum += yield(date)
+        [I18n.l(date, format: LABEL_FORMAT), Money.from_cents(sum).to_f]
+      end
     end
   end
 end

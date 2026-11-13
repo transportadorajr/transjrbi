@@ -186,7 +186,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
 
     scenario 'exports the history of the week without the sheet of the weeks' do
-      visit revenue_projection_history_path(period: 'week')
+      visit revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-07')
       click_on 'Exportar Excel'
 
       expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Evolução da projeção', 'Dia a dia'])
@@ -199,6 +199,34 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Projeção da semana na manhã') }).to eq(
         [{ 'Dia' => Date.new(2026, 11, 1), 'Projeção da semana na manhã' => 23_000 }, { 'Dia' => Date.new(2026, 11, 2), 'Projeção da semana na manhã' => nil },
          { 'Dia' => Date.new(2026, 11, 3), 'Projeção da semana na manhã' => nil }],
+      )
+    end
+
+    scenario 'exports the forecast of today with the billing so far' do
+      create(:revenue_projection_day_forecast, tenant:, date: Date.new(2026, 11, 4), forecast_cents: 100_000)
+      create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 11, 4, 8), freight_cents: 70_000)
+
+      visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+      click_on 'Exportar Excel'
+
+      expect(downloaded_xlsx_sheet_names).to eq(['Resumo'])
+      expect(downloaded_xlsx_records('Resumo').map { it.slice('Dia', 'Previsão do dia', 'Faturado hoje', 'Diferença', 'CT-es', 'Projeção do mês hoje') }).to eq(
+        [{ 'Dia' => Date.new(2026, 11, 4), 'Previsão do dia' => 1_000, 'Faturado hoje' => 700, 'Diferença' => -300, 'CT-es' => 1,
+           'Projeção do mês hoje' => 23_300 }],
+      )
+    end
+
+    scenario 'exports the daily forecasts and the billing of a range of days' do
+      visit revenue_projection_history_path(start_date: '2026-11-02', end_date: '2026-11-03')
+      click_on 'Exportar Excel'
+
+      expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Semana a semana', 'Dia a dia'])
+      expect(downloaded_xlsx_records('Resumo')).to match(
+        [{ 'Período' => '02/11/2026 a 03/11/2026', 'Faturado até' => Date.new(2026, 11, 3), 'Soma das previsões diárias' => 300, 'Faturado' => 400,
+           'Diferença' => 100, 'Diferença (%)' => be_within(0.0001).of(0.3333), 'Período encerrado' => 'Sim' }],
+      )
+      expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Projeção do mês na manhã') }).to eq(
+        [{ 'Dia' => Date.new(2026, 11, 2), 'Projeção do mês na manhã' => nil }, { 'Dia' => Date.new(2026, 11, 3), 'Projeção do mês na manhã' => nil }],
       )
     end
   end
