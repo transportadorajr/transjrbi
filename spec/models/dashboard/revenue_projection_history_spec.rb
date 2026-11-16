@@ -131,6 +131,7 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
       expect(history.difference_cents).to eq(200_000)
       expect(history.difference_ratio).to eq(0.1)
       expect(history.hit_since).to eq(Date.new(2026, 10, 15))
+      expect(history).to be_evaluable
       expect(history.reconstructed_period).to be_nil
       expect(history.chart_data.last).to eq(name: 'Faturado no mês', data: { '01/10' => 22_000.0, '15/10' => 22_000.0, '31/10' => 22_000.0 })
     end
@@ -147,6 +148,41 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
                                                      Date.new(2026, 10, 11)..Date.new(2026, 10, 17), Date.new(2026, 10, 18)..Date.new(2026, 10, 24),
                                                      Date.new(2026, 10, 25)..Date.new(2026, 10, 31)])
       expect(history.week_rows.map { [it.closed, it.billed_cents, it.opening_cents] }.second).to eq([true, 2_200_000, nil])
+    end
+  end
+
+  context 'with a closed month without billing' do
+    before { snapshot(Date.new(2026, 10, 1), 0) }
+
+    it 'has no data to evaluate the projection' do
+      history = described_class.new(tenant, 'month', Date.new(2026, 10, 1).all_month, today:)
+
+      expect(history).to be_closed
+      expect(history.billed_cents).to eq(0)
+      expect(history).not_to be_evaluable
+      expect(history.hit_since).to be_nil
+    end
+  end
+
+  context 'with the projection of today recalculated during the day' do
+    before do
+      snapshot(Date.new(2026, 11, 1), 2_300_000)
+      snapshot(Date.new(2026, 11, 4), 2_330_000, current_projected_cents: 2_400_000, current_refreshed_at: Time.zone.local(2026, 11, 4, 9, 40))
+    end
+
+    it 'compares the opening with the current projection and keeps the projection of the morning in the history' do
+      history = described_class.new(tenant, 'month', Date.new(2026, 11, 1).all_month, today:)
+
+      expect(history).to have_attributes(current_projected_cents: 2_400_000, current_refreshed_at: Time.zone.local(2026, 11, 4, 9, 40),
+                                         difference_cents: 100_000)
+      expect(history.latest.projected_cents).to eq(2_330_000)
+      expect(history.chart_data.first[:data]).to eq('01/11' => 23_000.0, '04/11' => 23_300.0)
+    end
+
+    it 'uses the projection of the morning once the day is over' do
+      history = described_class.new(tenant, 'month', Date.new(2026, 11, 1).all_month, today: Date.new(2026, 11, 5))
+
+      expect(history).to have_attributes(current_projected_cents: 2_330_000, current_refreshed_at: nil)
     end
   end
 end

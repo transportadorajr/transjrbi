@@ -13,8 +13,8 @@ module RevenueProjectionHistoriesHelper
   HISTORY_SERIES = [HISTORY_PROJECTED_STYLE, HISTORY_RANGE_STYLE, HISTORY_RANGE_STYLE, HISTORY_REALIZED_STYLE, HISTORY_BILLED_STYLE].freeze
   HISTORY_DAYS_SERIES = [HISTORY_PROJECTED_STYLE, HISTORY_REALIZED_STYLE].freeze
   HISTORY_DATE_TICKS = 8
-  HISTORY_CARD_COLUMNS = 'col-12 col-md-6 col-xxl-3'.freeze
-  HISTORY_RANGE_CARD_COLUMNS = 'col-12 col-md-6 col-xxl-4'.freeze
+  HISTORY_CARD_COLUMNS = 'col-6 col-xl-3'.freeze
+  HISTORY_RANGE_CARD_COLUMNS = 'col-6 col-xl-4'.freeze
   HISTORY_DAY_COLUMNS = 7
 
   def revenue_projection_period_link_class(period_type, selected)
@@ -88,18 +88,19 @@ module RevenueProjectionHistoriesHelper
     safe_join([
                 counter_card(:dark, revenue_projection_history_opening_label(history), tax_money(Money.from_cents(history.opening.projected_cents)),
                              col_class: HISTORY_CARD_COLUMNS),
-                counter_card(:warning, revenue_projection_history_latest_label(history), tax_money(Money.from_cents(history.latest.projected_cents)),
+                counter_card(:warning, revenue_projection_history_latest_label(history), tax_money(Money.from_cents(history.current_projected_cents)),
                              col_class: HISTORY_CARD_COLUMNS),
                 counter_card(:primary, revenue_projection_history_billed_label(history), tax_money(Money.from_cents(history.billed_cents)),
                              col_class: HISTORY_CARD_COLUMNS),
                 counter_card(revenue_projection_history_difference_kind(history.difference_cents), revenue_projection_history_difference_label(history),
-                             revenue_projection_history_difference(history.difference_cents, history.difference_ratio),
+                             revenue_projection_history_difference_card(history.difference_cents, history.difference_ratio),
                              col_class: HISTORY_CARD_COLUMNS),
               ])
   end
 
   def revenue_projection_history_notes(history)
-    notes = [revenue_projection_history_hit_note(history), revenue_projection_history_reconstructed_note(history)].compact
+    notes = [revenue_projection_history_hit_note(history), revenue_projection_history_refresh_note(history),
+             revenue_projection_history_reconstructed_note(history)].compact
     safe_join(notes.map { tag.p(it, class: 'small text-muted mb-1') })
   end
 
@@ -151,6 +152,14 @@ module RevenueProjectionHistoriesHelper
     t('revenue_projection_histories.show.difference_value', value:, ratio: revenue_projection_history_signed_ratio(ratio))
   end
 
+  def revenue_projection_history_difference_card(cents, ratio)
+    value = revenue_projection_history_difference(cents, nil)
+    return value unless cents && ratio
+
+    ratio_text = t('revenue_projection_histories.show.difference_ratio', ratio: revenue_projection_history_signed_ratio(ratio))
+    safe_join([value, tag.span(ratio_text, class: 'counter-value-note')], ' ')
+  end
+
   def revenue_projection_history_signed_ratio(ratio)
     "#{'+' unless ratio.negative?}#{number_to_percentage(ratio * 100, precision: 1)}"
   end
@@ -174,8 +183,45 @@ module RevenueProjectionHistoriesHelper
 
   def revenue_projection_history_day_menu(row, history)
     menus = []
+    menus << revenue_projection_history_freights_menu(row, history) if row.documents_count.positive?
+    menus << revenue_projection_history_calculation_menu(row, history) if row.forecast_cents
     menus << revenue_projection_history_note_menu(row, history) if can?(:update, :revenue_projection_notes)
     menus
+  end
+
+  def revenue_projection_history_freights_body(transport_documents)
+    return render('shared/no_content') if transport_documents.empty?
+
+    render 'revenue_projection_histories/freights_table', transport_documents:
+  end
+
+  def revenue_projection_history_freights_total(transport_documents)
+    tax_money(Money.from_cents(transport_documents.sum(&:freight_cents)))
+  end
+
+  def revenue_projection_history_calculation_items(calculation)
+    {
+      RevenueProjection::DayForecast.human_attribute_name(:day_type) => RevenueProjection::DayForecast.human_enum_name(:day_type, calculation.day_type),
+      RevenueProjection::DayForecast.human_attribute_name(:typical) => revenue_projection_history_money(calculation.typical_cents),
+      RevenueProjection::DayForecast.human_attribute_name(:factor) => t('revenue_projection_histories.calculation.factor_value',
+                                                                        factor: number_with_precision(calculation.factor, precision: 2)),
+      RevenueProjection::DayForecast.human_attribute_name(:forecast) => revenue_projection_history_money(calculation.forecast_cents),
+      t('revenue_projection_histories.calculation.range') => t('revenue_projection_histories.calculation.range_value',
+                                                               low: revenue_projection_history_money(calculation.low_cents),
+                                                               high: revenue_projection_history_money(calculation.high_cents)),
+    }
+  end
+
+  def revenue_projection_history_calculation_window(calculation)
+    t('revenue_projection_histories.calculation.history_window', count: calculation.history_days.size,
+                                                                 weekday: t('date.day_names')[calculation.date.wday],
+                                                                 start: l(calculation.window.first), finish: l(calculation.window.last - 1))
+  end
+
+  def revenue_projection_history_calculation_body(calculation)
+    return tag.p(t('revenue_projection_histories.calculation.missing'), class: 'text-muted mb-0') unless calculation.any?
+
+    render 'revenue_projection_histories/calculation', calculation:
   end
 
   def revenue_projection_history_note_row(row)
@@ -206,9 +252,23 @@ module RevenueProjectionHistoriesHelper
                 counter_card(:primary, revenue_projection_history_billed_label(history), tax_money(Money.from_cents(history.billed_cents)),
                              col_class: HISTORY_RANGE_CARD_COLUMNS),
                 counter_card(revenue_projection_history_difference_kind(history.difference_cents), t('revenue_projection_histories.show.difference_range'),
-                             revenue_projection_history_difference(history.difference_cents, history.difference_ratio),
+                             revenue_projection_history_difference_card(history.difference_cents, history.difference_ratio),
                              col_class: HISTORY_RANGE_CARD_COLUMNS),
               ])
+  end
+
+  def revenue_projection_history_day_params(row, history)
+    { date: row.date.iso8601, start_date: history.period.first, end_date: history.period.last, **revenue_projection_history_cut_params }
+  end
+
+  def revenue_projection_history_freights_menu(row, history)
+    Menu.new(name: :freights, record: row, url: freights_revenue_projection_history_path(revenue_projection_history_day_params(row, history)),
+             icon: :'file-earmark-text', data: { turbo_stream: true })
+  end
+
+  def revenue_projection_history_calculation_menu(row, history)
+    Menu.new(name: :calculation, record: row, url: calculation_revenue_projection_history_path(revenue_projection_history_day_params(row, history)),
+             icon: :calculator, data: { turbo_stream: true })
   end
 
   def revenue_projection_history_note_menu(row, history)
@@ -223,6 +283,11 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_latest_label(history)
+    if history.current_refreshed_at
+      return t('revenue_projection_histories.show.refreshed_projection', date: l(history.latest.taken_on, format: :chart_week),
+                                                                         time: l(history.current_refreshed_at, format: :hour_minute))
+    end
+
     key = history.closed? ? 'final_projection' : 'latest_projection'
     t(key, scope: 'revenue_projection_histories.show', date: l(history.latest.taken_on, format: :chart_week))
   end
@@ -244,11 +309,18 @@ module RevenueProjectionHistoriesHelper
   def revenue_projection_history_hit_note(history)
     return t(history.period_type, scope: 'revenue_projection_histories.show.in_progress_note') unless history.closed?
     return unless history.snapshot_period?
+    return t('revenue_projection_histories.show.no_data_to_evaluate') unless history.evaluable?
 
     hit_since = history.hit_since
     return t('revenue_projection_histories.show.never_hit', tolerance: revenue_projection_history_tolerance) unless hit_since
 
     t('revenue_projection_histories.show.hit_since', date: l(hit_since, format: :chart_week), tolerance: revenue_projection_history_tolerance)
+  end
+
+  def revenue_projection_history_refresh_note(history)
+    return unless history.try(:current_refreshed_at)
+
+    t('revenue_projection_histories.show.refresh_note', time: l(history.current_refreshed_at, format: :hour_minute))
   end
 
   def revenue_projection_history_reconstructed_note(history)

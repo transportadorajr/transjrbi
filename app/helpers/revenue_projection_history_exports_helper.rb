@@ -57,7 +57,7 @@ module RevenueProjectionHistoryExportsHelper
      xlsx_field(revenue_projection_history_xlsx_header(:opening_date), :date) { |history| history.opening.taken_on },
      xlsx_field(revenue_projection_history_xlsx_header(:opening), :money) { |history| history.opening.projected_cents },
      xlsx_field(revenue_projection_history_xlsx_header(:latest_date), :date) { |history| history.latest.taken_on },
-     xlsx_field(revenue_projection_history_xlsx_header(:latest), :money) { |history| history.latest.projected_cents },
+     xlsx_field(revenue_projection_history_xlsx_header(:latest), :money, &:current_projected_cents),
      xlsx_field(revenue_projection_history_xlsx_header(:billed_until), :date, &:last_closed_date),
      xlsx_field(revenue_projection_history_xlsx_header(:billed), :money, &:billed_cents),
      xlsx_field(revenue_projection_history_xlsx_header(:difference), :money, &:difference_cents),
@@ -119,8 +119,8 @@ module RevenueProjectionHistoryExportsHelper
                xlsx_field(revenue_projection_history_xlsx_header(:difference), :money, &:difference_cents),
                revenue_projection_history_xlsx_ratio(revenue_projection_history_xlsx_header(:difference_ratio)),
                xlsx_field(t('revenue_projection_histories.show.documents'), :integer, &:documents_count),
-               xlsx_field(t('revenue_projection_histories.today.month_projection'), :money) { |row| row.month_snapshot&.projected_cents },
-               xlsx_field(t('revenue_projection_histories.today.week_projection'), :money) { |row| row.week_snapshot&.projected_cents },
+               xlsx_field(t('revenue_projection_histories.today.month_projection'), :money, &:month_projected_cents),
+               xlsx_field(t('revenue_projection_histories.today.week_projection'), :money, &:week_projected_cents),
                xlsx_field(revenue_projection_history_xlsx_header(:reference_at), :datetime, &:last_synced_at)]
 
     Export::Sheet.new(name: t('revenue_projection_histories.xlsx.summary'), columns:, rows: today.any? ? [today] : [])

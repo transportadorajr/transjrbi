@@ -75,13 +75,41 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           [['Semana', 'AberturaProjeção na abertura', 'Soma das previsões diárias', 'Faturado', 'Diferença', 'Situação'],
            ['01/11 a 07/11', 'R$ 1.800,00', 'R$ 1.300,00', 'R$ 1.600,00', '-', 'Em andamento']],
         )
+        expect(page).to have_css('#weeks_explanation', text: 'A projeção na abertura foi feita na manhã do domingo')
         expect(html_table_to_rows(table: find_by_id('history_days'))).to eq(
           [['Dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Projeção do mês na manhã', 'Ações'],
-           ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 23.000,00', ''],
-           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', 'R$ 23.100,00', ''],
-           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', '']],
+           ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 23.000,00', 'Opções Ver o cálculo da previsão de 01/11/2026 Anotar o dia 01/11/2026'],
+           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', 'R$ 23.100,00', 'Opções Visualizar CT-es de 02/11/2026 Ver o cálculo da previsão de 02/11/2026 Anotar o dia 02/11/2026'],
+           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', 'Opções Visualizar CT-es de 03/11/2026 Ver o cálculo da previsão de 03/11/2026 Anotar o dia 03/11/2026']],
         )
         expect(RevenueProjection::Snapshot.where(tenant:).month.count).to eq(4)
+      end
+
+      context 'with the projection recalculated during the day' do
+        before do
+          tenant.revenue_projection_snapshots.month.find_by!(taken_on: Date.new(2026, 11, 4))
+            .update!(current_projected_cents: 2_400_000, current_refreshed_at: Time.zone.local(2026, 11, 4, 9, 40))
+        end
+
+        scenario 'shows the current projection and keeps the projection of the morning in the history' do
+          visit revenue_projection_history_path
+
+          expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
+            ['Projeção na abertura (01/11) R$ 23.000,00', 'Projeção atual (04/11 09:40) R$ 24.000,00', 'Faturado até 03/11 R$ 1.600,00',
+             'Variação da projeção desde a abertura +R$ 1.000,00 (+4,3%)'],
+          )
+          expect(page).to have_text('A projeção atual é recalculada a cada 30 minutos (última às 09:40)')
+          expect(page).to have_text('Evolução da projeção do mês')
+          expect(RevenueProjection::Snapshot.month.find_by(tenant:, taken_on: Date.new(2026, 11, 4)).projected_cents).to eq(2_330_000)
+        end
+
+        scenario 'shows the current projection of the month on today' do
+          create(:revenue_projection_day_forecast, tenant:, date: Date.new(2026, 11, 4), forecast_cents: 100_000)
+          visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+
+          expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Projeção do mês hoje R$ 24.000,00')
+          expect(page).to have_css('#today_refresh_note', text: 'recalculadas a cada 30 minutos com o faturado até a última sincronização (última às 09:40)')
+        end
       end
 
       scenario 'chooses a previous closed month', :js do
@@ -94,7 +122,8 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           ['PROJEÇÃO NA ABERTURA (01/10) R$ 20.000,00', 'ÚLTIMA PROJEÇÃO (01/10) R$ 20.000,00', 'FATURADO NO MÊS R$ 0,00',
            'FATURADO X PROJEÇÃO NA ABERTURA -R$ 20.000,00 (-100,0%)'],
         )
-        expect(page).to have_text('A projeção não chegou a ficar a menos de 5% do faturado.')
+        expect(page).to have_text('Sem dados para avaliar a projeção.')
+        expect(page).to have_no_text('A projeção não chegou a ficar a menos de 5% do faturado.')
         expect(page).to have_no_text('reconstruídas')
       end
 
@@ -114,9 +143,9 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page).to have_no_table('history_weeks')
         expect(html_table_to_rows(table: find_by_id('history_days'))).to eq(
           [['Dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Projeção da semana na manhã', 'Ações'],
-           ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 0,00', ''],
-           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', '-', ''],
-           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', '']],
+           ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 0,00', 'Opções Ver o cálculo da previsão de 01/11/2026 Anotar o dia 01/11/2026'],
+           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', '-', 'Opções Visualizar CT-es de 02/11/2026 Ver o cálculo da previsão de 02/11/2026 Anotar o dia 02/11/2026'],
+           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', 'Opções Visualizar CT-es de 03/11/2026 Ver o cálculo da previsão de 03/11/2026 Anotar o dia 03/11/2026']],
         )
         expect(RevenueProjection::Snapshot.where(tenant:).week.count).to eq(1)
 
@@ -147,8 +176,8 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         )
         expect(html_table_to_rows(table: find_by_id('history_days'))).to eq(
           [['Dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Projeção do mês na manhã', 'Ações'],
-           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', 'R$ 23.100,00', ''],
-           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', '']],
+           ['02/11 seg Feriado em dia útil', 'R$ 300,00', 'R$ 400,00 +33,3%', '+R$ 100,00 (+33,3%)', '2', 'R$ 23.100,00', 'Opções Visualizar CT-es de 02/11/2026 Ver o cálculo da previsão de 02/11/2026 Anotar o dia 02/11/2026'],
+           ['03/11 ter', 'R$ 1.000,00', 'R$ 1.200,00 +20,0%', '+R$ 200,00 (+20,0%)', '5', '-', 'Opções Visualizar CT-es de 03/11/2026 Ver o cálculo da previsão de 03/11/2026 Anotar o dia 03/11/2026']],
         )
       end
 
@@ -178,7 +207,27 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
             ['Previsão do dia R$ 1.000,00', 'Faturado hoje R$ 700,00', 'Projeção do mês hoje R$ 23.300,00', 'Projeção da semana hoje R$ 5.500,00'],
           )
           expect(page).to have_text('o faturado vai até a última sincronização com o Atua (04/11/2026 09:30)')
+          within('#today_progress') do
+            expect(page).to have_text('Resultado parcial')
+            expect(page).to have_text('70,0% atingido')
+            expect(page).to have_text('R$ 300,00 restantes')
+            expect(page).to have_css('progress[value="70000"][max="100000"]')
+          end
           expect(page).to have_no_table('history_days')
+        end
+
+        context 'with the forecast of today exceeded' do
+          before { create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 11, 4, 9), freight_cents: 50_000) }
+
+          scenario 'tells by how much the forecast of today was exceeded' do
+            visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+
+            within('#today_progress') do
+              expect(page).to have_text('120,0% atingido')
+              expect(page).to have_text('Previsão superada em R$ 200,00')
+              expect(page).to have_css('progress[value="100000"][max="100000"]')
+            end
+          end
         end
       end
     end
@@ -215,7 +264,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page).to have_text('A projeção de cada manhã foi recalculada só com os CT-es deste recorte')
         expect(page).to have_no_text('foram reconstruídas a partir do histórico')
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
-          ['Projeção na abertura (01/11) R$ 11.500,00', 'Projeção atual (04/11) R$ 11.500,00', 'Faturado até 03/11 R$ 1.000,00',
+          ['Projeção na abertura (01/11) R$ 11.500,00', 'Projeção atual (04/11 10:00) R$ 11.500,00', 'Faturado até 03/11 R$ 1.000,00',
            'Variação da projeção desde a abertura +R$ 0,00 (+0,0%)'],
         )
         expect(html_table_to_rows(table: find_by_id('history_days')).drop(1).map { it.values_at(0, 1, 2) }).to eq(
@@ -269,6 +318,67 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(RevenueProjection::DayNote.last).to have_attributes(tenant:, date: Date.new(2026, 11, 2), body: 'Caminhão parado na oficina')
       end
 
+      scenario 'tells that there is no data to evaluate a closed month of a plate without documents' do
+        visit revenue_projection_history_path(period: 'month', start: '2026-10-01', plate: 'ZZZ9Z99')
+
+        expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Faturado no mês R$ 0,00')
+        expect(page).to have_text('Sem dados para avaliar a projeção.')
+        expect(page).to have_no_text('A projeção não chegou a ficar a menos de 5% do faturado.')
+      end
+
+      scenario 'lists the CT-es billed on a day keeping the date and the filters', :js do
+        visit revenue_projection_history_path(plate: 'BBB2B22')
+        find_by_id('history_days').find('tr', text: '03/11 ter').click_on('Visualizar CT-es de 03/11/2026')
+
+        within('#revenue_projection_freights_modal') do
+          expect(page).to have_text('CT-es de 03/11/2026')
+          expect(page).to have_css('#history_freights tbody tr', count: 1)
+          expect(find('#history_freights tbody tr')).to have_text('BBB2B22')
+          expect(find('#history_freights tfoot')).to have_text('R$ 500,00')
+        end
+        expect(page).to have_current_path(/plate=BBB2B22/)
+        expect(page).to have_css('#history_cut', text: 'Placa: BBB2B22')
+        expect(Atua::TransportDocument.where(tenant:, issued_at: Date.new(2026, 11, 3).all_day).count).to eq(2)
+      end
+
+      scenario 'shows the base of the forecast of a day', :js do
+        visit revenue_projection_history_path
+        find_by_id('history_days').find('tr', text: '03/11 ter').click_on('Ver o cálculo da previsão de 03/11/2026')
+
+        within('#revenue_projection_calculation_modal') do
+          expect(page).to have_text('Cálculo da previsão de 03/11/2026')
+          expect(dl_to_hash).to eq(
+            'Tipo do dia' => 'Dia normal', 'Valor típico do dia da semana' => 'R$ 1.500,00', 'Ajuste aplicado' => '× 1,00',
+            'Previsão do dia' => 'R$ 1.500,00', 'Faixa provável' => 'R$ 1.500,00 a R$ 1.500,00'
+          )
+          expect(page).to have_text('Dias normais de terça-feira entre 11/08/2026 e 02/11/2026: 10.')
+          expect(html_table_to_rows(table: find_by_id('calculation_history')).drop(1).map(&:second).uniq).to eq(['R$ 1.500,00'])
+          expect(html_table_to_rows(table: find_by_id('calculation_history')).size).to eq(11)
+        end
+      end
+
+      scenario 'shows the base of the forecast of a day recalculated for a plate', :js do
+        visit revenue_projection_history_path(plate: 'BBB2B22')
+        find_by_id('history_days').find('tr', text: '03/11 ter').click_on('Ver o cálculo da previsão de 03/11/2026')
+
+        within('#revenue_projection_calculation_modal') do
+          expect(dl_to_hash).to include('Valor típico do dia da semana' => 'R$ 500,00', 'Previsão do dia' => 'R$ 500,00')
+          expect(html_table_to_rows(table: find_by_id('calculation_history')).drop(1).map(&:second).uniq).to eq(['R$ 500,00'])
+        end
+      end
+
+      scenario 'answers not found for the CT-es of an invalid day' do
+        visit freights_revenue_projection_history_path(date: 'abc')
+
+        expect(page.status_code).to eq(404)
+      end
+
+      scenario 'answers not found for the calculation of an invalid day' do
+        visit calculation_revenue_projection_history_path(date: '2026-13-01')
+
+        expect(page.status_code).to eq(404)
+      end
+
       scenario 'recalculates the projection of a customer group and of today' do
         visit revenue_projection_history_path(customer_group_id: CustomerGroup.find_by!(name: 'GERDAU').id)
 
@@ -281,6 +391,10 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
           ['Previsão do dia R$ 1.000,00', 'Faturado hoje R$ 0,00', 'Projeção do mês hoje R$ 23.000,00', 'Projeção da semana hoje R$ 5.500,00'],
         )
+        within('#today_progress') do
+          expect(page).to have_text('0,0% atingido')
+          expect(page).to have_text('R$ 1.000,00 restantes')
+        end
       end
     end
 
@@ -435,6 +549,8 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       expect(page).to have_no_css('#history_days th', text: 'DIFERENÇA', visible: :visible)
       expect(page).to have_css('#history_days td', text: '+33,3%', visible: :visible)
       expect(page).to have_css('#history_weeks th', text: 'ABERTURA', visible: :visible)
+      within(find_by_id('history_days').find('tr', text: '02/11 seg')) { click_button 'Opções' }
+      expect(page).to have_link('Visualizar CT-es de 02/11/2026', visible: :visible)
       expect(page).to have_link('Anotar o dia 02/11/2026', visible: :visible)
       expect(page.evaluate_script("document.querySelector('#history_days').scrollWidth <= document.querySelector('#history_days').parentElement.clientWidth"))
         .to be(true)

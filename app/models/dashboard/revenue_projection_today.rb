@@ -26,7 +26,15 @@ module Dashboard
     end
 
     def billed_cents
-      documents.sum(:freight_cents)
+      @billed_cents ||= documents.sum(:freight_cents)
+    end
+
+    def achieved_ratio
+      billed_cents.to_f / forecast_cents if forecast_cents&.positive?
+    end
+
+    def remaining_cents
+      [forecast_cents - billed_cents, 0].max if forecast_cents
     end
 
     delegate :count, to: :documents, prefix: true
@@ -45,6 +53,18 @@ module Dashboard
 
     def week_snapshot
       snapshots['week']
+    end
+
+    def month_projected_cents
+      month_snapshot&.latest_projected_cents
+    end
+
+    def week_projected_cents
+      week_snapshot&.latest_projected_cents
+    end
+
+    def projections_refreshed_at
+      [month_snapshot, week_snapshot].filter_map { it&.current_refreshed_at }.max
     end
 
     def last_synced_at

@@ -1,0 +1,20 @@
+<%# locals: (today:) %>
+
+<div class="card detail-card mb-3" id="today_progress">
+  <div class="card-body">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+      <span class="fw-semibold"><%= t('revenue_projection_histories.today.progress_title') %></span>
+      <%= status_badge(t('revenue_projection_histories.today.partial'), kind: :warning) %>
+    </div>
+    <div class="d-flex flex-column flex-sm-row justify-content-between gap-1 mb-2">
+      <strong class="text-primary"><%= revenue_projection_history_today_achieved(today) %></strong>
+      <span class="text-muted"><%= revenue_projection_history_today_remaining(today) %></span>
+    </div>
+    <%= tag.progress revenue_projection_history_today_achieved(today),
+                     value: revenue_projection_history_today_progress_value(today),
+                     max: today.forecast_cents,
+                     class: 'day-progress',
+                     aria: { label: t('revenue_projection_histories.today.progress_label') } %>
+    <p class="small text-muted mb-0 mt-2"><%= t('revenue_projection_histories.today.progress_note') %></p>
+  </div>
+</div>

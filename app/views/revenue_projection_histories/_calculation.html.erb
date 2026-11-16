@@ -1,0 +1,34 @@
+<%# locals: (calculation:) %>
+
+<p class="small text-muted"><%= t('revenue_projection_histories.calculation.explanation') %></p>
+
+<dl class="row mb-4" id="calculation_summary">
+  <% revenue_projection_history_calculation_items(calculation).each do |label, value| %>
+    <dt class="col-12 col-md-6 fw-medium"><%= label %></dt>
+    <dd class="col-12 col-md-6 text-md-end"><%= value %></dd>
+  <% end %>
+</dl>
+
+<p class="fw-semibold mb-1"><%= t('revenue_projection_histories.calculation.history_title') %></p>
+<p class="small text-muted mb-2"><%= revenue_projection_history_calculation_window(calculation) %></p>
+
+<div class="table-responsive">
+  <table class="table table-sm app-table align-middle mb-2" id="calculation_history">
+    <thead>
+      <tr>
+        <th><%= t('revenue_projection_histories.show.date') %></th>
+        <th class="text-end"><%= t('revenue_projection_histories.show.billed') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% calculation.history_days.each do |day| %>
+        <tr>
+          <td><%= l(day.date) %></td>
+          <td class="text-end text-nowrap"><%= revenue_projection_history_money(day.billed_cents) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<p class="small text-muted mb-0"><%= t('revenue_projection_histories.calculation.history_note') %></p>

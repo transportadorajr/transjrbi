@@ -1,0 +1,29 @@
+<%# locals: (transport_documents:) %>
+
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="history_freights">
+    <thead>
+      <tr>
+        <th><%= Atua::TransportDocument.human_attribute_name(:number) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:route) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:plate) %></th>
+        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:driver_name) %></th>
+        <th class="text-end"><%= Atua::TransportDocument.human_attribute_name(:gross) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'revenue_projection_histories/freight_row', collection: transport_documents, as: :transport_document %>
+    </tbody>
+    <tfoot>
+      <tr class="fw-bold">
+        <td><%= t('revenue_projection_histories.freights.total') %></td>
+        <td class="d-none d-md-table-cell"></td>
+        <td class="d-none d-lg-table-cell"></td>
+        <td class="d-none d-md-table-cell"></td>
+        <td class="d-none d-lg-table-cell"></td>
+        <td class="text-end text-nowrap"><%= revenue_projection_history_freights_total(transport_documents) %></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>

@@ -1,0 +1,7 @@
+<%# locals: (calculation:) %>
+
+<%= render layout: 'components/new_modal',
+           locals: { id: 'revenue_projection_calculation_modal', title: t('revenue_projection_histories.calculation.title', date: l(calculation.date)),
+                     title_icon: :calculator, auto_show: true, show_footer: false, dialog_class: 'modal-lg modal-dialog-scrollable modal-fullscreen-sm-down' } do %>
+  <%= revenue_projection_history_calculation_body(calculation) %>
+<% end %>

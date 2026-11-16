@@ -118,6 +118,11 @@ pt-BR:
         date: Dia
         body: Anotação
         user: Autor
+      revenue_projection/day_forecast:
+        day_type: Tipo do dia
+        typical: Valor típico do dia da semana
+        factor: Ajuste aplicado
+        forecast: Previsão do dia
       workshop_employee:
         name: Nome
         role_type: Função
@@ -1349,6 +1354,8 @@ pt-BR:
       admin/http_request:
         show: Visualizar
       dashboard/revenue_projection_history/day_row:
+        freights: Visualizar CT-es de %{model}
+        calculation: Ver o cálculo da previsão de %{model}
         note: Anotar o dia %{model}
       dashboard/freight/row:
         show: Visualizar
@@ -2187,9 +2194,19 @@ pt-BR:
       month_projection: Projeção do mês hoje
       week_projection: Projeção da semana hoje
       note: >-
-        A previsão do dia e as projeções foram feitas hoje de manhã; o faturado vai até a última sincronização com o
-        Atua (%{time}).
-      never_synced: A previsão do dia e as projeções foram feitas hoje de manhã; o Atua ainda não foi sincronizado.
+        A previsão do dia foi feita hoje de manhã; o faturado vai até a última sincronização com o Atua (%{time}).
+      never_synced: A previsão do dia foi feita hoje de manhã; o Atua ainda não foi sincronizado.
+      morning_projections: As projeções do mês e da semana são as de hoje de manhã; elas são recalculadas a cada 30 minutos.
+      refreshed_projections: >-
+        As projeções do mês e da semana são recalculadas a cada 30 minutos com o faturado até a última sincronização
+        (última às %{time}).
+      progress_title: Andamento do dia
+      partial: Resultado parcial
+      achieved: '%{ratio} atingido'
+      remaining: '%{value} restantes'
+      exceeded: Previsão superada em %{value}
+      progress_label: Faturado hoje em relação à previsão do dia
+      progress_note: O dia ainda não terminou; o faturado vai até a última sincronização com o Atua.
     show:
       title: Histórico da projeção
       subtitle: O que a projeção indicava a cada manhã e quanto foi faturado de fato, dia a dia e semana a semana.
@@ -2208,6 +2225,10 @@ pt-BR:
       difference_range: Faturado x previsões diárias
       opening: Projeção na abertura (%{date})
       latest_projection: Projeção atual (%{date})
+      refreshed_projection: Projeção atual (%{date} %{time})
+      refresh_note: >-
+        A projeção atual é recalculada a cada 30 minutos (última às %{time}); o histórico guarda a projeção feita na
+        manhã de cada dia.
       final_projection: Última projeção (%{date})
       billed_period:
         month: Faturado no mês
@@ -2217,12 +2238,14 @@ pt-BR:
       difference_open: Variação da projeção desde a abertura
       difference_closed: Faturado x projeção na abertura
       difference_value: '%{value} (%{ratio})'
+      difference_ratio: '(%{ratio})'
       in_progress_note:
         month: O mês ainda está em andamento; o faturado considera só os dias já encerrados.
         week: A semana ainda está em andamento; o faturado considera só os dias já encerrados.
         range: O período ainda está em andamento; o faturado considera só os dias já encerrados.
       hit_since: A projeção ficou a menos de %{tolerance} do faturado a partir de %{date}.
       never_hit: A projeção não chegou a ficar a menos de %{tolerance} do faturado.
+      no_data_to_evaluate: Sem dados para avaliar a projeção.
       reconstructed: >-
         As projeções de %{start} a %{finish} foram reconstruídas a partir do histórico, com o que se sabia em cada um
         desses dias.
@@ -2243,8 +2266,14 @@ pt-BR:
       week_opening: Projeção na abertura
       week_opening_short: Abertura
       week_forecast: Soma das previsões diárias
+      weeks_explanation: >-
+        A projeção na abertura foi feita na manhã do domingo, com o histórico conhecido naquele dia. A soma das previsões
+        diárias junta a previsão que cada dia recebeu na sua própria manhã, já com o histórico mais recente; por isso os
+        dois valores podem ser diferentes. Para ver a base de cada previsão, use "Ver cálculo" no dia a dia.
       days_title: Dia a dia
-      days_subtitle: A previsão feita na manhã de cada dia comparada com o que foi faturado nele.
+      days_subtitle: >-
+        A previsão feita na manhã de cada dia comparada com o que foi faturado nele. Cada previsão é o valor típico daquele
+        dia da semana nas últimas 12 semanas, multiplicado pelos ajustes de feriado, fim de mês e dia da semana.
       date: Dia
       day: '%{date} %{weekday}'
       forecast: Previsto
@@ -2261,6 +2290,25 @@ pt-BR:
       missing: '-'
       actions: Ações
       note_author: — %{name}
+    freights:
+      title: CT-es de %{date}
+      subtitle: Os CT-es emitidos no dia, com os mesmos filtros da tela.
+      total: Total
+    calculation:
+      title: Cálculo da previsão de %{date}
+      explanation: >-
+        A previsão é o valor típico daquele dia da semana (a mediana do faturado nos dias normais das últimas 12 semanas)
+        multiplicado pelo ajuste aplicado. O ajuste junta o peso do tipo do dia (feriado, emenda, fim de mês) e a correção
+        aprendida para o dia da semana.
+      factor_value: × %{factor}
+      range: Faixa provável
+      range_value: '%{low} a %{high}'
+      history_title: Histórico utilizado
+      history_window: 'Dias normais de %{weekday} entre %{start} e %{finish}: %{count}.'
+      history_note: >-
+        Os valores mostram o faturado registrado hoje; se algum CT-e entrou depois daquela manhã, o valor usado na
+        previsão pode ter sido um pouco diferente.
+      missing: Não há previsão registrada para este dia.
     xlsx:
       summary: Resumo
       evolution: Evolução da projeção
@@ -3147,6 +3195,7 @@ pt-BR:
   time:
     formats:
       date_time: '%d/%m/%Y %H:%M'
+      hour_minute: '%H:%M'
   menus:
     tax: Fiscal
     maintenance_orders: Ordens de serviço

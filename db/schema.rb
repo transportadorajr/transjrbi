@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_13_200540) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_122301) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1110,6 +1110,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_13_200540) do
     t.boolean "reconstructed", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "current_projected_cents"
+    t.bigint "current_low_cents"
+    t.bigint "current_high_cents"
+    t.datetime "current_reference_at"
+    t.datetime "current_refreshed_at"
     t.index ["tenant_id", "period_type", "period_start", "taken_on"], name: "idx_on_tenant_id_period_type_period_start_taken_on_fad3550f68", unique: true
   end
 
