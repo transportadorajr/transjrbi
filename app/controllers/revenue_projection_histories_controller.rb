@@ -60,7 +60,11 @@ class RevenueProjectionHistoriesController < BaseController
   def history
     return today_history if @filter_form.period_type == 'today'
 
-    Dashboard::RevenueProjectionHistory.new(current_tenant, @filter_form.period_type, @filter_form.date_range, memory:)
+    Dashboard::RevenueProjectionHistory.new(current_tenant, @filter_form.period_type, @filter_form.date_range, memory:, documents: cut_freights)
+  end
+
+  def cut_freights
+    @cut_freights ||= filtered_freights(@filter_form.truck_group_id)
   end
 
   def today_goal
@@ -70,7 +74,7 @@ class RevenueProjectionHistoriesController < BaseController
   end
 
   def today_history
-    Dashboard::RevenueProjectionToday.new(current_tenant, memory:, documents: filtered_freights(@filter_form.truck_group_id))
+    Dashboard::RevenueProjectionToday.new(current_tenant, memory:, documents: cut_freights)
   end
 
   def memory

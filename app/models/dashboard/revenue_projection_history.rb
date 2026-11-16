@@ -32,12 +32,13 @@ module Dashboard
 
     attr_reader :period_type, :period
 
-    def initialize(tenant, period_type, period, today: Date.current, memory: ::RevenueProjection::StoredMemory.new(tenant))
+    def initialize(tenant, period_type, period, today: Date.current, memory: ::RevenueProjection::StoredMemory.new(tenant), documents: tenant.billable_freights)
       @tenant = tenant
       @period_type = period_type.to_s
       @period = period
       @today = today
       @memory = memory
+      @documents = documents
     end
 
     def start
@@ -171,7 +172,7 @@ module Dashboard
 
     private
 
-    attr_reader :tenant, :today, :memory
+    attr_reader :tenant, :today, :memory, :documents
 
     def live?
       !closed? && latest&.taken_on == today
@@ -219,7 +220,13 @@ module Dashboard
 
     def accumulated_billed
       sum = 0
-      closed_days.index_with { |date| sum += totals[date]&.billed_cents.to_i }
+      accumulated = closed_days.index_with { |date| sum += totals[date]&.billed_cents.to_i }
+      accumulated[today] = sum + today_billed_cents if period.cover?(today)
+      accumulated
+    end
+
+    def today_billed_cents
+      documents.active.not_canceled.where(issued_at: today.all_day).sum(:freight_cents)
     end
 
     def range_chart_data

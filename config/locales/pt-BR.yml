@@ -2310,8 +2310,8 @@ pt-BR:
         week: Evolução da projeção da semana
         range: Previsto x faturado no período
       chart_subtitle:
-        month: A projeção do fechamento do mês em cada manhã, a faixa provável e o faturado acumulado até aquele dia.
-        week: A projeção do fechamento da semana em cada manhã, a faixa provável e o faturado acumulado até aquele dia.
+        month: A projeção do fechamento do mês em cada manhã, a faixa provável e o faturado acumulado até aquele dia, incluindo o faturado de hoje até a última sincronização.
+        week: A projeção do fechamento da semana em cada manhã, a faixa provável e o faturado acumulado até aquele dia, incluindo o faturado de hoje até a última sincronização.
         range: A soma das previsões feitas na manhã de cada dia e o faturado, acumulados dia a dia.
       weeks_title: Semana a semana
       weeks_subtitle: >-
