@@ -1,6 +1,8 @@
-<%# locals: (vehicle:) %>
+<%# locals: (line:, section:, company_cents:) %>
 
 <tr>
-  <td class="fw-semibold"><%= vehicle.plate %></td>
-  <td class="text-end"><%= goal_money(vehicle.amount_cents) %></td>
+  <td class="fw-semibold"><%= revenue_goals_target_label(section, line) %></td>
+  <td class="text-end text-nowrap"><%= revenue_goals_amount(line.amount_cents) %></td>
+  <td class="d-none d-md-table-cell"><%= revenue_goals_share(line.amount_cents, company_cents) %></td>
+  <td class="text-end text-muted text-nowrap d-none d-lg-table-cell"><%= goal_money(line.reference_cents) %></td>
 </tr>

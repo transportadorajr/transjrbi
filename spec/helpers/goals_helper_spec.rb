@@ -40,4 +40,33 @@ RSpec.describe GoalsHelper do
       expect(helper.goal_pace_note(dashboard)).to eq('Projeção pelo ritmo atual, com 8 de 25 dias úteis do mês já decorridos.')
     end
   end
+
+  describe '#goal_week_value' do
+    it 'shows a dash outside the current week' do
+      expect(helper.goal_week_value(row(goal_cents: nil), 'R$ 1,00')).to eq('-')
+      expect(helper.goal_week_value(row_class.new(key: 'x', label: 'x', goal_cents: nil, realized_cents: 0, projected_cents: 0, week_realized_cents: 0),
+                                    'R$ 1,00')).to eq('R$ 1,00')
+    end
+  end
+
+  describe '#goal_row_menu' do
+    let(:tenant) { create(:tenant) }
+    let(:cut_row) { row_class.new(key: 'AJR4391', label: 'AJR4391', goal_cents: nil, realized_cents: 0, projected_cents: 0, cut: { plate: 'AJR4391' }) }
+
+    before do
+      Current.tenant = tenant
+      allow(helper).to receive(:can?).with(:read, :revenue_projection).and_return(true)
+    end
+
+    it 'links to the projection history of the row when the projection is enabled', flipper: { revenue_projection: :tenant } do
+      menu = helper.goal_row_menu(cut_row, Date.new(2026, 11, 1)).sole
+
+      expect(menu.url).to eq('/revenue_projection_history?end_date=2026-11-30&plate=AJR4391&start_date=2026-11-01')
+    end
+
+    it 'has no link while the projection is disabled or the row has no cut' do
+      expect(helper.goal_row_menu(cut_row, Date.new(2026, 11, 1))).to be_empty
+      expect(helper.goal_row_menu(row(goal_cents: nil), Date.new(2026, 11, 1))).to be_empty
+    end
+  end
 end

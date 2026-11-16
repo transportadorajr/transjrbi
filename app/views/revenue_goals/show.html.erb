@@ -9,33 +9,20 @@
 
   <%= goal_month_nav(@month, :revenue_goals_path) %>
 
-  <div class="card detail-card mb-4">
-    <div class="detail-card-header">
-      <p class="detail-card-title"><%= t('.company_title') %></p>
-    </div>
-    <div class="detail-card-body">
-      <dl class="row detail-list mb-0" id="revenue_goals_company">
-        <dt class="col-12 col-md-4"><%= t('.month') %></dt>
-        <dd class="col-12 col-md-8"><%= goal_month_name(@month) %></dd>
-
-        <dt class="col-12 col-md-4"><%= RevenueGoalsForm.human_attribute_name(:company) %></dt>
-        <dd class="col-12 col-md-8"><%= goal_money(@revenue_goals_form.company_cents) %></dd>
-
-        <dt class="col-12 col-md-4"><%= t('.vehicles_total') %></dt>
-        <dd class="col-12 col-md-8"><%= goal_money(@revenue_goals_form.vehicles_total_cents) %></dd>
-      </dl>
-    </div>
+  <div class="row g-2 g-md-3 mb-4 counter-grid-compact" id="revenue_goals_summary">
+    <%= revenue_goals_summary_cards(@revenue_goals_form) %>
   </div>
 
-  <div class="card table-card mb-4">
+  <div class="card table-card mb-4" id="revenue_goals_targets">
     <div class="table-card-header">
-      <div class="table-card-heading">
-        <p class="table-card-title"><%= t('.vehicles_title') %></p>
-        <p class="table-card-subtitle"><%= t('.vehicles_subtitle') %></p>
+      <div class="table-card-heading mb-3">
+        <p class="table-card-title"><%= t('.targets_title', month: goal_month_name(@month)) %></p>
+        <p class="table-card-subtitle"><%= t('.targets_subtitle') %></p>
       </div>
+      <%= goal_tab_nav('revenue_goals', revenue_goals_tabs(@revenue_goals_form), active: @tab) %>
     </div>
-    <div class="table-card-body">
-      <%= revenue_goals_vehicles(@revenue_goals_form) %>
+    <div class="tab-content">
+      <%= revenue_goals_panes(@pages, @revenue_goals_form, @month, @tab) %>
     </div>
   </div>
 </div>

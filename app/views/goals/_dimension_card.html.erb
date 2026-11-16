@@ -1,0 +1,14 @@
+<%# locals: (dashboard:, section:, rows:) %>
+
+<div class="card table-card mb-4" id="goal_<%= section %>">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t(section, scope: 'goals.show.dimension_titles') %></p>
+      <p class="table-card-subtitle"><%= t(section, scope: 'goals.show.dimension_subtitles') %></p>
+    </div>
+    <%= goal_dimension_sort_menu(section) %>
+  </div>
+  <div class="table-card-body">
+    <%= goal_dimension_body(dashboard, section, rows) %>
+  </div>
+</div>

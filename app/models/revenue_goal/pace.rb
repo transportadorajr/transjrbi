@@ -3,7 +3,7 @@ class RevenueGoal
     def initialize(month, reference_date:, holidays:, projection: nil)
       @month = month.beginning_of_month
       @reference_date = reference_date
-      @holidays = holidays
+      @calendar = BusinessCalendar.new(holidays)
       @projection = projection
     end
 
@@ -26,7 +26,7 @@ class RevenueGoal
     end
 
     def business_days
-      @business_days ||= period.select { |date| business_day?(date) }
+      @business_days ||= calendar.business_days(period)
     end
 
     def elapsed_business_days
@@ -47,13 +47,6 @@ class RevenueGoal
 
     private
 
-    attr_reader :holidays, :projection
-
-    def business_day?(date)
-      return false if date.sunday?
-
-      holiday = holidays[date]
-      holiday.nil? || holiday.optional?
-    end
+    attr_reader :calendar, :projection
   end
 end

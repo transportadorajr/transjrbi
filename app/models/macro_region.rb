@@ -13,6 +13,7 @@ class MacroRegion < ApplicationRecord
   has_many :transport_documents, class_name: 'Atua::TransportDocument', foreign_key: :origin_macro_region_id,
                                  inverse_of: :origin_macro_region, dependent: :nullify
   has_many :cities, dependent: :nullify
+  has_many :revenue_goals, inverse_of: :macro_region, dependent: :delete_all
 
   validates :name, presence: true, uniqueness: { scope: :tenant_id }
   validates :state, format: { with: /\A[A-Z]{2}\z/ }

@@ -6,6 +6,7 @@
   <% end %>
 
   <%= goal_month_nav(@dashboard.month, :goals_path) %>
+  <%= goal_dimension_bar(@filter_form) %>
   <%= goal_missing_note(@dashboard) %>
 
   <div class="row g-2 g-md-3 mb-3 counter-grid-compact" id="goal_company_cards">
@@ -17,16 +18,11 @@
     <%= tag.p goal_pace_note(@dashboard), class: 'small text-muted mb-0 mt-2', id: 'goal_pace_note' %>
   </div>
 
-  <div class="card table-card mb-4" id="goal_vehicles">
-    <div class="table-card-header">
-      <div class="table-card-heading">
-        <p class="table-card-title"><%= t('.vehicles_title') %></p>
-        <p class="table-card-subtitle"><%= t('.vehicles_subtitle') %></p>
-      </div>
-      <%= sort_menu(goal_sort_columns) %>
-    </div>
-    <div class="table-card-body">
-      <%= goal_vehicles_body(@dashboard, @vehicle_rows) %>
-    </div>
+  <%= goal_week(@dashboard) %>
+
+  <div class="mb-4" id="goal_chart">
+    <%= render 'freight_billings/chart_card', title: t('.chart_title'), subtitle: t('.chart_subtitle'), chart: goal_chart(@dashboard) %>
   </div>
+
+  <%= render 'goals/dimension_card', dashboard: @dashboard, section: @filter_form.section, rows: @rows %>
 </div>

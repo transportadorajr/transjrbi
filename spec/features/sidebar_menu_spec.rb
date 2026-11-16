@@ -27,7 +27,7 @@ describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection revenue_
           'Inteligência', 'Faturamento', 'Viagens', 'Metas e projeções', 'Histórico da projeção', 'Metas',
           'Fiscal', 'CT-es', 'Manifestos', 'Trechos de km',
           'Cadastros', 'Clientes', 'Grupos de clientes', 'Grupos de produtos', 'Macro regiões', 'Cidades',
-          'Grupos de caminhões', 'Metas de faturamento', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',
+          'Grupos de caminhões', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',
           'Regras de comissão', 'Custos por tonelada', 'Alíquota de seguro', 'Despesas de frete',
           'Empresa', 'Usuários'
         ],

@@ -1,15 +1,21 @@
-<%# locals: (vehicles:) %>
+<%# locals: (section:, lines:, company_cents:, month:) %>
 
 <div class="table-responsive">
-  <table class="table app-table align-middle mb-0" id="revenue_goals_vehicles">
+  <table class="table app-table align-middle mb-0" id="revenue_goals_<%= section %>">
     <thead>
       <tr>
-        <th><%= RevenueGoalsForm::VehicleLine.human_attribute_name(:plate) %></th>
-        <th class="text-end"><%= RevenueGoalsForm::VehicleLine.human_attribute_name(:amount) %></th>
+        <th><%= t(section, scope: 'goals.sections') %></th>
+        <th class="text-end"><%= t('revenue_goals.show.columns.goal') %></th>
+        <th class="d-none d-md-table-cell"><%= t('revenue_goals.show.columns.share') %></th>
+        <th class="text-end d-none d-lg-table-cell"><%= revenue_goals_reference_label(month) %></th>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'revenue_goals/row', collection: vehicles, as: :vehicle %>
+      <%= render partial: 'revenue_goals/row', collection: lines, as: :line, locals: { section:, company_cents: } %>
     </tbody>
   </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate lines, param_name: :"#{section}_page", params: { tab: section } %>
 </div>

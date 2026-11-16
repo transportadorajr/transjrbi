@@ -45,3 +45,6 @@ application.register('date-range', DateRangeController);
 
 import AutoSubmitController from './auto_submit_controller';
 application.register('auto-submit', AutoSubmitController);
+
+import GoalLinesController from './goal_lines_controller';
+application.register('goal-lines', GoalLinesController);

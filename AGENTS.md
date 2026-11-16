@@ -217,6 +217,12 @@ bundle exec rails g migration ...
   `'_row.html.erb'`: contains the row content rendered inside `<tbody>`.
 - In `index.html.erb`, use `@collection.any?` to decide whether to render the table partial. If the collection is empty, render `<%= render 'shared/no_content' %>`.
 - `_table.html.erb` must be responsible for rendering the collection rows by calling `_row.html.erb`. Always use `Model.human_attribute_name(:attribute)` for table column headers when the table is linked to a model collection.
+- **Every table created in the system must be paginated** — listing screens, dashboard rankings, breakdowns, tables inside cards or tabs, and tables built from arrays alike. A long table without pages is hard to read, especially on a phone:
+  - Build the collection in the controller with `listing_page` (`ListingExport`), which paginates a relation with `.page(params[:page])`, wraps an array with `Kaminari.paginate_array`, and skips pagination for the `pdf`/`xlsx` exports so they keep every row.
+  - Render `<%= paginate collection %>` at the end of `_table.html.erb`, below the `<table>`.
+  - Sort and filter before paginating (`apply_scopes`/`apply_sort` first, then `listing_page`), so each page shows the right slice of the whole sorted result. A total or summary row (e.g. Terceiro, Sem grupo) is computed over the whole collection, never over the current page.
+  - When a screen shows more than one paginated table, give each one its own page parameter (`param_name:` in `.page`/`paginate`), so paging one table does not move the others.
+  - Paging must keep the other query parameters of the screen (filters, sort, month, grouping).
 - `_row.html.erb` must receive a single collection item and render the table row for that item.
 - If the table has selection menus for edit, delete, or any other action, use the `responsive_actions_menu` class, passing to it a helper method responsible for returning the menu items.
 - Create a helper for this functionality when one does not already exist. Follow this structure:

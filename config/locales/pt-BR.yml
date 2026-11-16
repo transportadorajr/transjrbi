@@ -281,6 +281,8 @@ pt-BR:
         target_type: Tipo de meta
         plate: Placa
         customer_group: Grupo de clientes
+        macro_region: Macro região
+        driver_code: Motorista
         amount: Meta
       customer_group:
         name: Nome
@@ -836,11 +838,13 @@ pt-BR:
       revenue_goals_form:
         month: Mês
         company: Meta da transportadora
-      revenue_goals_form/vehicle_line:
-        plate: Placa
-        amount: Meta do veículo
+      revenue_goals_form/line:
+        key: Alvo
+        name: Nome
+        amount: Meta
       goal_filter_form:
         month: Mês
+        dimension: Agrupar por
       macro_region_form:
         name: Nome
         state: UF
@@ -951,8 +955,14 @@ pt-BR:
         revenue_goals_form:
           attributes:
             base:
-              invalid_vehicle_amount: A meta do veículo %{plate} deve ser maior que 0.
-              unknown_vehicle: O veículo %{plate} não está na frota própria.
+              invalid_vehicles_amount: A meta do veículo %{name} deve ser maior que 0.
+              unknown_vehicles: O veículo %{name} não está na frota própria.
+              invalid_customer_groups_amount: A meta do grupo de clientes %{name} deve ser maior que 0.
+              unknown_customer_groups: O grupo de clientes %{name} não está ativo.
+              invalid_drivers_amount: A meta do motorista %{name} deve ser maior que 0.
+              unknown_drivers: O motorista %{name} não teve CT-e nos últimos 3 meses.
+              invalid_regions_amount: A meta da macro região %{name} deve ser maior que 0.
+              unknown_regions: A macro região %{name} não está cadastrada.
         admin/login_form:
           attributes:
             base:
@@ -1144,6 +1154,8 @@ pt-BR:
         company: Transportadora
         vehicle: Veículo
         customer_group: Grupo de clientes
+        region: Macro região
+        driver: Motorista
     workshop_employee:
       role_type:
         mechanic: Mecânico
@@ -1393,6 +1405,8 @@ pt-BR:
         show: Visualizar
       dashboard/trip/row:
         show: Visualizar
+      dashboard/goals/row:
+        projection: Ver a projeção de %{model}
       user:
         show: Visualizar
         edit: Alterar
@@ -2728,6 +2742,21 @@ pt-BR:
       iof_percentage_hint: 'Incide só sobre o seguro internacional. Ex.: 7,38.'
   goals:
     no_goal: Sem meta
+    dimensions:
+      customer_group: Clientes
+      vehicle: Veículo
+      driver: Motorista
+      macro_region: Região
+    tabs:
+      vehicles: Veículos
+      customer_groups: Grupos de clientes
+      drivers: Motoristas
+      regions: Regiões
+    sections:
+      vehicles: Placa
+      customer_groups: Grupo de clientes
+      drivers: Motorista
+      regions: Macro região
     month_nav:
       label: Mês
       previous: Mês anterior
@@ -2747,18 +2776,47 @@ pt-BR:
       required_daily: Ritmo necessário por dia útil
       missing_goal: A meta da transportadora deste mês ainda não foi cadastrada.
       register_goals: Cadastrar metas
-      vehicles_title: Ranking dos veículos
-      vehicles_subtitle: >-
-        Faturamento bruto de cada placa da frota própria no mês. As placas fora da frota própria são somadas na linha Terceiro.
+      group_by: Agrupar por
+      dimension_titles:
+        customer_groups: Metas por grupo de clientes
+        vehicles: Ranking dos veículos
+        drivers: Metas por motorista
+        regions: Metas por macro região
+      dimension_subtitles:
+        customer_groups: >-
+          Faturamento bruto de cada grupo de clientes, pelo tomador do CT-e, no mês e na semana. Os CT-es de tomadores sem grupo
+          são somados na linha Sem grupo de clientes.
+        vehicles: >-
+          Faturamento bruto de cada placa da frota própria no mês. As placas fora da frota própria são somadas na linha Terceiro.
+        drivers: >-
+          Faturamento bruto de cada motorista do CT-e no mês e na semana. Os motoristas aparecem quando têm meta ou faturamento
+          no mês.
+        regions: >-
+          Faturamento bruto de cada macro região de origem do CT-e no mês e na semana. As regiões aparecem quando têm meta ou
+          faturamento no mês, e os CT-es sem macro região são somados na linha Sem macro região.
+      chart_title: Faturado x previsto no mês
+      chart_subtitle: >-
+        Faturado acumulado dia a dia comparado com o previsto para chegar à meta, distribuída pelos dias úteis do mês.
+      week_title: Semana de %{start} a %{finish}
+      week_goal: Meta da semana
+      week_realized: Faturado na semana
+      week_note: >-
+        A meta da semana é a meta mensal distribuída pelos dias úteis. Numa semana que atravessa o mês, cada dia usa a meta do
+        seu mês.
+      no_week: '-'
       columns:
         position: '#'
         plate: Placa
+        week_goal: Meta da semana
+        week_realized: Faturado na semana
+        week_ratio: Atingimento na semana
         goal: Meta
         realized: Faturado
         missing: Falta
         ratio: Atingimento
         projected: Projeção
         status: Situação
+        projections: Projeções
       pace_notes:
         learned: >-
           Projeção pelo ritmo atual, ajustada pelo peso de cada dia da semana e pelos feriados aprendidos na projeção de faturamento.
@@ -2766,14 +2824,36 @@ pt-BR:
         closed: Mês encerrado. A projeção é o próprio faturado.
         not_started: O mês ainda não começou.
   revenue_goals:
+    no_share: '-'
+    share: '%{ratio} da meta da transportadora'
+    search:
+      vehicles: Buscar placa
+      customer_groups: Buscar grupo de clientes
+      drivers: Buscar motorista
+      regions: Buscar macro região
     show:
       title: Metas de faturamento
-      subtitle: Metas mensais de faturamento bruto da transportadora e de cada veículo da frota própria.
-      month: Mês
-      company_title: Meta da transportadora
-      vehicles_total: Soma das metas dos veículos
-      vehicles_title: Metas por veículo
-      vehicles_subtitle: Placas da frota própria. Placas sem meta não entram no atingimento.
+      subtitle: >-
+        Metas mensais de faturamento bruto da transportadora, de cada veículo da frota própria, dos grupos de clientes, dos
+        motoristas e das macro regiões.
+      targets_title: Metas de %{month}
+      targets_subtitle: Compare cada meta com a meta da transportadora e com o faturamento do mês anterior.
+      totals:
+        company: Transportadora
+        vehicles: Soma dos veículos
+        customer_groups: Soma dos grupos
+        drivers: Soma dos motoristas
+        regions: Soma das regiões
+      section_texts:
+        vehicles: Placas da frota própria. Placas sem meta não entram no atingimento.
+        customer_groups: Grupos de clientes ativos e os que já têm meta no mês. O faturamento é atribuído pelo tomador do CT-e.
+        drivers: >-
+          Motoristas com CT-e nos últimos 3 meses e os que já têm meta no mês. O faturamento é atribuído pelo motorista do CT-e.
+        regions: Macro regiões cadastradas. O faturamento é atribuído pela macro região da cidade de origem do CT-e.
+      columns:
+        goal: Meta
+        share: Participação na meta da transportadora
+        reference: Faturado em %{month}
       edit: Alterar metas
       replicate: Copiar mês anterior
       confirm_replicate: Copiar as metas de %{month} para este mês? As metas já cadastradas neste mês são mantidas.
@@ -2789,11 +2869,14 @@ pt-BR:
         one: 1 meta copiada do mês anterior.
         other: '%{count} metas copiadas do mês anterior.'
     form:
-      title: Metas do mês
+      title: Meta da transportadora
       text: Informe o faturamento bruto esperado. Deixe em branco para ficar sem meta.
       company_hint: Meta total de faturamento da transportadora no mês.
-      vehicles_title: Metas por veículo
-      vehicles_text: Uma meta por placa da frota própria. Para incluir uma placa, cadastre-a na Frota própria.
+      targets_title: Metas por veículo, grupo de clientes, motorista e região
+      targets_text: >-
+        Deixe em branco para ficar sem meta. O faturamento de %{month} aparece em cada linha como referência.
+      section_total: Soma das metas
+      reference: 'Faturado em %{month}: %{amount}'
   own_fleets:
     third_party: Terceiro
     show:
@@ -2821,6 +2904,10 @@ pt-BR:
   dashboards:
     goals:
       company: Transportadora
+      ungrouped: Sem grupo de clientes
+      no_region: Sem macro região
+      realized_accumulated: Faturado acumulado
+      expected_accumulated: Previsto pela meta
     revenue_projection_history:
       projected:
         month: Projeção do mês
@@ -3323,7 +3410,6 @@ pt-BR:
     truck_groups: Grupos de caminhões
     own_fleet: Frota própria
     excluded_issuers: Emissores desconsiderados
-    revenue_goals: Metas de faturamento
     drivers: Motoristas
     holidays: Feriados
     vehicles: Veículos

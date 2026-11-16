@@ -1,0 +1,13 @@
+<%# locals: (row:, month:) %>
+
+<tr>
+  <td class="fw-semibold"><%= row.label %></td>
+  <td class="text-end text-nowrap d-none d-md-table-cell"><%= goal_money(row.goal_cents) %></td>
+  <td class="text-end text-nowrap d-none d-md-table-cell"><%= goal_money(row.realized_cents) %></td>
+  <td class="text-end text-nowrap"><%= goal_ratio(row.ratio) %></td>
+  <td class="text-end text-nowrap d-none d-xl-table-cell"><%= goal_week_value(row, goal_money(row.week_goal_cents)) %></td>
+  <td class="text-end text-nowrap d-none d-xl-table-cell"><%= goal_week_value(row, goal_money(row.week_realized_cents)) %></td>
+  <td class="text-end text-nowrap d-none d-md-table-cell"><%= goal_week_value(row, goal_ratio(row.week_ratio)) %></td>
+  <td class="text-end"><%= goal_status_badge(row) %></td>
+  <td class="text-end"><%= responsive_actions_menu(goal_row_menu(row, month)) %></td>
+</tr>

@@ -6,18 +6,36 @@ class GoalsController < BaseController
   def show
     authorize!(:read, :goals)
 
-    @filter_form = GoalFilterForm.new(month: params[:month])
+    @filter_form = GoalFilterForm.new(month: params[:month], dimension: params[:dimension])
     return redirect_to(goals_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
     @last_synced_at = current_tenant.last_synced_at
-    @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, goals:, pace:, own_fleet: current_tenant.own_fleet)
-    @vehicle_rows = @dashboard.sorted_vehicle_rows(params[:sort], params[:direction])
+    @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, targets:, pace:, week:, own_fleet: current_tenant.own_fleet)
+    @rows = listing_page(dimension_rows)
   end
 
   private
 
-  def goals
-    current_tenant.revenue_goals.for_month(@filter_form.month_value).to_a
+  def dimension_rows
+    return @dashboard.sorted_vehicle_rows(params[:sort], params[:direction]) if @filter_form.section == :vehicles
+
+    @dashboard.breakdown_rows(@filter_form.section)
+  end
+
+  def month
+    @filter_form.month_value
+  end
+
+  def targets
+    @targets ||= RevenueGoal::Targets.new(current_tenant, month)
+  end
+
+  def week
+    return unless month.all_month.cover?(reference_date)
+
+    period = reference_date.all_week(RevenueGoal::Week::WEEK_START)
+    RevenueGoal::Week.new(reference_date, goals: current_tenant.revenue_goals.where(month: period.first.beginning_of_month..period.last).to_a,
+                                          holidays: holidays(period.first.beginning_of_month..period.last.end_of_month))
   end
 
   def require_revenue_goals
@@ -25,14 +43,15 @@ class GoalsController < BaseController
   end
 
   def pace
-    month = @filter_form.month_value
-    holidays = current_tenant.holidays.where(date: month.all_month).index_by(&:date)
+    RevenueGoal::Pace.new(month, reference_date:, holidays: holidays(month.all_month), projection: (projection if @filter_form.current_month?))
+  end
 
-    RevenueGoal::Pace.new(month, reference_date:, holidays:, projection: (projection if @filter_form.current_month?))
+  def holidays(dates)
+    current_tenant.holidays.where(date: dates).index_by(&:date)
   end
 
   def reference_date
-    (@last_synced_at || Time.current).to_date
+    @reference_date ||= (@last_synced_at || Time.current).to_date
   end
 
   def projection
