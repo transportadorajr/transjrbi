@@ -1,0 +1,32 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle'), note: freight_billing_last_sync_label(@last_synced_at) do %>
+    <%= goal_registration_button(@dashboard.month) %>
+  <% end %>
+
+  <%= goal_month_nav(@dashboard.month, :goals_path) %>
+  <%= goal_missing_note(@dashboard) %>
+
+  <div class="row g-2 g-md-3 mb-3 counter-grid-compact" id="goal_company_cards">
+    <%= goal_company_cards(@dashboard) %>
+  </div>
+
+  <div class="mb-4">
+    <%= goal_progress(@dashboard.company) %>
+    <%= tag.p goal_pace_note(@dashboard), class: 'small text-muted mb-0 mt-2', id: 'goal_pace_note' %>
+  </div>
+
+  <div class="card table-card mb-4" id="goal_vehicles">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.vehicles_title') %></p>
+        <p class="table-card-subtitle"><%= t('.vehicles_subtitle') %></p>
+      </div>
+      <%= sort_menu(goal_sort_columns) %>
+    </div>
+    <div class="table-card-body">
+      <%= goal_vehicles_body(@dashboard, @vehicle_rows) %>
+    </div>
+  </div>
+</div>

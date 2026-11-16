@@ -1,0 +1,36 @@
+<%# locals: (revenue_goals_form:, month:) %>
+
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('revenue_goals.form.title') %></p>
+    <p class="form-card-subtitle"><%= t('revenue_goals.form.text') %></p>
+  </div>
+  <%= simple_form_for(revenue_goals_form, url: revenue_goals_path, method: :patch) do |f| %>
+    <%= f.hidden_field :month %>
+
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :company, as: :money, required: false, hint: t('revenue_goals.form.company_hint') %>
+        </div>
+      </div>
+
+      <p class="form-card-title mt-4 mb-1"><%= t('revenue_goals.form.vehicles_title') %></p>
+      <p class="form-card-subtitle mb-3"><%= t('revenue_goals.form.vehicles_text') %></p>
+
+      <div class="row g-3" id="revenue_goals_vehicle_fields">
+        <%= f.simple_fields_for :vehicles, revenue_goals_form.vehicles do |vf| %>
+          <div class="col-12 col-md-6 col-xl-4">
+            <%= vf.hidden_field :plate %>
+            <%= vf.input :amount, as: :money, required: false, label: vf.object.plate %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.revenue_goals.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), revenue_goals_path(month: goal_month_param(month)), class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

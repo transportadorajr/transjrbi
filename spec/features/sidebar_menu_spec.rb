@@ -1,11 +1,11 @@
 require 'rails_helper'
 
-describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection] do
+describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection revenue_goals] do
   let!(:tenant) { create(:tenant) }
   let!(:resources) do
     %w[
-      freight_billing trips revenue_projection transport_documents manifests route_distances customers customer_groups product_groups
-      macro_regions cities truck_groups excluded_issuers holidays drivers vehicles expenses commission_rules tonnage_rates
+      freight_billing trips revenue_projection goals transport_documents manifests route_distances customers customer_groups product_groups
+      macro_regions cities truck_groups revenue_goals excluded_issuers holidays drivers vehicles expenses commission_rules tonnage_rates
       insurance_rates freight_expenses company users
     ].index_with { |slug| create(:resource, slug:) }
   end
@@ -24,10 +24,10 @@ describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection] do
 
       expect(sidebar_items).to eq(
         [
-          'Inteligência', 'Faturamento', 'Viagens', 'Projeções de faturamento', 'Histórico da projeção',
+          'Inteligência', 'Faturamento', 'Viagens', 'Metas e projeções', 'Histórico da projeção', 'Metas',
           'Fiscal', 'CT-es', 'Manifestos', 'Trechos de km',
           'Cadastros', 'Clientes', 'Grupos de clientes', 'Grupos de produtos', 'Macro regiões', 'Cidades',
-          'Grupos de caminhões', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',
+          'Grupos de caminhões', 'Metas de faturamento', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',
           'Regras de comissão', 'Custos por tonelada', 'Alíquota de seguro', 'Despesas de frete',
           'Empresa', 'Usuários'
         ],
