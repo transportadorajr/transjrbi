@@ -49,7 +49,7 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'own_fleet')).to have_attributes(name: 'Frota própria', writable: true)
     expect(Resource.find_by!(slug: 'revenue_projection')).to have_attributes(name: 'Projeção de faturamento', writable: false)
     expect(Resource.find_by!(slug: 'revenue_goals')).to have_attributes(name: 'Metas de faturamento', writable: true)
-    expect(Resource.find_by!(slug: 'goals')).to have_attributes(name: 'Painel de metas', writable: false)
+    expect(Resource.find_by!(slug: 'goals')).to have_attributes(name: 'Painel de metas', writable: true)
     expect(Resource.find_by!(slug: 'maintenance')).to have_attributes(name: 'Módulo de manutenção', writable: false)
     expect(Resource.find_by!(slug: 'maintenance_orders')).to have_attributes(name: 'Ordens de serviço', writable: true)
     expect(Resource.find_by!(slug: 'workshop_employees')).to have_attributes(name: 'Funcionários da oficina', writable: true)

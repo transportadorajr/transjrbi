@@ -11,6 +11,7 @@ class Ability
     can %i[read update], User, id: user.id
 
     access_privileges(user)
+    goals_registration_privileges
 
     return if user.operator?
 
@@ -30,6 +31,10 @@ class Ability
     user.accesses.preload(:resource).find_each do |access|
       can(access.abilities, access.resource_symbol) if access.abilities.any? && resource_allowed?(access.resource_symbol)
     end
+  end
+
+  def goals_registration_privileges
+    can(Access::WRITE_ABILITIES, :revenue_goals) if can?(:update, :goals)
   end
 
   def resource_privileges

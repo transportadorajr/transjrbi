@@ -3,7 +3,7 @@ require 'rails_helper'
 describe 'Goals panel', flipper: { revenue_goals: :tenant } do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
-  let!(:resource) { create(:resource, name: 'Painel de metas', slug: 'goals', writable: false) }
+  let!(:resource) { create(:resource, name: 'Painel de metas', slug: 'goals', writable: true) }
   let!(:goals_resource) { create(:resource, name: 'Metas de faturamento', slug: 'revenue_goals') }
   let(:month) { Date.new(2026, 11, 1) }
 
@@ -269,6 +269,24 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
 
       expect(page).to have_css('h1.page-title', text: 'Metas')
       expect(page).to have_no_link('Cadastrar metas')
+    end
+  end
+
+  context 'when an admin can edit the panel' do
+    let!(:admin) { create(:user, tenant:, user_type: :admin) }
+
+    before do
+      create(:access, user: admin, resource:, reads: true, creates: true)
+      login_as(admin, scope: :user)
+    end
+
+    scenario 'reaches the goals registration from the panel' do
+      visit goals_path(month: '2026-10')
+
+      within('.page-header') { click_on 'Cadastrar metas' }
+
+      expect(page).to have_current_path(revenue_goals_path(month: '2026-10'))
+      expect(page).to have_css('h1.page-title', text: 'Metas de faturamento')
     end
   end
 

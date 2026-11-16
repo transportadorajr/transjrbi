@@ -38,6 +38,25 @@ RSpec.describe Ability do
   context 'when the user is an admin' do
     let(:user) { create(:user, tenant:, user_type: :admin) }
 
+    context 'with the goals panel granted for editing' do
+      before { create(:access, user:, resource: create(:resource, slug: 'goals', writable: true), creates: true) }
+
+      it 'registers the revenue goals' do
+        expect(ability).to be_able_to(:read, :revenue_goals)
+        expect(ability).to be_able_to(:update, :revenue_goals)
+      end
+    end
+
+    context 'with the goals panel granted only for reading' do
+      before { create(:access, user:, resource: create(:resource, slug: 'goals', writable: true)) }
+
+      it 'does not register the revenue goals' do
+        expect(ability).to be_able_to(:read, :goals)
+        expect(ability).not_to be_able_to(:read, :revenue_goals)
+        expect(ability).not_to be_able_to(:update, :revenue_goals)
+      end
+    end
+
     it 'manages the users of its own tenant' do
       expect(ability).to be_able_to(:create, User)
       expect(ability).to be_able_to(:update, teammate)

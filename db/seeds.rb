@@ -41,7 +41,7 @@ end
   'revenue_projection' => { name: 'Projeção de faturamento', writable: false },
   'revenue_projection_notes' => { name: 'Anotações da projeção', writable: true },
   'revenue_goals' => { name: 'Metas de faturamento', writable: true },
-  'goals' => { name: 'Painel de metas', writable: false },
+  'goals' => { name: 'Painel de metas', writable: true },
   'maintenance' => { name: 'Módulo de manutenção', writable: false },
   'maintenance_orders' => { name: 'Ordens de serviço', writable: true },
   'workshop_employees' => { name: 'Funcionários da oficina', writable: true },

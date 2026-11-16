@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_204519) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -38,7 +38,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
   create_enum "maintenance_order_priority_type", ["high", "medium", "low"]
   create_enum "maintenance_order_release_test_type", ["road_test", "yard_test", "not_applicable"]
   create_enum "maintenance_order_status_type", ["open", "in_progress", "waiting_parts", "finished", "cancelled"]
-  create_enum "revenue_goal_target_type", ["company", "vehicle", "customer_group", "region", "driver"]
+  create_enum "revenue_goal_target_type", ["company", "vehicle", "customer_group", "customer", "region", "driver"]
   create_enum "revenue_projection_day_type", ["regular", "weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end"]
   create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
   create_enum "revenue_projection_period_type", ["month", "week"]
