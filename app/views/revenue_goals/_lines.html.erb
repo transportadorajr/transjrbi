@@ -1,0 +1,12 @@
+<%# locals: (f:, section:, form:, month:) %>
+
+<div class="goal-section-toolbar">
+  <div class="goal-section-total">
+    <span class="goal-section-total-label"><%= t('revenue_goals.form.section_total') %></span>
+    <strong data-goal-lines-target="total" data-section="<%= section %>"><%= goal_money(form.total_cents(section)) %></strong>
+    <span class="small text-muted" data-goal-lines-target="share" data-section="<%= section %>"><%= revenue_goals_share_text(form.total_cents(section), form.company_cents) %></span>
+  </div>
+  <%= revenue_goals_search(section, form.public_send(section)) %>
+</div>
+
+<%= revenue_goals_lines_body(f, section, form, month) %>

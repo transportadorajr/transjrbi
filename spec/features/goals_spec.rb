@@ -7,8 +7,8 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
   let!(:goals_resource) { create(:resource, name: 'Metas de faturamento', slug: 'revenue_goals') }
   let(:month) { Date.new(2026, 11, 1) }
 
-  def freight(tenant, plate, freight_cents, issued_at: Time.zone.local(2026, 11, 5, 10), taker: nil)
-    create(:atua_transport_document, tenant:, plate:, freight_cents:, issued_at:, taker_code: taker&.code)
+  def freight(tenant, plate, freight_cents, issued_at: Time.zone.local(2026, 11, 5, 10), taker: nil, macro_region: nil)
+    create(:atua_transport_document, tenant:, plate:, freight_cents:, issued_at:, taker_code: taker&.code, origin_macro_region: macro_region)
   end
 
   def taker(tenant, customer_group)
@@ -44,7 +44,9 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         arcelor = create(:customer_group, tenant:, name: 'ARCELOR')
         create(:customer_group, tenant:, name: 'GERDAU', activated_at: nil)
         create(:revenue_goal, :customer_group, tenant:, month:, customer_group: usiminas, amount_cents: 6_000_000)
-        freight(tenant, 'AJR4391', 900_000, taker: taker(tenant, usiminas))
+        region = create(:macro_region, tenant:, name: 'VALE DO AÇO/MG')
+        create(:revenue_goal, :region, tenant:, month:, macro_region: region, amount_cents: 5_000_000)
+        freight(tenant, 'AJR4391', 900_000, taker: taker(tenant, usiminas), macro_region: region)
         freight(tenant, 'RHJ5A50', 400_000, issued_at: Time.zone.local(2026, 11, 9, 8), taker: taker(tenant, arcelor))
         freight(tenant, 'XYZ9K87', 250_000)
         freight(tenant, 'AJR4391', 999_999, issued_at: Time.zone.local(2026, 10, 31, 23))
@@ -81,7 +83,8 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
             ['', 'Terceiro', 'Sem meta', 'R$ 2.500,00', 'Sem meta', 'Sem meta', 'R$ 7.812,50', 'Sem meta', ''],
           ],
         )
-        expect(html_table_to_rows(table: find_by_id('goal_customers_table'))).to eq(
+        expect(page).to have_css('#goal_tabs .nav-link.active', text: 'Grupos de clientes')
+        expect(html_table_to_rows(table: find_by_id('goal_customer_groups_table'))).to eq(
           [
             ['Grupo de clientes', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Ações'],
             ['USIMINAS', 'R$ 60.000,00', 'R$ 9.000,00', '15,0%', 'R$ 14.400,00', 'R$ 0,00', '0,0%', 'Abaixo da meta', ''],
@@ -89,8 +92,18 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
             ['Sem grupo de clientes', 'Sem meta', 'R$ 2.500,00', 'Sem meta', 'Sem meta', 'R$ 0,00', 'Sem meta', 'Sem meta', ''],
           ],
         )
+        expect(page).to have_no_css('#goal_customers_table')
+        expect(page).to have_no_button('Clientes')
+        expect(html_table_to_rows(table: find_by_id('goal_regions_table'))).to eq(
+          [
+            ['Macro região', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Ações'],
+            ['VALE DO AÇO/MG', 'R$ 50.000,00', 'R$ 9.000,00', '18,0%', 'R$ 12.000,00', 'R$ 0,00', '0,0%', 'Abaixo da meta', ''],
+            ['Sem macro região', 'Sem meta', 'R$ 6.500,00', 'Sem meta', 'Sem meta', 'R$ 4.000,00', 'Sem meta', 'Sem meta', ''],
+          ],
+        )
+        expect(page).to have_css('#goal_vehicles_table .goal-plate', text: 'AJR4391')
         expect(page).to have_no_link(href: /revenue_projection_history/)
-        expect(RevenueGoal.where(tenant:).count).to eq(4)
+        expect(RevenueGoal.where(tenant:).count).to eq(5)
         expect(CustomerGroup.where(tenant:).count).to eq(3)
       end
 
@@ -112,7 +125,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
       context 'with the revenue projection enabled', flipper: { revenue_goals: :tenant, revenue_projection: :tenant } do
         let!(:projection_resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 
-        scenario 'links each vehicle and customer to its projection history' do
+        scenario 'links each vehicle, customer group and region to its projection history' do
           visit goals_path
 
           within('#goal_vehicles_table') { click_on 'Ver a projeção de AJR4391' }
@@ -121,10 +134,15 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
           expect(page).to have_css('h1.page-title', text: 'Histórico da projeção')
 
           visit goals_path
-          within('#goal_customers_table') { click_on 'Ver a projeção de USIMINAS' }
+          within('#goal_customer_groups_table') { click_on 'Ver a projeção de USIMINAS' }
 
           usiminas = tenant.customer_groups.find_by!(name: 'USIMINAS')
           expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', customer_group_id: usiminas.id))
+
+          visit goals_path
+          within('#goal_regions_table') { click_on 'Ver a projeção de Sem macro região' }
+
+          expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', macro_region_id: 'others'))
           expect(page).to have_no_link('Ver a projeção de Terceiro')
         end
       end
@@ -141,7 +159,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(page).to have_text('A meta da transportadora deste mês ainda não foi cadastrada.')
         expect(page).to have_text('Mês encerrado. A projeção é o próprio faturado.')
         expect(page).to have_no_css('#goal_week')
-        expect(html_table_to_rows(table: find_by_id('goal_customers_table'))[1]).to eq(
+        expect(html_table_to_rows(table: find_by_id('goal_customer_groups_table'))[1]).to eq(
           ['ARCELOR', 'Sem meta', 'R$ 0,00', 'Sem meta', '-', '-', '-', 'Sem meta', ''],
         )
 
@@ -213,8 +231,12 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
       expect(page).to have_css('#goal_vehicles_table td', text: '90,0%', visible: :visible)
       expect(page).to have_no_css('#goal_vehicles_table th', text: 'FATURADO', visible: :visible)
       expect(page).to have_css('#goal_vehicles .dropdown-toggle', text: 'Ordenar por', visible: :visible)
-      expect(page).to have_css('#goal_customers_table td', text: '30,0%', visible: :visible)
-      expect(page).to have_no_css('#goal_customers_table th', text: 'META DA SEMANA', visible: :visible)
+      expect(page).to have_css('#goal_customer_groups_table td', text: '30,0%', visible: :visible)
+      expect(page).to have_no_css('#goal_customer_groups_table th', text: 'META DA SEMANA', visible: :visible)
+      click_on 'Regiões'
+
+      expect(page).to have_css('#goal_regions_pane.active', visible: :visible)
+      expect(page).to have_no_css('#goal_customer_groups_table', visible: :visible)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end

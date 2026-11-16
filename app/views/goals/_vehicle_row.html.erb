@@ -2,7 +2,7 @@
 
 <tr>
   <td class="text-end text-muted"><%= goal_position(position, row_counter) %></td>
-  <td class="fw-semibold"><%= row.label %></td>
+  <td class="fw-semibold"><%= goal_vehicle_label(row) %></td>
   <td class="text-end d-none d-md-table-cell"><%= goal_money(row.goal_cents) %></td>
   <td class="text-end d-none d-md-table-cell"><%= goal_money(row.realized_cents) %></td>
   <td class="text-end d-none d-lg-table-cell"><%= goal_money(row.missing_cents) %></td>

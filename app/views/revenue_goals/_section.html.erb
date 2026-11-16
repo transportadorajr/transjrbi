@@ -1,0 +1,7 @@
+<%# locals: (section:, form:, month:) %>
+
+<div class="goal-section-toolbar">
+  <p class="small text-muted mb-0"><%= t(section, scope: 'revenue_goals.show.section_texts') %></p>
+  <%= revenue_goals_search(section, form.public_send(section)) %>
+</div>
+<%= revenue_goals_section_body(section, form, month) %>

@@ -1,6 +1,6 @@
 module RevenueGoals
   class ReplicateMonthCommand
-    COPIED_ATTRIBUTES = %w[target_type plate customer_group_id amount_cents].freeze
+    COPIED_ATTRIBUTES = %w[target_type plate customer_group_id macro_region_id amount_cents].freeze
 
     class << self
       def call(tenant, month)
@@ -24,13 +24,9 @@ module RevenueGoals
     attr_reader :tenant, :month
 
     def sources
-      filled = tenant.revenue_goals.for_month(month).to_set { |goal| target_key(goal) }
+      filled = tenant.revenue_goals.for_month(month).to_set(&:target_key)
 
-      tenant.revenue_goals.for_month(month.prev_month).reject { |goal| filled.include?(target_key(goal)) }
-    end
-
-    def target_key(goal)
-      [goal.target_type, goal.plate, goal.customer_group_id]
+      tenant.revenue_goals.for_month(month.prev_month).reject { |goal| filled.include?(goal.target_key) }
     end
   end
 end

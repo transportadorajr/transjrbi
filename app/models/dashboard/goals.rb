@@ -5,8 +5,11 @@ module Dashboard
     ATTENTION_RATIO = BigDecimal('0.9')
     COMPANY_KEY = 'company'.freeze
     THIRD_PARTY_KEY = 'third_party'.freeze
-    UNGROUPED_KEY = 'ungrouped'.freeze
     DEFAULT_SORT = 'realized'.freeze
+    BREAKDOWNS = {
+      customer_groups: { list_all: true, cut: :customer_group_id, extra_label: 'dashboards.goals.ungrouped' },
+      regions: { list_all: false, cut: :macro_region_id, extra_label: 'dashboards.goals.no_region', extra_cut: MacroRegion::OTHERS },
+    }.freeze
 
     Row = Data.define(:key, :label, :goal_cents, :realized_cents, :projected_cents, :cut, :week_goal_cents, :week_realized_cents) do
       extend ActiveModel::Naming
@@ -67,13 +70,12 @@ module Dashboard
       end
     end
 
-    def initialize(documents, goals:, pace:, own_fleet: nil, week: nil, customer_groups: [])
+    def initialize(documents, targets:, pace:, own_fleet: nil, week: nil)
       @documents = documents
-      @goals = goals
+      @targets = targets
       @pace = pace
       @own_fleet = own_fleet
       @week = week
-      @customer_groups = customer_groups
     end
 
     attr_reader :pace, :week
@@ -95,23 +97,18 @@ module Dashboard
       end
     end
 
-    def customer_rows
-      @customer_rows ||= customer_groups.map do |group|
-        build_row(group.id.to_s, group.name, customer_group_goals[group.id], realized_by_customer_group.fetch(group.id, 0), cut: { customer_group_id: group.id },
-                                                                                                                            **customer_group_week(group.id))
-      end
+    def breakdown_rows(section)
+      @breakdown_rows ||= {}
+      @breakdown_rows[section] ||= breakdown_keys(section).map { |key| breakdown_row(section, key) }.sort_by { |row| [-row.realized_cents, row.label] }
     end
 
-    def sorted_customer_rows
-      customer_rows.sort_by { |row| [-row.realized_cents, row.label] }
-    end
+    def breakdown_extra_row(section)
+      config = BREAKDOWNS.fetch(section)
+      realized = breakdown_realized(section).fetch('', 0)
+      return if config[:extra_label].nil? || realized.zero?
 
-    def ungrouped_row
-      realized = realized_by_customer_group.fetch(nil, 0)
-      return if realized.zero?
-
-      build_row(UNGROUPED_KEY, I18n.t('dashboards.goals.ungrouped'), nil, realized,
-                week_realized_cents: (week_realized_by_customer_group.fetch(nil, 0) if week))
+      build_row("#{section}_none", I18n.t(config[:extra_label]), nil, realized, cut: ({ config[:cut] => config[:extra_cut] } if config[:extra_cut]),
+                                                                                week_realized_cents: (breakdown_week_realized(section).fetch('', 0) if week))
     end
 
     def chart_data
@@ -149,41 +146,50 @@ module Dashboard
 
     private
 
-    attr_reader :documents, :goals, :own_fleet, :customer_groups
+    attr_reader :documents, :targets, :own_fleet
+
+    delegate :goals, to: :targets
 
     def build_row(key, label, goal_cents, realized_cents, **)
       Row.new(key:, label:, goal_cents:, realized_cents:, projected_cents: pace.project(realized_cents), **)
     end
 
-    def customer_group_goals
-      @customer_group_goals ||= goals.select(&:customer_group?).to_h { |goal| [goal.customer_group_id, goal.amount_cents] }
+    def breakdown_keys(section)
+      options = targets.options(section)
+      return options.keys if BREAKDOWNS.fetch(section)[:list_all]
+
+      options.keys.select { |key| targets.goal_amounts(section).key?(key) || breakdown_realized(section).fetch(key, 0).positive? }
     end
 
-    def customer_group_week(customer_group_id)
+    def breakdown_row(section, key)
+      cut = BREAKDOWNS.fetch(section)[:cut]
+      build_row(key, targets.options(section).fetch(key), targets.goal_amounts(section)[key], breakdown_realized(section).fetch(key, 0),
+                cut: ({ cut => key.to_i } if cut), **breakdown_week(section, key))
+    end
+
+    def breakdown_week(section, key)
       return {} unless week
 
-      { week_goal_cents: week.goal_cents(:customer_group, customer_group_id:),
-        week_realized_cents: week_realized_by_customer_group.fetch(customer_group_id, 0) }
+      { week_goal_cents: week.goal_cents(RevenueGoal::Targets::SECTIONS.fetch(section), key),
+        week_realized_cents: breakdown_week_realized(section).fetch(key, 0) }
+    end
+
+    def breakdown_realized(section)
+      @breakdown_realized ||= {}
+      @breakdown_realized[section] ||= targets.billing(section, issued(pace.period))
+    end
+
+    def breakdown_week_realized(section)
+      @breakdown_week_realized ||= {}
+      @breakdown_week_realized[section] ||= targets.billing(section, issued(week.period))
     end
 
     def issued(period)
       documents.active.not_canceled.where(issued_at: period.first.beginning_of_day..period.last.end_of_day)
     end
 
-    def by_customer_group(relation)
-      relation.left_joins(:taker).group(Atua::Customer.arel_table[:customer_group_id]).sum(:freight_cents)
-    end
-
-    def realized_by_customer_group
-      @realized_by_customer_group ||= by_customer_group(issued(pace.period))
-    end
-
     def week_realized_by_plate
       @week_realized_by_plate ||= issued(week.period).group(:plate).sum(:freight_cents)
-    end
-
-    def week_realized_by_customer_group
-      @week_realized_by_customer_group ||= by_customer_group(issued(week.period))
     end
 
     def chart_days
@@ -212,7 +218,7 @@ module Dashboard
     end
 
     def vehicle_goals
-      @vehicle_goals ||= goals.select(&:vehicle?).to_h { |goal| [goal.plate, goal.amount_cents] }
+      @vehicle_goals ||= targets.goal_amounts(:vehicles)
     end
 
     def vehicle_plates

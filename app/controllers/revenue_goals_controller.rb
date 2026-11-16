@@ -50,7 +50,6 @@ class RevenueGoalsController < BaseController
   end
 
   def revenue_goals_params
-    params.expect(revenue_goals: [:month, :company,
-                                  { vehicles_attributes: [%i[plate amount]], customer_groups_attributes: [%i[customer_group_id amount]] }])
+    params.expect(revenue_goals: [:month, :company, RevenueGoalsForm::SECTIONS.keys.to_h { |section| [:"#{section}_attributes", [%i[key amount]]] }])
   end
 end

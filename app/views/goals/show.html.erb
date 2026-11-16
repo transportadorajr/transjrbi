@@ -36,15 +36,5 @@
     </div>
   </div>
 
-  <div class="card table-card mb-4" id="goal_customers">
-    <div class="table-card-header">
-      <div class="table-card-heading">
-        <p class="table-card-title"><%= t('.customers_title') %></p>
-        <p class="table-card-subtitle"><%= t('.customers_subtitle') %></p>
-      </div>
-    </div>
-    <div class="table-card-body">
-      <%= goal_customers_body(@dashboard) %>
-    </div>
-  </div>
+  <%= render 'goals/breakdowns', dashboard: @dashboard %>
 </div>

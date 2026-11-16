@@ -26,11 +26,15 @@ RSpec.describe RevenueGoal::Week do
 
   it 'finds the goal of each target' do
     goals = [goal(Date.new(2026, 11, 1), 2_500_000, target_type: 'vehicle', plate: 'AJR4391'),
-             goal(Date.new(2026, 11, 1), 5_000_000, target_type: 'customer_group', customer_group:)]
+             goal(Date.new(2026, 11, 1), 5_000_000, target_type: 'customer_group', customer_group:),
+             goal(Date.new(2026, 11, 1), 5_000_000, target_type: 'region', macro_region_id: 42)]
     week = described_class.new(Date.new(2026, 11, 10), goals:, holidays: {})
 
-    expect(week.goal_cents(:vehicle, plate: 'AJR4391')).to eq(600_000)
-    expect(week.goal_cents(:customer_group, customer_group_id: customer_group.id)).to eq(1_200_000)
+    expect(week.goal_cents(:vehicle, 'AJR4391')).to eq(600_000)
+    expect(week.goal_cents(:customer_group, customer_group.id)).to eq(1_200_000)
+    expect(week.goal_cents(:region, '42')).to eq(1_200_000)
+    expect(week.goal_cents(:region, 42)).to eq(1_200_000)
+    expect(week.goal_cents(:region, 43)).to be_nil
     expect(week.goal_cents(:company)).to be_nil
   end
 end

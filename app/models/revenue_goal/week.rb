@@ -18,9 +18,9 @@ class RevenueGoal
       period.map(&:beginning_of_month).uniq
     end
 
-    def goal_cents(target_type, plate: nil, customer_group_id: nil)
+    def goal_cents(target_type, value = nil)
       shares = calendar.business_days(period).filter_map do |date|
-        goal = goal_for(date.beginning_of_month, target_type, plate, customer_group_id)
+        goal = goal_for(date.beginning_of_month, target_type.to_s, value)
         goal.amount_cents.to_d / month_business_days(date.beginning_of_month) if goal
       end
 
@@ -31,10 +31,8 @@ class RevenueGoal
 
     attr_reader :goals, :calendar
 
-    def goal_for(month, target_type, plate, customer_group_id)
-      goals.find do |goal|
-        goal.month == month && goal.target_type == target_type.to_s && goal.plate == plate && goal.customer_group_id == customer_group_id
-      end
+    def goal_for(month, target_type, value)
+      goals.find { |goal| goal.month == month && goal.target_type == target_type && goal.target_value&.to_s == value&.to_s }
     end
 
     def month_business_days(month)

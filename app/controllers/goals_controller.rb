@@ -10,7 +10,7 @@ class GoalsController < BaseController
     return redirect_to(goals_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
     @last_synced_at = current_tenant.last_synced_at
-    @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, goals:, pace:, week:, customer_groups:, own_fleet: current_tenant.own_fleet)
+    @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, targets:, pace:, week:, own_fleet: current_tenant.own_fleet)
     @vehicle_rows = @dashboard.sorted_vehicle_rows(params[:sort], params[:direction])
   end
 
@@ -20,12 +20,8 @@ class GoalsController < BaseController
     @filter_form.month_value
   end
 
-  def goals
-    @goals ||= current_tenant.revenue_goals.for_month(month).to_a
-  end
-
-  def customer_groups
-    RevenueGoal.listed_customer_groups(current_tenant, goals.filter_map(&:customer_group_id)).to_a
+  def targets
+    @targets ||= RevenueGoal::Targets.new(current_tenant, month)
   end
 
   def week

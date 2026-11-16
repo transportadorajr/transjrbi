@@ -19,6 +19,14 @@ RSpec.describe RevenueGoals::ReplicateMonthCommand do
       .to contain_exactly(['company', nil, 10_000_000], ['vehicle', 'AJR4391', 1_000_000], ['vehicle', 'RHJ5A50', 2_500_000])
   end
 
+  it 'copies the region goals' do
+    region_goal = create(:revenue_goal, :region, tenant:, month: month.prev_month, amount_cents: 4_000_000)
+
+    expect { described_class.call(tenant, month) }.to change(RevenueGoal, :count).by(3)
+
+    expect(tenant.revenue_goals.for_month(month).region.sole).to have_attributes(macro_region_id: region_goal.macro_region_id, amount_cents: 4_000_000)
+  end
+
   it 'copies nothing when it runs again' do
     described_class.call(tenant, month)
 

@@ -28,6 +28,18 @@ RSpec.describe RevenueGoal do
       expect(build(:revenue_goal, :customer_group, tenant:)).to be_valid
     end
 
+    it 'requires the macro region only for a region goal' do
+      expect(build(:revenue_goal, tenant:, target_type: 'region')).not_to be_valid
+      expect(build(:revenue_goal, :region, tenant:)).to be_valid
+      expect(build(:revenue_goal, tenant:, macro_region: create(:macro_region, tenant:))).not_to be_valid
+    end
+
+    it 'removes the region goals with the macro region' do
+      goal = create(:revenue_goal, :region, tenant:)
+
+      expect { goal.macro_region.destroy! }.to change(described_class, :count).by(-1)
+    end
+
     it 'allows a single goal per target in the month' do
       create(:revenue_goal, :vehicle, tenant:)
 
@@ -35,10 +47,24 @@ RSpec.describe RevenueGoal do
       expect(build(:revenue_goal, :vehicle, tenant:, plate: 'RHJ5A50')).to be_valid
       expect(build(:revenue_goal, :vehicle, tenant:, month: Date.current.next_month)).to be_valid
       expect(build(:revenue_goal, :vehicle, tenant: create(:tenant))).to be_valid
+
+      region_goal = create(:revenue_goal, :region, tenant:)
+      expect(build(:revenue_goal, tenant:, target_type: 'region', macro_region: region_goal.macro_region)).not_to be_valid
+      expect(build(:revenue_goal, :region, tenant:, macro_region: create(:macro_region, tenant:, name: 'BAHIA', state: 'BA'))).to be_valid
     end
 
     it 'rejects an unknown target type' do
       expect(build(:revenue_goal, tenant:, target_type: 'driver')).not_to be_valid
+    end
+  end
+
+  describe '#target_value' do
+    it 'reads the column that identifies the target' do
+      region_goal = create(:revenue_goal, :region, tenant:)
+
+      expect(region_goal.target_value).to eq(region_goal.macro_region_id)
+      expect(build(:revenue_goal, :vehicle, tenant:).target_value).to eq('AJR4391')
+      expect(build(:revenue_goal, tenant:).target_value).to be_nil
     end
   end
 

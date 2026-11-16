@@ -98,10 +98,43 @@ module GoalsHelper
                library: chart_bar_library(:x).deep_merge(scales: { x: { ticks: { autoSkip: true, maxTicksLimit: GOAL_DATE_TICKS, maxRotation: 0 } } }))
   end
 
-  def goal_customers_body(dashboard)
-    return render('shared/no_content') if dashboard.customer_rows.empty?
+  def goal_tab_nav(prefix, tabs)
+    tag.ul(class: 'nav nav-pills goal-tabs', id: "#{prefix}_tabs", role: 'tablist') do
+      safe_join(tabs.each_with_index.map { |(section, label), index| goal_tab_item(prefix, section, label, index.zero?) })
+    end
+  end
 
-    render 'goals/customers_table', rows: dashboard.sorted_customer_rows, ungrouped_row: dashboard.ungrouped_row, month: dashboard.month
+  def goal_tab_pane(prefix, section, active, &)
+    tag.div(class: ['tab-pane fade', { 'show active' => active }], id: "#{prefix}_#{section}_pane", role: 'tabpanel',
+            aria: { labelledby: "#{prefix}_#{section}_tab" }, tabindex: 0, &)
+  end
+
+  def goal_breakdown_tabs
+    Dashboard::Goals::BREAKDOWNS.keys.index_with { |section| t(section, scope: 'goals.tabs') }
+  end
+
+  def goal_breakdown_panes(dashboard)
+    safe_join(Dashboard::Goals::BREAKDOWNS.keys.each_with_index.map do |section, index|
+      goal_tab_pane('goal', section, index.zero?) { goal_breakdown_body(dashboard, section) }
+    end)
+  end
+
+  def goal_breakdown_body(dashboard, section)
+    rows = dashboard.breakdown_rows(section)
+    extra_row = dashboard.breakdown_extra_row(section)
+    return render('shared/no_content') if rows.empty? && extra_row.nil?
+
+    render 'goals/breakdown_table', section:, rows:, extra_row:, month: dashboard.month
+  end
+
+  def goal_plate_tag(plate)
+    tag.span(plate, class: 'goal-plate')
+  end
+
+  def goal_vehicle_label(row)
+    return row.label if row.key == Dashboard::Goals::THIRD_PARTY_KEY
+
+    goal_plate_tag(row.label)
   end
 
   def goal_row_menu(row, month)
@@ -158,10 +191,10 @@ module GoalsHelper
     render 'goals/vehicle_row', row:, position: '', month:
   end
 
-  def goal_ungrouped_row(row, month)
+  def goal_breakdown_extra_row(row, month)
     return unless row
 
-    render 'goals/customer_row', row:, month:
+    render 'goals/breakdown_row', row:, month:
   end
 
   def goal_position(position, row_counter)
@@ -181,6 +214,13 @@ module GoalsHelper
   def goal_projection_menu(row, month)
     Menu.new(name: :projection, record: row, url: revenue_projection_history_path(start_date: month.beginning_of_month, end_date: month.end_of_month, **row.cut),
              icon: :'graph-up-arrow')
+  end
+
+  def goal_tab_item(prefix, section, label, active)
+    tag.li(class: 'nav-item', role: 'presentation') do
+      button_tag(label, type: 'button', class: ['nav-link', { active: }], id: "#{prefix}_#{section}_tab", role: 'tab',
+                        data: { bs_toggle: 'tab', bs_target: "##{prefix}_#{section}_pane" }, aria: { controls: "#{prefix}_#{section}_pane", selected: active })
+    end
   end
 
   def goal_month_link(month, path_name, icon_name, label)

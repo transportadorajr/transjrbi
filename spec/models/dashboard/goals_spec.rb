@@ -11,7 +11,7 @@ RSpec.describe Dashboard::Goals do
   end
 
   def dashboard
-    described_class.new(tenant.billable_freights, goals: tenant.revenue_goals.for_month(month).to_a, pace:, own_fleet:)
+    described_class.new(tenant.billable_freights, targets: RevenueGoal::Targets.new(tenant, month), pace:, own_fleet:)
   end
 
   before do
@@ -63,37 +63,54 @@ RSpec.describe Dashboard::Goals do
     expect(row.status).to eq(:attention)
   end
 
-  context 'with the customer groups and the week' do
+  context 'with the customer group and region goals and the week' do
     let(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
     let(:arcelor) { create(:customer_group, tenant:, name: 'ARCELOR') }
+    let(:usiminas_customer) { create(:atua_customer, tenant:, name: 'USIMINAS IPATINGA', customer_group: usiminas) }
+    let(:arcelor_customer) { create(:atua_customer, tenant:, name: 'ARCELOR JUIZ DE FORA', customer_group: arcelor) }
+    let(:region) { create(:macro_region, tenant:, name: 'VALE DO AÇO/MG') }
+    let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU') }
     let(:week) { RevenueGoal::Week.new(Date.new(2026, 11, 10), goals: tenant.revenue_goals.to_a, holidays: {}) }
 
-    def dashboard_with_customers
-      described_class.new(tenant.billable_freights, goals: tenant.revenue_goals.for_month(month).to_a, pace:, own_fleet:, week:,
-                                                    customer_groups: [arcelor, usiminas])
+    def dashboard_with_breakdowns
+      described_class.new(tenant.billable_freights, targets: RevenueGoal::Targets.new(tenant, month), pace:, own_fleet:, week:)
     end
 
     before do
+      create(:macro_region, tenant:, name: 'BAHIA', state: 'BA')
       create(:revenue_goal, :customer_group, tenant:, month:, customer_group: usiminas, amount_cents: 5_000_000)
-      freight('AJR4391', 700_000, taker_code: create(:atua_customer, tenant:, customer_group: usiminas).code)
-      freight('RHJ5A50', 100_000, issued_at: Time.zone.local(2026, 11, 9, 9), taker_code: create(:atua_customer, tenant:, customer_group: arcelor).code)
+      create(:revenue_goal, :region, tenant:, month:, macro_region: region, amount_cents: 5_000_000)
+      freight('AJR4391', 700_000, taker_code: usiminas_customer.code, origin_macro_region: region)
+      freight('RHJ5A50', 100_000, issued_at: Time.zone.local(2026, 11, 9, 9), taker_code: arcelor_customer.code)
     end
 
     it 'compares the billing of each customer group with its goal in the month and in the week' do
-      rows = dashboard_with_customers.sorted_customer_rows
+      rows = dashboard_with_breakdowns.breakdown_rows(:customer_groups)
 
       expect(rows.map { [it.label, it.goal_cents, it.realized_cents, it.week_goal_cents, it.week_realized_cents, it.cut] }).to eq(
         [
           ['USIMINAS', 5_000_000, 700_000, 1_200_000, 0, { customer_group_id: usiminas.id }],
           ['ARCELOR', nil, 100_000, nil, 100_000, { customer_group_id: arcelor.id }],
+          ['GERDAU', nil, 0, nil, 0, { customer_group_id: gerdau.id }],
         ],
       )
       expect(rows.first.week_ratio).to eq(0)
-      expect(dashboard_with_customers.ungrouped_row).to have_attributes(realized_cents: 1_550_000, week_realized_cents: 300_000, cut: nil)
+      expect(dashboard_with_breakdowns.breakdown_extra_row(:customer_groups))
+        .to have_attributes(label: 'Sem grupo de clientes', realized_cents: 1_550_000, week_realized_cents: 300_000, cut: nil)
+    end
+
+    it 'compares the billing of each origin macro region with its goal' do
+      rows = dashboard_with_breakdowns.breakdown_rows(:regions)
+
+      expect(rows.map { [it.label, it.goal_cents, it.realized_cents, it.week_goal_cents, it.cut] }).to eq(
+        [['VALE DO AÇO/MG', 5_000_000, 700_000, 1_200_000, { macro_region_id: region.id }]],
+      )
+      expect(dashboard_with_breakdowns.breakdown_extra_row(:regions))
+        .to have_attributes(label: 'Sem macro região', realized_cents: 1_650_000, cut: { macro_region_id: MacroRegion::OTHERS })
     end
 
     it 'sums the company billing of the week against the week goal' do
-      company = dashboard_with_customers.company
+      company = dashboard_with_breakdowns.company
 
       expect(company.week_goal_cents).to eq(2_400_000)
       expect(company.week_realized_cents).to eq(400_000)
@@ -114,7 +131,8 @@ RSpec.describe Dashboard::Goals do
   end
 
   it 'has no third party row without an own fleet' do
-    goals = described_class.new(tenant.billable_freights, goals: [], pace:, own_fleet: nil)
+    tenant.revenue_goals.delete_all
+    goals = described_class.new(tenant.billable_freights, targets: RevenueGoal::Targets.new(tenant, month), pace:, own_fleet: nil)
 
     expect(goals.third_party_row).to be_nil
     expect(goals.vehicle_rows).to be_empty

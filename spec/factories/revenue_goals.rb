@@ -14,5 +14,10 @@ FactoryBot.define do
       target_type { 'customer_group' }
       customer_group { association :customer_group, tenant: }
     end
+
+    trait :region do
+      target_type { 'region' }
+      macro_region { association :macro_region, tenant: }
+    end
   end
 end

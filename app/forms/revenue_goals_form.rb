@@ -1,27 +1,14 @@
 class RevenueGoalsForm < BaseForm
-  class VehicleLine
+  SECTIONS = RevenueGoal::Targets::SECTIONS
+
+  class Line
     include ActiveModel::Model
     include ActiveModel::Attributes
 
-    attribute :plate, :string
-    attribute :amount, :string
-
-    def persisted?
-      false
-    end
-
-    def amount_cents
-      RevenueGoalsForm.parse_cents(amount)
-    end
-  end
-
-  class CustomerGroupLine
-    include ActiveModel::Model
-    include ActiveModel::Attributes
-
-    attribute :customer_group_id, :integer
+    attribute :key, :string
     attribute :name, :string
     attribute :amount, :string
+    attribute :reference_cents, :integer
 
     def persisted?
       false
@@ -36,59 +23,52 @@ class RevenueGoalsForm < BaseForm
   attribute :company, :string
 
   attr_accessor :tenant
-  attr_writer :vehicles, :customer_groups
 
   validate :month_must_be_a_month
   validate :company_must_be_positive
-  validate :vehicles_must_be_positive
-  validate :vehicles_must_be_listed
-  validate :customer_groups_must_be_positive
-  validate :customer_groups_must_be_listed
+  validate :lines_must_be_positive
+  validate :lines_must_be_listed
 
   class << self
     def for_month(tenant, month)
-      goals = tenant.revenue_goals.for_month(month).to_a
-      company = goals.find(&:company?)
-      vehicles = goals.select(&:vehicle?).to_h { |goal| [goal.plate, goal.amount_cents] }
+      targets = RevenueGoal::Targets.new(tenant, month)
+      company = targets.goals.find(&:company?)
 
       form = new(tenant:, month: month.strftime(RevenueGoal::MONTH_FORMAT), company: format_cents(company&.amount_cents))
-      form.vehicles = (fleet_plates(tenant) | vehicles.keys).sort.map { |plate| VehicleLine.new(plate:, amount: format_cents(vehicles[plate])) }
-      form.customer_groups = customer_group_lines(tenant, goals.select(&:customer_group?))
+      SECTIONS.each_key { |section| form.assign_lines(section, listed_lines(targets, section)) }
       form
     end
 
-    def customer_group_lines(tenant, goals)
-      amounts = goals.to_h { |goal| [goal.customer_group_id, goal.amount_cents] }
+    private
 
-      RevenueGoal.listed_customer_groups(tenant, amounts.keys).map do |group|
-        CustomerGroupLine.new(customer_group_id: group.id, name: group.name, amount: format_cents(amounts[group.id]))
+    def listed_lines(targets, section)
+      amounts = targets.goal_amounts(section)
+      references = targets.reference_cents(section)
+
+      targets.options(section).map do |key, name|
+        Line.new(key:, name:, amount: format_cents(amounts[key]), reference_cents: references.fetch(key, 0))
       end
     end
+  end
 
-    def fleet_plates(tenant)
-      tenant.own_fleet&.plates.to_a
+  SECTIONS.each_key do |section|
+    define_method(section) { lines[section] }
+
+    define_method(:"#{section}_attributes=") do |attributes|
+      assign_lines(section, attributes.to_h.values.map { |line| posted_line(section, line) })
     end
   end
 
-  def vehicles
-    @vehicles ||= []
+  def assign_lines(section, section_lines)
+    lines[section] = section_lines
   end
 
-  def vehicles_attributes=(attributes)
-    self.vehicles = attributes.to_h.values.map { |line| VehicleLine.new(plate: line[:plate].to_s.strip.upcase, amount: line[:amount]) }
+  def lines
+    @lines ||= SECTIONS.keys.index_with { [] }
   end
 
-  def customer_groups
-    @customer_groups ||= []
-  end
-
-  def customer_groups_attributes=(attributes)
-    names = tenant.customer_groups.pluck(:id, :name).to_h
-
-    self.customer_groups = attributes.to_h.values.map do |line|
-      id = line[:customer_group_id].to_i
-      CustomerGroupLine.new(customer_group_id: id, name: names[id], amount: line[:amount])
-    end
+  def total_cents(section)
+    lines[section].filter_map(&:amount_cents).sum
   end
 
   def month_value
@@ -99,25 +79,30 @@ class RevenueGoalsForm < BaseForm
     self.class.parse_cents(company)
   end
 
-  def vehicles_total_cents
-    vehicles.filter_map(&:amount_cents).sum
-  end
-
-  def customer_groups_total_cents
-    customer_groups.filter_map(&:amount_cents).sum
-  end
-
   def submit
     transaction do
       save_goal({ target_type: 'company' }, company, company_cents)
-      vehicles.each { |line| save_goal({ target_type: 'vehicle', plate: line.plate }, line.amount, line.amount_cents) }
-      customer_groups.each do |line|
-        save_goal({ target_type: 'customer_group', customer_group_id: line.customer_group_id }, line.amount, line.amount_cents)
+      lines.each do |section, section_lines|
+        target_type = SECTIONS.fetch(section)
+        column = RevenueGoal::TARGET_COLUMNS.fetch(target_type)
+        section_lines.each { |line| save_goal({ target_type:, column => line.key }, line.amount, line.amount_cents) }
       end
     end
   end
 
   private
+
+  def targets
+    @targets ||= RevenueGoal::Targets.new(tenant, month_value)
+  end
+
+  def posted_line(section, line)
+    key = line[:key].to_s.strip
+    key = key.upcase if section == :vehicles
+    name = targets.options(section)[key] if month_value
+
+    Line.new(key:, name: name || key, amount: line[:amount])
+  end
 
   def save_goal(target, amount, cents)
     goal = tenant.revenue_goals.for_month(month_value).find_or_initialize_by(target)
@@ -136,32 +121,20 @@ class RevenueGoalsForm < BaseForm
     errors.add(:company, :greater_than, count: 0)
   end
 
-  def vehicles_must_be_positive
-    vehicles.reject { |line| line.amount.blank? || line.amount_cents&.positive? }.each do |line|
-      errors.add(:base, :invalid_vehicle_amount, plate: line.plate)
+  def lines_must_be_positive
+    lines.each do |section, section_lines|
+      section_lines.reject { |line| line.amount.blank? || line.amount_cents&.positive? }.each do |line|
+        errors.add(:base, :"invalid_#{section}_amount", name: line.name)
+      end
     end
   end
 
-  def vehicles_must_be_listed
+  def lines_must_be_listed
     return unless month_value
 
-    allowed = self.class.fleet_plates(tenant) | tenant.revenue_goals.for_month(month_value).vehicle.pluck(:plate)
-    vehicles.reject { |line| allowed.include?(line.plate) }.each { |line| errors.add(:base, :unknown_vehicle, plate: line.plate) }
-  end
-
-  def customer_groups_must_be_positive
-    customer_groups.reject { |line| line.amount.blank? || line.amount_cents&.positive? }.each do |line|
-      errors.add(:base, :invalid_customer_group_amount, name: line.name || line.customer_group_id)
-    end
-  end
-
-  def customer_groups_must_be_listed
-    return unless month_value
-
-    goal_group_ids = tenant.revenue_goals.for_month(month_value).customer_group.pluck(:customer_group_id)
-    allowed = RevenueGoal.listed_customer_groups(tenant, goal_group_ids).ids
-    customer_groups.reject { |line| allowed.include?(line.customer_group_id) }.each do |line|
-      errors.add(:base, :unknown_customer_group, id: line.customer_group_id)
+    lines.each do |section, section_lines|
+      allowed = targets.options(section)
+      section_lines.reject { |line| allowed.key?(line.key) }.each { |line| errors.add(:base, :"unknown_#{section}", name: line.name) }
     end
   end
 end
