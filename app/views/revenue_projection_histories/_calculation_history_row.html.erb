@@ -1,0 +1,6 @@
+<%# locals: (daily_total:) %>
+
+<tr>
+  <td><%= l(daily_total.date) %></td>
+  <td class="text-end text-nowrap"><%= revenue_projection_history_money(daily_total.billed_cents) %></td>
+</tr>

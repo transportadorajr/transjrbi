@@ -69,8 +69,18 @@ module RevenueProjections
       RevenueProjection::Snapshot.new(
         tenant_id: tenant.id, period_type:, period_start: result.period.first, period_end: result.period.last, taken_on: date,
         reference_at: result.reference_at, realized_cents: result.realized_cents, projected_cents: result.projected_cents, low_cents: result.low_cents,
-        high_cents: result.high_cents, days: result.days.map { day_row(it) }, reconstructed: true
+        high_cents: result.high_cents, days: result.days.map { day_row(it) }, reconstructed: true, **current_attributes(period_type, date)
       )
+    end
+
+    def current_attributes(period_type, date)
+      return {} unless date == today
+
+      now = Time.current
+      result = CalculateCommand.call(tenant, period_type:, at: now, factors: factor_set(date), documents:, daily_totals: totals)
+
+      { current_projected_cents: result.projected_cents, current_low_cents: result.low_cents, current_high_cents: result.high_cents,
+        current_reference_at: result.reference_at, current_refreshed_at: now }
     end
 
     def day_row(day)

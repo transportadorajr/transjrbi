@@ -18,6 +18,10 @@ shared:
     cron: '0 6 * * * America/Sao_Paulo'
     class: 'RevenueProjections::RefreshMemoryJob'
     description: 'Consolidates the billing of each day, compares the forecast of each day with it, learns the factors and forecasts today'
+  revenue_projection_current:
+    cron: '10,40 6-23 * * * America/Sao_Paulo'
+    class: 'RevenueProjections::RefreshCurrentJob'
+    description: 'Recalculates the projections of the month and of the week taken this morning every 30 minutes, ten minutes after the Atua imports, keeping the morning projection in the history'
   atua_movements:
     cron: '0 7-23 * * 1-6 America/Sao_Paulo'
     class: 'Atua::ScheduleMovementsJob'

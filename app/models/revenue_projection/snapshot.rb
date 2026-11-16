@@ -8,6 +8,10 @@ module RevenueProjection
 
     validates :period_start, :period_end, :taken_on, :reference_at, presence: true
 
+    def latest_projected_cents
+      current_projected_cents || projected_cents
+    end
+
     def realized
       Money.from_cents(realized_cents)
     end
@@ -30,21 +34,26 @@ end
 #
 # Table name: revenue_projection_snapshots
 #
-#  id              :bigint           not null, primary key
-#  days            :jsonb            not null
-#  high_cents      :bigint           default(0), not null
-#  low_cents       :bigint           default(0), not null
-#  period_end      :date             not null
-#  period_start    :date             not null
-#  period_type     :enum             not null
-#  projected_cents :bigint           default(0), not null
-#  realized_cents  :bigint           default(0), not null
-#  reconstructed   :boolean          default(FALSE), not null
-#  reference_at    :datetime         not null
-#  taken_on        :date             not null
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  tenant_id       :bigint           not null
+#  id                      :bigint           not null, primary key
+#  current_high_cents      :bigint
+#  current_low_cents       :bigint
+#  current_projected_cents :bigint
+#  current_reference_at    :datetime
+#  current_refreshed_at    :datetime
+#  days                    :jsonb            not null
+#  high_cents              :bigint           default(0), not null
+#  low_cents               :bigint           default(0), not null
+#  period_end              :date             not null
+#  period_start            :date             not null
+#  period_type             :enum             not null
+#  projected_cents         :bigint           default(0), not null
+#  realized_cents          :bigint           default(0), not null
+#  reconstructed           :boolean          default(FALSE), not null
+#  reference_at            :datetime         not null
+#  taken_on                :date             not null
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  tenant_id               :bigint           not null
 #
 # Indexes
 #

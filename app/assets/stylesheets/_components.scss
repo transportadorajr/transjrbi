@@ -162,6 +162,12 @@
     &.value-warning { color: #d39e00; }
     &.value-primary { color: $primary; }
   }
+
+  .counter-value-note {
+    display: block;
+    font-size: 0.55em;
+    margin-top: 2px;
+  }
 }
 
 .counter-grid-compact .counter-card {
@@ -211,6 +217,32 @@
     font-size: clamp(0.95rem, 12cqi, 1.9rem);
     margin-top: 8px;
     white-space: nowrap;
+  }
+}
+
+.day-progress {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 0.75rem;
+  border: none;
+  border-radius: 999px;
+  overflow: hidden;
+  background-color: #e9ecef;
+
+  &::-webkit-progress-bar {
+    background-color: #e9ecef;
+    border-radius: 999px;
+  }
+
+  &::-webkit-progress-value {
+    background-color: $primary;
+    border-radius: 999px;
+  }
+
+  &::-moz-progress-bar {
+    background-color: $primary;
+    border-radius: 999px;
   }
 }
 

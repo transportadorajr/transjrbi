@@ -18,6 +18,23 @@ class RevenueProjectionHistoriesController < BaseController
     respond_with_listing(pdf: false, xlsx: -> { helpers.revenue_projection_history_xlsx_sheets(@history, cut_items: @cut_items) })
   end
 
+  def freights
+    authorize!(:read, :revenue_projection)
+
+    load_day
+    @transport_documents = filtered_freights(@filter_form.truck_group_id).active.not_canceled.where(issued_at: @date.all_day)
+      .with_freight_totals.order(:issued_at, :id).to_a
+    render formats: :turbo_stream
+  end
+
+  def calculation
+    authorize!(:read, :revenue_projection)
+
+    load_day
+    @calculation = Dashboard::RevenueProjectionDayCalculation.new(current_tenant, @date, memory:)
+    render formats: :turbo_stream
+  end
+
   def product_options
     authorize!(:read, :revenue_projection)
 
@@ -29,6 +46,14 @@ class RevenueProjectionHistoriesController < BaseController
 
   def require_revenue_projection
     raise ActionController::RoutingError, 'Not Found' unless Dashboard::RevenueProjection.enabled?(current_tenant)
+  end
+
+  def load_day
+    @date = Date.iso8601(params[:date].to_s)
+    @filter_form = RevenueProjectionHistoryFilterForm.new(filter_params)
+    raise ActionController::RoutingError, 'Not Found' if @filter_form.invalid?
+  rescue Date::Error
+    raise ActionController::RoutingError, 'Not Found'
   end
 
   def history

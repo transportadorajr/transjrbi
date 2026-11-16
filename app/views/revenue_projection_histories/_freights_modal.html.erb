@@ -1,0 +1,8 @@
+<%# locals: (date:, transport_documents:) %>
+
+<%= render layout: 'components/new_modal',
+           locals: { id: 'revenue_projection_freights_modal', title: t('revenue_projection_histories.freights.title', date: l(date)),
+                     auto_show: true, show_footer: false, dialog_class: 'modal-xl modal-dialog-scrollable modal-fullscreen-sm-down' } do %>
+  <p class="text-muted small"><%= t('revenue_projection_histories.freights.subtitle') %></p>
+  <%= revenue_projection_history_freights_body(transport_documents) %>
+<% end %>

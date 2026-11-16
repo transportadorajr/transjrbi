@@ -31,7 +31,37 @@ RSpec.describe Dashboard::RevenueProjectionToday do
                                          difference_cents: 20_000, difference_ratio: 0.2)
       expect(history.month_snapshot.projected_cents).to eq(2_330_000)
       expect(history.week_snapshot.projected_cents).to eq(550_000)
+      expect(history).to have_attributes(month_projected_cents: 2_330_000, week_projected_cents: 550_000, projections_refreshed_at: nil)
       expect(history.last_synced_at).to eq(today.in_time_zone.change(hour: 14))
     end
+
+    it 'shows the projections recalculated during the day' do
+      history.month_snapshot.update!(current_projected_cents: 2_400_000, current_refreshed_at: today.in_time_zone.change(hour: 14, min: 10))
+
+      expect(described_class.new(tenant, today:)).to have_attributes(month_projected_cents: 2_400_000, week_projected_cents: 550_000,
+                                                                     projections_refreshed_at: today.in_time_zone.change(hour: 14, min: 10))
+    end
+
+    it 'tells that the forecast of the day was exceeded with nothing left to bill' do
+      expect(history).to have_attributes(achieved_ratio: 1.2, remaining_cents: 0)
+    end
+  end
+
+  context 'with part of the forecast of the day billed' do
+    before do
+      create(:revenue_projection_day_forecast, tenant:, date: today, forecast_cents: 28_738_314)
+      create(:atua_transport_document, tenant:, issued_at: today.in_time_zone.change(hour: 9), freight_cents: 22_385_256)
+    end
+
+    it 'tells how much of the forecast was reached and how much is left' do
+      history = described_class.new(tenant, today:)
+
+      expect(history.achieved_ratio.round(3)).to eq(0.779)
+      expect(history.remaining_cents).to eq(6_353_058)
+    end
+  end
+
+  it 'has no progress without a forecast of the day' do
+    expect(described_class.new(tenant, today:)).to have_attributes(achieved_ratio: nil, remaining_cents: nil)
   end
 end

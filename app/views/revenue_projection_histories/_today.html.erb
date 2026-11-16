@@ -4,6 +4,9 @@
   <%= revenue_projection_history_today_cards(today) %>
 </div>
 
+<%= revenue_projection_history_today_progress(today) %>
+
 <div class="mb-4">
   <%= tag.p revenue_projection_history_today_note(today), class: 'small text-muted mb-1' %>
+  <%= tag.p revenue_projection_history_today_refresh_note(today), class: 'small text-muted mb-1', id: 'today_refresh_note' %>
 </div>

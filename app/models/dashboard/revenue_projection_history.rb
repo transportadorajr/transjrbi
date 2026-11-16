@@ -99,12 +99,24 @@ module Dashboard
     def difference_cents
       return billed_cents - forecast_cents unless snapshot_period?
 
-      (closed? ? billed_cents : latest.projected_cents) - opening.projected_cents
+      (closed? ? billed_cents : current_projected_cents) - opening.projected_cents
     end
 
     def difference_ratio
       base = snapshot_period? ? opening.projected_cents : forecast_cents
       difference_cents.to_f / base if base.positive?
+    end
+
+    def current_projected_cents
+      live? ? latest.latest_projected_cents : latest.projected_cents
+    end
+
+    def current_refreshed_at
+      latest.current_refreshed_at if live?
+    end
+
+    def evaluable?
+      billed_cents.positive?
     end
 
     def hit_since
@@ -160,6 +172,10 @@ module Dashboard
     private
 
     attr_reader :tenant, :today, :memory
+
+    def live?
+      !closed? && latest&.taken_on == today
+    end
 
     def closed_days
       period.first..last_closed_date

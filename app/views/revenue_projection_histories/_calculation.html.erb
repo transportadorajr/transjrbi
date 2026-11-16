@@ -1,0 +1,17 @@
+<%# locals: (calculation:) %>
+
+<p class="small text-muted"><%= t('revenue_projection_histories.calculation.explanation') %></p>
+
+<dl class="row mb-4" id="calculation_summary">
+  <% revenue_projection_history_calculation_items(calculation).each do |label, value| %>
+    <dt class="col-12 col-md-6 fw-medium"><%= label %></dt>
+    <dd class="col-12 col-md-6 text-md-end"><%= value %></dd>
+  <% end %>
+</dl>
+
+<p class="fw-semibold mb-1"><%= t('revenue_projection_histories.calculation.history_title') %></p>
+<p class="small text-muted mb-2"><%= revenue_projection_history_calculation_window(calculation) %></p>
+
+<%= revenue_projection_history_calculation_history(calculation.history_days) %>
+
+<p class="small text-muted mb-0"><%= t('revenue_projection_histories.calculation.history_note') %></p>
