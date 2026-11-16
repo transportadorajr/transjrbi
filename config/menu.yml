@@ -29,11 +29,6 @@ shared:
           feature: revenue_goals
           controllers:
             - goals
-        - name: revenue_goals
-          resource: revenue_goals
-          url: /revenue_goals
-          feature: revenue_goals
-          controllers:
             - revenue_goals
     - name: tax
       icon: receipt

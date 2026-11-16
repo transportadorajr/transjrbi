@@ -42,6 +42,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
     context 'with the goals of the month' do
       before do
+        create(:resource, name: 'Painel de metas', slug: 'goals', writable: false)
         create(:revenue_goal, tenant:, month:, amount_cents: 15_000_000)
         create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391', amount_cents: 4_000_000)
         create(:revenue_goal, :region, tenant:, month:, macro_region: region, amount_cents: 6_000_000)
@@ -50,14 +51,16 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
                                          issued_at: Time.zone.local(2026, 10, 15, 10))
       end
 
-      scenario 'shows the goals of the month from the goals and projections menu' do
+      scenario 'shows the goals of the month from the goals panel' do
         visit root_path
         within('.sidebar-desktop') do
           click_on 'Metas e projeções'
-          click_on 'Metas de faturamento'
+          click_on 'Metas'
+          expect(page).to have_no_link('Metas de faturamento')
         end
+        click_on 'Cadastrar metas'
 
-        expect(page).to have_current_path(revenue_goals_path)
+        expect(page).to have_current_path(revenue_goals_path(month: '2026-11'))
         expect(page).to have_css('h1.page-title', text: 'Metas de faturamento')
         expect(RevenueGoal.where(tenant:).count).to eq(3)
         expect(CustomerGroup.where(tenant:).count).to eq(2)
