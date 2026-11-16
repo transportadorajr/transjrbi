@@ -34,6 +34,33 @@ module RevenueProjectionTodayHelper
     [today.billed_cents, today.forecast_cents].min
   end
 
+  def revenue_projection_history_today_goal(goal)
+    return unless goal
+
+    render 'revenue_projection_histories/today_goal', goal:
+  end
+
+  def revenue_projection_history_today_goal_badge(goal)
+    goal_status_badge(goal) if goal.status
+  end
+
+  def revenue_projection_history_today_goal_realized(goal)
+    t('revenue_projection_histories.today_goal.realized', realized: goal_money(goal.realized_cents), goal: goal_money(goal.goal_cents),
+                                                          ratio: goal_ratio(goal.ratio))
+  end
+
+  def revenue_projection_history_today_goal_missing(goal)
+    return t('revenue_projection_histories.today_goal.reached') if goal.missing_cents.zero?
+
+    t('revenue_projection_histories.today_goal.missing', value: goal_money(goal.missing_cents))
+  end
+
+  def revenue_projection_history_today_goal_projection(goal)
+    return t('revenue_projection_histories.today_goal.no_projection') unless goal.projected_cents
+
+    t('revenue_projection_histories.today_goal.projection', value: goal_money(goal.projected_cents), ratio: goal_ratio(goal.projected_ratio))
+  end
+
   def revenue_projection_history_today_note(today)
     return t('revenue_projection_histories.today.never_synced') unless today.last_synced_at
 

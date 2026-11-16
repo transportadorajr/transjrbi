@@ -35,6 +35,15 @@ RSpec.describe Dashboard::RevenueProjectionToday do
       expect(history.last_synced_at).to eq(today.in_time_zone.change(hour: 14))
     end
 
+    it 'compares the billing of the month and the projection of today with a goal' do
+      row = history.goal_row(build(:revenue_goal, tenant:, month: today.beginning_of_month, amount_cents: 2_500_000))
+
+      expect(history.month_billed_cents).to eq(210_000)
+      expect(row).to have_attributes(label: 'Transportadora', goal_cents: 2_500_000, realized_cents: 210_000, projected_cents: 2_330_000,
+                                     missing_cents: 2_290_000, status: :attention)
+      expect(history.goal_row(nil)).to be_nil
+    end
+
     it 'shows the projections recalculated during the day' do
       history.month_snapshot.update!(current_projected_cents: 2_400_000, current_refreshed_at: today.in_time_zone.change(hour: 14, min: 10))
 

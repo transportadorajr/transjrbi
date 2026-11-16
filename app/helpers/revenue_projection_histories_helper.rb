@@ -21,9 +21,9 @@ module RevenueProjectionHistoriesHelper
     "btn btn-sm #{period_type == selected ? 'btn-primary' : 'btn-outline-secondary'}"
   end
 
-  def revenue_projection_history_body(history)
+  def revenue_projection_history_body(history, today_goal: nil)
     return render('shared/no_content') unless history.any?
-    return render('revenue_projection_histories/today', today: history) if history.period_type == 'today'
+    return render('revenue_projection_histories/today', today: history, goal: today_goal) if history.period_type == 'today'
 
     render 'revenue_projection_histories/content', history:
   end

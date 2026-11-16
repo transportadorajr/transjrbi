@@ -74,6 +74,31 @@ RSpec.describe RevenueGoal do
     end
   end
 
+  describe '.for_cut' do
+    let(:month) { Date.new(2026, 11, 1) }
+    let(:goals) { tenant.revenue_goals.for_month(month) }
+
+    let!(:company_goal) { create(:revenue_goal, tenant:, month:) }
+    let!(:vehicle_goal) { create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391') }
+    let!(:region_goal) { create(:revenue_goal, :region, tenant:, month:) }
+    let!(:driver_goal) { create(:revenue_goal, :driver, tenant:, month:, driver_code: 11) }
+
+    it 'finds the goal of the target of the cut' do
+      expect(goals.for_cut({})).to eq(company_goal)
+      expect(goals.for_cut({ plate: 'ajr-4391' })).to eq(vehicle_goal)
+      expect(goals.for_cut({ macro_region_id: region_goal.macro_region_id.to_s })).to eq(region_goal)
+      expect(goals.for_cut({ driver_code: 11 })).to eq(driver_goal)
+    end
+
+    it 'finds no goal for a cut without one' do
+      expect(goals.for_cut({ plate: 'RHJ5A50' })).to be_nil
+      expect(goals.for_cut({ macro_region_id: MacroRegion::OTHERS })).to be_nil
+      expect(goals.for_cut({ product_group_id: 1 })).to be_nil
+      expect(goals.for_cut({ plate: 'AJR4391', driver_code: 11 })).to be_nil
+      expect(tenant.revenue_goals.for_month(month.next_month).for_cut({})).to be_nil
+    end
+  end
+
   describe '.parse_month' do
     it 'reads a year and month' do
       expect(described_class.parse_month('2026-11')).to eq(Date.new(2026, 11, 1))

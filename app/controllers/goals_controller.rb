@@ -12,6 +12,8 @@ class GoalsController < BaseController
     @last_synced_at = current_tenant.last_synced_at
     @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, targets:, pace:, week:, own_fleet: current_tenant.own_fleet)
     @rows = listing_page(dimension_rows)
+
+    respond_with_listing(pdf: false, xlsx: -> { helpers.goals_xlsx_sheets(@dashboard, @filter_form.section, @rows) })
   end
 
   private

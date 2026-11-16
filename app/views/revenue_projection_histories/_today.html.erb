@@ -1,10 +1,11 @@
-<%# locals: (today:) %>
+<%# locals: (today:, goal: nil) %>
 
 <div class="row g-3 mb-2" id="history_cards">
   <%= revenue_projection_history_today_cards(today) %>
 </div>
 
 <%= revenue_projection_history_today_progress(today) %>
+<%= revenue_projection_history_today_goal(goal) %>
 
 <div class="mb-4">
   <%= tag.p revenue_projection_history_today_note(today), class: 'small text-muted mb-1' %>

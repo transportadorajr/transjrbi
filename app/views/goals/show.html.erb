@@ -2,6 +2,7 @@
 
 <div class="page-shell">
   <%= page_header_tag t('.title'), subtitle: t('.subtitle'), note: freight_billing_last_sync_label(@last_synced_at) do %>
+    <%= xlsx_export_button %>
     <%= goal_registration_button(@dashboard.month) %>
   <% end %>
 
