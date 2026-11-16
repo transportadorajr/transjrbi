@@ -218,6 +218,12 @@ module RevenueProjectionHistoriesHelper
                                                                  start: l(calculation.window.first), finish: l(calculation.window.last - 1))
   end
 
+  def revenue_projection_history_calculation_history(history_days)
+    return render('shared/no_content') if history_days.empty?
+
+    render 'revenue_projection_histories/calculation_history_table', history_days:
+  end
+
   def revenue_projection_history_calculation_body(calculation)
     return tag.p(t('revenue_projection_histories.calculation.missing'), class: 'text-muted mb-0') unless calculation.any?
 

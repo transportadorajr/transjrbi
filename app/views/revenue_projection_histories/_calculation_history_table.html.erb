@@ -1,0 +1,15 @@
+<%# locals: (history_days:) %>
+
+<div class="table-responsive">
+  <table class="table table-sm app-table align-middle mb-2" id="calculation_history">
+    <thead>
+      <tr>
+        <th><%= RevenueProjection::DailyTotal.human_attribute_name(:date) %></th>
+        <th class="text-end"><%= RevenueProjection::DailyTotal.human_attribute_name(:billed) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'revenue_projection_histories/calculation_history_row', collection: history_days, as: :daily_total %>
+    </tbody>
+  </table>
+</div>

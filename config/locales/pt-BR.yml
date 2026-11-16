@@ -118,6 +118,9 @@ pt-BR:
         date: Dia
         body: Anotação
         user: Autor
+      revenue_projection/daily_total:
+        date: Dia
+        billed: Faturado
       revenue_projection/day_forecast:
         day_type: Tipo do dia
         typical: Valor típico do dia da semana

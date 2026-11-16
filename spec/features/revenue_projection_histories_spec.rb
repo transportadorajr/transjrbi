@@ -103,12 +103,15 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           expect(RevenueProjection::Snapshot.month.find_by(tenant:, taken_on: Date.new(2026, 11, 4)).projected_cents).to eq(2_330_000)
         end
 
-        scenario 'shows the current projection of the month on today' do
-          create(:revenue_projection_day_forecast, tenant:, date: Date.new(2026, 11, 4), forecast_cents: 100_000)
-          visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+        context 'with the forecast of today' do
+          before { create(:revenue_projection_day_forecast, tenant:, date: Date.new(2026, 11, 4), forecast_cents: 100_000) }
 
-          expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Projeção do mês hoje R$ 24.000,00')
-          expect(page).to have_css('#today_refresh_note', text: 'recalculadas a cada 30 minutos com o faturado até a última sincronização (última às 09:40)')
+          scenario 'shows the current projection of the month on today' do
+            visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+
+            expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Projeção do mês hoje R$ 24.000,00')
+            expect(page).to have_css('#today_refresh_note', text: 'recalculadas a cada 30 minutos com o faturado até a última sincronização (última às 09:40)')
+          end
         end
       end
 
@@ -330,11 +333,15 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         visit revenue_projection_history_path(plate: 'BBB2B22')
         find_by_id('history_days').find('tr', text: '03/11 ter').click_on('Visualizar CT-es de 03/11/2026')
 
+        freight = Atua::TransportDocument.find_by!(tenant:, plate: 'BBB2B22', issued_at: Date.new(2026, 11, 3).all_day)
+
         within('#revenue_projection_freights_modal') do
           expect(page).to have_text('CT-es de 03/11/2026')
-          expect(page).to have_css('#history_freights tbody tr', count: 1)
-          expect(find('#history_freights tbody tr')).to have_text('BBB2B22')
-          expect(find('#history_freights tfoot')).to have_text('R$ 500,00')
+          expect(html_table_to_rows(table: find_by_id('history_freights'))).to eq(
+            [['NÚMERO', 'EMITIDO EM', 'ORIGEM / DESTINO', 'PLACA', 'MOTORISTA', 'FRETE BRUTO'],
+             ["#{freight.number} -", '03/11/2026 10:00', '- → -', 'BBB2B22', '-', 'R$ 500,00'],
+             ['Total', '', '', '', '', 'R$ 500,00']],
+          )
         end
         expect(page).to have_current_path(/plate=BBB2B22/)
         expect(page).to have_css('#history_cut', text: 'Placa: BBB2B22')
@@ -556,6 +563,52 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         .to be(true)
       expect(page.evaluate_script("document.querySelector('#history_weeks').scrollWidth <= document.querySelector('#history_weeks').parentElement.clientWidth"))
         .to be(true)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    scenario 'opens the CT-es and the calculation of a day without scrolling sideways' do
+      visit revenue_projection_history_path
+      use_mobile_screen(width: 360)
+
+      within(find_by_id('history_days').find('tr', text: '02/11 seg')) { click_button 'Opções' }
+      click_on 'Visualizar CT-es de 02/11/2026'
+
+      within('#revenue_projection_freights_modal') do
+        expect(page).to have_text('CT-es de 02/11/2026')
+        expect(page).to have_text('Nenhum registro encontrado')
+      end
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+
+      visit revenue_projection_history_path
+      within(find_by_id('history_days').find('tr', text: '02/11 seg')) { click_button 'Opções' }
+      click_on 'Ver o cálculo da previsão de 02/11/2026'
+
+      within('#revenue_projection_calculation_modal') do
+        expect(dl_to_hash).to include('Tipo do dia' => 'Feriado em dia útil', 'Previsão do dia' => 'R$ 300,00')
+        expect(page).to have_text('Nenhum registro encontrado')
+      end
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+  end
+
+  context 'when the forecast of today is opened on a phone', :js do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+
+    before do
+      build_history(tenant)
+      create(:revenue_projection_day_forecast, tenant:, date: Date.new(2026, 11, 4), forecast_cents: 100_000)
+      create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 11, 4, 8), freight_cents: 70_000)
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'stacks the progress of the day without scrolling sideways' do
+      use_mobile_screen(width: 360)
+      visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+
+      within('#today_progress') do
+        expect(page).to have_text('70,0% atingido')
+        expect(page).to have_text('R$ 300,00 restantes')
+      end
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end

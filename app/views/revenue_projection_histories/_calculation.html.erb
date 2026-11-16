@@ -12,23 +12,6 @@
 <p class="fw-semibold mb-1"><%= t('revenue_projection_histories.calculation.history_title') %></p>
 <p class="small text-muted mb-2"><%= revenue_projection_history_calculation_window(calculation) %></p>
 
-<div class="table-responsive">
-  <table class="table table-sm app-table align-middle mb-2" id="calculation_history">
-    <thead>
-      <tr>
-        <th><%= t('revenue_projection_histories.show.date') %></th>
-        <th class="text-end"><%= t('revenue_projection_histories.show.billed') %></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% calculation.history_days.each do |day| %>
-        <tr>
-          <td><%= l(day.date) %></td>
-          <td class="text-end text-nowrap"><%= revenue_projection_history_money(day.billed_cents) %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-</div>
+<%= revenue_projection_history_calculation_history(calculation.history_days) %>
 
 <p class="small text-muted mb-0"><%= t('revenue_projection_histories.calculation.history_note') %></p>
