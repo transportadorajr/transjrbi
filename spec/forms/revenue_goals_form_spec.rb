@@ -57,12 +57,16 @@ RSpec.describe RevenueGoalsForm do
       expect(tenant.revenue_goals.customer_group.sole).to have_attributes(customer_group_id: usiminas.id, amount_cents: 7_000_000)
     end
 
-    it 'rejects a customer group of another tenant' do
-      other = create(:customer_group, name: 'OUTRA')
-      invalid = form(customer_groups_attributes: { '0' => { customer_group_id: other.id.to_s, amount: '10,00' }, '1' => { customer_group_id: usiminas.id.to_s, amount: '0' } })
+    context 'with a customer group of another tenant' do
+      let!(:other) { create(:customer_group, name: 'OUTRA') }
 
-      expect(invalid.save).to be_falsey
-      expect(invalid.errors.full_messages).to contain_exactly("O grupo de clientes #{other.id} não está ativo.", 'A meta do cliente USIMINAS deve ser maior que 0.')
+      it 'rejects it' do
+        invalid = form(customer_groups_attributes: { '0' => { customer_group_id: other.id.to_s, amount: '10,00' },
+                                                     '1' => { customer_group_id: usiminas.id.to_s, amount: '0' } })
+
+        expect(invalid.save).to be_falsey
+        expect(invalid.errors.full_messages).to contain_exactly("O grupo de clientes #{other.id} não está ativo.", 'A meta do cliente USIMINAS deve ser maior que 0.')
+      end
     end
 
     it 'rejects an invalid month' do

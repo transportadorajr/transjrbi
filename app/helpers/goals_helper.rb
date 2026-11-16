@@ -152,6 +152,18 @@ module GoalsHelper
     render 'goals/vehicles_table', rows:, third_party_row: dashboard.third_party_row, month: dashboard.month
   end
 
+  def goal_third_party_row(row, month)
+    return unless row
+
+    render 'goals/vehicle_row', row:, position: '', month:
+  end
+
+  def goal_ungrouped_row(row, month)
+    return unless row
+
+    render 'goals/customer_row', row:, month:
+  end
+
   def goal_position(position, row_counter)
     position || (row_counter + 1)
   end

@@ -51,6 +51,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
         expect(page).to have_current_path(revenue_goals_path)
         expect(page).to have_css('h1.page-title', text: 'Metas de faturamento')
         expect(RevenueGoal.where(tenant:).count).to eq(2)
+        expect(CustomerGroup.where(tenant:).count).to eq(2)
         expect(dl_to_hash('#revenue_goals_company')).to eq(
           'Mês' => 'Novembro de 2026', 'Meta da transportadora' => 'R$ 150.000,00', 'Soma das metas dos veículos' => 'R$ 40.000,00',
           'Soma das metas dos clientes' => 'R$ 0,00'

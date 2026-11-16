@@ -91,6 +91,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         )
         expect(page).to have_no_link(href: /revenue_projection_history/)
         expect(RevenueGoal.where(tenant:).count).to eq(4)
+        expect(CustomerGroup.where(tenant:).count).to eq(3)
       end
 
       scenario 'ranks the vehicles by the goal achievement' do
@@ -108,21 +109,24 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(html_table_to_rows.drop(1).map { it[1] }).to eq(%w[QWE1A23 RHJ5A50 AJR4391 Terceiro])
       end
 
-      scenario 'links each vehicle and customer to its projection history', flipper: { revenue_goals: :tenant, revenue_projection: :tenant } do
-        create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false)
-        visit goals_path
+      context 'with the revenue projection enabled', flipper: { revenue_goals: :tenant, revenue_projection: :tenant } do
+        let!(:projection_resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 
-        within('#goal_vehicles_table') { click_on 'Ver a projeção de AJR4391' }
+        scenario 'links each vehicle and customer to its projection history' do
+          visit goals_path
 
-        expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', plate: 'AJR4391'))
-        expect(page).to have_css('h1.page-title', text: 'Histórico da projeção')
+          within('#goal_vehicles_table') { click_on 'Ver a projeção de AJR4391' }
 
-        visit goals_path
-        within('#goal_customers_table') { click_on 'Ver a projeção de USIMINAS' }
+          expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', plate: 'AJR4391'))
+          expect(page).to have_css('h1.page-title', text: 'Histórico da projeção')
 
-        usiminas = tenant.customer_groups.find_by!(name: 'USIMINAS')
-        expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', customer_group_id: usiminas.id))
-        expect(page).to have_no_link('Ver a projeção de Terceiro')
+          visit goals_path
+          within('#goal_customers_table') { click_on 'Ver a projeção de USIMINAS' }
+
+          usiminas = tenant.customer_groups.find_by!(name: 'USIMINAS')
+          expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', customer_group_id: usiminas.id))
+          expect(page).to have_no_link('Ver a projeção de Terceiro')
+        end
       end
 
       scenario 'shows the closed previous month without goals' do

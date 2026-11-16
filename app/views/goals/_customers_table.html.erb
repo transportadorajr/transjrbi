@@ -17,7 +17,7 @@
     </thead>
     <tbody>
       <%= render partial: 'goals/customer_row', collection: rows, as: :row, locals: { month: } %>
-      <%= render('goals/customer_row', row: ungrouped_row, month:) if ungrouped_row %>
+      <%= goal_ungrouped_row(ungrouped_row, month) %>
     </tbody>
   </table>
 </div>

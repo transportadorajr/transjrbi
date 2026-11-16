@@ -20,7 +20,7 @@
 
       <div class="row g-3" id="revenue_goals_vehicle_fields">
         <%= f.simple_fields_for :vehicles, revenue_goals_form.vehicles do |vf| %>
-          <div class="col-12 col-md-6 col-xl-4">
+          <div class="col-12 col-lg-6 col-xl-4">
             <%= vf.hidden_field :plate %>
             <%= vf.input :amount, as: :money, required: false, label: vf.object.plate %>
           </div>
@@ -32,7 +32,7 @@
 
       <div class="row g-3" id="revenue_goals_customer_group_fields">
         <%= f.simple_fields_for :customer_groups, revenue_goals_form.customer_groups do |cf| %>
-          <div class="col-12 col-md-6 col-xl-4">
+          <div class="col-12 col-lg-6 col-xl-4">
             <%= cf.hidden_field :customer_group_id %>
             <%= cf.input :amount, as: :money, required: false, label: cf.object.name %>
           </div>
