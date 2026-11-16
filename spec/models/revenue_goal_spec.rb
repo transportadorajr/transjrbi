@@ -34,6 +34,12 @@ RSpec.describe RevenueGoal do
       expect(build(:revenue_goal, tenant:, macro_region: create(:macro_region, tenant:))).not_to be_valid
     end
 
+    it 'requires the driver code only for a driver goal' do
+      expect(build(:revenue_goal, tenant:, target_type: 'driver')).not_to be_valid
+      expect(build(:revenue_goal, :driver, tenant:)).to be_valid
+      expect(build(:revenue_goal, tenant:, driver_code: 501)).not_to be_valid
+    end
+
     it 'removes the region goals with the macro region' do
       goal = create(:revenue_goal, :region, tenant:)
 

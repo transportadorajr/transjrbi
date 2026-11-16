@@ -16,8 +16,12 @@
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'goals/vehicle_row', collection: rows, as: :row, locals: { position: nil, month: } %>
+      <%= render partial: 'goals/vehicle_row', collection: rows, as: :row, locals: { position: nil, month:, offset: rows.offset_value } %>
       <%= goal_third_party_row(third_party_row, month) %>
     </tbody>
   </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate rows %>
 </div>

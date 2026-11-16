@@ -62,7 +62,8 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
         expect(RevenueGoal.where(tenant:).count).to eq(3)
         expect(CustomerGroup.where(tenant:).count).to eq(2)
         expect(summary_cards).to eq(
-          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
+          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma dos grupos R$ 0,00', 'Soma dos motoristas R$ 0,00',
+           'Soma das regiões R$ 60.000,00'],
         )
         expect(page).to have_css('#revenue_goals_tabs .nav-link.active', text: 'Veículos 1')
         expect(html_table_to_rows(table: find_by_id('revenue_goals_vehicles'))).to eq(
@@ -121,7 +122,8 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
         expect(page).to have_text('3 metas copiadas do mês anterior.')
         expect(summary_cards).to eq(
-          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
+          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma dos grupos R$ 0,00', 'Soma dos motoristas R$ 0,00',
+           'Soma das regiões R$ 60.000,00'],
         )
         expect(tenant.revenue_goals.for_month(month.next_month).count).to eq(3)
       end
@@ -179,6 +181,47 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
       expect(page.status_code).to eq(422)
       expect(page).to have_text("O grupo de clientes #{gerdau.id} não está ativo.")
+    end
+
+    context 'with a driver billed in the last months' do
+      before do
+        create(:atua_transport_document, tenant:, plate: 'AJR4391', driver_code: 11, driver_name: 'JOSE DA SILVA', freight_cents: 2_000_000,
+                                         issued_at: Time.zone.local(2026, 10, 3, 10))
+      end
+
+      scenario 'creates the goal of the driver' do
+        visit edit_revenue_goals_path(month: '2026-11')
+        fill_in 'JOSE DA SILVA', with: '30.000,00'
+
+        expect { click_on 'Salvar Metas' }.to change(RevenueGoal, :count).by(1)
+
+        expect(tenant.revenue_goals.driver.sole).to have_attributes(driver_code: 11, amount_cents: 3_000_000)
+        expect(html_table_to_rows(table: find_by_id('revenue_goals_drivers'))).to eq(
+          [['Motorista', 'Meta', 'Participação na meta da transportadora', 'Faturado em Outubro de 2026'], ['JOSE DA SILVA', 'R$ 30.000,00', '-', 'R$ 20.000,00']],
+        )
+      end
+    end
+
+    context 'with more macro regions than a page' do
+      before do
+        (1..11).each { |index| create(:macro_region, tenant:, name: format('REGIÃO %02d', index), state: 'SP') }
+      end
+
+      scenario 'pages the regions and keeps their tab open' do
+        visit revenue_goals_path(month: '2026-11')
+
+        expect(page).to have_css('#revenue_goals_tabs .nav-link.active', text: 'Veículos')
+        expect(html_table_to_rows(table: find_by_id('revenue_goals_regions')).size).to eq(11)
+        expect(MacroRegion.where(tenant:).count).to eq(12)
+
+        within('#revenue_goals_regions_pane .table-pagination') { click_on '2' }
+
+        expect(page).to have_current_path(revenue_goals_path(month: '2026-11', regions_page: 2, tab: 'regions'))
+        expect(page).to have_css('#revenue_goals_tabs .nav-link.active', text: 'Regiões')
+        expect(page).to have_css('#revenue_goals_regions_pane.active')
+        expect(html_table_to_rows(table: find_by_id('revenue_goals_regions')).drop(1).map(&:first)).to eq(['REGIÃO 11', 'VALE DO AÇO/MG'])
+        expect(html_table_to_rows(table: find_by_id('revenue_goals_vehicles')).drop(1).map(&:first)).to eq(%w[AJR4391 RHJ5A50])
+      end
     end
 
     scenario 'redirects an invalid month back to the current month' do

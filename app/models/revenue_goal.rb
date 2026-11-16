@@ -1,6 +1,6 @@
 class RevenueGoal < ApplicationRecord
-  TARGET_TYPES = %w[company vehicle customer_group region].freeze
-  TARGET_COLUMNS = { 'vehicle' => :plate, 'customer_group' => :customer_group_id, 'region' => :macro_region_id }.freeze
+  TARGET_TYPES = %w[company vehicle customer_group region driver].freeze
+  TARGET_COLUMNS = { 'vehicle' => :plate, 'customer_group' => :customer_group_id, 'region' => :macro_region_id, 'driver' => :driver_code }.freeze
   MONTH_FORMAT = '%Y-%m'.freeze
 
   belongs_to :tenant
@@ -19,7 +19,9 @@ class RevenueGoal < ApplicationRecord
   validates :customer_group_id, absence: true, unless: :customer_group?
   validates :macro_region, presence: true, if: :region?
   validates :macro_region_id, absence: true, unless: :region?
-  validates :target_type, uniqueness: { scope: %i[tenant_id month plate customer_group_id macro_region_id] }
+  validates :driver_code, presence: true, if: :driver?
+  validates :driver_code, absence: true, unless: :driver?
+  validates :target_type, uniqueness: { scope: %i[tenant_id month plate customer_group_id macro_region_id driver_code] }
 
   before_validation :normalize_month
   before_validation :normalize_plate
@@ -63,6 +65,7 @@ end
 #
 #  id                :bigint           not null, primary key
 #  amount_cents      :bigint           not null
+#  driver_code       :bigint
 #  month             :date             not null
 #  plate             :string
 #  target_type       :enum             not null
@@ -76,7 +79,7 @@ end
 #
 #  index_revenue_goals_on_customer_group_id  (customer_group_id)
 #  index_revenue_goals_on_macro_region_id    (macro_region_id)
-#  index_revenue_goals_on_target             (tenant_id,month,target_type,plate,customer_group_id,macro_region_id) UNIQUE NULLS NOT DISTINCT
+#  index_revenue_goals_on_target             (tenant_id,month,target_type,plate,customer_group_id,macro_region_id,driver_code) UNIQUE NULLS NOT DISTINCT
 #  index_revenue_goals_on_tenant_id          (tenant_id)
 #
 # Foreign Keys

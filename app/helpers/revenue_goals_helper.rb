@@ -1,5 +1,5 @@
 module RevenueGoalsHelper
-  REVENUE_GOALS_CARD_COLUMNS = 'col-6 col-lg-3'.freeze
+  REVENUE_GOALS_CARD_COLUMNS = 'col-6 col-md-4 col-xxl'.freeze
   REVENUE_GOALS_SEARCH_MIN_LINES = 8
   REVENUE_GOALS_RATIO_TOKEN = '{ratio}'.freeze
 
@@ -49,9 +49,9 @@ module RevenueGoalsHelper
     end
   end
 
-  def revenue_goals_panes(form, month)
-    safe_join(RevenueGoalsForm::SECTIONS.keys.each_with_index.map do |section, index|
-      goal_tab_pane('revenue_goals', section, index.zero?) { render 'revenue_goals/section', section:, form:, month: }
+  def revenue_goals_panes(pages, form, month, active)
+    safe_join(pages.map do |section, lines|
+      goal_tab_pane('revenue_goals', section, section == active) { render 'revenue_goals/section', section:, lines:, form:, month: }
     end)
   end
 
@@ -61,8 +61,7 @@ module RevenueGoalsHelper
     end)
   end
 
-  def revenue_goals_section_body(section, form, month)
-    lines = form.public_send(section)
+  def revenue_goals_section_body(section, lines, form, month)
     return render('shared/no_content') if lines.empty?
 
     render 'revenue_goals/table', section:, lines:, company_cents: form.company_cents, month:

@@ -21,4 +21,23 @@ RSpec.describe GoalFilterForm do
   it 'rejects an invalid month' do
     expect(described_class.new(month: 'setembro')).not_to be_valid
   end
+
+  it 'groups by the customer groups by default' do
+    form = described_class.new
+
+    expect(form.dimension_value).to eq('customer_group')
+    expect(form.section).to eq(:customer_groups)
+  end
+
+  it 'reads the chosen grouping' do
+    expect(described_class.new(dimension: 'vehicle').section).to eq(:vehicles)
+    expect(described_class.new(dimension: 'macro_region').section).to eq(:regions)
+  end
+
+  it 'rejects an unknown grouping' do
+    form = described_class.new(dimension: 'product_group')
+
+    expect(form).not_to be_valid
+    expect(form.errors[:dimension]).to be_present
+  end
 end

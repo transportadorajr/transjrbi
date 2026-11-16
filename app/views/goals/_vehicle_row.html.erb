@@ -1,7 +1,7 @@
-<%# locals: (row:, position:, month:, row_counter: nil) %>
+<%# locals: (row:, position:, month:, offset: 0, row_counter: nil) %>
 
 <tr>
-  <td class="text-end text-muted"><%= goal_position(position, row_counter) %></td>
+  <td class="text-end text-muted"><%= goal_position(position, row_counter, offset) %></td>
   <td class="fw-semibold"><%= goal_vehicle_label(row) %></td>
   <td class="text-end d-none d-md-table-cell"><%= goal_money(row.goal_cents) %></td>
   <td class="text-end d-none d-md-table-cell"><%= goal_money(row.realized_cents) %></td>

@@ -6,6 +6,10 @@ class RevenueGoalsController < BaseController
     authorize!(:read, :revenue_goals)
 
     @revenue_goals_form = RevenueGoalsForm.for_month(current_tenant, @month)
+    @tab = RevenueGoalsForm::SECTIONS.keys.find { |section| section.to_s == params[:tab] } || RevenueGoalsForm::SECTIONS.keys.first
+    @pages = RevenueGoalsForm::SECTIONS.keys.index_with do |section|
+      Kaminari.paginate_array(@revenue_goals_form.public_send(section)).page(params[:"#{section}_page"])
+    end
   end
 
   def edit

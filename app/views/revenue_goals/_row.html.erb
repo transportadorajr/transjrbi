@@ -1,6 +1,6 @@
 <%# locals: (line:, section:, company_cents:) %>
 
-<tr data-goal-lines-target="line" data-section="<%= section %>" data-name="<%= line.name %>">
+<tr>
   <td class="fw-semibold"><%= revenue_goals_target_label(section, line) %></td>
   <td class="text-end text-nowrap"><%= revenue_goals_amount(line.amount_cents) %></td>
   <td class="d-none d-md-table-cell"><%= revenue_goals_share(line.amount_cents, company_cents) %></td>

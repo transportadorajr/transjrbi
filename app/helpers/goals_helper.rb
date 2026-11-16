@@ -98,9 +98,9 @@ module GoalsHelper
                library: chart_bar_library(:x).deep_merge(scales: { x: { ticks: { autoSkip: true, maxTicksLimit: GOAL_DATE_TICKS, maxRotation: 0 } } }))
   end
 
-  def goal_tab_nav(prefix, tabs)
+  def goal_tab_nav(prefix, tabs, active: tabs.keys.first)
     tag.ul(class: 'nav nav-pills goal-tabs', id: "#{prefix}_tabs", role: 'tablist') do
-      safe_join(tabs.each_with_index.map { |(section, label), index| goal_tab_item(prefix, section, label, index.zero?) })
+      safe_join(tabs.map { |section, label| goal_tab_item(prefix, section, label, section == active) })
     end
   end
 
@@ -109,22 +109,36 @@ module GoalsHelper
             aria: { labelledby: "#{prefix}_#{section}_tab" }, tabindex: 0, &)
   end
 
-  def goal_breakdown_tabs
-    Dashboard::Goals::BREAKDOWNS.keys.index_with { |section| t(section, scope: 'goals.tabs') }
+  def goal_dimension_bar(filter_form)
+    tag.div(class: 'dashboard-filter-bar mb-4', id: 'goal_dimension_bar') do
+      safe_join([
+                  tag.span(t('goals.show.group_by'), class: 'dashboard-filter-label'),
+                  tag.div(class: 'dashboard-segmented', role: 'group', aria: { label: t('goals.show.group_by') }) do
+                    safe_join(Dashboard::Goals::DIMENSIONS.keys.map { |dimension| goal_dimension_link(dimension, filter_form) })
+                  end,
+                ])
+    end
   end
 
-  def goal_breakdown_panes(dashboard)
-    safe_join(Dashboard::Goals::BREAKDOWNS.keys.each_with_index.map do |section, index|
-      goal_tab_pane('goal', section, index.zero?) { goal_breakdown_body(dashboard, section) }
-    end)
+  def goal_dimension_body(dashboard, section, rows)
+    return goal_vehicles_body(dashboard, rows) if section == :vehicles
+
+    goal_breakdown_body(dashboard, section, rows)
   end
 
-  def goal_breakdown_body(dashboard, section)
-    rows = dashboard.breakdown_rows(section)
+  def goal_dimension_sort_menu(section)
+    sort_menu(goal_sort_columns) if section == :vehicles
+  end
+
+  def goal_breakdown_body(dashboard, section, rows)
     extra_row = dashboard.breakdown_extra_row(section)
     return render('shared/no_content') if rows.empty? && extra_row.nil?
 
-    render 'goals/breakdown_table', section:, rows:, extra_row:, month: dashboard.month
+    render 'goals/breakdown_table', section:, rows:, extra_row: goal_last_page_row(rows, extra_row), month: dashboard.month
+  end
+
+  def goal_last_page_row(rows, row)
+    row if rows.current_page >= rows.total_pages
   end
 
   def goal_plate_tag(plate)
@@ -182,7 +196,7 @@ module GoalsHelper
   def goal_vehicles_body(dashboard, rows)
     return render('shared/no_content') if rows.empty?
 
-    render 'goals/vehicles_table', rows:, third_party_row: dashboard.third_party_row, month: dashboard.month
+    render 'goals/vehicles_table', rows:, third_party_row: goal_last_page_row(rows, dashboard.third_party_row), month: dashboard.month
   end
 
   def goal_third_party_row(row, month)
@@ -197,8 +211,8 @@ module GoalsHelper
     render 'goals/breakdown_row', row:, month:
   end
 
-  def goal_position(position, row_counter)
-    position || (row_counter + 1)
+  def goal_position(position, row_counter, offset)
+    position || (offset + row_counter + 1)
   end
 
   def goal_sort_columns
@@ -214,6 +228,12 @@ module GoalsHelper
   def goal_projection_menu(row, month)
     Menu.new(name: :projection, record: row, url: revenue_projection_history_path(start_date: month.beginning_of_month, end_date: month.end_of_month, **row.cut),
              icon: :'graph-up-arrow')
+  end
+
+  def goal_dimension_link(dimension, filter_form)
+    variation = dimension == filter_form.dimension_value ? 'btn-primary' : 'btn-outline-secondary'
+    link_to t(dimension, scope: 'goals.dimensions'), goals_path(**request.query_parameters.symbolize_keys.except(:sort, :direction), dimension:),
+            class: "btn btn-sm #{variation}"
   end
 
   def goal_tab_item(prefix, section, label, active)

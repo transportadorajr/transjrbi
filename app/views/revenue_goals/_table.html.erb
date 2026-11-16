@@ -15,3 +15,7 @@
     </tbody>
   </table>
 </div>
+
+<div class="table-pagination">
+  <%= paginate lines, param_name: :"#{section}_page", params: { tab: section } %>
+</div>

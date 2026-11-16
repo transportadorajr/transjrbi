@@ -6,15 +6,21 @@ class GoalsController < BaseController
   def show
     authorize!(:read, :goals)
 
-    @filter_form = GoalFilterForm.new(month: params[:month])
+    @filter_form = GoalFilterForm.new(month: params[:month], dimension: params[:dimension])
     return redirect_to(goals_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
     @last_synced_at = current_tenant.last_synced_at
     @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, targets:, pace:, week:, own_fleet: current_tenant.own_fleet)
-    @vehicle_rows = @dashboard.sorted_vehicle_rows(params[:sort], params[:direction])
+    @rows = listing_page(dimension_rows)
   end
 
   private
+
+  def dimension_rows
+    return @dashboard.sorted_vehicle_rows(params[:sort], params[:direction]) if @filter_form.section == :vehicles
+
+    @dashboard.breakdown_rows(@filter_form.section)
+  end
 
   def month
     @filter_form.month_value

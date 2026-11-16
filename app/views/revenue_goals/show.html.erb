@@ -1,6 +1,6 @@
 <% content_for :title, t('.title') %>
 
-<div class="page-shell" data-controller="goal-lines">
+<div class="page-shell">
   <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
     <%= revenue_goals_panel_button(@month) %>
     <%= revenue_goals_replicate_button(@month) %>
@@ -19,10 +19,10 @@
         <p class="table-card-title"><%= t('.targets_title', month: goal_month_name(@month)) %></p>
         <p class="table-card-subtitle"><%= t('.targets_subtitle') %></p>
       </div>
-      <%= goal_tab_nav('revenue_goals', revenue_goals_tabs(@revenue_goals_form)) %>
+      <%= goal_tab_nav('revenue_goals', revenue_goals_tabs(@revenue_goals_form), active: @tab) %>
     </div>
     <div class="tab-content">
-      <%= revenue_goals_panes(@revenue_goals_form, @month) %>
+      <%= revenue_goals_panes(@pages, @revenue_goals_form, @month, @tab) %>
     </div>
   </div>
 </div>
