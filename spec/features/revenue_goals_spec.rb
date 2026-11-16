@@ -9,6 +9,8 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
   before do
     travel_to(Time.zone.local(2026, 11, 13, 10))
     create(:own_fleet, tenant:, plates: %w[RHJ5A50 AJR4391])
+    create(:customer_group, tenant:, name: 'USIMINAS')
+    create(:customer_group, tenant:, name: 'GERDAU', activated_at: nil)
   end
 
   context 'without a signed in user' do
@@ -51,8 +53,10 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
         expect(RevenueGoal.where(tenant:).count).to eq(2)
         expect(dl_to_hash('#revenue_goals_company')).to eq(
           'Mês' => 'Novembro de 2026', 'Meta da transportadora' => 'R$ 150.000,00', 'Soma das metas dos veículos' => 'R$ 40.000,00',
+          'Soma das metas dos clientes' => 'R$ 0,00'
         )
         expect(html_table_to_rows).to eq([['Placa', 'Meta do veículo'], ['AJR4391', 'R$ 40.000,00'], ['RHJ5A50', 'Sem meta']])
+        expect(html_table_to_rows(table: find_by_id('revenue_goals_customer_groups'))).to eq([['Grupo de clientes', 'Meta do cliente'], ['USIMINAS', 'Sem meta']])
       end
 
       scenario 'changes the goals of the month' do
@@ -93,6 +97,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
         expect(page).to have_text('2 metas copiadas do mês anterior.')
         expect(dl_to_hash('#revenue_goals_company')).to eq(
           'Mês' => 'Dezembro de 2026', 'Meta da transportadora' => 'R$ 150.000,00', 'Soma das metas dos veículos' => 'R$ 40.000,00',
+          'Soma das metas dos clientes' => 'R$ 0,00'
         )
         expect(tenant.revenue_goals.for_month(month.next_month).count).to eq(2)
       end
@@ -110,8 +115,16 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
       visit edit_revenue_goals_path(month: '2026-11')
       fill_in 'Meta da transportadora', with: '200.000,00'
       fill_in 'AJR4391', with: '50.000,00'
+      fill_in 'USIMINAS', with: '80.000,00'
 
-      expect { click_on 'Salvar Metas' }.to change(RevenueGoal, :count).by(2)
+      expect(page).to have_no_field('GERDAU')
+      expect { click_on 'Salvar Metas' }.to change(RevenueGoal, :count).by(3)
+
+      customer_goal = tenant.revenue_goals.customer_group.sole
+      expect(customer_goal.customer_group.name).to eq('USIMINAS')
+      expect(customer_goal.amount_cents).to eq(8_000_000)
+      expect(dl_to_hash('#revenue_goals_company')['Soma das metas dos clientes']).to eq('R$ 80.000,00')
+      expect(html_table_to_rows(table: find_by_id('revenue_goals_customer_groups'))).to eq([['Grupo de clientes', 'Meta do cliente'], ['USIMINAS', 'R$ 80.000,00']])
 
       goal = tenant.revenue_goals.vehicle.sole
       expect(goal.month).to eq(month)
@@ -128,6 +141,18 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
       expect(page.status_code).to eq(422)
       expect(page).to have_text('O veículo XYZ9K87 não está na frota própria.')
+    end
+
+    scenario 'rejects a deactivated customer group without a goal' do
+      gerdau = tenant.customer_groups.find_by!(name: 'GERDAU')
+
+      expect do
+        page.driver.submit :patch, revenue_goals_path,
+                           { revenue_goals: { month: '2026-11', customer_groups_attributes: { '0' => { customer_group_id: gerdau.id, amount: '100,00' } } } }
+      end.not_to change(RevenueGoal, :count)
+
+      expect(page.status_code).to eq(422)
+      expect(page).to have_text("O grupo de clientes #{gerdau.id} não está ativo.")
     end
 
     scenario 'redirects an invalid month back to the current month' do

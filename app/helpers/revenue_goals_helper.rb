@@ -30,4 +30,10 @@ module RevenueGoalsHelper
 
     render 'revenue_goals/table', vehicles: form.vehicles
   end
+
+  def revenue_goals_customer_groups(form)
+    return render('shared/no_content') if form.customer_groups.empty?
+
+    render 'revenue_goals/customer_groups_table', customer_groups: form.customer_groups
+  end
 end

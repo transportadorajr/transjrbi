@@ -17,6 +17,12 @@
     <%= tag.p goal_pace_note(@dashboard), class: 'small text-muted mb-0 mt-2', id: 'goal_pace_note' %>
   </div>
 
+  <%= goal_week(@dashboard) %>
+
+  <div class="mb-4" id="goal_chart">
+    <%= render 'freight_billings/chart_card', title: t('.chart_title'), subtitle: t('.chart_subtitle'), chart: goal_chart(@dashboard) %>
+  </div>
+
   <div class="card table-card mb-4" id="goal_vehicles">
     <div class="table-card-header">
       <div class="table-card-heading">
@@ -27,6 +33,18 @@
     </div>
     <div class="table-card-body">
       <%= goal_vehicles_body(@dashboard, @vehicle_rows) %>
+    </div>
+  </div>
+
+  <div class="card table-card mb-4" id="goal_customers">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.customers_title') %></p>
+        <p class="table-card-subtitle"><%= t('.customers_subtitle') %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <%= goal_customers_body(@dashboard) %>
     </div>
   </div>
 </div>

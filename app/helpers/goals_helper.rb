@@ -1,6 +1,13 @@
 module GoalsHelper
   GOAL_CARD_COLUMNS = 'col-6 col-xl-4'.freeze
+  GOAL_WEEK_CARD_COLUMNS = 'col-6 col-xl-3'.freeze
   GOAL_STATUS_KINDS = { on_track: :success, attention: :warning, behind: :danger }.freeze
+  GOAL_REALIZED_STYLE = { color: ChartsHelper::BRAND_BLUE, dataset: { borderColor: ChartsHelper::BRAND_BLUE, backgroundColor: ChartsHelper::BRAND_BLUE } }.freeze
+  GOAL_EXPECTED_STYLE = { color: RevenueProjectionHistoriesHelper::HISTORY_PROJECTED_ORANGE,
+                          dataset: { borderColor: RevenueProjectionHistoriesHelper::HISTORY_PROJECTED_ORANGE,
+                                     backgroundColor: RevenueProjectionHistoriesHelper::HISTORY_PROJECTED_ORANGE, borderDash: [6, 4] } }.freeze
+  GOAL_CHART_SERIES = [GOAL_REALIZED_STYLE, GOAL_EXPECTED_STYLE].freeze
+  GOAL_DATE_TICKS = 8
 
   def goal_month_nav(month, path_name)
     tag.div(class: 'dashboard-filter-bar mb-4', id: 'goal_month_nav') do
@@ -31,6 +38,12 @@ module GoalsHelper
     tax_money(Money.from_cents(cents))
   end
 
+  def goal_week_value(row, value)
+    return t('goals.show.no_week') if row.week_realized_cents.nil?
+
+    value
+  end
+
   def goal_ratio(ratio)
     return t('goals.no_goal') if ratio.nil?
 
@@ -58,6 +71,43 @@ module GoalsHelper
                 counter_card(goal_status_kind(company), t('goals.show.projected'), goal_money(company.projected_cents), col_class: GOAL_CARD_COLUMNS),
                 counter_card(:dark, t('goals.show.required_daily'), goal_money(dashboard.required_daily_cents), col_class: GOAL_CARD_COLUMNS),
               ])
+  end
+
+  def goal_week(dashboard)
+    return unless dashboard.week?
+
+    render 'goals/week', dashboard:
+  end
+
+  def goal_week_title(week)
+    t('goals.show.week_title', start: l(week.period.first, format: :chart_week), finish: l(week.period.last, format: :chart_week))
+  end
+
+  def goal_week_cards(row)
+    safe_join([
+                counter_card(:dark, t('goals.show.week_goal'), goal_money(row.week_goal_cents), col_class: GOAL_WEEK_CARD_COLUMNS),
+                counter_card(:primary, t('goals.show.week_realized'), goal_money(row.week_realized_cents), col_class: GOAL_WEEK_CARD_COLUMNS),
+                counter_card(:warning, t('goals.show.missing'), goal_money(row.week_missing_cents), col_class: GOAL_WEEK_CARD_COLUMNS),
+                counter_card(:dark, t('goals.show.ratio'), goal_ratio(row.week_ratio), col_class: GOAL_WEEK_CARD_COLUMNS),
+              ])
+  end
+
+  def goal_chart(dashboard)
+    line_chart(dashboard.chart_data.zip(GOAL_CHART_SERIES).map { |serie, style| serie.merge(style) },
+               height: ChartsHelper::CHART_HEIGHT, legend: 'bottom', discrete: true, points: false, **chart_money_options,
+               library: chart_bar_library(:x).deep_merge(scales: { x: { ticks: { autoSkip: true, maxTicksLimit: GOAL_DATE_TICKS, maxRotation: 0 } } }))
+  end
+
+  def goal_customers_body(dashboard)
+    return render('shared/no_content') if dashboard.customer_rows.empty?
+
+    render 'goals/customers_table', rows: dashboard.sorted_customer_rows, ungrouped_row: dashboard.ungrouped_row, month: dashboard.month
+  end
+
+  def goal_row_menu(row, month)
+    menus = []
+    menus << goal_projection_menu(row, month) if row.cut && goal_projection_allowed?
+    menus
   end
 
   def goal_progress(row)
@@ -99,7 +149,7 @@ module GoalsHelper
   def goal_vehicles_body(dashboard, rows)
     return render('shared/no_content') if rows.empty?
 
-    render 'goals/vehicles_table', rows:, third_party_row: dashboard.third_party_row
+    render 'goals/vehicles_table', rows:, third_party_row: dashboard.third_party_row, month: dashboard.month
   end
 
   def goal_position(position, row_counter)
@@ -111,6 +161,15 @@ module GoalsHelper
   end
 
   private
+
+  def goal_projection_allowed?
+    Dashboard::RevenueProjection.enabled?(Current.tenant) && can?(:read, :revenue_projection)
+  end
+
+  def goal_projection_menu(row, month)
+    Menu.new(name: :projection, record: row, url: revenue_projection_history_path(start_date: month.beginning_of_month, end_date: month.end_of_month, **row.cut),
+             icon: :'graph-up-arrow')
+  end
 
   def goal_month_link(month, path_name, icon_name, label)
     link_to(public_send(path_name, request.query_parameters.except('month').merge(month: goal_month_param(month))),

@@ -839,6 +839,9 @@ pt-BR:
       revenue_goals_form/vehicle_line:
         plate: Placa
         amount: Meta do veículo
+      revenue_goals_form/customer_group_line:
+        name: Grupo de clientes
+        amount: Meta do cliente
       goal_filter_form:
         month: Mês
       macro_region_form:
@@ -953,6 +956,8 @@ pt-BR:
             base:
               invalid_vehicle_amount: A meta do veículo %{plate} deve ser maior que 0.
               unknown_vehicle: O veículo %{plate} não está na frota própria.
+              invalid_customer_group_amount: A meta do cliente %{name} deve ser maior que 0.
+              unknown_customer_group: O grupo de clientes %{id} não está ativo.
         admin/login_form:
           attributes:
             base:
@@ -1393,6 +1398,8 @@ pt-BR:
         show: Visualizar
       dashboard/trip/row:
         show: Visualizar
+      dashboard/goals/row:
+        projection: Ver a projeção de %{model}
       user:
         show: Visualizar
         edit: Alterar
@@ -2748,11 +2755,29 @@ pt-BR:
       missing_goal: A meta da transportadora deste mês ainda não foi cadastrada.
       register_goals: Cadastrar metas
       vehicles_title: Ranking dos veículos
+      customers_title: Metas por cliente
+      customers_subtitle: >-
+        Faturamento bruto de cada grupo de clientes, pelo tomador do CT-e, no mês e na semana. Os CT-es de tomadores sem grupo
+        são somados na linha Sem grupo de clientes.
+      chart_title: Faturado x previsto no mês
+      chart_subtitle: >-
+        Faturado acumulado dia a dia comparado com o previsto para chegar à meta, distribuída pelos dias úteis do mês.
+      week_title: Semana de %{start} a %{finish}
+      week_goal: Meta da semana
+      week_realized: Faturado na semana
+      week_note: >-
+        A meta da semana é a meta mensal distribuída pelos dias úteis. Numa semana que atravessa o mês, cada dia usa a meta do
+        seu mês.
+      no_week: '-'
       vehicles_subtitle: >-
         Faturamento bruto de cada placa da frota própria no mês. As placas fora da frota própria são somadas na linha Terceiro.
       columns:
         position: '#'
         plate: Placa
+        customer_group: Grupo de clientes
+        week_goal: Meta da semana
+        week_realized: Faturado na semana
+        week_ratio: Atingimento na semana
         goal: Meta
         realized: Faturado
         missing: Falta
@@ -2774,6 +2799,9 @@ pt-BR:
       vehicles_total: Soma das metas dos veículos
       vehicles_title: Metas por veículo
       vehicles_subtitle: Placas da frota própria. Placas sem meta não entram no atingimento.
+      customer_groups_total: Soma das metas dos clientes
+      customer_groups_title: Metas por cliente
+      customer_groups_subtitle: Grupos de clientes ativos e os que já têm meta no mês.
       edit: Alterar metas
       replicate: Copiar mês anterior
       confirm_replicate: Copiar as metas de %{month} para este mês? As metas já cadastradas neste mês são mantidas.
@@ -2794,6 +2822,8 @@ pt-BR:
       company_hint: Meta total de faturamento da transportadora no mês.
       vehicles_title: Metas por veículo
       vehicles_text: Uma meta por placa da frota própria. Para incluir uma placa, cadastre-a na Frota própria.
+      customer_groups_title: Metas por cliente
+      customer_groups_text: Uma meta por grupo de clientes ativo. O faturamento é atribuído pelo tomador do CT-e.
   own_fleets:
     third_party: Terceiro
     show:
@@ -2821,6 +2851,9 @@ pt-BR:
   dashboards:
     goals:
       company: Transportadora
+      ungrouped: Sem grupo de clientes
+      realized_accumulated: Faturado acumulado
+      expected_accumulated: Previsto pela meta
     revenue_projection_history:
       projected:
         month: Projeção do mês

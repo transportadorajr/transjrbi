@@ -63,6 +63,56 @@ RSpec.describe Dashboard::Goals do
     expect(row.status).to eq(:attention)
   end
 
+  context 'with the customer groups and the week' do
+    let(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+    let(:arcelor) { create(:customer_group, tenant:, name: 'ARCELOR') }
+    let(:week) { RevenueGoal::Week.new(Date.new(2026, 11, 10), goals: tenant.revenue_goals.to_a, holidays: {}) }
+
+    def dashboard_with_customers
+      described_class.new(tenant.billable_freights, goals: tenant.revenue_goals.for_month(month).to_a, pace:, own_fleet:, week:,
+                                                    customer_groups: [arcelor, usiminas])
+    end
+
+    before do
+      create(:revenue_goal, :customer_group, tenant:, month:, customer_group: usiminas, amount_cents: 5_000_000)
+      freight('AJR4391', 700_000, taker_code: create(:atua_customer, tenant:, customer_group: usiminas).code)
+      freight('RHJ5A50', 100_000, issued_at: Time.zone.local(2026, 11, 9, 9), taker_code: create(:atua_customer, tenant:, customer_group: arcelor).code)
+    end
+
+    it 'compares the billing of each customer group with its goal in the month and in the week' do
+      rows = dashboard_with_customers.sorted_customer_rows
+
+      expect(rows.map { [it.label, it.goal_cents, it.realized_cents, it.week_goal_cents, it.week_realized_cents, it.cut] }).to eq(
+        [
+          ['USIMINAS', 5_000_000, 700_000, 1_200_000, 0, { customer_group_id: usiminas.id }],
+          ['ARCELOR', nil, 100_000, nil, 100_000, { customer_group_id: arcelor.id }],
+        ],
+      )
+      expect(rows.first.week_ratio).to eq(0)
+      expect(dashboard_with_customers.ungrouped_row).to have_attributes(realized_cents: 1_550_000, week_realized_cents: 300_000, cut: nil)
+    end
+
+    it 'sums the company billing of the week against the week goal' do
+      company = dashboard_with_customers.company
+
+      expect(company.week_goal_cents).to eq(2_400_000)
+      expect(company.week_realized_cents).to eq(400_000)
+      expect(company.week_missing_cents).to eq(2_000_000)
+    end
+  end
+
+  it 'accumulates the billing and the goal day by day for the chart' do
+    realized, expected = dashboard.chart_data
+
+    expect(realized[:data].keys).to eq((1..10).map { format('%02d/11', it) })
+    expect(realized[:data]['04/11']).to eq(0.0)
+    expect(realized[:data]['05/11']).to eq(12_500.0)
+    expect(realized[:data]['10/11']).to eq(15_500.0)
+    expect(expected[:data].size).to eq(30)
+    expect(expected[:data]['02/11']).to eq(4_000.0)
+    expect(expected[:data]['30/11']).to eq(100_000.0)
+  end
+
   it 'has no third party row without an own fleet' do
     goals = described_class.new(tenant.billable_freights, goals: [], pace:, own_fleet: nil)
 

@@ -26,6 +26,18 @@
           </div>
         <% end %>
       </div>
+
+      <p class="form-card-title mt-4 mb-1"><%= t('revenue_goals.form.customer_groups_title') %></p>
+      <p class="form-card-subtitle mb-3"><%= t('revenue_goals.form.customer_groups_text') %></p>
+
+      <div class="row g-3" id="revenue_goals_customer_group_fields">
+        <%= f.simple_fields_for :customer_groups, revenue_goals_form.customer_groups do |cf| %>
+          <div class="col-12 col-md-6 col-xl-4">
+            <%= cf.hidden_field :customer_group_id %>
+            <%= cf.input :amount, as: :money, required: false, label: cf.object.name %>
+          </div>
+        <% end %>
+      </div>
     </div>
 
     <div class="form-card-footer">

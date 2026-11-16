@@ -1,0 +1,9 @@
+<%# locals: (dashboard:) %>
+
+<div class="mb-4" id="goal_week">
+  <p class="fw-semibold mb-2"><%= goal_week_title(dashboard.week) %></p>
+  <div class="row g-2 g-md-3 counter-grid-compact" id="goal_week_cards">
+    <%= goal_week_cards(dashboard.company) %>
+  </div>
+  <%= tag.p t('goals.show.week_note'), class: 'small text-muted mb-0 mt-2' %>
+</div>

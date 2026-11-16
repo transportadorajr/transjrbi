@@ -1,4 +1,4 @@
-<%# locals: (rows:, third_party_row:) %>
+<%# locals: (rows:, third_party_row:, month:) %>
 
 <div class="table-responsive">
   <table class="table app-table align-middle mb-0" id="goal_vehicles_table">
@@ -12,11 +12,12 @@
         <%= sortable_header(t('goals.show.columns.ratio'), :ratio, first_direction: :desc, anchor: 'goal_vehicles', class: 'text-end') %>
         <th class="text-end d-none d-lg-table-cell"><%= t('goals.show.columns.projected') %></th>
         <th class="text-end"><%= t('goals.show.columns.status') %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>
     <tbody>
-      <%= render partial: 'goals/vehicle_row', collection: rows, as: :row, locals: { position: nil } %>
-      <%= render 'goals/vehicle_row', row: third_party_row, position: '' if third_party_row %>
+      <%= render partial: 'goals/vehicle_row', collection: rows, as: :row, locals: { position: nil, month: } %>
+      <%= render('goals/vehicle_row', row: third_party_row, position: '', month:) if third_party_row %>
     </tbody>
   </table>
 </div>

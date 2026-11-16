@@ -23,6 +23,10 @@ class RevenueGoal < ApplicationRecord
   scope :for_month, ->(month) { where(month: month.beginning_of_month) }
 
   class << self
+    def listed_customer_groups(tenant, goal_group_ids)
+      tenant.customer_groups.where(id: goal_group_ids).or(tenant.customer_groups.activated).order(:name, :id)
+    end
+
     def parse_month(value)
       Date.strptime(value.to_s.strip.first(7), MONTH_FORMAT)
     rescue Date::Error

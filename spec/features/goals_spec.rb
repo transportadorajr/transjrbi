@@ -7,8 +7,12 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
   let!(:goals_resource) { create(:resource, name: 'Metas de faturamento', slug: 'revenue_goals') }
   let(:month) { Date.new(2026, 11, 1) }
 
-  def freight(tenant, plate, freight_cents, issued_at: Time.zone.local(2026, 11, 5, 10))
-    create(:atua_transport_document, tenant:, plate:, freight_cents:, issued_at:)
+  def freight(tenant, plate, freight_cents, issued_at: Time.zone.local(2026, 11, 5, 10), taker: nil)
+    create(:atua_transport_document, tenant:, plate:, freight_cents:, issued_at:, taker_code: taker&.code)
+  end
+
+  def taker(tenant, customer_group)
+    create(:atua_customer, tenant:, customer_group:)
   end
 
   def card_texts
@@ -36,8 +40,12 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         create(:revenue_goal, tenant:, month:, amount_cents: 10_000_000)
         create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391', amount_cents: 1_000_000)
         create(:revenue_goal, :vehicle, tenant:, month:, plate: 'RHJ5A50', amount_cents: 2_000_000)
-        freight(tenant, 'AJR4391', 900_000)
-        freight(tenant, 'RHJ5A50', 400_000)
+        usiminas = create(:customer_group, tenant:, name: 'USIMINAS')
+        arcelor = create(:customer_group, tenant:, name: 'ARCELOR')
+        create(:customer_group, tenant:, name: 'GERDAU', activated_at: nil)
+        create(:revenue_goal, :customer_group, tenant:, month:, customer_group: usiminas, amount_cents: 6_000_000)
+        freight(tenant, 'AJR4391', 900_000, taker: taker(tenant, usiminas))
+        freight(tenant, 'RHJ5A50', 400_000, issued_at: Time.zone.local(2026, 11, 9, 8), taker: taker(tenant, arcelor))
         freight(tenant, 'XYZ9K87', 250_000)
         freight(tenant, 'AJR4391', 999_999, issued_at: Time.zone.local(2026, 10, 31, 23))
         freight(other_tenant, 'AJR4391', 7_777_700)
@@ -59,16 +67,30 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         )
         expect(page).to have_css('progress.goal-progress-danger[value="1550000"][max="10000000"]')
         expect(page).to have_text('Projeção pelo ritmo atual, com 8 de 25 dias úteis do mês já decorridos.')
+        expect(page).to have_text('Semana de 08/11 a 14/11')
+        expect(all('#goal_week_cards .counter-card').map { it.text.squish }).to eq(
+          ['Meta da semana R$ 24.000,00', 'Faturado na semana R$ 4.000,00', 'Falta para a meta R$ 20.000,00', 'Atingimento 16,7%'],
+        )
+        expect(page).to have_css('#goal_chart', text: 'Faturado x previsto no mês')
         expect(html_table_to_rows).to eq(
           [
-            ['#', 'Placa', 'Meta', 'Faturado', 'Falta', 'Atingimento', 'Projeção', 'Situação'],
-            ['1', 'AJR4391', 'R$ 10.000,00', 'R$ 9.000,00', 'R$ 1.000,00', '90,0%', 'R$ 28.125,00', 'No ritmo'],
-            ['2', 'RHJ5A50', 'R$ 20.000,00', 'R$ 4.000,00', 'R$ 16.000,00', '20,0%', 'R$ 12.500,00', 'Abaixo da meta'],
-            ['3', 'QWE1A23', 'Sem meta', 'R$ 0,00', 'Sem meta', 'Sem meta', 'R$ 0,00', 'Sem meta'],
-            ['', 'Terceiro', 'Sem meta', 'R$ 2.500,00', 'Sem meta', 'Sem meta', 'R$ 7.812,50', 'Sem meta'],
+            ['#', 'Placa', 'Meta', 'Faturado', 'Falta', 'Atingimento', 'Projeção', 'Situação', 'Ações'],
+            ['1', 'AJR4391', 'R$ 10.000,00', 'R$ 9.000,00', 'R$ 1.000,00', '90,0%', 'R$ 28.125,00', 'No ritmo', ''],
+            ['2', 'RHJ5A50', 'R$ 20.000,00', 'R$ 4.000,00', 'R$ 16.000,00', '20,0%', 'R$ 12.500,00', 'Abaixo da meta', ''],
+            ['3', 'QWE1A23', 'Sem meta', 'R$ 0,00', 'Sem meta', 'Sem meta', 'R$ 0,00', 'Sem meta', ''],
+            ['', 'Terceiro', 'Sem meta', 'R$ 2.500,00', 'Sem meta', 'Sem meta', 'R$ 7.812,50', 'Sem meta', ''],
           ],
         )
-        expect(RevenueGoal.where(tenant:).count).to eq(3)
+        expect(html_table_to_rows(table: find_by_id('goal_customers_table'))).to eq(
+          [
+            ['Grupo de clientes', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Ações'],
+            ['USIMINAS', 'R$ 60.000,00', 'R$ 9.000,00', '15,0%', 'R$ 14.400,00', 'R$ 0,00', '0,0%', 'Abaixo da meta', ''],
+            ['ARCELOR', 'Sem meta', 'R$ 4.000,00', 'Sem meta', 'Sem meta', 'R$ 4.000,00', 'Sem meta', 'Sem meta', ''],
+            ['Sem grupo de clientes', 'Sem meta', 'R$ 2.500,00', 'Sem meta', 'Sem meta', 'R$ 0,00', 'Sem meta', 'Sem meta', ''],
+          ],
+        )
+        expect(page).to have_no_link(href: /revenue_projection_history/)
+        expect(RevenueGoal.where(tenant:).count).to eq(4)
       end
 
       scenario 'ranks the vehicles by the goal achievement' do
@@ -86,6 +108,23 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(html_table_to_rows.drop(1).map { it[1] }).to eq(%w[QWE1A23 RHJ5A50 AJR4391 Terceiro])
       end
 
+      scenario 'links each vehicle and customer to its projection history', flipper: { revenue_goals: :tenant, revenue_projection: :tenant } do
+        create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false)
+        visit goals_path
+
+        within('#goal_vehicles_table') { click_on 'Ver a projeção de AJR4391' }
+
+        expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', plate: 'AJR4391'))
+        expect(page).to have_css('h1.page-title', text: 'Histórico da projeção')
+
+        visit goals_path
+        within('#goal_customers_table') { click_on 'Ver a projeção de USIMINAS' }
+
+        usiminas = tenant.customer_groups.find_by!(name: 'USIMINAS')
+        expect(page).to have_current_path(revenue_projection_history_path(start_date: '2026-11-01', end_date: '2026-11-30', customer_group_id: usiminas.id))
+        expect(page).to have_no_link('Ver a projeção de Terceiro')
+      end
+
       scenario 'shows the closed previous month without goals' do
         visit goals_path
         click_on 'Mês anterior'
@@ -97,6 +136,10 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         )
         expect(page).to have_text('A meta da transportadora deste mês ainda não foi cadastrada.')
         expect(page).to have_text('Mês encerrado. A projeção é o próprio faturado.')
+        expect(page).to have_no_css('#goal_week')
+        expect(html_table_to_rows(table: find_by_id('goal_customers_table'))[1]).to eq(
+          ['ARCELOR', 'Sem meta', 'R$ 0,00', 'Sem meta', '-', '-', '-', 'Sem meta', ''],
+        )
 
         within('#goal_missing_note') { click_on 'Cadastrar metas' }
 
@@ -153,7 +196,9 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
     before do
       create(:own_fleet, tenant:, plates: %w[AJR4391])
       create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391', amount_cents: 1_000_000)
-      freight(tenant, 'AJR4391', 900_000)
+      usiminas = create(:customer_group, tenant:, name: 'USIMINAS')
+      create(:revenue_goal, :customer_group, tenant:, month:, customer_group: usiminas, amount_cents: 3_000_000)
+      freight(tenant, 'AJR4391', 900_000, taker: taker(tenant, usiminas))
       login_as(owner, scope: :user)
     end
 
@@ -164,6 +209,8 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
       expect(page).to have_css('#goal_vehicles_table td', text: '90,0%', visible: :visible)
       expect(page).to have_no_css('#goal_vehicles_table th', text: 'FATURADO', visible: :visible)
       expect(page).to have_css('#goal_vehicles .dropdown-toggle', text: 'Ordenar por', visible: :visible)
+      expect(page).to have_css('#goal_customers_table td', text: '30,0%', visible: :visible)
+      expect(page).to have_no_css('#goal_customers_table th', text: 'META DA SEMANA', visible: :visible)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end
