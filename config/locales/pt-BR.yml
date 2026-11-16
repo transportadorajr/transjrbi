@@ -2816,6 +2816,7 @@ pt-BR:
         ratio: Atingimento
         projected: Projeção
         status: Situação
+        projections: Projeções
       pace_notes:
         learned: >-
           Projeção pelo ritmo atual, ajustada pelo peso de cada dia da semana e pelos feriados aprendidos na projeção de faturamento.

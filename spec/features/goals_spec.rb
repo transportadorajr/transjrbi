@@ -80,7 +80,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(page).to have_no_css('#goal_regions_table')
         expect(html_table_to_rows(table: find_by_id('goal_customer_groups_table'))).to eq(
           [
-            ['Grupo de clientes', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Ações'],
+            ['Grupo de clientes', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Projeções'],
             ['USIMINAS', 'R$ 60.000,00', 'R$ 9.000,00', '15,0%', 'R$ 14.400,00', 'R$ 0,00', '0,0%', 'Abaixo da meta', ''],
             ['ARCELOR', 'Sem meta', 'R$ 4.000,00', 'Sem meta', 'Sem meta', 'R$ 4.000,00', 'Sem meta', 'Sem meta', ''],
             ['Sem grupo de clientes', 'Sem meta', 'R$ 2.500,00', 'Sem meta', 'Sem meta', 'R$ 0,00', 'Sem meta', 'Sem meta', ''],
@@ -101,7 +101,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(page).to have_no_css('#goal_customer_groups_table')
         expect(html_table_to_rows).to eq(
           [
-            ['#', 'Placa', 'Meta', 'Faturado', 'Falta', 'Atingimento', 'Projeção', 'Situação', 'Ações'],
+            ['#', 'Placa', 'Meta', 'Faturado', 'Falta', 'Atingimento', 'Projeção', 'Situação', 'Projeções'],
             ['1', 'AJR4391', 'R$ 10.000,00', 'R$ 9.000,00', 'R$ 1.000,00', '90,0%', 'R$ 28.125,00', 'No ritmo', ''],
             ['2', 'RHJ5A50', 'R$ 20.000,00', 'R$ 4.000,00', 'R$ 16.000,00', '20,0%', 'R$ 12.500,00', 'Abaixo da meta', ''],
             ['3', 'QWE1A23', 'Sem meta', 'R$ 0,00', 'Sem meta', 'Sem meta', 'R$ 0,00', 'Sem meta', ''],
@@ -119,7 +119,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(page).to have_css('#goal_regions .table-card-title', text: 'Metas por macro região')
         expect(html_table_to_rows).to eq(
           [
-            ['Macro região', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Ações'],
+            ['Macro região', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Projeções'],
             ['VALE DO AÇO/MG', 'R$ 50.000,00', 'R$ 9.000,00', '18,0%', 'R$ 12.000,00', 'R$ 0,00', '0,0%', 'Abaixo da meta', ''],
             ['Sem macro região', 'Sem meta', 'R$ 6.500,00', 'Sem meta', 'Sem meta', 'R$ 4.000,00', 'Sem meta', 'Sem meta', ''],
           ],
@@ -143,7 +143,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(page).to have_css('#goal_drivers .table-card-title', text: 'Metas por motorista')
         expect(html_table_to_rows).to eq(
           [
-            ['Motorista', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Ações'],
+            ['Motorista', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Projeções'],
             ['JOSE DA SILVA', 'R$ 30.000,00', 'R$ 6.000,00', '20,0%', 'R$ 7.200,00', 'R$ 0,00', '0,0%', 'Abaixo da meta', ''],
           ],
         )
