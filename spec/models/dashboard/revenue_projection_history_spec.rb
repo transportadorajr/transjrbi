@@ -111,7 +111,20 @@ RSpec.describe Dashboard::RevenueProjectionHistory do
     it 'charts the projection of each morning with the billing accumulated until then' do
       expect(history.chart_data.map { it[:name] }).to eq(['Projeção do mês', 'Mínimo provável', 'Máximo provável', 'Faturado acumulado'])
       expect(history.chart_data.first[:data]).to eq('01/11' => 23_000.0, '02/11' => 23_100.0, '04/11' => 23_300.0)
-      expect(history.chart_data.last[:data]).to eq('01/11' => 0.0, '02/11' => 400.0)
+      expect(history.chart_data.last[:data]).to eq('01/11' => 0.0, '02/11' => 400.0, '04/11' => 1_600.0)
+    end
+
+    context 'with freights already issued today' do
+      before do
+        create(:atua_transport_document, tenant:, issued_at: today.in_time_zone.change(hour: 9), freight_cents: 70_000)
+        create(:atua_transport_document, tenant:, issued_at: today.in_time_zone.change(hour: 11), freight_cents: 50_000)
+      end
+
+      it 'grows the accumulated billing of today with the freights issued until now' do
+        realized = history.chart_data.find { it[:name] == 'Faturado acumulado' }
+
+        expect(realized[:data]).to eq('01/11' => 0.0, '02/11' => 400.0, '04/11' => 2_800.0)
+      end
     end
   end
 
