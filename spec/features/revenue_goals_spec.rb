@@ -41,10 +41,10 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
         create(:revenue_goal, tenant: other_tenant, month:, amount_cents: 99_900_000)
       end
 
-      scenario 'shows the goals of the month from the registrations menu' do
+      scenario 'shows the goals of the month from the goals and projections menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Cadastros'
+          click_on 'Metas e projeções'
           click_on 'Metas de faturamento'
         end
 
