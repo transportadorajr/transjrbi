@@ -8,12 +8,14 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
   let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
   let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
   let!(:supplier) { create(:supplier, tenant:, name: 'RETÍFICA IPATINGA') }
+  let!(:office) { create(:user, tenant:, name: 'ANA ESCRITÓRIO') }
   let!(:maintenance_order) do
     create(:maintenance_order, tenant:, number: 7, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 11, 8), odometer_km: 452_300,
                                driver_name: 'JOSE DA SILVA', supervisor:, priority_type: 'high', vehicle_stopped: true,
                                diagnosis: 'Lonas gastas', performed_service: 'Troca das lonas', status_type: 'finished',
                                finished_at: Time.zone.local(2026, 11, 11, 17, 30), release_test_type: 'road_test',
-                               next_preventive_km: 482_300)
+                               next_preventive_km: 482_300, atua_order_number: '4521', posted_on: Date.new(2026, 11, 12),
+                               posted_by: office, posting_verified: true)
   end
   let!(:part) do
     create(:maintenance_order_part, maintenance_order:, code: 'LF-123', description: 'LONA DE FREIO', quantity: 4, unit: 'UN',
@@ -60,6 +62,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('RETÍFICA IPATINGA', 'Retífica do tambor', 'R$ 450,00', 'R$ 420,00', 'MARCOS')
       expect(text).to include('R$ 760,00')
       expect(text).to include('11/11/2026 17:30', 'Rodagem', '482.300 km')
+      expect(text).to include('LANÇAMENTO NO ATUA', 'LANÇADA EM12/11/2026', 'LANÇADA PORANA ESCRITÓRIO', 'Nº OS ATUA4521', 'VERIFICAÇÃOOK')
       expect(text).to include('PAULO LIMAEncarregado responsável')
       expect(text).not_to include('Mecânico responsável', 'Motorista (veículo liberado)', 'Compras (aprovação)')
       expect(text).to include('Gerado em 12/11/2026 09:00.')

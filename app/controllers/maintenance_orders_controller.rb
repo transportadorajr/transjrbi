@@ -9,6 +9,7 @@ class MaintenanceOrdersController < BaseController
   has_scope :by_affected_system_type, as: :affected_system_type
   has_scope :by_opened_from, as: :start_date
   has_scope :by_opened_until, as: :end_date
+  has_scope :by_posting, as: :posting
 
   before_action :set_maintenance_order, only: %i[show edit update start wait_parts cancel finishing finish]
   before_action :require_editable_order, only: %i[edit update finishing finish]
@@ -22,6 +23,7 @@ class MaintenanceOrdersController < BaseController
     @pending_count = orders.pending.count
     @stopped_count = orders.stopped.count
     @finished_this_month_count = orders.finished.where(finished_at: Time.current.all_month).count
+    @not_posted_count = orders.not_posted.count
   end
 
   def show

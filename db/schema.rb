@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_16_225509) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1001,8 +1001,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
     t.bigint "total_cents", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "atua_order_number"
+    t.date "posted_on"
+    t.bigint "posted_by_id"
+    t.boolean "posting_verified", default: false, null: false
     t.index ["opened_by_id"], name: "index_maintenance_orders_on_opened_by_id"
+    t.index ["posted_by_id"], name: "index_maintenance_orders_on_posted_by_id"
     t.index ["supervisor_id"], name: "index_maintenance_orders_on_supervisor_id"
+    t.index ["tenant_id", "atua_order_number"], name: "index_maintenance_orders_on_tenant_id_and_atua_order_number", unique: true, where: "(atua_order_number IS NOT NULL)"
     t.index ["tenant_id", "number"], name: "index_maintenance_orders_on_tenant_id_and_number", unique: true
     t.index ["tenant_id", "plate"], name: "index_maintenance_orders_on_tenant_id_and_plate"
     t.index ["tenant_id", "status_type"], name: "index_maintenance_orders_on_tenant_id_and_status_type"
@@ -1333,6 +1339,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
   add_foreign_key "maintenance_order_services", "tenants"
   add_foreign_key "maintenance_orders", "tenants"
   add_foreign_key "maintenance_orders", "users", column: "opened_by_id"
+  add_foreign_key "maintenance_orders", "users", column: "posted_by_id"
   add_foreign_key "maintenance_orders", "workshop_employees", column: "supervisor_id"
   add_foreign_key "own_fleets", "tenants"
   add_foreign_key "product_groups", "product_groups", column: "parent_id"

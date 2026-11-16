@@ -9,9 +9,10 @@
   <%= render 'filters' %>
 
   <div class="row g-3 mb-4">
-    <%= counter_card(:dark, t('.pending'), @pending_count) %>
-    <%= counter_card(:danger, t('.stopped'), @stopped_count) %>
-    <%= counter_card(:success, t('.finished_this_month'), @finished_this_month_count) %>
+    <%= counter_card(:dark, t('.pending'), @pending_count, col_class: 'col-12 col-md-6 col-xl-3') %>
+    <%= counter_card(:danger, t('.stopped'), @stopped_count, col_class: 'col-12 col-md-6 col-xl-3') %>
+    <%= counter_card(:success, t('.finished_this_month'), @finished_this_month_count, col_class: 'col-12 col-md-6 col-xl-3') %>
+    <%= counter_card(:warning, t('.not_posted'), @not_posted_count, col_class: 'col-12 col-md-6 col-xl-3') %>
   </div>
 
   <div class="card table-card">

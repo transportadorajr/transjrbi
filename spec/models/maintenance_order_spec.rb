@@ -139,6 +139,15 @@ RSpec.describe MaintenanceOrder do
       expect(described_class.pending).to contain_exactly(open_order, waiting_order)
       expect(described_class.stopped).to eq([open_order])
     end
+
+    it 'filters the finished orders by their Atua posting' do
+      posted_order = create(:maintenance_order, tenant:, status_type: 'finished', atua_order_number: '4521',
+                                                posted_on: Date.new(2026, 11, 12))
+
+      expect(described_class.by_posting('posted')).to eq([posted_order])
+      expect(described_class.by_posting('not_posted')).to eq([finished_order])
+      expect(described_class.by_posting('destroy_all')).to contain_exactly(open_order, waiting_order, finished_order, posted_order)
+    end
   end
 
   describe '.enabled?' do

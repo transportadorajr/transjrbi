@@ -15,6 +15,7 @@ class MaintenanceOrder < ApplicationRecord
   PENDING_STATUSES = %i[open in_progress waiting_parts].freeze
   STATUS_BADGES = { open: :primary, in_progress: :warning, waiting_parts: :secondary, finished: :success,
                     cancelled: :danger }.freeze
+  POSTINGS = %i[posted not_posted].freeze
 
   sortable :number, -> { arel_table[:number] }
   sortable :plate
@@ -23,6 +24,7 @@ class MaintenanceOrder < ApplicationRecord
   belongs_to :tenant
   belongs_to :supervisor, class_name: 'WorkshopEmployee', optional: true
   belongs_to :opened_by, class_name: 'User', optional: true
+  belongs_to :posted_by, class_name: 'User', optional: true
   has_many :parts, class_name: 'MaintenanceOrderPart', dependent: :delete_all
   has_many :labors, class_name: 'MaintenanceOrderLabor', dependent: :delete_all
   has_many :services, class_name: 'MaintenanceOrderService', dependent: :delete_all
@@ -50,6 +52,9 @@ class MaintenanceOrder < ApplicationRecord
   scope :by_opened_until, ->(date) { parse_date(date)&.then { |day| where(opened_at: ..day.end_of_day) } || all }
   scope :pending, -> { where(status_type: PENDING_STATUSES.map(&:to_s)) }
   scope :stopped, -> { pending.where(vehicle_stopped: true) }
+  scope :posted, -> { where.not(posted_on: nil) }
+  scope :not_posted, -> { finished.where(posted_on: nil) }
+  scope :by_posting, ->(posting) { POSTINGS.include?(posting.to_s.to_sym) ? public_send(posting) : all }
 
   aasm column: :status_type, enum: true, create_scopes: false, whiny_persistence: true do
     state :open, initial: true
@@ -98,6 +103,10 @@ class MaintenanceOrder < ApplicationRecord
     PENDING_STATUSES.include?(status_type.to_sym)
   end
 
+  def posted?
+    posted_on.present?
+  end
+
   def validate_start
     return transition_not_allowed unless may_start?
 
@@ -130,6 +139,7 @@ end
 #
 #  id                   :bigint           not null, primary key
 #  affected_system_type :enum             not null
+#  atua_order_number    :string
 #  diagnosis            :text
 #  driver_code          :bigint
 #  driver_name          :string
@@ -146,6 +156,8 @@ end
 #  parts_total_cents    :bigint           default(0), not null
 #  performed_service    :text
 #  plate                :string           not null
+#  posted_on            :date
+#  posting_verified     :boolean          default(FALSE), not null
 #  priority_type        :enum             default("medium"), not null
 #  release_test_type    :enum
 #  reported_defect      :text             not null
@@ -156,21 +168,25 @@ end
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  opened_by_id         :bigint
+#  posted_by_id         :bigint
 #  supervisor_id        :bigint
 #  tenant_id            :bigint           not null
 #
 # Indexes
 #
-#  index_maintenance_orders_on_opened_by_id               (opened_by_id)
-#  index_maintenance_orders_on_supervisor_id              (supervisor_id)
-#  index_maintenance_orders_on_tenant_id                  (tenant_id)
-#  index_maintenance_orders_on_tenant_id_and_number       (tenant_id,number) UNIQUE
-#  index_maintenance_orders_on_tenant_id_and_plate        (tenant_id,plate)
-#  index_maintenance_orders_on_tenant_id_and_status_type  (tenant_id,status_type)
+#  index_maintenance_orders_on_opened_by_id                     (opened_by_id)
+#  index_maintenance_orders_on_posted_by_id                     (posted_by_id)
+#  index_maintenance_orders_on_supervisor_id                    (supervisor_id)
+#  index_maintenance_orders_on_tenant_id                        (tenant_id)
+#  index_maintenance_orders_on_tenant_id_and_atua_order_number  (tenant_id,atua_order_number) UNIQUE WHERE (atua_order_number IS NOT NULL)
+#  index_maintenance_orders_on_tenant_id_and_number             (tenant_id,number) UNIQUE
+#  index_maintenance_orders_on_tenant_id_and_plate              (tenant_id,plate)
+#  index_maintenance_orders_on_tenant_id_and_status_type        (tenant_id,status_type)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (opened_by_id => users.id)
+#  fk_rails_...  (posted_by_id => users.id)
 #  fk_rails_...  (supervisor_id => workshop_employees.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #

@@ -1,0 +1,5 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'maintenance_order_posting_modal', title: t('maintenance_order_postings.modal.title'), title_icon: :'journal-check',
+                     dialog_class: 'modal-fullscreen-sm-down', auto_show: true, show_footer: false } do %>
+  <%= render 'maintenance_order_postings/form', posting_form: %>
+<% end %>

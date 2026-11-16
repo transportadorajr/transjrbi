@@ -1,0 +1,22 @@
+<div id="maintenance_order_posting_form">
+  <%= maintenance_order_form_errors(posting_form) %>
+
+  <%= simple_form_for(posting_form, url: maintenance_order_posting_path(posting_form.maintenance_order), method: :patch) do |f| %>
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <%= f.input :atua_order_number, required: true, input_html: { class: 'form-control bg-light', autocomplete: :off } %>
+      </div>
+      <div class="col-12 col-lg-6">
+        <%= f.input :posted_on, as: :date, html5: true, required: true, input_html: { class: 'form-control bg-light' } %>
+      </div>
+      <div class="col-12">
+        <%= f.input :posting_verified, as: :boolean, hint: t('maintenance_order_postings.modal.posting_verified_hint') %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row-reverse gap-2 mt-4">
+      <%= f.button :submit, t('maintenance_order_postings.modal.submit'), class: 'btn btn-primary btn-round px-4' %>
+      <%= button_tag t('helpers.links.cancel'), type: :button, class: 'btn btn-light btn-round px-4', data: { bs_dismiss: 'modal' } %>
+    </div>
+  <% end %>
+</div>

@@ -29,6 +29,10 @@
                      class: 'form-select bg-light' %>
       </div>
       <div class="col-12">
+        <%= f.label :posting, t('maintenance_order_postings.title'), class: 'form-label fw-medium' %>
+        <%= f.select :posting, maintenance_order_posting_filter_options, { include_blank: t('shared.all') }, class: 'form-select bg-light' %>
+      </div>
+      <div class="col-12">
         <%= f.label :maintenance_type, MaintenanceOrder.human_attribute_name(:maintenance_type), class: 'form-label fw-medium' %>
         <%= f.select :maintenance_type, maintenance_order_filter_options(:maintenance_type), { include_blank: t('shared.all') },
                      class: 'form-select bg-light' %>

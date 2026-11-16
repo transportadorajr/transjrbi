@@ -158,6 +158,10 @@ pt-BR:
         status_type: Situação
         finished_at: Conclusão
         next_preventive_km: Próxima preventiva
+        atua_order_number: Nº OS Atua
+        posted_on: Lançada em
+        posted_by: Lançada por
+        posting_verified: Verificação
         parts_total: Total de peças
         services_total: Total de serviços terceirizados
         labor_hours: Horas de mão de obra
@@ -900,6 +904,10 @@ pt-BR:
         release_test_type: Teste de liberação
         next_preventive_km: Próxima preventiva (km)
         performed_service: Serviço executado
+      maintenance_order_posting_form:
+        atua_order_number: Nº OS Atua
+        posted_on: Lançada em
+        posting_verified: Verificação OK
       maintenance_order_form:
         plate: Placa
         opened_at: Data e hora de abertura
@@ -1050,6 +1058,15 @@ pt-BR:
               inclusion: não foi encontrado no Atua
             supervisor_id:
               inclusion: não está cadastrado como encarregado
+        maintenance_order_posting_form:
+          attributes:
+            base:
+              not_finished: Só uma OS concluída pode ser lançada no Atua, e esta está %{status}.
+            posted_on:
+              before_conclusion: não pode ser antes da conclusão da OS
+              future: não pode ser uma data futura
+            atua_order_number:
+              taken: já foi lançado na OS %{number}
         maintenance_order_finish_form:
           attributes:
             base:
@@ -2503,6 +2520,7 @@ pt-BR:
       pending: Em aberto
       stopped: Veículos parados
       finished_this_month: Concluídas no mês
+      not_posted: Aguardando lançamento no Atua
     show:
       back: Voltar para ordens de serviço
       edit: Alterar
@@ -2544,6 +2562,23 @@ pt-BR:
       vehicle_stopped_hint: Marque quando o veículo não pode rodar até a manutenção terminar.
       description: Defeito, Diagnóstico e Serviço
       description_text: O diagnóstico e o serviço executado podem ser preenchidos depois, ao alterar a OS.
+  maintenance_order_postings:
+    title: Lançamento no Atua
+    actions:
+      post: Lançar no Atua
+      edit: Alterar lançamento
+    verified:
+      'yes': OK
+      'no': Pendente
+    filter:
+      posted: Lançadas
+      not_posted: Concluídas sem lançamento
+    modal:
+      title: Lançamento no Atua
+      submit: Salvar lançamento
+      posting_verified_hint: Marque depois de conferir no Atua as peças, a mão de obra e os serviços desta OS.
+    update:
+      success: Lançamento no Atua salvo com sucesso.
   suppliers:
     status:
       active: Ativo

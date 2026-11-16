@@ -154,6 +154,7 @@ shared:
         - maintenance_order_parts
         - maintenance_order_labors
         - maintenance_order_services
+        - maintenance_order_postings
     - name: workshop_employees
       resource: workshop_employees
       icon: person-badge

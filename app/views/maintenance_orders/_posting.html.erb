@@ -1,0 +1,20 @@
+<div class="card detail-card mb-4">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('maintenance_order_postings.title') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0" id="atua_posting">
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:atua_order_number) %></dt>
+      <dd class="col-12 col-md-9"><%= tax_value(maintenance_order.atua_order_number) %></dd>
+
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:posted_on) %></dt>
+      <dd class="col-12 col-md-9"><%= maintenance_order_posted_on(maintenance_order) %></dd>
+
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:posted_by) %></dt>
+      <dd class="col-12 col-md-9 text-break"><%= tax_value(maintenance_order.posted_by&.name) %></dd>
+
+      <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:posting_verified) %></dt>
+      <dd class="col-12 col-md-9"><%= maintenance_order_posting_verified(maintenance_order) %></dd>
+    </dl>
+  </div>
+</div>

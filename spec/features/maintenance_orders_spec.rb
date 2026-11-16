@@ -84,6 +84,7 @@ describe 'Maintenance orders', :maintenance do
         expect(page).to have_css('.counter-card', text: "Em aberto\n2")
         expect(page).to have_css('.counter-card', text: "Veículos parados\n1")
         expect(page).to have_css('.counter-card', text: "Concluídas no mês\n1")
+        expect(page).to have_css('.counter-card', text: "Aguardando lançamento no Atua\n1")
         expect(page).to have_link('Nova OS', href: new_maintenance_order_path)
         expect(page).to have_no_text('ZZZ9Z99')
       end

@@ -11,6 +11,7 @@
     <%= page_header_tag maintenance_order_title(@maintenance_order), back_path: maintenance_orders_path, back_title: t('.back'),
                                                                      wrapper_class: 'mb-0' do %>
       <%= maintenance_order_status_actions(@maintenance_order) %>
+      <%= maintenance_order_posting_button(@maintenance_order) %>
       <%= maintenance_order_pdf_button(@maintenance_order) %>
       <%= maintenance_order_edit_button(@maintenance_order) %>
     <% end %>
@@ -98,6 +99,7 @@
   </div>
 
   <%= maintenance_order_closing_card(@maintenance_order) %>
+  <%= maintenance_order_posting_card(@maintenance_order) %>
 
   <%= render 'parts', maintenance_order: @maintenance_order, parts: @parts %>
   <%= render 'labors', maintenance_order: @maintenance_order, labors: @labors %>
