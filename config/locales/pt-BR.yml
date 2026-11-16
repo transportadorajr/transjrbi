@@ -2255,6 +2255,14 @@ pt-BR:
       exceeded: Previsão superada em %{value}
       progress_label: Faturado hoje em relação à previsão do dia
       progress_note: O dia ainda não terminou; o faturado vai até a última sincronização com o Atua.
+    today_goal:
+      title: 'Meta do mês: %{target}'
+      realized: '%{realized} faturados de %{goal} (%{ratio})'
+      missing: 'Faltam %{value}'
+      reached: Meta atingida
+      projection: 'Projeção do mês hoje: %{value} (%{ratio} da meta)'
+      no_projection: A projeção do mês de hoje ainda não foi calculada.
+      panel: Ver painel de metas
     show:
       title: Histórico da projeção
       subtitle: O que a projeção indicava a cada manhã e quanto foi faturado de fato, dia a dia e semana a semana.
@@ -2742,6 +2750,9 @@ pt-BR:
       iof_percentage_hint: 'Incide só sobre o seguro internacional. Ex.: 7,38.'
   goals:
     no_goal: Sem meta
+    xlsx:
+      summary: Resumo
+      month: Mês
     dimensions:
       customer_group: Clientes
       vehicle: Veículo

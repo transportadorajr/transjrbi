@@ -63,6 +63,17 @@ module Dashboard
       week_snapshot&.latest_projected_cents
     end
 
+    def month_billed_cents
+      @month_billed_cents ||= @documents.active.not_canceled.where(issued_at: today.all_month).sum(:freight_cents)
+    end
+
+    def goal_row(goal)
+      return unless goal
+
+      Goals::Row.new(key: goal.target_type, label: I18n.t(goal.target_type, scope: 'enums.revenue_goal.target_type'), goal_cents: goal.amount_cents,
+                     realized_cents: month_billed_cents, projected_cents: month_projected_cents)
+    end
+
     def projections_refreshed_at
       [month_snapshot, week_snapshot].filter_map { it&.current_refreshed_at }.max
     end

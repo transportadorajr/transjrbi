@@ -238,4 +238,57 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       )
     end
   end
+
+  context 'with access to the goals panel', flipper: { revenue_goals: :tenant, xlsx_export: :tenant } do
+    let!(:resource) { create(:resource, name: 'Painel de metas', slug: 'goals', writable: false) }
+    let(:month) { Date.new(2026, 11, 1) }
+
+    before do
+      travel_to(Time.zone.local(2026, 11, 10, 10))
+      create(:own_fleet, tenant:, plates: %w[AJR4391 RHJ5A50])
+      usiminas = create(:customer_group, tenant:, name: 'USIMINAS')
+      create(:revenue_goal, tenant:, month:, amount_cents: 10_000_000)
+      create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391', amount_cents: 1_000_000)
+      create(:revenue_goal, :customer_group, tenant:, month:, customer_group: usiminas, amount_cents: 6_000_000)
+      create(:atua_transport_document, tenant:, plate: 'AJR4391', freight_cents: 900_000, issued_at: Time.zone.local(2026, 11, 5, 10),
+                                       taker_code: create(:atua_customer, tenant:, customer_group: usiminas).code)
+      create(:atua_transport_document, tenant:, plate: 'XYZ9K87', freight_cents: 250_000, issued_at: Time.zone.local(2026, 11, 5, 10))
+      create(:atua_transport_document, tenant: other_tenant, plate: 'AJR4391', freight_cents: 7_000_000, issued_at: Time.zone.local(2026, 11, 5, 10))
+    end
+
+    scenario 'shows the Excel export button with the chosen grouping' do
+      visit goals_path(dimension: 'vehicle', page: 2)
+
+      expect(page).to have_link('Exportar Excel', href: goals_path(dimension: 'vehicle', format: :xlsx))
+    end
+
+    scenario 'exports the summary of the company and every row of the chosen grouping' do
+      visit goals_path(dimension: 'vehicle')
+      click_on 'Exportar Excel'
+
+      expect(page.response_headers['Content-Disposition']).to include("filename=\"metas-#{Date.current.iso8601}.xlsx\"")
+      expect(downloaded_xlsx_sheet_names).to eq(['Resumo', 'Ranking dos veículos'])
+      expect(downloaded_xlsx_records('Resumo')).to eq(
+        [{ 'Mês' => 'Novembro de 2026', 'Meta' => 100_000, 'Faturado' => 11_500, 'Falta' => 88_500, 'Atingimento' => 0.115,
+           'Projeção de fechamento' => 35_937.5, 'Ritmo necessário por dia útil' => 5_205.89, 'Situação' => 'Abaixo da meta',
+           'Meta da semana' => 24_000, 'Faturado na semana' => 0, 'Atingimento na semana' => 0 }],
+      )
+      expect(downloaded_xlsx_records('Ranking dos veículos')).to eq(
+        [{ 'Placa' => 'AJR4391', 'Meta' => 10_000, 'Faturado' => 9_000, 'Falta' => 1_000, 'Atingimento' => 0.9, 'Projeção' => 28_125,
+           'Situação' => 'No ritmo' },
+         { 'Placa' => 'RHJ5A50', 'Meta' => nil, 'Faturado' => 0, 'Falta' => nil, 'Atingimento' => nil, 'Projeção' => 0, 'Situação' => 'Sem meta' },
+         { 'Placa' => 'Terceiro', 'Meta' => nil, 'Faturado' => 2_500, 'Falta' => nil, 'Atingimento' => nil, 'Projeção' => 7_812.5,
+           'Situação' => 'Sem meta' }],
+      )
+    end
+
+    scenario 'exports the customer groups with the columns of the week' do
+      visit goals_path(format: :xlsx)
+
+      expect(downloaded_xlsx_records('Metas por grupo de clientes').map { it.slice('Grupo de clientes', 'Meta', 'Faturado', 'Meta da semana') }).to eq(
+        [{ 'Grupo de clientes' => 'USIMINAS', 'Meta' => 60_000, 'Faturado' => 9_000, 'Meta da semana' => 14_400 },
+         { 'Grupo de clientes' => 'Sem grupo de clientes', 'Meta' => nil, 'Faturado' => 2_500, 'Meta da semana' => nil }],
+      )
+    end
+  end
 end

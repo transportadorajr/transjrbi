@@ -14,6 +14,7 @@ class RevenueProjectionHistoriesController < BaseController
     load_freight_filter_options
     @cut_items = cut_items
     @history = history
+    @today_goal = @history.goal_row(today_goal) if @filter_form.period_type == 'today'
 
     respond_with_listing(pdf: false, xlsx: -> { helpers.revenue_projection_history_xlsx_sheets(@history, cut_items: @cut_items) })
   end
@@ -60,6 +61,12 @@ class RevenueProjectionHistoriesController < BaseController
     return today_history if @filter_form.period_type == 'today'
 
     Dashboard::RevenueProjectionHistory.new(current_tenant, @filter_form.period_type, @filter_form.date_range, memory:)
+  end
+
+  def today_goal
+    return unless Dashboard::Goals.enabled?(current_tenant) && can?(:read, :goals)
+
+    current_tenant.revenue_goals.for_month(Date.current).for_cut(@filter_form.cut_params)
   end
 
   def today_history

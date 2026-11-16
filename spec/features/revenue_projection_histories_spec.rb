@@ -232,6 +232,59 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
             end
           end
         end
+
+        context 'with the goals of the month', flipper: { revenue_projection: :tenant, revenue_goals: :tenant } do
+          let!(:goals_resource) { create(:resource, name: 'Painel de metas', slug: 'goals', writable: false) }
+
+          before do
+            create(:revenue_goal, tenant:, month: Date.new(2026, 11, 1), amount_cents: 2_500_000)
+            create(:revenue_goal, :vehicle, tenant:, month: Date.new(2026, 11, 1), plate: 'AJR4391', amount_cents: 500_000)
+            create(:revenue_goal, tenant: other_tenant, month: Date.new(2026, 11, 1), amount_cents: 1_000)
+            create(:atua_transport_document, tenant:, plate: 'AJR4391', issued_at: Time.zone.local(2026, 11, 2, 8), freight_cents: 30_000)
+            create(:atua_transport_document, tenant:, plate: 'AJR4391', issued_at: Time.zone.local(2026, 10, 30, 8), freight_cents: 99_000)
+          end
+
+          scenario 'shows the goal of the month of the company on today' do
+            visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+
+            within('#today_goal') do
+              expect(page).to have_text('Meta do mês: Transportadora')
+              expect(page).to have_text('R$ 1.000,00 faturados de R$ 25.000,00 (4,0%)')
+              expect(page).to have_text('Faltam R$ 24.000,00')
+              expect(page).to have_text('Projeção do mês hoje: R$ 23.300,00 (93,2% da meta)')
+              expect(page).to have_text('Atenção')
+              expect(page).to have_css('progress.goal-progress[value="100000"][max="2500000"]')
+              click_on 'Ver painel de metas'
+            end
+
+            expect(page).to have_current_path(goals_path)
+          end
+
+          scenario 'shows the goal of the vehicle of the cut on today' do
+            visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04', plate: 'AJR4391')
+
+            within('#today_goal') do
+              expect(page).to have_text('Meta do mês: Veículo')
+              expect(page).to have_text('R$ 300,00 faturados de R$ 5.000,00 (6,0%)')
+            end
+          end
+
+          scenario 'shows no goal for a cut without a goal' do
+            visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04', plate: 'RHJ5A50')
+
+            expect(page).to have_css('#history_cards')
+            expect(page).to have_no_css('#today_goal')
+          end
+        end
+
+        scenario 'shows no goal without the goals flag' do
+          create(:revenue_goal, tenant:, month: Date.new(2026, 11, 1), amount_cents: 2_500_000)
+
+          visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+
+          expect(page).to have_css('#history_cards')
+          expect(page).to have_no_css('#today_goal')
+        end
       end
     end
 

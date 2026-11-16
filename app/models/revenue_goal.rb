@@ -1,6 +1,7 @@
 class RevenueGoal < ApplicationRecord
   TARGET_TYPES = %w[company vehicle customer_group region driver].freeze
   TARGET_COLUMNS = { 'vehicle' => :plate, 'customer_group' => :customer_group_id, 'region' => :macro_region_id, 'driver' => :driver_code }.freeze
+  CUT_TARGETS = { plate: 'vehicle', customer_group_id: 'customer_group', macro_region_id: 'region', driver_code: 'driver' }.freeze
   MONTH_FORMAT = '%Y-%m'.freeze
 
   belongs_to :tenant
@@ -33,10 +34,30 @@ class RevenueGoal < ApplicationRecord
       tenant.customer_groups.where(id: goal_group_ids).or(tenant.customer_groups.activated).order(:name, :id)
     end
 
+    def for_cut(cut)
+      return company.take if cut.empty?
+      return unless cut.one?
+
+      attribute, value = cut.first
+      target_type = CUT_TARGETS[attribute.to_sym]
+      value = cut_value(target_type, value)
+      find_by(target_type:, TARGET_COLUMNS.fetch(target_type) => value) if value
+    end
+
     def parse_month(value)
       Date.strptime(value.to_s.strip.first(7), MONTH_FORMAT)
     rescue Date::Error
       nil
+    end
+
+    private
+
+    def cut_value(target_type, value)
+      case target_type
+      when nil then nil
+      when 'vehicle' then Atua::TransportDocument.normalize_plate(value.to_s)
+      else Integer(value.to_s, exception: false)
+      end
     end
   end
 
