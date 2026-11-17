@@ -1,6 +1,7 @@
 class MaintenanceOrderForm < BaseForm
-  PERMITTED_ATTRIBUTES = %i[plate opened_at odometer_km hour_meter driver_code supervisor_id equipment_type equipment_other
-                            maintenance_type priority_type vehicle_stopped execution_place_type affected_system_type
+  PERMITTED_ATTRIBUTES = %i[plate opened_at odometer_km hour_meter driver_code supervisor_id responsible_employee_id
+                            equipment_type equipment_other maintenance_type priority_type vehicle_stopped
+                            execution_place_type affected_system_type
                             reported_defect diagnosis performed_service].freeze
   ITEM_FORMS = { parts: MaintenanceOrderPartForm, services: MaintenanceOrderServiceForm }.freeze
 
@@ -10,6 +11,7 @@ class MaintenanceOrderForm < BaseForm
   attribute :hour_meter, :decimal
   attribute :driver_code, :integer
   attribute :supervisor_id, :integer
+  attribute :responsible_employee_id, :integer
   attribute :equipment_type, :string
   attribute :equipment_other, :string
   attribute :maintenance_type, :string
@@ -42,6 +44,7 @@ class MaintenanceOrderForm < BaseForm
   validate :plate_must_be_registered
   validate :driver_must_exist
   validate :supervisor_must_exist
+  validate :responsible_employee_must_exist
   validate :items_must_be_valid, unless: :persisted?
 
   attr_accessor :tenant, :opened_by
@@ -165,5 +168,11 @@ class MaintenanceOrderForm < BaseForm
     return if supervisor_id.blank?
 
     errors.add(:supervisor_id, :inclusion) unless tenant.workshop_employees.supervisor.exists?(id: supervisor_id)
+  end
+
+  def responsible_employee_must_exist
+    return if responsible_employee_id.blank? || responsible_employee_id == maintenance_order.responsible_employee_id
+
+    errors.add(:responsible_employee_id, :inclusion) unless tenant.workshop_employees.active.exists?(id: responsible_employee_id)
   end
 end

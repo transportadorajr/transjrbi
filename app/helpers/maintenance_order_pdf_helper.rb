@@ -1,5 +1,5 @@
 module MaintenanceOrderPdfHelper
-  SIGNATURES = %i[supervisor].freeze
+  SIGNATURES = %i[supervisor responsible_employee].freeze
 
   def maintenance_order_pdf_title(maintenance_order)
     t('maintenance_orders.show.pdf.header', number: maintenance_order.number, company: maintenance_order.tenant.trade_name)
@@ -19,6 +19,7 @@ module MaintenanceOrderPdfHelper
       [MaintenanceOrder.human_attribute_name(:hour_meter), maintenance_order_hour_meter(maintenance_order)],
       [MaintenanceOrder.human_attribute_name(:driver_name), tax_value(maintenance_order.driver_name)],
       [MaintenanceOrder.human_attribute_name(:supervisor), tax_value(maintenance_order.supervisor&.name)],
+      [MaintenanceOrder.human_attribute_name(:responsible_employee), tax_value(maintenance_order.responsible_employee&.name)],
     ]
   end
 

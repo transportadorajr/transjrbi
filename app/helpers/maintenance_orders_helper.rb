@@ -60,6 +60,12 @@ module MaintenanceOrdersHelper
     drivers.map { |driver| [driver.driver_name.presence || driver.driver_code.to_s, driver.driver_code.to_s] }
   end
 
+  def maintenance_order_responsible_employee_options(employees)
+    employees.map do |employee|
+      [t('maintenance_orders.form.responsible_employee_option', name: employee.name, role: employee.role_type_name), employee.id.to_s]
+    end
+  end
+
   def maintenance_order_items_fields(form_builder, maintenance_order_form)
     return if maintenance_order_form.persisted?
 

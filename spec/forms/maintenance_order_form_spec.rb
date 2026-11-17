@@ -127,8 +127,47 @@ RSpec.describe MaintenanceOrderForm do
       expect(form.errors.full_messages).to eq(['Encarregado responsável não está cadastrado como encarregado'])
     end
 
+    context 'with a responsible workshop employee' do
+      it 'saves any active workshop employee as the responsible one' do
+        form = described_class.new(tenant:, opened_by: user, **attributes, responsible_employee_id: mechanic.id.to_s)
+
+        expect { expect(form.save).to be(true) }.to change(MaintenanceOrder, :count).by(1)
+        expect(MaintenanceOrder.last.responsible_employee).to eq(mechanic)
+      end
+
+      it 'opens the order without a responsible employee' do
+        form = described_class.new(tenant:, opened_by: user, **attributes, responsible_employee_id: '')
+
+        expect(form.save).to be(true)
+        expect(form.maintenance_order.responsible_employee).to be_nil
+      end
+
+      it 'rejects an inactive employee or one of another tenant' do
+        inactive = create(:workshop_employee, tenant:, name: 'ANTONIO RAMOS', active: false)
+        stranger = create(:workshop_employee, name: 'OUTRO TENANT')
+
+        [inactive, stranger].each do |employee|
+          form = described_class.new(tenant:, **attributes, responsible_employee_id: employee.id.to_s)
+
+          expect(form.save).to be_falsey
+          expect(form.errors.full_messages).to eq(['Funcionário responsável não está cadastrado como funcionário ativo da oficina'])
+        end
+        expect(MaintenanceOrder.count).to eq(0)
+      end
+    end
+
     context 'when the order already exists' do
       let!(:maintenance_order) { create(:maintenance_order, tenant:, number: 3, opened_by: user) }
+
+      it 'keeps the responsible employee after the employee is deactivated' do
+        maintenance_order.update!(responsible_employee: mechanic)
+        mechanic.update!(active: false)
+        form = described_class.for_maintenance_order(maintenance_order)
+        form.assign_attributes(diagnosis: 'Lonas gastas')
+
+        expect(form.save).to be(true)
+        expect(maintenance_order.reload).to have_attributes(responsible_employee: mechanic, diagnosis: 'Lonas gastas')
+      end
 
       it 'keeps the plate of the order after its vehicle is removed from Atua' do
         vehicle.update!(removed_from_atua_at: 1.day.ago)

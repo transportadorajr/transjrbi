@@ -21,16 +21,24 @@
         <div class="col-12 col-lg-2">
           <%= f.input :hour_meter, as: :decimal, input_html: { class: 'form-control', inputmode: :decimal, min: 0, step: 0.1 } %>
         </div>
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-4">
           <%= f.label :driver_code, for: nil, id: 'driver_code_select_label', class: 'form-label' %>
           <%= render 'components/select2', id: 'driver_code_select', name: "#{f.object_name}[driver_code]",
                                            options: maintenance_order_driver_options(@drivers), selected: maintenance_order_form.driver_code,
                                            placeholder: t('maintenance_orders.form.driver_placeholder') %>
         </div>
-        <div class="col-12 col-lg-6">
+        <div class="col-12 col-lg-4">
           <%= f.input :supervisor_id, collection: @supervisors, label_method: :name, value_method: :id,
                                       include_blank: t('helpers.select.prompt'), hint: t('maintenance_orders.form.supervisor_hint'),
                                       input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.label :responsible_employee_id, for: nil, id: 'responsible_employee_select_label', class: 'form-label' %>
+          <%= render 'components/select2', id: 'responsible_employee_select', name: "#{f.object_name}[responsible_employee_id]",
+                                           options: maintenance_order_responsible_employee_options(@workshop_employees),
+                                           selected: maintenance_order_form.responsible_employee_id,
+                                           placeholder: t('maintenance_orders.form.responsible_employee_placeholder') %>
+          <%= tag.div t('maintenance_orders.form.responsible_employee_hint'), class: 'form-text' %>
         </div>
         <div class="col-12 col-lg-6">
           <%= f.input :equipment_type, collection: MaintenanceOrderForm.enum_options_for_select(:equipment_type), required: true,

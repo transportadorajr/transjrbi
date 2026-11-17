@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_17_135601) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_150048) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1006,7 +1006,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_135601) do
     t.bigint "total_cents", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "responsible_employee_id"
     t.index ["opened_by_id"], name: "index_maintenance_orders_on_opened_by_id"
+    t.index ["responsible_employee_id"], name: "index_maintenance_orders_on_responsible_employee_id"
     t.index ["supervisor_id"], name: "index_maintenance_orders_on_supervisor_id"
     t.index ["tenant_id", "number"], name: "index_maintenance_orders_on_tenant_id_and_number", unique: true
     t.index ["tenant_id", "plate"], name: "index_maintenance_orders_on_tenant_id_and_plate"
@@ -1394,6 +1396,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_135601) do
   add_foreign_key "maintenance_order_services", "tenants"
   add_foreign_key "maintenance_orders", "tenants"
   add_foreign_key "maintenance_orders", "users", column: "opened_by_id"
+  add_foreign_key "maintenance_orders", "workshop_employees", column: "responsible_employee_id"
   add_foreign_key "maintenance_orders", "workshop_employees", column: "supervisor_id"
   add_foreign_key "maintenance_part_movements", "maintenance_order_parts"
   add_foreign_key "maintenance_part_movements", "maintenance_orders"

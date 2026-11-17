@@ -7,10 +7,11 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
   let!(:maintenance_resource) { create(:resource, name: 'Módulo de manutenção', slug: 'maintenance', writable: false) }
   let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
   let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
+  let!(:responsible_employee) { create(:workshop_employee, tenant:, name: 'JOAO MENDES') }
   let!(:supplier) { create(:supplier, tenant:, name: 'RETÍFICA IPATINGA') }
   let!(:maintenance_order) do
     create(:maintenance_order, tenant:, number: 7, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 11, 8), odometer_km: 452_300,
-                               driver_name: 'JOSE DA SILVA', supervisor:, priority_type: 'high', vehicle_stopped: true,
+                               driver_name: 'JOSE DA SILVA', supervisor:, responsible_employee:, priority_type: 'high', vehicle_stopped: true,
                                diagnosis: 'Lonas gastas', performed_service: 'Troca das lonas', status_type: 'finished',
                                finished_at: Time.zone.local(2026, 11, 11, 17, 30), release_test_type: 'road_test',
                                next_preventive_km: 482_300)
@@ -53,6 +54,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('Ficha da Ordem de Serviço nº 7 - Transportadora JR')
       expect(text).to include('Manutenção da frota · Placa EXU1A23 · Concluída')
       expect(text).to include('EXU1A23', '452.300 km', 'JOSE DA SILVA', 'PAULO LIMA', 'Cavalo mecânico')
+      expect(text).to include('FUNCIONÁRIO RESPONSÁVEL', 'JOAO MENDES')
       expect(text).to include('Corretiva', 'Alta', 'Oficina interna', 'Freios')
       expect(text).to include('Freio puxando para a direita', 'Lonas gastas', 'Troca das lonas')
       expect(text).to include('LF-123', 'LONA DE FREIO', '4 UN', 'R$ 85,00', 'R$ 340,00')
@@ -60,7 +62,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('RETÍFICA IPATINGA', 'Retífica do tambor', 'R$ 450,00', 'R$ 420,00', 'MARCOS')
       expect(text).to include('R$ 760,00')
       expect(text).to include('11/11/2026 17:30', 'Rodagem', '482.300 km')
-      expect(text).to include('PAULO LIMAEncarregado responsável')
+      expect(text).to include('PAULO LIMAEncarregado responsável', 'JOAO MENDESFuncionário responsável')
       expect(text).not_to include('Mecânico responsável', 'Motorista (veículo liberado)', 'Compras (aprovação)')
       expect(text).to include('Gerado em 12/11/2026 09:00.')
     end
@@ -74,6 +76,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('Nenhuma peça lançada nesta OS.', 'Nenhuma mão de obra lançada nesta OS.',
                               'Nenhum serviço terceirizado lançado nesta OS.')
       expect(text).to include('R$ 0,00')
+      expect(text).to include('Encarregado responsável', 'Funcionário responsável')
     end
 
     scenario 'does not print an order of another tenant' do
