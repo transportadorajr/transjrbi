@@ -68,8 +68,18 @@ jobs:
       - name: Test
         run: cargo test --locked
 
-  test:
+  rspec:
+    name: test (${{ matrix.suite }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: rack
+            rspec_tags: --tag ~js
+          - suite: js
+            rspec_tags: --tag js
 
     services:
       postgres:
@@ -145,7 +155,15 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare && bundle exec rspec
+        run: bin/rails db:test:prepare && bundle exec rspec ${{ matrix.rspec_tags }}
+
+  test:
+    if: always()
+    needs: rspec
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every test job to pass
+        run: test "${{ needs.rspec.result }}" = "success"
 
   system-test:
     runs-on: ubuntu-latest
