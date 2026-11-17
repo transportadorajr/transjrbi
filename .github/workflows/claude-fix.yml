@@ -1,0 +1,120 @@
+name: Claude fix review comments
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: claude-fix-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    if: |
+      (
+        (github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+      ) &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.review.author_association) &&
+      (github.event.comment.user.type || github.event.review.user.type) != 'Bot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432
+      PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+
+    steps:
+      - name: Install packages
+        run: |
+          dpkg -s libpq-dev > /dev/null 2>&1 || {
+            sudo apt-get -o Acquire::Retries=5 update
+            sudo apt-get -o Acquire::Retries=5 install --no-install-recommends -y libpq-dev
+          }
+
+      - name: Resolve the PR branch
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "head_ref=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefName --jq .headRefName)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout the PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.pr.outputs.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.4.2
+
+      - name: Install JavaScript dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build assets
+        run: bun run build && bun run build:css
+
+      - name: Cache the Typst PDF engine
+        id: typst-engine
+        uses: actions/cache@v4
+        with:
+          path: bin/rust_typst_pdf
+          key: typst-engine-${{ runner.os }}-${{ hashFiles('rust_typst_pdf/Cargo.lock', 'rust_typst_pdf/Cargo.toml', 'rust_typst_pdf/src/**') }}
+
+      - name: Build the Typst PDF engine
+        if: steps.typst-engine.outputs.cache-hit != 'true'
+        run: |
+          cargo build --release --locked --manifest-path rust_typst_pdf/Cargo.toml
+          cp rust_typst_pdf/target/release/rust_typst_pdf bin/rust_typst_pdf
+
+      - name: Cache the Excel export service
+        id: xlsx-export
+        uses: actions/cache@v4
+        with:
+          path: bin/xlsx_export
+          key: xlsx-export-${{ runner.os }}-${{ hashFiles('xlsx_export/Cargo.lock', 'xlsx_export/Cargo.toml', 'xlsx_export/src/**') }}
+
+      - name: Build the Excel export service
+        if: steps.xlsx-export.outputs.cache-hit != 'true'
+        run: |
+          cargo build --release --locked --manifest-path xlsx_export/Cargo.toml
+          cp xlsx_export/target/release/xlsx_export bin/xlsx_export
+
+      - name: Prepare the test database
+        run: bin/rails db:test:prepare
+
+      - name: Fix the review comments
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          track_progress: true
+          claude_args: |
+            --append-system-prompt "You are fixing pull request #${{ env.PR_NUMBER }} of ${{ github.repository }}, already checked out on its branch. When the request asks to fix the review (for example '@claude corrija'), read every open review comment of the PR with gh api repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/comments and gh pr view ${{ env.PR_NUMBER }} --comments, and fix each one following steps 5 and 6 of .claude/skills/agents-md-review/SKILL.md and the exact rules of AGENTS.md. When the comment that triggered you is an inline comment, fix only what it points at unless it asks for more. Never use AskUserQuestion: when a fix is a product or architecture decision, do not apply it and explain the options in your reply instead. Run the affected specs and linters, commit the fixes on the PR branch with a message that lists what was fixed, and push them with exactly `git push origin HEAD`. Never force-push, never rewrite history and never touch another branch. Reply in Portuguese, listing each comment with what was changed or why it was left unchanged."
+            --allowedTools "Edit,Write,Read,Grep,Glob,Bash(bundle exec rspec:*),Bash(bundle exec rubocop:*),Bash(bundle exec erb_lint:*),Bash(bundle exec herb:*),Bash(bundle exec annotaterb:*),Bash(bundle exec rails g migration:*),Bash(bin/rails db:migrate:*),Bash(bin/rails db:test:prepare),Bash(bun test:*),Bash(bun run prettier:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api repos/${{ github.repository }}/pulls/*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git add:*),Bash(git rm:*),Bash(git mv:*),Bash(git commit:*),Bash(git push origin HEAD),Bash(grep:*),Bash(ls:*)"
