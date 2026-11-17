@@ -28,7 +28,7 @@ module MaintenanceOrderSignaturesHelper
   end
 
   def maintenance_order_signature_signed_at(signature)
-    t('maintenance_orders.show.signed_at', time: l(signature.signed_at, format: :date_time))
+    l(signature.signed_at, format: :date_time)
   end
 
   def maintenance_order_signature_digest(signature)

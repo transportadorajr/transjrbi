@@ -2648,7 +2648,6 @@ pt-BR:
       print: Imprimir OS
       signatures: Assinaturas
       signature_alt: Assinatura de %{name}
-      signed_at: Assinada em %{time}
       content_digest: 'Código de verificação: %{digest}'
       pdf:
         header: Ficha da Ordem de Serviço nº %{number} - %{company}

@@ -230,13 +230,13 @@ describe 'Maintenance order closing', :maintenance, flipper: :maintenance do
       expect(signatures).to all(have_attributes(signed_by: owner, content_digest: maintenance_order.content_digest))
       expect(signatures.map { |signature| MaintenanceOrderSignature.drawn?(signature.strokes) }).to all(be(true))
 
-      within('#signatures') do
-        expect(page).to have_css('img.signature-image', count: 3)
-        expect(page).to have_css('img[alt="Assinatura de PAULO LIMA"]')
-        expect(page).to have_text('Encarregado')
-        expect(page).to have_text('Assinada em 11/11/2026 17:30', count: 3)
+      expect(page).to have_css('#signatures img.signature-image', count: 3)
+      signatures.each do |signature|
+        expect(page).to have_css("img[alt='Assinatura de #{signature.signer_name}']")
+        expect(dl_to_hash("#maintenance_order_signature_#{signature.id}"))
+          .to eq('NOME' => signature.signer_name, 'FUNÇÃO' => signature.signer_role_type_name, 'ASSINADA EM' => '11/11/2026 17:30')
       end
-      expect(page).to have_text("Código de verificação: #{maintenance_order.content_digest}")
+      expect(dl_to_hash('#signature_verification')).to eq('CÓDIGO DE VERIFICAÇÃO' => maintenance_order.content_digest)
     end
 
     scenario 'keeps the modal open while a mechanic has not signed', :js do

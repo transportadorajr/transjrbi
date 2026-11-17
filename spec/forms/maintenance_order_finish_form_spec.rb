@@ -135,7 +135,7 @@ RSpec.describe MaintenanceOrderFinishForm do
       expect(maintenance_order.signatures.pluck(:signer_name)).to contain_exactly('PAULO LIMA', 'ANA COSTA', 'CARLOS SOUZA')
     end
 
-    it 'lets the supervisor sign twice when he also worked on the order' do
+    it 'lets the supervisor sign twice when the supervisor also worked on the order' do
       create(:maintenance_order_labor, maintenance_order:, workshop_employee: supervisor)
       form = finish_form(supervisor_id: supervisor.id.to_s, supervisor_signature: signature_strokes,
                          mechanic_signatures: [carlos, ana, supervisor].to_h { |employee| [employee.id.to_s, signature_strokes] })

@@ -7,12 +7,22 @@
       <% signatures.each do |signature| %>
         <div class="col-12 col-md-6 col-lg-4 signature">
           <%= maintenance_order_signature_image(signature) %>
-          <p class="fw-semibold mb-0 mt-2 text-break"><%= signature.signer_name %></p>
-          <p class="text-muted small mb-0"><%= signature.signer_role_type_name %></p>
-          <p class="text-muted small mb-0"><%= maintenance_order_signature_signed_at(signature) %></p>
+          <dl class="row detail-list mb-0 mt-2" id="<%= dom_id(signature) %>">
+            <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:signer_name) %></dt>
+            <dd class="col-12 text-break"><%= signature.signer_name %></dd>
+
+            <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:signer_role_type) %></dt>
+            <dd class="col-12"><%= signature.signer_role_type_name %></dd>
+
+            <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:signed_at) %></dt>
+            <dd class="col-12"><%= maintenance_order_signature_signed_at(signature) %></dd>
+          </dl>
         </div>
       <% end %>
     </div>
-    <p class="text-muted small mb-0 mt-3 text-break"><%= maintenance_order_signature_digest(signatures.first) %></p>
+    <dl class="row detail-list mb-0 mt-3" id="signature_verification">
+      <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:content_digest) %></dt>
+      <dd class="col-12 text-break"><%= signatures.first.content_digest %></dd>
+    </dl>
   </div>
 </div>
