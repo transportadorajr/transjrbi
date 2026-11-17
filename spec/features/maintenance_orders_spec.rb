@@ -235,7 +235,7 @@ describe 'Maintenance orders', :maintenance do
         end
         fill_in 'KM', with: '452300'
         expect(page).to have_no_select('Encarregado responsável', with_options: ['ANTIGO ENCARREGADO', 'CARLOS SOUZA'])
-        select 'PAULO LIMA', from: 'Encarregado responsável'
+        expect(page).to have_select('Encarregado responsável', selected: 'PAULO LIMA')
         select 'Cavalo mecânico', from: 'Tipo de equipamento'
         select 'Corretiva', from: 'Tipo de manutenção'
         select 'Alta', from: 'Prioridade'
@@ -275,6 +275,112 @@ describe 'Maintenance orders', :maintenance do
         expect(MaintenanceOrder.count).to eq(2)
         expect(MaintenanceOrder.last).to have_attributes(tenant:, number: 42, plate: 'AAOP898', equipment_type: 'trailer',
                                                          maintenance_type: 'preventive', affected_system_type: 'tires')
+      end
+
+      context 'when the parts and services are registered' do
+        let!(:supplier) { create(:supplier, tenant:, name: 'RETÍFICA IPATINGA') }
+        let!(:lining) do
+          create(:maintenance_part, tenant:, code: 'LF-123', description: 'LONA DE FREIO', unit: 'UN', unit_price_cents: 8_500)
+        end
+        let!(:grinding) { create(:maintenance_service, tenant:, description: 'RETÍFICA DO TAMBOR', price_cents: 45_000) }
+
+        scenario 'opens an order with parts and services', :js do
+          visit new_maintenance_order_path
+          within('#plate_select') do
+            find('.select2-trigger').click
+            find('.select2-option', text: 'EXU1A23').click
+          end
+          select 'Cavalo mecânico', from: 'Tipo de equipamento'
+          select 'Corretiva', from: 'Tipo de manutenção'
+          select 'Freios', from: 'Sistema afetado'
+          fill_in 'Defeito relatado', with: 'Freio puxando para a direita'
+
+          within('#maintenance_order_parts_fields') do
+            click_on 'Adicionar peça'
+            click_on 'Adicionar peça'
+            rows = all('.order-item-row')
+            within(rows[0]) do
+              find('.select2-trigger').click
+              find('.select2-option', text: 'LF-123 - LONA DE FREIO').click
+              expect(page).to have_field('Valor unitário', with: '85,00')
+              fill_in 'Quantidade', with: '4'
+            end
+            within(rows[1]) do
+              fill_in 'Descrição', with: 'Parafuso da roda'
+              fill_in 'Quantidade', with: '6'
+              fill_in 'Unidade', with: 'un'
+              fill_in 'Valor unitário', with: '250'
+              select 'Compra direta', from: 'Origem'
+            end
+          end
+          within('#maintenance_order_services_fields') do
+            click_on 'Adicionar serviço'
+            find('.select2-trigger').click
+            find('.select2-option', text: 'RETÍFICA DO TAMBOR').click
+            select 'RETÍFICA IPATINGA', from: 'Fornecedor'
+          end
+
+          expect(page).to have_css('#maintenance_order_items_total', text: 'R$ 805,00')
+
+          click_on 'Abrir OS'
+
+          expect(page).to have_text('OS 42 aberta com sucesso.')
+          maintenance_order = MaintenanceOrder.last
+          expect(maintenance_order.parts.order(:id).map { |part| part.slice(:maintenance_part_id, :description, :quantity, :unit, :source_type, :total_cents) })
+            .to eq([{ 'maintenance_part_id' => lining.id, 'description' => 'LONA DE FREIO', 'quantity' => 4, 'unit' => 'UN',
+                      'source_type' => 'stock', 'total_cents' => 34_000 },
+                    { 'maintenance_part_id' => nil, 'description' => 'PARAFUSO DA RODA', 'quantity' => 6, 'unit' => 'UN',
+                      'source_type' => 'purchase', 'total_cents' => 1_500 }])
+          expect(maintenance_order.services.sole).to have_attributes(maintenance_service: grinding, supplier:,
+                                                                     description: 'RETÍFICA DO TAMBOR', quoted_cents: 45_000)
+          expect(maintenance_order).to have_attributes(parts_total_cents: 35_500, services_total_cents: 45_000, total_cents: 80_500)
+        end
+
+        scenario 'removes an added row before opening the order', :js do
+          visit new_maintenance_order_path
+          within('#maintenance_order_parts_fields') do
+            click_on 'Adicionar peça'
+            fill_in 'Descrição', with: 'Item errado'
+            click_on 'Remover item'
+
+            expect(page).to have_no_css('.order-item-row')
+          end
+        end
+
+        scenario 'keeps the rows and shows the errors of an invalid item' do
+          expect do
+            page.driver.submit :post, maintenance_orders_path,
+                               { maintenance_order: { plate: 'EXU1A23', opened_at: '2026-11-11T10:00', equipment_type: 'truck_tractor',
+                                                      maintenance_type: 'corrective', priority_type: 'medium',
+                                                      execution_place_type: 'internal_workshop', affected_system_type: 'brakes',
+                                                      reported_defect: 'Freio puxando',
+                                                      parts_attributes: { '0' => { description: 'Lona', quantity: '0', source_type: 'stock' },
+                                                                          '1' => { source_type: 'stock' } },
+                                                      services_attributes: { '0' => { quoted: 'x' } } } }
+          end.not_to change(MaintenanceOrder, :count)
+
+          expect(page.status_code).to eq(422)
+          expect(page).to have_text('Peça 1: Quantidade deve ser maior que 0')
+          expect(page).to have_text('Serviço 1: Serviço não pode ficar em branco e Valor orçado não é um valor válido')
+          expect(page).to have_field('maintenance_order[parts_attributes][0][description]', with: 'LONA')
+          expect(page).to have_css('#maintenance_order_parts_fields .order-item-row', count: 1)
+          expect(MaintenanceOrderPart.count).to eq(0)
+        end
+
+        scenario 'does not offer the items when editing the order' do
+          visit edit_maintenance_order_path(last_order)
+
+          expect(page).to have_field('Defeito relatado')
+          expect(page).to have_no_css('#maintenance_order_items')
+        end
+      end
+
+      scenario 'preselects the first supervisor of the list' do
+        create(:workshop_employee, tenant:, name: 'ANDRÉ COSTA', role_type: 'supervisor')
+
+        visit new_maintenance_order_path
+
+        expect(page).to have_select('Encarregado responsável', selected: 'ANDRÉ COSTA', options: ['Selecione', 'ANDRÉ COSTA', 'PAULO LIMA'])
       end
 
       scenario 'shows the errors of an incomplete order' do

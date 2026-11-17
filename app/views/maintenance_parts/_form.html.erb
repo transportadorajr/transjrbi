@@ -1,0 +1,36 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('maintenance_parts.form.data') %></p>
+    <p class="form-card-subtitle"><%= t('maintenance_parts.form.data_text') %></p>
+  </div>
+  <%= simple_form_for(item_form, url: maintenance_part_form_url(item_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-3">
+          <%= f.input :code, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-9">
+          <%= f.input :description, required: true, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-3">
+          <%= f.input :unit, collection: maintenance_part_unit_options(item_form), include_blank: t('helpers.select.prompt'),
+                             required: true, input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-5">
+          <%= f.input :brand, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :unit_price, as: :money, hint: t('maintenance_parts.form.unit_price_hint'), input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :active, as: :boolean, hint: t('maintenance_parts.form.active_hint'), input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, maintenance_catalog_submit_label(item_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), maintenance_parts_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

@@ -982,7 +982,8 @@
   white-space: nowrap;
 }
 
-.goal-tabs {
+.goal-tabs,
+.screen-tabs {
   gap: 0.25rem;
 
   .nav-link {
@@ -1123,4 +1124,17 @@
   font-weight: 600;
   text-align: right;
   color: #475569;
+}
+
+.order-item-row {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background-color: #fff;
+}
+
+@media (min-width: 992px) {
+  .order-item-row {
+    padding: 1rem;
+  }
 }

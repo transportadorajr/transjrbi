@@ -41,7 +41,8 @@ class MaintenanceOrdersController < BaseController
   def new
     authorize!(:create, :maintenance_orders)
 
-    @maintenance_order_form = MaintenanceOrderForm.new(tenant: current_tenant, opened_at: Time.current.change(sec: 0))
+    @maintenance_order_form = MaintenanceOrderForm.new(tenant: current_tenant, opened_at: Time.current.change(sec: 0),
+                                                       supervisor_id: @supervisors.first&.id)
   end
 
   def edit
@@ -53,7 +54,7 @@ class MaintenanceOrdersController < BaseController
   def create
     authorize!(:create, :maintenance_orders)
 
-    @maintenance_order_form = MaintenanceOrderForm.new(tenant: current_tenant, opened_by: current_user, **maintenance_order_params)
+    @maintenance_order_form = MaintenanceOrderForm.new(tenant: current_tenant, opened_by: current_user, **new_maintenance_order_params)
 
     if @maintenance_order_form.save
       redirect_to maintenance_order_path(@maintenance_order_form.maintenance_order),
@@ -106,7 +107,7 @@ class MaintenanceOrdersController < BaseController
   def finish
     authorize!(:update, :maintenance_orders)
 
-    @finish_form = MaintenanceOrderFinishForm.new(maintenance_order: @maintenance_order, **finish_params)
+    @finish_form = MaintenanceOrderFinishForm.new(maintenance_order: @maintenance_order, finished_by: current_user, **finish_params)
 
     if @finish_form.save
       redirect_to maintenance_order_path(@maintenance_order), notice: t('.success'), status: :see_other
@@ -148,5 +149,11 @@ class MaintenanceOrdersController < BaseController
 
   def maintenance_order_params
     params.expect(maintenance_order: MaintenanceOrderForm::PERMITTED_ATTRIBUTES)
+  end
+
+  def new_maintenance_order_params
+    params.expect(maintenance_order: [*MaintenanceOrderForm::PERMITTED_ATTRIBUTES,
+                                      { parts_attributes: [MaintenanceOrderPartForm::PERMITTED_ATTRIBUTES],
+                                        services_attributes: [MaintenanceOrderServiceForm::PERMITTED_ATTRIBUTES] }])
   end
 end

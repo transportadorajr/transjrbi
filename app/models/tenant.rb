@@ -39,9 +39,12 @@ class Tenant < ApplicationRecord
   has_many :revenue_projection_snapshots, class_name: 'RevenueProjection::Snapshot', dependent: :delete_all
   has_many :revenue_projection_day_notes, class_name: 'RevenueProjection::DayNote', dependent: :delete_all
   has_many :revenue_goals, dependent: :delete_all
+  has_many :maintenance_part_movements, dependent: :delete_all
   has_many :maintenance_orders, dependent: :destroy
   has_many :workshop_employees, dependent: :delete_all
   has_many :suppliers, dependent: :delete_all
+  has_many :maintenance_parts, dependent: :delete_all
+  has_many :maintenance_services, dependent: :delete_all
 
   validates :name, :legal_id, :trade_name, presence: true
   validates :legal_id, uniqueness: true

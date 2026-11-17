@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="text-nowrap"><%= l(item.moved_on) %></td>
+  <td class="fw-semibold text-break"><%= item.maintenance_part.label %></td>
+  <td class="d-none d-md-table-cell"><%= maintenance_part_movement_type_badge(item) %></td>
+  <td class="text-end text-nowrap"><%= maintenance_part_movement_quantity(item) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= maintenance_stock_quantity(item.balance, item.maintenance_part.unit) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= maintenance_part_movement_origin(item) %></td>
+  <td class="d-none d-lg-table-cell"><%= maintenance_catalog_value(item.created_by&.name) %></td>
+</tr>

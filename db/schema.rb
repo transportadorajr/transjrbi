@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_135601) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -38,6 +38,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
   create_enum "maintenance_order_priority_type", ["high", "medium", "low"]
   create_enum "maintenance_order_release_test_type", ["road_test", "yard_test", "not_applicable"]
   create_enum "maintenance_order_status_type", ["open", "in_progress", "waiting_parts", "finished", "cancelled"]
+  create_enum "maintenance_part_movement_type", ["entry", "exit", "adjustment"]
   create_enum "revenue_goal_target_type", ["company", "vehicle", "customer_group", "region", "driver"]
   create_enum "revenue_projection_day_type", ["regular", "weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end"]
   create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
@@ -950,14 +951,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
     t.bigint "total_cents", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "maintenance_part_id"
     t.index ["maintenance_order_id"], name: "index_maintenance_order_parts_on_maintenance_order_id"
+    t.index ["maintenance_part_id"], name: "index_maintenance_order_parts_on_maintenance_part_id"
     t.index ["tenant_id"], name: "index_maintenance_order_parts_on_tenant_id"
   end
 
   create_table "maintenance_order_services", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "maintenance_order_id", null: false
-    t.bigint "supplier_id", null: false
+    t.bigint "supplier_id"
     t.string "description", null: false
     t.string "quote_number"
     t.bigint "quoted_cents"
@@ -966,7 +969,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
     t.string "invoice_number"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "maintenance_service_id"
     t.index ["maintenance_order_id"], name: "index_maintenance_order_services_on_maintenance_order_id"
+    t.index ["maintenance_service_id"], name: "index_maintenance_order_services_on_maintenance_service_id"
     t.index ["supplier_id"], name: "index_maintenance_order_services_on_supplier_id"
     t.index ["tenant_id"], name: "index_maintenance_order_services_on_tenant_id"
   end
@@ -1007,6 +1012,60 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
     t.index ["tenant_id", "plate"], name: "index_maintenance_orders_on_tenant_id_and_plate"
     t.index ["tenant_id", "status_type"], name: "index_maintenance_orders_on_tenant_id_and_status_type"
     t.index ["tenant_id"], name: "index_maintenance_orders_on_tenant_id"
+  end
+
+  create_table "maintenance_part_movements", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "maintenance_part_id", null: false
+    t.enum "movement_type", null: false, enum_type: "maintenance_part_movement_type"
+    t.date "moved_on", null: false
+    t.decimal "quantity", precision: 12, scale: 3, null: false
+    t.decimal "balance", precision: 12, scale: 3, null: false
+    t.bigint "unit_cost_cents"
+    t.bigint "supplier_id"
+    t.string "invoice_number"
+    t.bigint "maintenance_order_id"
+    t.bigint "maintenance_order_part_id"
+    t.bigint "created_by_id"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_maintenance_part_movements_on_created_by_id"
+    t.index ["maintenance_order_id"], name: "index_maintenance_part_movements_on_maintenance_order_id"
+    t.index ["maintenance_order_part_id"], name: "index_maintenance_part_movements_on_maintenance_order_part_id", unique: true
+    t.index ["maintenance_part_id", "moved_on"], name: "idx_on_maintenance_part_id_moved_on_794c290293"
+    t.index ["maintenance_part_id"], name: "index_maintenance_part_movements_on_maintenance_part_id"
+    t.index ["supplier_id"], name: "index_maintenance_part_movements_on_supplier_id"
+    t.index ["tenant_id"], name: "index_maintenance_part_movements_on_tenant_id"
+  end
+
+  create_table "maintenance_parts", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "code"
+    t.string "description", null: false
+    t.string "unit"
+    t.string "brand"
+    t.bigint "unit_price_cents", default: 0, null: false
+    t.decimal "quantity", precision: 12, scale: 3, default: "0.0", null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "code"], name: "index_maintenance_parts_on_tenant_id_and_code", unique: true, where: "(code IS NOT NULL)"
+    t.index ["tenant_id", "description"], name: "index_maintenance_parts_on_tenant_id_and_description", unique: true
+    t.index ["tenant_id"], name: "index_maintenance_parts_on_tenant_id"
+  end
+
+  create_table "maintenance_services", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "code"
+    t.string "description", null: false
+    t.bigint "price_cents", default: 0, null: false
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "code"], name: "index_maintenance_services_on_tenant_id_and_code", unique: true, where: "(code IS NOT NULL)"
+    t.index ["tenant_id", "description"], name: "index_maintenance_services_on_tenant_id_and_description", unique: true
+    t.index ["tenant_id"], name: "index_maintenance_services_on_tenant_id"
   end
 
   create_table "own_fleets", force: :cascade do |t|
@@ -1327,13 +1386,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_16_182907) do
   add_foreign_key "maintenance_order_labors", "tenants"
   add_foreign_key "maintenance_order_labors", "workshop_employees"
   add_foreign_key "maintenance_order_parts", "maintenance_orders"
+  add_foreign_key "maintenance_order_parts", "maintenance_parts"
   add_foreign_key "maintenance_order_parts", "tenants"
   add_foreign_key "maintenance_order_services", "maintenance_orders"
+  add_foreign_key "maintenance_order_services", "maintenance_services"
   add_foreign_key "maintenance_order_services", "suppliers"
   add_foreign_key "maintenance_order_services", "tenants"
   add_foreign_key "maintenance_orders", "tenants"
   add_foreign_key "maintenance_orders", "users", column: "opened_by_id"
   add_foreign_key "maintenance_orders", "workshop_employees", column: "supervisor_id"
+  add_foreign_key "maintenance_part_movements", "maintenance_order_parts"
+  add_foreign_key "maintenance_part_movements", "maintenance_orders"
+  add_foreign_key "maintenance_part_movements", "maintenance_parts"
+  add_foreign_key "maintenance_part_movements", "suppliers"
+  add_foreign_key "maintenance_part_movements", "tenants"
+  add_foreign_key "maintenance_part_movements", "users", column: "created_by_id"
+  add_foreign_key "maintenance_parts", "tenants"
+  add_foreign_key "maintenance_services", "tenants"
   add_foreign_key "own_fleets", "tenants"
   add_foreign_key "product_groups", "product_groups", column: "parent_id"
   add_foreign_key "product_groups", "tenants"

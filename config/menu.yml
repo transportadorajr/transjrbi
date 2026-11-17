@@ -166,6 +166,19 @@ shared:
       url: /suppliers
       controllers:
         - suppliers
+    - name: maintenance_parts
+      resource: maintenance_parts
+      icon: box-seam
+      url: /maintenance_parts
+      controllers:
+        - maintenance_parts
+        - maintenance_part_movements
+    - name: maintenance_services
+      resource: maintenance_services
+      icon: tools
+      url: /maintenance_services
+      controllers:
+        - maintenance_services
     - name: vehicles
       resource: vehicles
       icon: truck

@@ -60,6 +60,12 @@ module MaintenanceOrdersHelper
     drivers.map { |driver| [driver.driver_name.presence || driver.driver_code.to_s, driver.driver_code.to_s] }
   end
 
+  def maintenance_order_items_fields(form_builder, maintenance_order_form)
+    return if maintenance_order_form.persisted?
+
+    render 'maintenance_orders/items_fields', f: form_builder, maintenance_order_form:
+  end
+
   def maintenance_order_form_url(maintenance_order_form)
     if maintenance_order_form.persisted?
       maintenance_order_path(maintenance_order_form.maintenance_order)

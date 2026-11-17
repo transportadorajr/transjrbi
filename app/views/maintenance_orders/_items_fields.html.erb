@@ -1,0 +1,39 @@
+<%= tag.div class: 'card form-card mb-4', id: 'maintenance_order_items',
+            data: { controller: 'order-items', action: 'input->order-items#recalculate change->order-items#recalculate' } do %>
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('maintenance_orders.form.items') %></p>
+    <p class="form-card-subtitle"><%= t('maintenance_orders.form.items_text') %></p>
+  </div>
+  <div class="form-card-body">
+    <% %i[parts services].each do |kind| %>
+      <%= tag.section class: 'mb-4', id: "maintenance_order_#{kind}_fields" do %>
+        <p class="fw-semibold mb-2"><%= t(kind, scope: 'maintenance_orders.form.item_sections') %></p>
+
+        <%= tag.template data: { order_items_target: "#{kind}Template" } do %>
+          <%= f.simple_fields_for kind, maintenance_order_form.new_item_form(kind), child_index: 'NEW_RECORD' do |item_fields| %>
+            <%= render "#{kind.to_s.singularize}_row", f: item_fields %>
+          <% end %>
+        <% end %>
+
+        <%= tag.div class: 'd-flex flex-column gap-3', data: { order_items_target: "#{kind}List" } do %>
+          <%= f.simple_fields_for kind, maintenance_order_form.public_send(kind) do |item_fields| %>
+            <%= render "#{kind.to_s.singularize}_row", f: item_fields %>
+          <% end %>
+        <% end %>
+
+        <%= button_tag type: :button, class: 'btn btn-sm btn-outline-primary btn-round mt-3', data: { action: "order-items#add#{kind.to_s.camelize}" } do %>
+          <%= icon(:'plus-circle', class: 'me-1') %>
+          <%= t("maintenance_order_items.#{kind.to_s.singularize}.add") %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <div class="d-flex justify-content-end">
+      <div class="text-end">
+        <p class="text-muted small mb-0"><%= t('maintenance_orders.form.items_total') %></p>
+        <%= tag.p tax_money(Money.from_cents(0)), class: 'fs-5 fw-bold mb-0', id: 'maintenance_order_items_total',
+                                                  data: { order_items_target: 'total' } %>
+      </div>
+    </div>
+  </div>
+<% end %>

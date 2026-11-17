@@ -1,0 +1,30 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t("maintenance_part_movements.form.#{maintenance_part_movement_kind(movement_form)}_data") %></p>
+    <p class="form-card-subtitle"><%= t("maintenance_part_movements.form.#{maintenance_part_movement_kind(movement_form)}_text") %></p>
+  </div>
+  <%= simple_form_for(movement_form, url: maintenance_part_movements_path) do |f| %>
+    <%= f.hidden_field :movement_type %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <%= f.label :maintenance_part_id, required: true, for: nil, id: 'movement_part_select_label', class: 'form-label' %>
+          <%= render 'components/select2', id: 'movement_part_select', name: "#{f.object_name}[maintenance_part_id]",
+                                           options: maintenance_part_movement_balance_options(movement_form.maintenance_parts),
+                                           selected: movement_form.maintenance_part_id,
+                                           placeholder: t('maintenance_part_movements.form.part_placeholder') %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :moved_on, as: :date, html5: true, required: true, input_html: { class: 'form-control' } %>
+        </div>
+        <%= render "#{maintenance_part_movement_kind(movement_form)}_fields", f:, movement_form: %>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t("helpers.submit.maintenance_part_movement.#{maintenance_part_movement_kind(movement_form)}"),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), maintenance_part_movements_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,26 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(MaintenancePart.human_attribute_name(:code), :code, class: 'd-none d-md-table-cell') %>
+        <%= sortable_header(MaintenancePart.human_attribute_name(:description), :description) %>
+        <th class="d-none d-lg-table-cell"><%= MaintenancePart.human_attribute_name(:unit) %></th>
+        <th class="d-none d-lg-table-cell"><%= MaintenancePart.human_attribute_name(:brand) %></th>
+        <%= sortable_header(MaintenancePart.human_attribute_name(:unit_price), :unit_price, first_direction: :desc,
+                                                                                            class: 'd-none d-md-table-cell text-end') %>
+        <th class="d-none d-md-table-cell text-end"><%= MaintenancePart.human_attribute_name(:quantity) %></th>
+        <th><%= MaintenancePart.human_attribute_name(:active) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

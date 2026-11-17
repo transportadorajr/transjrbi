@@ -33,6 +33,41 @@ RSpec.describe MaintenanceOrderPartForm do
                                                            'Origem não está incluído na lista', 'Valor unitário não é um valor válido')
     end
 
+    context 'when the part is registered' do
+      let!(:lining) do
+        create(:maintenance_part, tenant:, code: 'LF-123', description: 'LONA DE FREIO', unit: 'UN', unit_price_cents: 8_500)
+      end
+      let!(:inactive) { create(:maintenance_part, tenant:, description: 'LONA ANTIGA', active: false) }
+
+      it 'fills the blank fields from the registered part' do
+        form = described_class.new(maintenance_order:, maintenance_part_id: lining.id, quantity: '2')
+
+        expect(form.save).to be(true)
+        expect(MaintenanceOrderPart.last).to have_attributes(maintenance_part: lining, code: 'LF-123', description: 'LONA DE FREIO',
+                                                             unit: 'UN', unit_price_cents: 8_500, total_cents: 17_000)
+      end
+
+      it 'keeps the values typed on the order' do
+        form = described_class.new(maintenance_order:, maintenance_part_id: lining.id, quantity: '1', unit_price: '90,00')
+
+        expect(form.save).to be(true)
+        expect(MaintenanceOrderPart.last).to have_attributes(maintenance_part: lining, unit_price_cents: 9_000)
+      end
+
+      it 'rejects an inactive part' do
+        form = described_class.new(maintenance_order:, maintenance_part_id: inactive.id, quantity: '1')
+
+        expect(form.save).to be_falsey
+        expect(form.errors.full_messages).to include('Peça do cadastro não está cadastrada como peça ativa')
+      end
+
+      it 'keeps offering an inactive part already used on the item' do
+        part = create(:maintenance_order_part, maintenance_order:, maintenance_part: inactive, description: 'LONA ANTIGA')
+
+        expect(described_class.for_item(part).maintenance_parts).to contain_exactly(lining, inactive)
+      end
+    end
+
     context 'when the part already exists' do
       let!(:part) { create(:maintenance_order_part, maintenance_order:, quantity: 4, unit_price_cents: 8_500, total_cents: 34_000) }
 

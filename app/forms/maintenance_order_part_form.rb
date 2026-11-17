@@ -1,6 +1,7 @@
 class MaintenanceOrderPartForm < MaintenanceOrderItemForm
-  PERMITTED_ATTRIBUTES = %i[code description quantity unit source_type document_number unit_price].freeze
+  PERMITTED_ATTRIBUTES = %i[maintenance_part_id code description quantity unit source_type document_number unit_price].freeze
 
+  attribute :maintenance_part_id, :integer
   attribute :code, :string
   attribute :description, :string
   attribute :quantity, :string
@@ -15,14 +16,19 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
 
   validates :description, :quantity, :source_type, presence: true
   validates :source_type, inclusion: { in: MaintenanceOrderPart::SOURCES.map(&:to_s) }, allow_blank: true
+  validate :maintenance_part_must_be_available
   validate :quantity_must_be_positive
   validate :unit_price_must_not_be_negative
 
   class << self
     def attributes_of(part)
-      { code: part.code, description: part.description, quantity: format_decimal(part.quantity), unit: part.unit,
+      { maintenance_part_id: part.maintenance_part_id, code: part.code, description: part.description, quantity: format_decimal(part.quantity), unit: part.unit,
         source_type: part.source_type, document_number: part.document_number, unit_price: format_cents(part.unit_price_cents) }
     end
+  end
+
+  def maintenance_parts
+    tenant.maintenance_parts.active.or(tenant.maintenance_parts.where(id: item.maintenance_part_id)).order(:description)
   end
 
   def quantity_value
@@ -44,14 +50,32 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
   end
 
   def item_attributes
-    { code:, description:, quantity: quantity_value, unit:, source_type:, document_number:, unit_price_cents:, total_cents: }
+    { maintenance_part_id:, code:, description:, quantity: quantity_value, unit:, source_type:, document_number:, unit_price_cents:, total_cents: }
   end
 
   def normalize_fields
+    fill_from_catalog
     self.code = code.to_s.squish.upcase.presence
     self.description = description.to_s.squish.upcase
     self.unit = unit.to_s.squish.upcase.presence
     self.document_number = document_number.to_s.squish.presence
+  end
+
+  def catalog_part
+    @catalog_part ||= maintenance_parts.find_by(id: maintenance_part_id) if maintenance_part_id.present?
+  end
+
+  def fill_from_catalog
+    return unless catalog_part
+
+    self.code = catalog_part.code if code.blank?
+    self.description = catalog_part.description if description.blank?
+    self.unit = catalog_part.unit if unit.blank?
+    self.unit_price = self.class.format_cents(catalog_part.unit_price_cents) if unit_price.blank?
+  end
+
+  def maintenance_part_must_be_available
+    errors.add(:maintenance_part_id, :inclusion) if maintenance_part_id.present? && catalog_part.nil?
   end
 
   def quantity_must_be_positive

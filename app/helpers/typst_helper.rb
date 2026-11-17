@@ -37,8 +37,15 @@ module TypstHelper
     typst_markup("(#{columns.map(&:align).join(', ')})")
   end
 
-  def typst_table_header(labels)
-    cells = labels.map { |label| "text(weight: \"bold\", fill: white, #{typst_text(typst_plain(label))})" }
+  def typst_table_fill(plain_header)
+    return typst_markup('none') if plain_header
+
+    typst_markup("(col, row) => if row == 0 { rgb(\"#{TYPST_HEADER_FILL}\") } else { none }")
+  end
+
+  def typst_table_header(labels, plain: false)
+    color = plain ? 'black' : 'white'
+    cells = labels.map { |label| "text(weight: \"bold\", fill: #{color}, #{typst_text(typst_plain(label))})" }
 
     typst_markup("table.header(#{cells.join(', ')}),")
   end

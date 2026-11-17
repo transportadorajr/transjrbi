@@ -1,0 +1,16 @@
+<div class="col-12 col-lg-4">
+  <%= f.input :quantity, required: true, input_html: { class: 'form-control', inputmode: :decimal, autocomplete: 'off' } %>
+</div>
+<div class="col-12 col-lg-4">
+  <%= f.input :unit_cost, as: :money, hint: t('maintenance_part_movements.form.unit_cost_hint'), input_html: { class: 'form-control' } %>
+</div>
+<div class="col-12 col-lg-4">
+  <%= f.input :invoice_number, input_html: { class: 'form-control', autocomplete: 'off' } %>
+</div>
+<div class="col-12 col-lg-6">
+  <%= f.input :supplier_id, collection: movement_form.suppliers, label_method: :name, value_method: :id,
+                            include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+</div>
+<div class="col-12 col-lg-6">
+  <%= f.input :notes, input_html: { class: 'form-control', autocomplete: 'off' } %>
+</div>

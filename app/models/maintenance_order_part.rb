@@ -3,6 +3,8 @@ class MaintenanceOrderPart < ApplicationRecord
 
   belongs_to :tenant
   belongs_to :maintenance_order
+  belongs_to :maintenance_part, optional: true
+  has_one :stock_movement, class_name: 'MaintenancePartMovement', dependent: :restrict_with_error
 
   enum :source_type, SOURCES.index_with(&:to_s), validate: true
 
@@ -28,15 +30,18 @@ end
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  maintenance_order_id :bigint           not null
+#  maintenance_part_id  :bigint
 #  tenant_id            :bigint           not null
 #
 # Indexes
 #
 #  index_maintenance_order_parts_on_maintenance_order_id  (maintenance_order_id)
+#  index_maintenance_order_parts_on_maintenance_part_id   (maintenance_part_id)
 #  index_maintenance_order_parts_on_tenant_id             (tenant_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (maintenance_order_id => maintenance_orders.id)
+#  fk_rails_...  (maintenance_part_id => maintenance_parts.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #

@@ -2,6 +2,7 @@ class MaintenanceOrderForm < BaseForm
   PERMITTED_ATTRIBUTES = %i[plate opened_at odometer_km hour_meter driver_code supervisor_id equipment_type equipment_other
                             maintenance_type priority_type vehicle_stopped execution_place_type affected_system_type
                             reported_defect diagnosis performed_service].freeze
+  ITEM_FORMS = { parts: MaintenanceOrderPartForm, services: MaintenanceOrderServiceForm }.freeze
 
   attribute :plate, :string
   attribute :opened_at, Types::ZonedDateTimeType.new
@@ -41,6 +42,7 @@ class MaintenanceOrderForm < BaseForm
   validate :plate_must_be_registered
   validate :driver_must_exist
   validate :supervisor_must_exist
+  validate :items_must_be_valid, unless: :persisted?
 
   attr_accessor :tenant, :opened_by
   attr_writer :maintenance_order
@@ -59,15 +61,72 @@ class MaintenanceOrderForm < BaseForm
     @maintenance_order ||= tenant.maintenance_orders.new
   end
 
+  def parts_attributes=(rows)
+    @items_attributes = items_attributes.merge(parts: item_rows(rows))
+  end
+
+  def services_attributes=(rows)
+    @items_attributes = items_attributes.merge(services: item_rows(rows))
+  end
+
+  def parts
+    item_forms(:parts)
+  end
+
+  def services
+    item_forms(:services)
+  end
+
+  def new_item_form(kind)
+    ITEM_FORMS.fetch(kind).new(maintenance_order: draft_order)
+  end
+
   def submit
     transaction do
       maintenance_order.number ||= MaintenanceOrder.next_number(tenant)
       maintenance_order.opened_by ||= opened_by
       maintenance_order.update!(attributes.merge('driver_name' => driver_name, 'equipment_other' => equipment_other_value))
+      save_items
     end
   end
 
   private
+
+  def items_attributes
+    @items_attributes ||= {}
+  end
+
+  def item_rows(rows)
+    rows = rows.to_h if rows.respond_to?(:permitted?)
+    rows = rows.values if rows.is_a?(Hash)
+    Array(rows).map { |row| row.to_h.symbolize_keys }.reject { |row| row.except(:source_type).values.all?(&:blank?) }
+  end
+
+  def item_forms(kind)
+    @item_forms ||= {}
+    @item_forms[kind] ||= items_attributes.fetch(kind, []).map { |row| ITEM_FORMS.fetch(kind).new(maintenance_order: draft_order, **row) }
+  end
+
+  def draft_order
+    @draft_order ||= MaintenanceOrder.new(tenant:)
+  end
+
+  def items_must_be_valid
+    ITEM_FORMS.each_key do |kind|
+      item_forms(kind).each.with_index(1) do |item_form, position|
+        next if item_form.valid?
+
+        errors.add(:base, :invalid_item, item: I18n.t(kind, scope: 'maintenance_orders.form.item_names'), position:,
+                                         messages: item_form.errors.full_messages.to_sentence)
+      end
+    end
+  end
+
+  def save_items
+    ITEM_FORMS.each do |kind, form_class|
+      items_attributes.fetch(kind, []).each { |row| form_class.new(maintenance_order:, **row).save }
+    end
+  end
 
   def normalize_fields
     self.plate = plate.to_s.upcase.delete('^A-Z0-9')
