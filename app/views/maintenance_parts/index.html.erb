@@ -8,10 +8,12 @@
 
   <%= render 'filters' %>
 
+  <%= maintenance_stock_tabs(:parts) %>
+
   <div class="card table-card">
     <div class="table-card-header">
       <div class="table-card-heading">
-        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-title"><%= t('maintenance_stock.tabs.parts') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @items.total_count) %></p>
       </div>
       <%= sort_menu(maintenance_part_sort_columns) %>

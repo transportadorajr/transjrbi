@@ -9,10 +9,12 @@
 
   <%= render 'filters' %>
 
+  <%= maintenance_stock_tabs(:movements) %>
+
   <div class="card table-card">
     <div class="table-card-header">
       <div class="table-card-heading">
-        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-title"><%= t('maintenance_stock.tabs.movements') %></p>
         <p class="table-card-subtitle"><%= t('shared.total_records', count: @movements.total_count) %></p>
       </div>
     </div>

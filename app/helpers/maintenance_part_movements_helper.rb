@@ -1,6 +1,19 @@
 module MaintenancePartMovementsHelper
   TYPE_BADGES = { entry: :success, exit: :danger, adjustment: :warning }.freeze
 
+  def maintenance_stock_tabs(active)
+    tabs = { parts: maintenance_parts_path, movements: maintenance_part_movements_path }
+
+    tag.ul(class: 'nav nav-pills screen-tabs mb-3', id: 'maintenance_stock_tabs') do
+      safe_join(tabs.map do |tab, path|
+        tag.li(class: 'nav-item') do
+          link_to t(tab, scope: 'maintenance_stock.tabs'), path, class: ['nav-link', { active: tab == active }],
+                                                                 aria: { current: ('page' if tab == active) }
+        end
+      end)
+    end
+  end
+
   def maintenance_part_entry_button
     return unless can?(:create, :maintenance_parts)
 

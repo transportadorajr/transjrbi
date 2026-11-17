@@ -43,6 +43,19 @@ describe TypstHelper do
     end
   end
 
+  describe '#typst_table_header without background' do
+    it 'renders the header labels in black' do
+      expect(helper.typst_table_header(%w[Código], plain: true)).to eq('table.header(text(weight: "bold", fill: black, "Código")),')
+    end
+  end
+
+  describe '#typst_table_fill' do
+    it 'fills only the header row unless the header is plain' do
+      expect(helper.typst_table_fill(false)).to eq('(col, row) => if row == 0 { rgb("#1a2a3a") } else { none }')
+      expect(helper.typst_table_fill(true)).to eq('none')
+    end
+  end
+
   describe '#typst_plain' do
     it 'keeps only the text of the markup rendered by the screen helpers' do
       badge = helper.content_tag(:span, 'Ativo', class: 'badge')

@@ -31,8 +31,9 @@ describe 'Maintenance part movements', :maintenance do
       scenario 'lists the movements from the maintenance menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Estoque'
+          click_on 'Peças e Estoque'
         end
+        within('#maintenance_stock_tabs') { click_on 'Movimentações' }
 
         expect(page).to have_current_path(maintenance_part_movements_path)
         expect(MaintenancePartMovement.count).to eq(3)
@@ -153,7 +154,7 @@ describe 'Maintenance part movements', :maintenance do
     scenario 'sees the movements without the options to register them' do
       visit maintenance_part_movements_path
 
-      expect(page).to have_text('Estoque')
+      expect(page).to have_css('#maintenance_stock_tabs .nav-link.active', text: 'Movimentações')
       expect(page).to have_no_link('Nova Entrada')
       expect(page).to have_no_link('Ajuste de Estoque')
 

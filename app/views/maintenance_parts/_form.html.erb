@@ -13,8 +13,8 @@
           <%= f.input :description, required: true, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
         </div>
         <div class="col-12 col-lg-3">
-          <%= f.input :unit, hint: t('maintenance_parts.form.unit_hint'),
-                             input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+          <%= f.input :unit, collection: maintenance_part_unit_options(item_form), include_blank: t('helpers.select.prompt'),
+                             required: true, input_html: { class: 'form-select' } %>
         </div>
         <div class="col-12 col-lg-5">
           <%= f.input :brand, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>

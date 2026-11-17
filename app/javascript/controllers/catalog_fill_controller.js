@@ -16,6 +16,7 @@ export default class extends Controller {
       if (field.dataset.catalogFillOnlyBlank === 'true' && field.value.trim() !== '') return;
 
       field.value = value;
+      field.dispatchEvent(new Event('input', { bubbles: true }));
     });
   }
 }

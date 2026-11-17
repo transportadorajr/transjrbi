@@ -1,16 +1,23 @@
 class MaintenancePartForm < MaintenanceCatalogItemForm
   PERMITTED_ATTRIBUTES = %i[code description unit brand unit_price active].freeze
 
-  attribute :unit, :string
+  attribute :unit, :string, default: 'UN'
   attribute :brand, :string
   attribute :unit_price, :string
 
   before_validation :normalize_fields
 
+  validates :unit, presence: true
+  validate :unit_must_be_listed
+
   class << self
     def attributes_of(part)
       { unit: part.unit, brand: part.brand, unit_price: format_cents(part.unit_price_cents) }
     end
+  end
+
+  def units
+    (MaintenancePart::UNITS + [item.unit]).compact.uniq
   end
 
   private
@@ -25,6 +32,10 @@ class MaintenancePartForm < MaintenanceCatalogItemForm
 
   def item_attributes
     { unit:, brand:, unit_price_cents: self.class.parse_cents(unit_price) || 0 }
+  end
+
+  def unit_must_be_listed
+    errors.add(:unit, :inclusion) if unit.present? && units.exclude?(unit)
   end
 
   def normalize_fields

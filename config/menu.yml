@@ -168,15 +168,10 @@ shared:
         - suppliers
     - name: maintenance_parts
       resource: maintenance_parts
-      icon: gear
+      icon: box-seam
       url: /maintenance_parts
       controllers:
         - maintenance_parts
-    - name: maintenance_part_movements
-      resource: maintenance_parts
-      icon: box-seam
-      url: /maintenance_part_movements
-      controllers:
         - maintenance_part_movements
     - name: maintenance_services
       resource: maintenance_services

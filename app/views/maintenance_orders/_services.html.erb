@@ -22,7 +22,7 @@
           <tbody>
             <% services.each do |service| %>
               <tr id="<%= dom_id(service) %>">
-                <td class="fw-semibold text-break"><%= service.supplier.name %></td>
+                <td class="fw-semibold text-break"><%= tax_value(service.supplier&.name) %></td>
                 <td class="d-none d-md-table-cell text-break"><%= service.description %></td>
                 <td class="d-none d-lg-table-cell"><%= tax_value(service.quote_number) %></td>
                 <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(service.quoted) %></td>

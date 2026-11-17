@@ -15,6 +15,34 @@ RSpec.describe MaintenanceOrderForm do
   end
 
   describe '#save' do
+    context 'with parts and services' do
+      let!(:supplier) { create(:supplier, tenant:) }
+      let!(:lining) { create(:maintenance_part, tenant:, description: 'LONA DE FREIO', unit: 'UN', unit_price_cents: 8_500) }
+
+      it 'opens the order with its items and totals, ignoring blank rows' do
+        form = described_class.new(
+          tenant:, opened_by: user, **attributes,
+          parts_attributes: { '0' => { maintenance_part_id: lining.id.to_s, quantity: '2', source_type: 'stock' },
+                              '1' => { source_type: 'stock', description: ' ', quantity: '' } },
+          services_attributes: { '0' => { supplier_id: supplier.id.to_s, description: 'Retífica', quoted: '450,00' } }
+        )
+
+        expect { expect(form.save).to be(true) }.to change(MaintenanceOrderPart, :count).by(1).and change(MaintenanceOrderService, :count).by(1)
+
+        expect(form.maintenance_order.parts.sole).to have_attributes(maintenance_part: lining, description: 'LONA DE FREIO', total_cents: 17_000)
+        expect(form.maintenance_order.reload).to have_attributes(parts_total_cents: 17_000, services_total_cents: 45_000, total_cents: 62_000)
+      end
+
+      it 'does not open the order when an item is invalid' do
+        form = described_class.new(tenant:, opened_by: user, **attributes,
+                                   parts_attributes: { '0' => { description: 'Lona', quantity: '0', source_type: 'stock' } })
+
+        expect { expect(form.save).to be_falsey }.not_to change(MaintenanceOrder, :count)
+        expect(form.errors.full_messages).to eq(['Peça 1: Quantidade deve ser maior que 0'])
+        expect(form.parts.sole.errors.full_messages).to eq(['Quantidade deve ser maior que 0'])
+      end
+    end
+
     it 'opens a maintenance order with the next number of the tenant' do
       create(:maintenance_order, tenant:, number: 7)
       form = described_class.new(tenant:, opened_by: user, **attributes)

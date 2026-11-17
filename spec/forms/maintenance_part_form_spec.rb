@@ -21,11 +21,20 @@ RSpec.describe MaintenancePartForm do
       expect(MaintenancePart.last).to have_attributes(code: nil, unit_price_cents: 0)
     end
 
-    it 'rejects a part without description and with a bad price' do
-      form = described_class.new(tenant:, description: ' ', unit_price: 'abc')
+    it 'rejects a part without description, with a bad price and an unknown unit' do
+      form = described_class.new(tenant:, description: ' ', unit_price: 'abc', unit: 'saco')
 
       expect { expect(form.save).to be_falsey }.not_to change(MaintenancePart, :count)
-      expect(form.errors.full_messages).to contain_exactly('Descrição não pode ficar em branco', 'Valor unitário não é um valor válido')
+      expect(form.errors.full_messages).to contain_exactly('Descrição não pode ficar em branco', 'Valor unitário não é um valor válido',
+                                                           'Unidade não está na lista de unidades')
+    end
+
+    it 'keeps offering the unit already saved on a part' do
+      part = create(:maintenance_part, tenant:, unit: 'SACO')
+      form = described_class.for_item(part)
+
+      expect(form.units).to include('UN', 'SACO')
+      expect(form.save).to be(true)
     end
 
     context 'when the tenant already has parts' do

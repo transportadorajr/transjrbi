@@ -95,7 +95,7 @@ module MaintenanceOrderPdfHelper
                 pdf_column(MaintenanceOrderService.human_attribute_name(:approved_by_name)),
                 pdf_column(MaintenanceOrderService.human_attribute_name(:invoice_number))],
       rows: services.map do |service|
-        [service.supplier.name, service.description, tax_value(service.quote_number), tax_money(service.quoted),
+        [tax_value(service.supplier&.name), service.description, tax_value(service.quote_number), tax_money(service.quoted),
          tax_money(service.approved), tax_value(service.approved_by_name), tax_value(service.invoice_number)]
       end,
     )
@@ -104,7 +104,7 @@ module MaintenanceOrderPdfHelper
   def maintenance_order_pdf_items(report, empty_message)
     return typst_paragraph(empty_message) if report.empty?
 
-    render 'shared/pdf_table', report:
+    render 'shared/pdf_table', report:, plain_header: true
   end
 
   def maintenance_order_pdf_signatures(maintenance_order)

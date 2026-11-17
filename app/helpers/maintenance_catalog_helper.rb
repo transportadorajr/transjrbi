@@ -42,6 +42,10 @@ module MaintenanceCatalogHelper
      [MaintenanceService.human_attribute_name(:price), :price, :desc]]
   end
 
+  def maintenance_part_unit_options(item_form)
+    item_form.units.map { |unit| [MaintenancePart::UNITS.include?(unit) ? t(unit, scope: 'maintenance_parts.units') : unit, unit] }
+  end
+
   def maintenance_catalog_submit_label(item_form)
     t("helpers.submit.maintenance_catalog.#{item_form.persisted? ? :update : :create}")
   end

@@ -8,7 +8,7 @@
     <%= tag.div t('maintenance_order_services.form.catalog_hint'), class: 'form-text' %>
   <% end %>
   <div class="col-12 col-lg-6">
-    <%= f.input :supplier_id, collection: item_form.suppliers, label_method: :name, value_method: :id, required: true,
+    <%= f.input :supplier_id, collection: item_form.suppliers, label_method: :name, value_method: :id,
                               include_blank: t('helpers.select.prompt'), hint: t('maintenance_order_services.form.supplier_hint'),
                               input_html: { class: 'form-select bg-light' } %>
   </div>

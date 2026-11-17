@@ -52,7 +52,7 @@ describe 'Maintenance parts', :maintenance do
       scenario 'lists the parts from the maintenance menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Peças'
+          click_on 'Peças e Estoque'
         end
 
         expect(page).to have_current_path(maintenance_parts_path)
@@ -65,6 +65,8 @@ describe 'Maintenance parts', :maintenance do
           ],
         )
         expect(page).to have_link('Nova Peça', href: new_maintenance_part_path)
+        expect(page).to have_css('#maintenance_stock_tabs .nav-link.active', text: 'Peças')
+        expect(page).to have_link('Movimentações', href: maintenance_part_movements_path)
         expect(page).to have_no_text('PEÇA DE OUTRA')
       end
 
@@ -121,7 +123,8 @@ describe 'Maintenance parts', :maintenance do
 
         fill_in 'Código', with: 'fo-200'
         fill_in 'Descrição', with: 'Filtro de óleo'
-        fill_in 'Unidade', with: 'un'
+        expect(page).to have_select('Unidade', selected: 'UN - Unidade')
+        select 'PC - Peça', from: 'Unidade'
         fill_in 'Marca', with: 'Mann'
         fill_in 'Valor unitário', with: '64,90'
 
@@ -129,7 +132,7 @@ describe 'Maintenance parts', :maintenance do
 
         expect(page).to have_current_path(maintenance_parts_path)
         expect(page).to have_text('Peça cadastrada com sucesso.')
-        expect(MaintenancePart.last).to have_attributes(tenant:, code: 'FO-200', description: 'FILTRO DE ÓLEO', unit: 'UN',
+        expect(MaintenancePart.last).to have_attributes(tenant:, code: 'FO-200', description: 'FILTRO DE ÓLEO', unit: 'PC',
                                                         brand: 'MANN', unit_price_cents: 6_490, active: true)
       end
 

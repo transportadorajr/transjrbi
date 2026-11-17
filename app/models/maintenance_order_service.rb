@@ -1,7 +1,7 @@
 class MaintenanceOrderService < ApplicationRecord
   belongs_to :tenant
   belongs_to :maintenance_order
-  belongs_to :supplier
+  belongs_to :supplier, optional: true
   belongs_to :maintenance_service, optional: true
 
   monetize :quoted_cents, :approved_cents, allow_nil: true
@@ -24,7 +24,7 @@ end
 #  updated_at             :datetime         not null
 #  maintenance_order_id   :bigint           not null
 #  maintenance_service_id :bigint
-#  supplier_id            :bigint           not null
+#  supplier_id            :bigint
 #  tenant_id              :bigint           not null
 #
 # Indexes

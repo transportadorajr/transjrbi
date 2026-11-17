@@ -1,0 +1,34 @@
+<%= tag.div class: 'order-item-row', data: { order_items_target: 'row', order_items_kind: 'service', controller: 'catalog-fill',
+                                             catalog_fill_items_value: maintenance_order_service_catalog(f.object).to_json,
+                                             action: 'change->catalog-fill#fill' } do %>
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <span class="fw-semibold small text-muted"><%= t('maintenance_orders.form.item_names.services') %></span>
+    <%= button_tag icon(:trash), type: :button, class: 'btn btn-sm btn-outline-danger btn-round', title: t('maintenance_orders.form.remove_item'),
+                                 aria: { label: t('maintenance_orders.form.remove_item') }, data: { action: 'order-items#remove' } %>
+  </div>
+  <div class="row g-3">
+    <%= tag.div class: 'col-12 col-lg-6', data: { catalog_fill_target: 'source' } do %>
+      <%= f.label :maintenance_service_id, for: nil, id: "maintenance_service_select_#{f.index}_label", class: 'form-label' %>
+      <%= render 'components/select2', id: "maintenance_service_select_#{f.index}", name: "#{f.object_name}[maintenance_service_id]",
+                                       options: maintenance_catalog_options(f.object.maintenance_services),
+                                       selected: f.object.maintenance_service_id,
+                                       placeholder: t('maintenance_order_services.form.catalog_placeholder') %>
+    <% end %>
+    <div class="col-12 col-lg-6">
+      <%= f.input :supplier_id, collection: f.object.suppliers, label_method: :name, value_method: :id,
+                                include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select bg-light' } %>
+    </div>
+    <div class="col-12 col-lg-6">
+      <%= f.input :description, required: true, input_html: { class: 'form-control bg-light', autocomplete: 'off',
+                                                              data: { catalog_fill_target: 'field', catalog_fill_key: 'description' } } %>
+    </div>
+    <div class="col-12 col-lg-3">
+      <%= f.input :quote_number, input_html: { class: 'form-control bg-light', autocomplete: 'off' } %>
+    </div>
+    <div class="col-12 col-lg-3">
+      <%= f.input :quoted, as: :money, input_html: { class: 'form-control bg-light',
+                                                     data: { catalog_fill_target: 'field', catalog_fill_key: 'price', catalog_fill_only_blank: true,
+                                                             order_items_role: 'price' } } %>
+    </div>
+  </div>
+<% end %>

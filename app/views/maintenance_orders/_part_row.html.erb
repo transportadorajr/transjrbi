@@ -1,0 +1,42 @@
+<%= tag.div class: 'order-item-row', data: { order_items_target: 'row', order_items_kind: 'part', controller: 'catalog-fill',
+                                             catalog_fill_items_value: maintenance_order_part_catalog(f.object).to_json,
+                                             action: 'change->catalog-fill#fill' } do %>
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <span class="fw-semibold small text-muted"><%= t('maintenance_orders.form.item_names.parts') %></span>
+    <%= button_tag icon(:trash), type: :button, class: 'btn btn-sm btn-outline-danger btn-round', title: t('maintenance_orders.form.remove_item'),
+                                 aria: { label: t('maintenance_orders.form.remove_item') }, data: { action: 'order-items#remove' } %>
+  </div>
+  <div class="row g-3">
+    <%= tag.div class: 'col-12', data: { catalog_fill_target: 'source' } do %>
+      <%= f.label :maintenance_part_id, for: nil, id: "maintenance_part_select_#{f.index}_label", class: 'form-label' %>
+      <%= render 'components/select2', id: "maintenance_part_select_#{f.index}", name: "#{f.object_name}[maintenance_part_id]",
+                                       options: maintenance_catalog_options(f.object.maintenance_parts), selected: f.object.maintenance_part_id,
+                                       placeholder: t('maintenance_order_parts.form.catalog_placeholder') %>
+    <% end %>
+    <div class="col-12 col-lg-3">
+      <%= f.input :code, input_html: { class: 'form-control text-uppercase bg-light', autocomplete: 'off',
+                                       data: { catalog_fill_target: 'field', catalog_fill_key: 'code' } } %>
+    </div>
+    <div class="col-12 col-lg-9">
+      <%= f.input :description, required: true, input_html: { class: 'form-control text-uppercase bg-light', autocomplete: 'off',
+                                                              data: { catalog_fill_target: 'field', catalog_fill_key: 'description' } } %>
+    </div>
+    <div class="col-6 col-lg-3">
+      <%= f.input :quantity, required: true, input_html: { class: 'form-control bg-light', inputmode: :decimal, autocomplete: 'off',
+                                                           data: { order_items_role: 'quantity' } } %>
+    </div>
+    <div class="col-6 col-lg-2">
+      <%= f.input :unit, input_html: { class: 'form-control text-uppercase bg-light', autocomplete: 'off',
+                                       data: { catalog_fill_target: 'field', catalog_fill_key: 'unit' } } %>
+    </div>
+    <div class="col-12 col-lg-3">
+      <%= f.input :unit_price, as: :money, input_html: { class: 'form-control bg-light',
+                                                         data: { catalog_fill_target: 'field', catalog_fill_key: 'unit_price',
+                                                                 order_items_role: 'price' } } %>
+    </div>
+    <div class="col-12 col-lg-4">
+      <%= f.input :source_type, collection: MaintenanceOrderPartForm.enum_options_for_select(:source_type),
+                                include_blank: false, input_html: { class: 'form-select bg-light' } %>
+    </div>
+  </div>
+<% end %>

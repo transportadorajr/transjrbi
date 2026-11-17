@@ -1088,6 +1088,8 @@ pt-BR:
               taken: já está cadastrado
         maintenance_order_form:
           attributes:
+            base:
+              invalid_item: '%{item} %{position}: %{messages}'
             plate:
               inclusion: não está cadastrada no Atua
             driver_code:
@@ -1112,6 +1114,8 @@ pt-BR:
           attributes:
             code:
               taken: já está cadastrado em outra peça
+            unit:
+              inclusion: não está na lista de unidades
             description:
               taken: já está cadastrada
             unit_price:
@@ -2638,6 +2642,16 @@ pt-BR:
       vehicle_stopped_hint: Marque quando o veículo não pode rodar até a manutenção terminar.
       description: Defeito, Diagnóstico e Serviço
       description_text: O diagnóstico e o serviço executado podem ser preenchidos depois, ao alterar a OS.
+      items: Peças e serviços
+      items_text: Opcional. Lance agora as peças e os serviços já conhecidos; eles também podem ser lançados depois, na própria OS.
+      item_sections:
+        parts: Peças e materiais
+        services: Serviços terceirizados
+      item_names:
+        parts: Peça
+        services: Serviço
+      remove_item: Remover item
+      items_total: Total dos itens
   suppliers:
     status:
       active: Ativo
@@ -2670,23 +2684,43 @@ pt-BR:
       all: Todos
   maintenance_parts:
     index:
-      title: Peças
-      subtitle: Peças e materiais usados nas ordens de serviço.
+      title: Peças e Estoque
+      subtitle: Peças e materiais usados nas ordens de serviço, com o saldo e as movimentações do estoque.
       new_item: Nova Peça
     new:
       title: Nova Peça
-      back: Voltar para peças
+      back: Voltar para peças e estoque
     create:
       success: Peça cadastrada com sucesso.
     edit:
       title: Alterar Peça
-      back: Voltar para peças
+      back: Voltar para peças e estoque
     update:
       success: Peça atualizada com sucesso.
+    units:
+      UN: UN - Unidade
+      PC: PC - Peça
+      JG: JG - Jogo
+      CJ: CJ - Conjunto
+      KIT: KIT - Kit
+      PAR: PAR - Par
+      CX: CX - Caixa
+      L: L - Litro
+      ML: ML - Mililitro
+      GL: GL - Galão
+      BD: BD - Balde
+      LT: LT - Lata
+      FR: FR - Frasco
+      TB: TB - Tambor
+      KG: KG - Quilograma
+      G: G - Grama
+      M: M - Metro
+      M2: M2 - Metro quadrado
+      M3: M3 - Metro cúbico
+      RL: RL - Rolo
     form:
       data: Dados da Peça
       data_text: As peças ativas aparecem para escolha nas peças das ordens de serviço.
-      unit_hint: Ex. UN, L, KG, M.
       unit_price_hint: Sugerido ao lançar a peça na OS; pode ser alterado em cada OS.
       active_hint: Peças inativas não aparecem para escolha nas novas OS.
   maintenance_services:
@@ -2709,16 +2743,20 @@ pt-BR:
       data_text: Os serviços ativos aparecem para escolha nos serviços terceirizados das ordens de serviço.
       price_hint: Sugerido como valor orçado ao lançar o serviço na OS.
       active_hint: Serviços inativos não aparecem para escolha nas novas OS.
+  maintenance_stock:
+    tabs:
+      parts: Peças
+      movements: Movimentações
   maintenance_part_movements:
     index:
-      title: Estoque
-      subtitle: Entradas, saídas e ajustes do estoque de peças da oficina.
+      title: Peças e Estoque
+      subtitle: Peças e materiais usados nas ordens de serviço, com o saldo e as movimentações do estoque.
       new_entry: Nova Entrada
       new_adjustment: Ajuste de Estoque
     new:
       entry_title: Nova Entrada de Estoque
       adjustment_title: Ajuste de Estoque
-      back: Voltar para o estoque
+      back: Voltar para peças e estoque
     create:
       entry: Entrada registrada com sucesso.
       adjustment: Ajuste registrado com sucesso.
@@ -2778,7 +2816,7 @@ pt-BR:
       success: Mão de obra excluída da OS.
   maintenance_order_services:
     form:
-      supplier_hint: Cadastre novos fornecedores no menu Manutenção.
+      supplier_hint: Opcional. Informe quando o serviço for feito por um fornecedor; cadastre novos no menu Manutenção.
       catalog_placeholder: Buscar serviço cadastrado
       catalog_hint: Ao escolher um serviço, a descrição e o valor de referência são preenchidos. Para um serviço fora do cadastro, deixe em branco e preencha os campos.
       approved_hint: Enquanto não houver valor aprovado, o total da OS considera o valor orçado.
@@ -3580,8 +3618,7 @@ pt-BR:
     maintenance_orders: Ordens de serviço
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
-    maintenance_parts: Peças
-    maintenance_part_movements: Estoque
+    maintenance_parts: Peças e Estoque
     maintenance_services: Serviços
     transport_documents: CT-es
     manifests: Manifestos

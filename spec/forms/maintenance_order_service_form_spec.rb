@@ -55,12 +55,19 @@ RSpec.describe MaintenanceOrderServiceForm do
       expect(maintenance_order.reload.services_total_cents).to eq(18_000)
     end
 
-    it 'rejects a service without supplier and description or with bad values' do
+    it 'rejects a service without description or with bad values' do
       form = described_class.new(maintenance_order:, description: ' ', quoted: 'x', approved: '-')
 
       expect { expect(form.save).to be_falsey }.not_to change(MaintenanceOrderService, :count)
-      expect(form.errors.full_messages).to contain_exactly('Fornecedor não pode ficar em branco', 'Serviço não pode ficar em branco',
-                                                           'Valor orçado não é um valor válido', 'Valor aprovado não é um valor válido')
+      expect(form.errors.full_messages).to contain_exactly('Serviço não pode ficar em branco', 'Valor orçado não é um valor válido',
+                                                           'Valor aprovado não é um valor válido')
+    end
+
+    it 'adds a service without supplier' do
+      form = described_class.new(maintenance_order:, description: 'Troca das lonas', quoted: '150,00')
+
+      expect { expect(form.save).to be(true) }.to change(MaintenanceOrderService, :count).by(1)
+      expect(MaintenanceOrderService.last).to have_attributes(supplier: nil, description: 'Troca das lonas', quoted_cents: 15_000)
     end
 
     it 'rejects an inactive supplier or one of another tenant' do

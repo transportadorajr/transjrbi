@@ -2,6 +2,8 @@ class MaintenancePart < ApplicationRecord
   include Sortable
   include MaintenanceCatalogItem
 
+  UNITS = %w[UN PC JG CJ KIT PAR CX L ML GL BD LT FR TB KG G M M2 M3 RL].freeze
+
   sortable :unit_price, -> { arel_table[:unit_price_cents] }
 
   has_many :maintenance_order_parts, dependent: :restrict_with_error

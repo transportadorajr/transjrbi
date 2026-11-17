@@ -12,7 +12,7 @@ class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
 
   before_validation :normalize_fields
 
-  validates :supplier_id, :description, presence: true
+  validates :description, presence: true
   validate :maintenance_service_must_be_available
   validate :supplier_must_be_available
   validate :values_must_not_be_negative

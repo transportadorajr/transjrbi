@@ -90,6 +90,22 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         expect(dl_to_hash('#totals')).to include('HORAS DE MÃO DE OBRA' => '2,75 h')
       end
 
+      scenario 'adds a service without supplier', :js do
+        visit maintenance_order_path(maintenance_order)
+        click_on 'Adicionar serviço'
+
+        within('#maintenance_order_item_modal') do
+          fill_in 'Serviço', with: 'Troca das lonas'
+          fill_in 'Valor orçado', with: '15000'
+          click_on 'Adicionar'
+        end
+
+        expect(page).to have_text('Serviço terceirizado adicionado à OS.')
+        expect(MaintenanceOrderService.count).to eq(1)
+        expect(MaintenanceOrderService.last).to have_attributes(supplier: nil, description: 'Troca das lonas', quoted_cents: 15_000)
+        expect(html_table_to_rows(table: find('#services table')).second.first).to eq('-')
+      end
+
       scenario 'adds a service of a supplier', :js do
         visit maintenance_order_path(maintenance_order)
         click_on 'Adicionar serviço'
