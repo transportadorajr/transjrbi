@@ -53,10 +53,10 @@ describe 'Macro regions' do
         expect(MacroRegion.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            %w[Nome UF Abrangência Ações],
-            ['VALE DO AÇO/MG', 'MG', '3 cidades', 'Opções Visualizar Alterar Excluir'],
-            ['INTERIOR SP', 'SP', 'Restante de SP', 'Opções Visualizar Alterar Excluir'],
-            ['SAO PAULO REGIAO METROCAPITAL', 'SP', '3 cidades', 'Opções Visualizar Alterar Excluir'],
+            %w[Nome UF Abrangência Status Ações],
+            ['VALE DO AÇO/MG', 'MG', '3 cidades', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['INTERIOR SP', 'SP', 'Restante de SP', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['SAO PAULO REGIAO METROCAPITAL', 'SP', '3 cidades', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_link('Nova Macro Região', href: new_macro_region_path)
@@ -71,8 +71,8 @@ describe 'Macro regions' do
         expect(MacroRegion.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            %w[Nome UF Abrangência Ações],
-            ['SAO PAULO REGIAO METROCAPITAL', 'SP', '3 cidades', 'Opções Visualizar Alterar Excluir'],
+            %w[Nome UF Abrangência Status Ações],
+            ['SAO PAULO REGIAO METROCAPITAL', 'SP', '3 cidades', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
       end
@@ -115,6 +115,53 @@ describe 'Macro regions' do
         visit macro_region_path(stranger_region)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a region' do
+      let!(:active_region) { create(:macro_region, tenant:) }
+      let!(:inactive_region) { create(:macro_region, :sao_paulo, tenant:, activated_at: nil) }
+      let!(:stranger_region) { create(:macro_region, tenant: other_tenant, name: 'REGIÃO DE OUTRA', city_names: []) }
+
+      scenario 'offers the toggle that matches the status of each region' do
+        visit macro_regions_path
+
+        expect(page).to have_link('Inativar', href: deactivate_macro_region_path(active_region))
+        expect(page).to have_link('Ativar', href: activate_macro_region_path(inactive_region))
+      end
+
+      scenario 'filters the regions by status' do
+        visit macro_regions_path(status: 'deactivated')
+
+        expect(page).to have_css("#macro_region_#{inactive_region.id}")
+        expect(page).to have_no_css("#macro_region_#{active_region.id}")
+      end
+
+      scenario 'deactivates an active region from the listing' do
+        visit macro_regions_path
+
+        expect { page.driver.submit :patch, deactivate_macro_region_path(active_region), {} }.not_to change(MacroRegion, :count)
+
+        expect(page).to have_current_path(macro_regions_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_region.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive region from the listing' do
+        visit macro_regions_path
+
+        expect { page.driver.submit :patch, activate_macro_region_path(inactive_region), {} }.not_to change(MacroRegion, :count)
+
+        expect(page).to have_current_path(macro_regions_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_region.reload).to be_activated
+      end
+
+      scenario 'does not change the status of a region of another tenant' do
+        page.driver.submit :patch, deactivate_macro_region_path(stranger_region), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_region.reload).to be_activated
       end
     end
 
@@ -272,8 +319,8 @@ describe 'Macro regions' do
         expect(MacroRegion.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            %w[Nome UF Abrangência Ações],
-            ['VALE DO AÇO/MG', 'MG', '3 cidades', ''],
+            %w[Nome UF Abrangência Status Ações],
+            ['VALE DO AÇO/MG', 'MG', '3 cidades', 'Ativa', ''],
           ],
         )
         expect(page).to have_no_link('Nova Macro Região')

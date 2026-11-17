@@ -35,7 +35,7 @@ module Dashboard
     end
 
     def calendar
-      @calendar ||= ::RevenueProjection::Calendar.new(tenant.holidays.where(date: window).index_by(&:date))
+      @calendar ||= ::RevenueProjection::Calendar.new(tenant.holidays.activated.where(date: window).index_by(&:date))
     end
   end
 end

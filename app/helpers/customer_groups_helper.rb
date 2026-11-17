@@ -4,6 +4,7 @@ module CustomerGroupsHelper
 
     menus << customer_group_show_menu(customer_group) if can?(:read, :customer_groups)
     menus << customer_group_edit_menu(customer_group) if can?(:update, :customer_groups)
+    menus << activation_menu(customer_group, active: customer_group.activated?) if can?(:update, :customer_groups)
     menus << customer_group_destroy_menu(customer_group) if can?(:destroy, :customer_groups)
 
     menus

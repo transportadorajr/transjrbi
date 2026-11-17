@@ -3,6 +3,7 @@ module WorkshopEmployeesHelper
     menus = []
 
     menus << workshop_employee_edit_menu(workshop_employee) if can?(:update, :workshop_employees)
+    menus << activation_menu(workshop_employee, active: workshop_employee.active?) if can?(:update, :workshop_employees)
 
     menus
   end

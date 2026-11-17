@@ -1,4 +1,5 @@
 class ExcludedIssuer < ApplicationRecord
+  include Activatable
   include Sortable
   include Exportable
 
@@ -26,6 +27,13 @@ class ExcludedIssuer < ApplicationRecord
   }
 
   class << self
+    def statuses
+      {
+        I18n.t('excluded_issuers.index.active') => :active,
+        I18n.t('excluded_issuers.index.deactivated') => :deactivated,
+      }
+    end
+
     def available_issuers(tenant)
       tenant.atua_transport_documents
         .where.not(issuer_code: nil)
@@ -45,12 +53,13 @@ end
 #
 # Table name: excluded_issuers
 #
-#  id         :bigint           not null, primary key
-#  code       :integer          not null
-#  name       :string           not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  tenant_id  :bigint           not null
+#  id           :bigint           not null, primary key
+#  activated_at :datetime
+#  code         :integer          not null
+#  name         :string           not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  tenant_id    :bigint           not null
 #
 # Indexes
 #

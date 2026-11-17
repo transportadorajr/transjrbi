@@ -1,8 +1,10 @@
 class CustomerGroupsController < BaseController
+  include Activation
+
   has_scope :by_name, as: :name
   has_scope :by_status, as: :status
 
-  before_action :set_customer_group, only: %i[show edit update destroy regroup]
+  before_action :set_customer_group, only: %i[show edit update destroy regroup activate deactivate]
 
   def index
     authorize!(:read, :customer_groups)
@@ -85,6 +87,10 @@ class CustomerGroupsController < BaseController
   end
 
   private
+
+  def activation_form
+    CustomerGroupForm.for_customer_group(@customer_group)
+  end
 
   def set_customer_group
     @customer_group = current_tenant.customer_groups.find(params.expect(:id))

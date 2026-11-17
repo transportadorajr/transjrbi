@@ -1,10 +1,12 @@
 class TonnageRatesController < BaseController
+  include Activation
+
   has_scope :by_name, as: :name
   has_scope :by_customer_group, as: :customer_group_id
   has_scope :by_valid_month, as: :valid_month
   has_scope :by_status, as: :status
 
-  before_action :set_tonnage_rate, only: %i[show edit update destroy]
+  before_action :set_tonnage_rate, only: %i[show edit update destroy activate deactivate]
 
   def index
     authorize!(:read, :tonnage_rates)
@@ -78,6 +80,10 @@ class TonnageRatesController < BaseController
   end
 
   private
+
+  def activation_form
+    TonnageRateForm.for_tonnage_rate(@tonnage_rate)
+  end
 
   def set_tonnage_rate
     @tonnage_rate = current_tenant.tonnage_rates.find(params.expect(:id))

@@ -77,8 +77,8 @@ describe 'Product groups' do
         expect(html_table_to_rows(table: find_by_id('product_groups'))).to eq(
           [
             ['Nome', 'Subgrupos', 'CT-es', 'Status', 'Ações'],
-            ['ALIMENTÍCIO', '0', '0', 'Inativo', 'Opções Visualizar Alterar Excluir'],
-            ['SIDERÚRGICO', '2', '2', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['ALIMENTÍCIO', '0', '0', 'Inativo', 'Opções Visualizar Alterar Ativar Excluir'],
+            ['SIDERÚRGICO', '2', '2', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
         expect(html_table_to_rows(table: find_by_id('unclassified_products'))).to eq(
@@ -115,7 +115,7 @@ describe 'Product groups' do
         expect(html_table_to_rows(table: find_by_id('product_groups'))).to eq(
           [
             ['Nome', 'Subgrupos', 'CT-es', 'Status', 'Ações'],
-            ['SIDERÚRGICO', '2', '2', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['SIDERÚRGICO', '2', '2', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
       end
@@ -135,8 +135,8 @@ describe 'Product groups' do
         expect(html_table_to_rows(table: find_by_id('product_subgroups'))).to eq(
           [
             ['Nome', 'Produtos', 'CT-es', 'Status', 'Ações'],
-            ['BOBINA', 'BOBINA', '2', 'Ativo', 'Opções Visualizar Alterar Excluir'],
-            ['VERGALHÃO', 'VERGALHAO DE FERRO', '0', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+            ['BOBINA', 'BOBINA', '2', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['VERGALHÃO', 'VERGALHAO DE FERRO', '0', 'Inativo', 'Opções Visualizar Alterar Ativar Excluir'],
           ],
         )
         expect(page).to have_link('Novo Subgrupo', href: new_product_group_path(parent_id: steel.id))
@@ -167,6 +167,63 @@ describe 'Product groups' do
         visit product_group_path(stranger_group)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a group' do
+      let!(:active_group) { create(:product_group, tenant:, name: 'SIDERÚRGICO') }
+      let!(:inactive_group) { create(:product_group, tenant:, name: 'ALIMENTÍCIO', activated_at: nil) }
+      let!(:stranger_group) { create(:product_group, tenant: other_tenant, name: 'GRUPO DE OUTRA EMPRESA') }
+
+      scenario 'offers the toggle that matches the status of each group' do
+        visit product_groups_path
+
+        expect(ProductGroup.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_product_group_path(active_group))
+        expect(page).to have_link('Ativar', href: activate_product_group_path(inactive_group))
+      end
+
+      scenario 'deactivates an active group from the listing' do
+        visit product_groups_path
+
+        expect { page.driver.submit :patch, deactivate_product_group_path(active_group), {} }.not_to change(ProductGroup, :count)
+
+        expect(page).to have_current_path(product_groups_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_group.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive group from the listing' do
+        visit product_groups_path
+
+        expect { page.driver.submit :patch, activate_product_group_path(inactive_group), {} }.not_to change(ProductGroup, :count)
+
+        expect(page).to have_current_path(product_groups_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_group.reload).to be_activated
+      end
+
+      context 'when the group has subgroups' do
+        let!(:coil) { create(:product_subgroup, tenant:, parent: active_group, name: 'BOBINA', product_names: ['BOBINA']) }
+
+        scenario 'deactivates a subgroup from the page of its group' do
+          visit product_group_path(active_group)
+
+          expect(page).to have_link('Inativar', href: deactivate_product_group_path(coil))
+
+          page.driver.submit :patch, deactivate_product_group_path(coil), {}
+
+          expect(page).to have_current_path(product_group_path(active_group))
+          expect(page).to have_text('Registro inativado com sucesso.')
+          expect(coil.reload).not_to be_activated
+        end
+      end
+
+      scenario 'does not change the status of a group of another tenant' do
+        page.driver.submit :patch, deactivate_product_group_path(stranger_group), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_group.reload).to be_activated
       end
     end
 

@@ -3,11 +3,12 @@ module MaintenanceCatalog
 
   included do
     include MaintenanceFeature
+    include Activation
 
     has_scope :by_term, as: :term
     has_scope :by_status, as: :status
 
-    before_action :set_item, only: %i[edit update]
+    before_action :set_item, only: %i[edit update activate deactivate]
   end
 
   def index
@@ -44,6 +45,10 @@ module MaintenanceCatalog
   end
 
   private
+
+  def activation_form
+    catalog_form_class.for_item(@item)
+  end
 
   def save_item_form(failure_template)
     if @item_form.save

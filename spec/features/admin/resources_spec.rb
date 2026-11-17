@@ -25,6 +25,13 @@ describe 'Admin resources', :admin do
 
       expect(page).to have_current_path(admin_login_path)
     end
+
+    scenario 'does not deactivate a resource' do
+      page.driver.submit :patch, deactivate_admin_resource_path(resource), {}
+
+      expect(page).to have_current_path(admin_login_path)
+      expect(resource.reload).to be_activated
+    end
   end
 
   context 'with an app owner signed in' do
@@ -63,9 +70,9 @@ describe 'Admin resources', :admin do
         expect(Resource.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Identificador', 'Permite edição', 'Ações'],
-            ['Fretes', 'freights', 'Leitura e edição', 'Opções Alterar Excluir'],
-            ['Relatórios', 'reports', 'Somente leitura', 'Opções Alterar Excluir'],
+            ['Nome', 'Identificador', 'Permite edição', 'Status', 'Ações'],
+            ['Fretes', 'freights', 'Leitura e edição', 'Ativo', 'Opções Alterar Inativar Excluir'],
+            ['Relatórios', 'reports', 'Somente leitura', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_text('2 registros')
@@ -80,8 +87,8 @@ describe 'Admin resources', :admin do
         expect(Resource.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Identificador', 'Permite edição', 'Ações'],
-            ['Fretes', 'freights', 'Leitura e edição', 'Opções Alterar Excluir'],
+            ['Nome', 'Identificador', 'Permite edição', 'Status', 'Ações'],
+            ['Fretes', 'freights', 'Leitura e edição', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
       end
@@ -92,8 +99,8 @@ describe 'Admin resources', :admin do
         expect(Resource.count).to eq(2)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Identificador', 'Permite edição', 'Ações'],
-            ['Relatórios', 'reports', 'Somente leitura', 'Opções Alterar Excluir'],
+            ['Nome', 'Identificador', 'Permite edição', 'Status', 'Ações'],
+            ['Relatórios', 'reports', 'Somente leitura', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
       end
@@ -108,8 +115,8 @@ describe 'Admin resources', :admin do
         expect(Resource.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Identificador', 'Permite edição', 'Ações'],
-            ['Usuários', 'users', 'Leitura e edição', 'Opções Alterar Excluir'],
+            ['Nome', 'Identificador', 'Permite edição', 'Status', 'Ações'],
+            ['Usuários', 'users', 'Leitura e edição', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
       end
@@ -182,6 +189,44 @@ describe 'Admin resources', :admin do
 
           expect(page).to have_text('Identificador já está em uso por outro recurso')
         end
+      end
+    end
+
+    context 'when changing the status of a resource' do
+      let!(:active_resource) { create(:resource, name: 'Fretes', slug: 'freights') }
+      let!(:inactive_resource) { create(:resource, name: 'Relatórios', slug: 'reports', activated_at: nil) }
+
+      scenario 'offers the toggle that matches the status of each resource' do
+        visit admin_resources_path
+
+        expect(page).to have_link('Inativar', href: deactivate_admin_resource_path(active_resource))
+        expect(page).to have_link('Ativar', href: activate_admin_resource_path(inactive_resource))
+      end
+
+      scenario 'filters the resources by status' do
+        visit admin_resources_path(status: 'deactivated')
+
+        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['Relatórios'])
+      end
+
+      scenario 'deactivates an active resource' do
+        visit admin_resources_path
+
+        expect { page.driver.submit :patch, deactivate_admin_resource_path(active_resource), {} }.not_to change(Resource, :count)
+
+        expect(page).to have_current_path(admin_resources_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_resource.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive resource' do
+        visit admin_resources_path
+
+        expect { page.driver.submit :patch, activate_admin_resource_path(inactive_resource), {} }.not_to change(Resource, :count)
+
+        expect(page).to have_current_path(admin_resources_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_resource.reload).to be_activated
       end
     end
 

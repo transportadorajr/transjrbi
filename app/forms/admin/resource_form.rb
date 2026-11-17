@@ -3,6 +3,7 @@ module Admin
     attribute :name, :string
     attribute :slug, :string
     attribute :writable, :boolean, default: true
+    attribute :active, :boolean, default: true
 
     validates :name, :slug, presence: true
     validates :slug, format: { with: Resource::SLUG_FORMAT }, allow_blank: true
@@ -14,7 +15,7 @@ module Admin
 
     class << self
       def for_resource(resource)
-        form = new(name: resource.name, slug: resource.slug, writable: resource.writable)
+        form = new(name: resource.name, slug: resource.slug, writable: resource.writable, active: resource.activated?)
         form.resource = resource
         form
       end
@@ -25,7 +26,7 @@ module Admin
     end
 
     def submit
-      resource.update!(name:, slug:, writable:)
+      resource.update!(name:, slug:, writable:, activated: active)
     end
 
     private

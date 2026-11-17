@@ -22,6 +22,14 @@ RSpec.describe RevenueProjections::BuildDailyTotalsCommand do
     expect(rows.pluck(:tenant_id).uniq).to eq([tenant.id])
   end
 
+  it 'treats an inactive holiday as a regular day' do
+    tenant.holidays.update_all(activated_at: nil)
+
+    rows = described_class.call(tenant, tenant.billable_freights.by_plate('AAA1A11'), Date.new(2026, 11, 2)..Date.new(2026, 11, 2))
+
+    expect(rows.map { it.slice(:date, :day_type) }).to eq([{ date: Date.new(2026, 11, 2), day_type: :regular }])
+  end
+
   it 'builds nothing without dates' do
     expect(described_class.call(tenant, tenant.billable_freights, [])).to eq([])
   end

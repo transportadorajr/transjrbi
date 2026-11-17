@@ -4,6 +4,7 @@ module TruckGroupsHelper
 
     menus << truck_group_show_menu(truck_group) if can?(:read, :truck_groups)
     menus << truck_group_edit_menu(truck_group) if can?(:update, :truck_groups)
+    menus << activation_menu(truck_group, active: truck_group.activated?) if can?(:update, :truck_groups)
     menus << truck_group_destroy_menu(truck_group) if can?(:destroy, :truck_groups)
 
     menus

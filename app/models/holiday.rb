@@ -1,4 +1,5 @@
 class Holiday < ApplicationRecord
+  include Activatable
   include Sortable
   include Exportable
 
@@ -19,20 +20,30 @@ class Holiday < ApplicationRecord
   scope :by_year, ->(year) { where(date: Date.new(year.to_i).all_year) }
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
   scope :by_scope_type, ->(scope_type) { where(scope_type:) }
+
+  class << self
+    def statuses
+      {
+        I18n.t('holidays.index.active') => :active,
+        I18n.t('holidays.index.deactivated') => :deactivated,
+      }
+    end
+  end
 end
 
 # == Schema Information
 #
 # Table name: holidays
 #
-#  id         :bigint           not null, primary key
-#  date       :date             not null
-#  kind_type  :enum             default("holiday"), not null
-#  name       :string           not null
-#  scope_type :enum             default("national"), not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  tenant_id  :bigint           not null
+#  id           :bigint           not null, primary key
+#  activated_at :datetime
+#  date         :date             not null
+#  kind_type    :enum             default("holiday"), not null
+#  name         :string           not null
+#  scope_type   :enum             default("national"), not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
+#  tenant_id    :bigint           not null
 #
 # Indexes
 #

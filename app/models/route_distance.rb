@@ -1,4 +1,5 @@
 class RouteDistance < ApplicationRecord
+  include Activatable
   include Sortable
   include Exportable
 
@@ -30,6 +31,13 @@ class RouteDistance < ApplicationRecord
   }
 
   class << self
+    def statuses
+      {
+        I18n.t('route_distances.index.active') => :active,
+        I18n.t('route_distances.index.deactivated') => :deactivated,
+      }
+    end
+
     def normalize_city(value)
       I18n.transliterate(value.to_s).upcase.squish
     end
@@ -58,6 +66,7 @@ end
 # Table name: route_distances
 #
 #  id                :bigint           not null, primary key
+#  activated_at      :datetime
 #  customer_code     :bigint           not null
 #  destination_city  :string           not null
 #  destination_state :string           not null

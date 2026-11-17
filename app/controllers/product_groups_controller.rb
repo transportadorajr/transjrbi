@@ -1,8 +1,10 @@
 class ProductGroupsController < BaseController
+  include Activation
+
   has_scope :by_name, as: :name
   has_scope :by_status, as: :status
 
-  before_action :set_product_group, only: %i[show edit update destroy]
+  before_action :set_product_group, only: %i[show edit update destroy activate deactivate]
 
   def index
     authorize!(:read, :product_groups)
@@ -88,6 +90,10 @@ class ProductGroupsController < BaseController
   end
 
   private
+
+  def activation_form
+    ProductGroupForm.for_product_group(@product_group)
+  end
 
   def set_product_group
     @product_group = current_tenant.product_groups.find(params.expect(:id))

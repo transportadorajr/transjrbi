@@ -3,6 +3,7 @@ class HolidayForm < BaseForm
   attribute :name, :string
   attribute :scope_type, :string, default: 'national'
   attribute :kind_type, :string, default: 'holiday'
+  attribute :active, :boolean, default: true
 
   enum :scope_type, Holiday::SCOPES
   enum :kind_type, Holiday::KINDS
@@ -22,7 +23,7 @@ class HolidayForm < BaseForm
   class << self
     def for_holiday(holiday)
       form = new(date: holiday.date, name: holiday.name, scope_type: holiday.scope_type, kind_type: holiday.kind_type,
-                 tenant: holiday.tenant)
+                 active: holiday.activated?, tenant: holiday.tenant)
       form.holiday = holiday
       form
     end
@@ -33,7 +34,7 @@ class HolidayForm < BaseForm
   end
 
   def submit
-    holiday.update!(date:, name:, scope_type:, kind_type:)
+    holiday.update!(date:, name:, scope_type:, kind_type:, activated: active)
   end
 
   private

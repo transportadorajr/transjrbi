@@ -1,7 +1,10 @@
 class MacroRegionsController < BaseController
-  has_scope :by_name, as: :name
+  include Activation
 
-  before_action :set_macro_region, only: %i[show edit update destroy]
+  has_scope :by_name, as: :name
+  has_scope :by_status, as: :status
+
+  before_action :set_macro_region, only: %i[show edit update destroy activate deactivate]
 
   def index
     authorize!(:read, :macro_regions)
@@ -67,11 +70,15 @@ class MacroRegionsController < BaseController
 
   private
 
+  def activation_form
+    MacroRegionForm.for_macro_region(@macro_region)
+  end
+
   def set_macro_region
     @macro_region = current_tenant.macro_regions.find(params.expect(:id))
   end
 
   def macro_region_params
-    params.expect(macro_region: [:name, :state, :remaining_state, { city_ids: [] }])
+    params.expect(macro_region: [:name, :state, :remaining_state, :active, { city_ids: [] }])
   end
 end

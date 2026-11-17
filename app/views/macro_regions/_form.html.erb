@@ -20,6 +20,12 @@
                       input_html: { class: 'form-check-input me-2' } %>
         </div>
         <%= macro_region_cities_field(f, macro_region_form) %>
+        <div class="col-12">
+          <%= f.input :active,
+                      as: :boolean,
+                      hint: t('macro_regions.form.active_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
       </div>
     </div>
 

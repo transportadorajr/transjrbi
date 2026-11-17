@@ -13,6 +13,12 @@
         <%= f.label :slug, t('admin.resources.filters.slug'), class: 'form-label fw-medium' %>
         <%= f.text_field :slug, value: params[:slug], class: 'form-control bg-light', placeholder: t('admin.resources.filters.slug') %>
       </div>
+
+      <div class="col-12">
+        <%= f.label :status, Resource.human_attribute_name(:status), class: 'form-label fw-medium' %>
+        <%= f.select :status, Resource.statuses, { include_blank: t('shared.all'), selected: params[:status] },
+                     { class: 'form-select bg-light' } %>
+      </div>
     </div>
 
     <div class="d-flex flex-column gap-2 mt-4">

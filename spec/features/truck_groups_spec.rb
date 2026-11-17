@@ -57,9 +57,9 @@ describe 'Truck groups' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['6 eixos', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
-            ['Quarto eixo', '7 e 8 eixos', '-', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
-            ['Rodotrem', '9 eixos', '-', '32,5%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['6 eixos', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Ativar Excluir'],
+            ['Quarto eixo', '7 e 8 eixos', '-', '0%', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Rodotrem', '9 eixos', '-', '32,5%', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_link('Novo Grupo', href: new_truck_group_path)
@@ -75,7 +75,7 @@ describe 'Truck groups' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['Quarto eixo', '7 e 8 eixos', '-', '0%', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['Quarto eixo', '7 e 8 eixos', '-', '0%', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
 
@@ -86,7 +86,7 @@ describe 'Truck groups' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Quantidades de eixos', 'Placas', 'Combustível sobre o frete', 'Status', 'Ações'],
-            ['6 eixos', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+            ['6 eixos', '6 eixos', '-', '30%', 'Inativo', 'Opções Visualizar Alterar Ativar Excluir'],
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
@@ -138,6 +138,61 @@ describe 'Truck groups' do
       end
     end
 
+    context 'when changing the status of a group' do
+      let!(:active_group) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
+      let!(:inactive_group) { create(:truck_group, :ls, tenant:, activated_at: nil) }
+      let!(:stranger_group) { create(:truck_group, tenant: other_tenant, name: 'GRUPO DE OUTRA') }
+
+      scenario 'offers the toggle that matches the status of each group' do
+        visit truck_groups_path
+
+        expect(TruckGroup.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_truck_group_path(active_group))
+        expect(page).to have_link('Ativar', href: activate_truck_group_path(inactive_group))
+      end
+
+      scenario 'deactivates an active group from the listing' do
+        visit truck_groups_path
+
+        expect { page.driver.submit :patch, deactivate_truck_group_path(active_group), {} }.not_to change(TruckGroup, :count)
+
+        expect(page).to have_current_path(truck_groups_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_group.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive group from the listing' do
+        visit truck_groups_path
+
+        expect { page.driver.submit :patch, activate_truck_group_path(inactive_group), {} }.not_to change(TruckGroup, :count)
+
+        expect(page).to have_current_path(truck_groups_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_group.reload).to be_activated
+      end
+
+      context 'when another active group already has the axles of the inactive group' do
+        let!(:other_ls) { create(:truck_group, tenant:, name: 'LS novo', axles: [6]) }
+
+        scenario 'keeps the group inactive and shows why' do
+          visit truck_groups_path
+
+          page.driver.submit :patch, activate_truck_group_path(inactive_group), {}
+
+          expect(page).to have_current_path(truck_groups_path)
+          expect(page).to have_text('6 já estão em outro grupo ativo')
+          expect(inactive_group.reload).not_to be_activated
+        end
+      end
+
+      scenario 'does not change the status of a group of another tenant' do
+        page.driver.submit :patch, deactivate_truck_group_path(stranger_group), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_group.reload).to be_activated
+      end
+    end
+
     context 'when creating a group' do
       let!(:document) { create(:atua_transport_document, tenant:, number: '78001', axles: 9, freight_cents: 1_000_000) }
 
@@ -179,7 +234,7 @@ describe 'Truck groups' do
 
         visit truck_groups_path
 
-        expect(html_table_to_rows).to include(['Outros', 'Demais eixos', '-', '33%', 'Ativo', 'Opções Visualizar Alterar Excluir'])
+        expect(html_table_to_rows).to include(['Outros', 'Demais eixos', '-', '33%', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'])
       end
 
       scenario 'creates a group of plates and calculates the fuel by the plate' do

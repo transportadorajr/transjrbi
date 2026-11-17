@@ -57,8 +57,8 @@ describe 'Suppliers', :maintenance do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'CNPJ / CPF', 'Ativo', 'Ações'],
-            ['BORRACHARIA CENTRAL', '-', 'Inativo', ''],
-            ['RETÍFICA IPATINGA', '12.345.678/0001-90', 'Ativo', ''],
+            ['BORRACHARIA CENTRAL', '-', 'Inativo', 'Opções Alterar Ativar'],
+            ['RETÍFICA IPATINGA', '12.345.678/0001-90', 'Ativo', 'Opções Alterar Inativar'],
           ],
         )
         expect(page).to have_link('Novo Fornecedor', href: new_supplier_path)
@@ -75,7 +75,7 @@ describe 'Suppliers', :maintenance do
 
       scenario 'edits a supplier' do
         visit suppliers_path
-        within("#supplier_#{tires.id}") { click_on 'Alterar' }
+        within("#supplier_#{tires.id} .inline-actions") { click_on 'Alterar' }
 
         fill_in 'CNPJ / CPF', with: '123.456.789-09'
         check 'Ativo'
@@ -91,6 +91,47 @@ describe 'Suppliers', :maintenance do
         visit edit_supplier_path(stranger)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a supplier' do
+      let!(:active_supplier) { create(:supplier, tenant:, name: 'RETÍFICA IPATINGA') }
+      let!(:inactive_supplier) { create(:supplier, tenant:, name: 'BORRACHARIA CENTRAL', active: false) }
+      let!(:stranger_supplier) { create(:supplier, tenant: other_tenant, name: 'FORNECEDOR DE OUTRA') }
+
+      scenario 'offers the toggle that matches the status of each supplier' do
+        visit suppliers_path
+
+        expect(Supplier.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_supplier_path(active_supplier))
+        expect(page).to have_link('Ativar', href: activate_supplier_path(inactive_supplier))
+      end
+
+      scenario 'deactivates an active supplier from the listing' do
+        visit suppliers_path
+
+        expect { page.driver.submit :patch, deactivate_supplier_path(active_supplier), {} }.not_to change(Supplier, :count)
+
+        expect(page).to have_current_path(suppliers_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_supplier.reload).not_to be_active
+      end
+
+      scenario 'activates an inactive supplier from the listing' do
+        visit suppliers_path
+
+        expect { page.driver.submit :patch, activate_supplier_path(inactive_supplier), {} }.not_to change(Supplier, :count)
+
+        expect(page).to have_current_path(suppliers_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_supplier.reload).to be_active
+      end
+
+      scenario 'does not change the status of a supplier of another tenant' do
+        page.driver.submit :patch, deactivate_supplier_path(stranger_supplier), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_supplier.reload).to be_active
       end
     end
 

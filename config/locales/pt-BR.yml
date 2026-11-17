@@ -115,11 +115,15 @@ pt-BR:
         code: Código no Atua
         documents_count: Documentos
         freight: Frete bruto
+        status: Status
+        activated_at: Ativado em
       holiday:
         date: Data
         name: Nome
         scope_type: Abrangência
         kind_type: Tipo
+        status: Status
+        activated_at: Ativado em
       revenue_projection/day_note:
         date: Dia
         body: Anotação
@@ -233,6 +237,8 @@ pt-BR:
         distance_km: KM considerado
         documents_count: CT-es
         customer_name: Nome do cliente
+        status: Status
+        activated_at: Ativado em
       truck_group:
         name: Nome
         axles: Quantidades de eixos
@@ -248,10 +254,14 @@ pt-BR:
         remaining_state: Restante do estado
         coverage: Abrangência
         transport_documents: CT-es com origem na região
+        status: Status
+        activated_at: Ativada em
       city:
         name: Nome
         state: UF
         macro_region: Macro região
+        status: Status
+        activated_at: Ativada em
       commission_rule:
         name: Nome
         customer_group: Grupo de clientes
@@ -698,6 +708,8 @@ pt-BR:
         name: Nome
         slug: Identificador
         writable: Permite edição
+        status: Status
+        activated_at: Ativado em
       access:
         resource: Recurso / Módulo
         reads: Apenas Leitura
@@ -797,6 +809,7 @@ pt-BR:
         name: Nome
         slug: Identificador
         writable: Permite edição
+        active: Ativo
       admin/tenant_form:
         owner_name: Nome do administrador
         owner_email: E-mail do administrador
@@ -882,17 +895,21 @@ pt-BR:
         state: UF
         city_ids: Cidades
         remaining_state: Abrange o restante do estado
+        active: Ativa
       city_form:
         name: Nome
         state: UF
         macro_region_id: Macro região
+        active: Ativa
       excluded_issuer_form:
         code: Emissor
+        active: Ativo
       holiday_form:
         date: Data
         name: Nome
         scope_type: Abrangência
         kind_type: Tipo
+        active: Ativo
       revenue_projection_day_note_form:
         date: Dia
         body: Anotação
@@ -982,6 +999,7 @@ pt-BR:
         destination_city: Cidade de destino
         destination_state: UF de destino
         distance_km: KM considerado
+        active: Ativo
       route_distance_import_form:
         file: Planilha
       transport_document_distance_form:
@@ -1531,6 +1549,8 @@ pt-BR:
       resource:
         edit: Alterar
         destroy: Excluir
+        activate: Ativar
+        deactivate: Inativar
       tenant:
         edit: Alterar
       atua/transport_document:
@@ -1542,48 +1562,74 @@ pt-BR:
       customer_group:
         show: Visualizar
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
         destroy: Excluir
       product_group:
         show: Visualizar
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
         destroy: Excluir
       commission_rule:
         show: Visualizar
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
         destroy: Excluir
       tonnage_rate:
         show: Visualizar
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
         destroy: Excluir
       macro_region:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
+        activate: Ativar
+        deactivate: Inativar
       city:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
+        activate: Ativar
+        deactivate: Inativar
       truck_group:
         show: Visualizar
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
         destroy: Excluir
       excluded_issuer:
         destroy: Voltar a considerar
+        activate: Ativar
+        deactivate: Inativar
       holiday:
         edit: Alterar
         destroy: Excluir
+        activate: Ativar
+        deactivate: Inativar
       workshop_employee:
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
       maintenance_order:
         show: Visualizar
         edit: Alterar
       supplier:
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
       maintenance_part:
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
         movements: Movimentações
       maintenance_service:
         edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
       maintenance_order_part:
         edit: Alterar
         destroy: Excluir
@@ -1596,6 +1642,8 @@ pt-BR:
       route_distance:
         edit: Alterar
         destroy: Excluir
+        activate: Ativar
+        deactivate: Inativar
       atua/vehicle:
         show: Visualizar
         edit: Alterar
@@ -1621,6 +1669,11 @@ pt-BR:
       aria_label: Navegação de páginas
   shared:
     actions: Ações
+    activation:
+      activated: Registro ativado com sucesso.
+      deactivated: Registro inativado com sucesso.
+      confirm_activate: Deseja ativar este registro?
+      confirm_deactivate: Deseja inativar este registro?
     evolutions:
       monthly: Mensal
       weekly: Semanal
@@ -2162,6 +2215,8 @@ pt-BR:
       subtitle: Agrupam as cidades de origem dos fretes. Origens fora de todas as regiões entram em Outras Regiões.
       new_macro_region: Nova Macro Região
       confirm_destroy: Tem certeza que deseja excluir esta macro região? Os CT-es dela passam para Outras Regiões.
+      active: Ativa
+      deactivated: Inativa
     filters:
       name: Nome da macro região
     show:
@@ -2192,6 +2247,7 @@ pt-BR:
       cities_hint: >-
         Escolha entre as cidades já cadastradas em Cidades que estão no resto do estado (ex.: Resto do Paraná). Cadastre
         a cidade antes se ela ainda não aparece na lista.
+      active_hint: Macro regiões inativas deixam de receber os CT-es; as origens delas passam para a região do restante do estado.
   cities:
     no_macro_region: Sem macro região
     unassigned_origins_alert:
@@ -2213,6 +2269,8 @@ pt-BR:
       subtitle: Cidades que compõem as macro regiões. A origem do CT-e é comparada com o nome e a UF da cidade.
       new_city: Nova Cidade
       confirm_destroy: Tem certeza que deseja excluir esta cidade? Os CT-es dela passam para outra macro região da UF ou para Outras Regiões.
+      active: Ativa
+      deactivated: Inativa
     filters:
       name: Nome da cidade
       state: UF
@@ -2241,6 +2299,7 @@ pt-BR:
         Só aparecem as macro regiões que listam cidades. Sem uma delas, a cidade fica no resto do estado (ex.: Resto do
         Paraná). Toda alteração reatribui a macro região dos CT-es.
       remaining_state_region: Resto do estado
+      active_hint: Cidades inativas deixam de valer para a macro região; os CT-es com origem nela passam para a região do restante do estado.
   truck_groups:
     axles:
       one: '%{axles} eixo'
@@ -2323,6 +2382,8 @@ pt-BR:
         líquido, ranking e evolução mensal.
       new_excluded_issuer: Desconsiderar Emissor
       confirm_destroy: Os documentos deste emissor voltarão a entrar no faturamento de fretes. Deseja continuar?
+      active: Ativo
+      deactivated: Inativo
     filters:
       name: Nome do emissor
     new:
@@ -2543,6 +2604,8 @@ pt-BR:
         sábado.
       new_holiday: Novo Feriado
       confirm_destroy: Tem certeza que deseja excluir este feriado?
+      active: Ativo
+      deactivated: Inativo
     filters:
       year: Ano
       name: Nome do feriado
@@ -2565,6 +2628,7 @@ pt-BR:
       kind_type_hint: >-
         Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
         não funciona (ex.: Carnaval).
+      active_hint: Feriados inativos deixam de ser considerados nas metas e na projeção de faturamento, que passam a contar o dia como útil.
   workshop_employees:
     status:
       active: Ativo
@@ -2883,6 +2947,8 @@ pt-BR:
       new_route_distance: Novo Trecho
       import: Importar Planilha
       confirm_destroy: Os CT-es deste trecho voltarão a usar o KM informado pelo Atua. Deseja continuar?
+      active: Ativo
+      deactivated: Inativo
     filters:
       customer_code: Cliente
       origin: Cidade de origem
@@ -2922,6 +2988,7 @@ pt-BR:
       customer_placeholder: Selecione o cliente
       customer_hint: Cliente tomador do CT-e.
       distance_km_hint: KM que substitui o informado pelo Atua nos CT-es do trecho.
+      active_hint: Trechos inativos deixam de ser aplicados; os CT-es voltam a usar o km original.
   tonnage_rates:
     label: '%{name} – %{origin}'
     origin_with_nickname: '%{origin} (%{nickname})'
@@ -3760,6 +3827,8 @@ pt-BR:
         writable: Leitura e edição
         read_only: Somente leitura
         confirm_destroy: Tem certeza que deseja excluir este recurso?
+        active: Ativo
+        deactivated: Inativo
       filters:
         name: Nome do recurso
         slug: Identificador
@@ -3780,6 +3849,7 @@ pt-BR:
         resource_data_text: Informe o nome e o identificador do módulo do sistema.
         slug_hint: "Use letras minúsculas, números e _ (ex.: users). Ele é usado para identificar o recurso no código."
         writable_hint: Desmarque quando o recurso permitir apenas leitura.
+        active_hint: Recursos inativos somem das permissões dos usuários e ninguém acessa a tela, nem os donos. As permissões já dadas voltam ao reativar.
     tenants:
       index:
         title: Empresas

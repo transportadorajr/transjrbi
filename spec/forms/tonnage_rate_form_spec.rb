@@ -118,6 +118,24 @@ RSpec.describe TonnageRateForm do
         expect(copy).not_to be_pending_review
       end
 
+      it 'keeps a copied rate pending review when only its status changes' do
+        copy = create(:tonnage_rate, tenant:, customer_group: usiminas, valid_month: Date.new(2026, 11, 1), copied_from: cubatao)
+        form = described_class.for_tonnage_rate(copy)
+
+        expect(form.save_activation(false)).to be(true)
+        expect(copy.reload).to have_attributes(copied_from_id: cubatao.id, activated_at: nil)
+        expect(copy).to be_pending_review
+      end
+
+      it 'rejects activating a rate whose origin already has an active rate in the month' do
+        inactive = create(:tonnage_rate, tenant:, customer_group: usiminas, name: 'Outro', activated_at: nil)
+        form = described_class.for_tonnage_rate(inactive)
+
+        expect(form.save_activation(true)).to be_falsey
+        expect(form.errors[:origin]).to eq(['já tem outro custo ativo deste grupo nesta vigência'])
+        expect(inactive.reload).not_to be_activated
+      end
+
       it 'loads the rate formatted for the form' do
         form = described_class.for_tonnage_rate(cubatao)
 

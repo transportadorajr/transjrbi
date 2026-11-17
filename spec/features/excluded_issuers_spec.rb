@@ -58,9 +58,9 @@ describe 'Excluded issuers' do
         expect(ExcludedIssuer.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Ações'],
-            ['JEFFERSON ANDRE REMONATTO', '1951', '1', 'R$ 14.643,40', ''],
-            ['MAYCON DORALINO SANTOS LORENA', '6190', '2', 'R$ 32.056,00', ''],
+            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Status', 'Ações'],
+            ['JEFFERSON ANDRE REMONATTO', '1951', '1', 'R$ 14.643,40', 'Ativo', 'Opções Inativar Voltar a considerar'],
+            ['MAYCON DORALINO SANTOS LORENA', '6190', '2', 'R$ 32.056,00', 'Ativo', 'Opções Inativar Voltar a considerar'],
           ],
         )
         expect(page).to have_link('Voltar a considerar', href: excluded_issuer_path(maycon))
@@ -77,8 +77,8 @@ describe 'Excluded issuers' do
         expect(ExcludedIssuer.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Ações'],
-            ['MAYCON DORALINO SANTOS LORENA', '6190', '2', 'R$ 32.056,00', ''],
+            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Status', 'Ações'],
+            ['MAYCON DORALINO SANTOS LORENA', '6190', '2', 'R$ 32.056,00', 'Ativo', 'Opções Inativar Voltar a considerar'],
           ],
         )
       end
@@ -102,6 +102,53 @@ describe 'Excluded issuers' do
         expect { page.driver.submit :delete, excluded_issuer_path(stranger), {} }.not_to change(ExcludedIssuer, :count)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a issuer' do
+      let!(:active_issuer) { create(:excluded_issuer, tenant:, name: 'MAYCON DORALINO SANTOS LORENA') }
+      let!(:inactive_issuer) { create(:excluded_issuer, tenant:, name: 'JEFFERSON ANDRE REMONATTO', activated_at: nil) }
+      let!(:stranger_issuer) { create(:excluded_issuer, tenant: other_tenant, name: 'EMISSOR DE OUTRA') }
+
+      scenario 'offers the toggle that matches the status of each issuer' do
+        visit excluded_issuers_path
+
+        expect(page).to have_link('Inativar', href: deactivate_excluded_issuer_path(active_issuer))
+        expect(page).to have_link('Ativar', href: activate_excluded_issuer_path(inactive_issuer))
+      end
+
+      scenario 'filters the issuers by status' do
+        visit excluded_issuers_path(status: 'deactivated')
+
+        expect(page).to have_css("#excluded_issuer_#{inactive_issuer.id}")
+        expect(page).to have_no_css("#excluded_issuer_#{active_issuer.id}")
+      end
+
+      scenario 'deactivates an active issuer from the listing' do
+        visit excluded_issuers_path
+
+        expect { page.driver.submit :patch, deactivate_excluded_issuer_path(active_issuer), {} }.not_to change(ExcludedIssuer, :count)
+
+        expect(page).to have_current_path(excluded_issuers_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_issuer.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive issuer from the listing' do
+        visit excluded_issuers_path
+
+        expect { page.driver.submit :patch, activate_excluded_issuer_path(inactive_issuer), {} }.not_to change(ExcludedIssuer, :count)
+
+        expect(page).to have_current_path(excluded_issuers_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_issuer.reload).to be_activated
+      end
+
+      scenario 'does not change the status of a issuer of another tenant' do
+        page.driver.submit :patch, deactivate_excluded_issuer_path(stranger_issuer), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_issuer.reload).to be_activated
       end
     end
 
@@ -129,8 +176,8 @@ describe 'Excluded issuers' do
         expect(excluded_issuer).to have_attributes(tenant:, code: 6190, name: 'MAYCON DORALINO SANTOS LORENA')
         expect(html_table_to_rows).to eq(
           [
-            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Ações'],
-            ['MAYCON DORALINO SANTOS LORENA', '6190', '1', 'R$ 16.579,20', ''],
+            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Status', 'Ações'],
+            ['MAYCON DORALINO SANTOS LORENA', '6190', '1', 'R$ 16.579,20', 'Ativo', 'Opções Inativar Voltar a considerar'],
           ],
         )
 
@@ -182,8 +229,8 @@ describe 'Excluded issuers' do
         expect(ExcludedIssuer.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Ações'],
-            ['MAYCON DORALINO SANTOS LORENA', '6190', '0', 'R$ 0,00', ''],
+            ['Emissor', 'Código no Atua', 'Documentos', 'Frete bruto', 'Status', 'Ações'],
+            ['MAYCON DORALINO SANTOS LORENA', '6190', '0', 'R$ 0,00', 'Ativo', ''],
           ],
         )
         expect(page).to have_no_link('Desconsiderar Emissor')
@@ -213,6 +260,9 @@ describe 'Excluded issuers' do
       expect(page).to have_no_css('th', text: 'FRETE BRUTO')
 
       within("#excluded_issuer_#{excluded_issuer.id}") do
+        click_button 'Opções'
+
+        expect(page).to have_link('Inativar', href: deactivate_excluded_issuer_path(excluded_issuer))
         expect(page).to have_link('Voltar a considerar', href: excluded_issuer_path(excluded_issuer))
       end
 

@@ -1,4 +1,5 @@
 class Resource < ApplicationRecord
+  include Activatable
   include Sortable
 
   SLUG_FORMAT = /\A[a-z][a-z0-9_]*\z/
@@ -9,6 +10,15 @@ class Resource < ApplicationRecord
 
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
   scope :by_slug, ->(slug) { where(arel_table[:slug].matches("%#{sanitize_sql_like(slug)}%")) }
+
+  class << self
+    def statuses
+      {
+        I18n.t('admin.resources.index.active') => :active,
+        I18n.t('admin.resources.index.deactivated') => :deactivated,
+      }
+    end
+  end
 
   def translated_name
     translation_key = "resource_names.#{slug}"
@@ -23,12 +33,13 @@ end
 #
 # Table name: resources
 #
-#  id         :bigint           not null, primary key
-#  name       :string           not null
-#  slug       :string           not null
-#  writable   :boolean          default(TRUE), not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
+#  id           :bigint           not null, primary key
+#  activated_at :datetime
+#  name         :string           not null
+#  slug         :string           not null
+#  writable     :boolean          default(TRUE), not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
 #
 # Indexes
 #

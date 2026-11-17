@@ -4,6 +4,7 @@ module CitiesHelper
 
     menus << city_show_menu(city) if can?(:read, :cities)
     menus << city_edit_menu(city) if can?(:update, :cities)
+    menus << activation_menu(city, active: city.activated?) if can?(:update, :cities)
     menus << city_destroy_menu(city) if can?(:destroy, :cities)
 
     menus
@@ -54,8 +55,8 @@ module CitiesHelper
     PdfReport.new(
       title: t('cities.index.pdf.header'),
       columns: [pdf_column(City.human_attribute_name(:name), '2fr'), pdf_column(City.human_attribute_name(:state)),
-                pdf_column(City.human_attribute_name(:macro_region), '2fr')],
-      rows: cities.map { |city| [city.name, city.state, city_macro_region_name(city)] },
+                pdf_column(City.human_attribute_name(:macro_region), '2fr'), pdf_column(City.human_attribute_name(:status))],
+      rows: cities.map { |city| [city.name, city.state, city_macro_region_name(city), activation_status_label(:cities, city.activated?)] },
     )
   end
 

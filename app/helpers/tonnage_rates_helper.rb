@@ -4,6 +4,7 @@ module TonnageRatesHelper
 
     menus << tonnage_rate_show_menu(tonnage_rate) if can?(:read, :tonnage_rates)
     menus << tonnage_rate_edit_menu(tonnage_rate) if can?(:update, :tonnage_rates)
+    menus << activation_menu(tonnage_rate, active: tonnage_rate.activated?) if can?(:update, :tonnage_rates)
     menus << tonnage_rate_destroy_menu(tonnage_rate) if can?(:destroy, :tonnage_rates)
 
     menus

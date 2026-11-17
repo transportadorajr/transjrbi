@@ -58,9 +58,9 @@ describe 'Workshop employees', :maintenance do
         expect(html_table_to_rows).to eq(
           [
             %w[Nome Função Ativo Ações],
-            ['ANDRÉ ROCHA', 'Mecânico', 'Inativo', ''],
-            ['CARLOS SOUZA', 'Mecânico', 'Ativo', ''],
-            ['PAULO LIMA', 'Encarregado', 'Ativo', ''],
+            ['ANDRÉ ROCHA', 'Mecânico', 'Inativo', 'Opções Alterar Ativar'],
+            ['CARLOS SOUZA', 'Mecânico', 'Ativo', 'Opções Alterar Inativar'],
+            ['PAULO LIMA', 'Encarregado', 'Ativo', 'Opções Alterar Inativar'],
           ],
         )
         expect(page).to have_link('Novo Funcionário', href: new_workshop_employee_path)
@@ -76,14 +76,14 @@ describe 'Workshop employees', :maintenance do
         expect(html_table_to_rows).to eq(
           [
             %w[Nome Função Ativo Ações],
-            ['PAULO LIMA', 'Encarregado', 'Ativo', ''],
+            ['PAULO LIMA', 'Encarregado', 'Ativo', 'Opções Alterar Inativar'],
           ],
         )
       end
 
       scenario 'edits an employee' do
         visit workshop_employees_path
-        within("#workshop_employee_#{carlos.id}") { click_on 'Alterar' }
+        within("#workshop_employee_#{carlos.id} .inline-actions") { click_on 'Alterar' }
 
         fill_in 'Nome', with: 'Carlos Souza Filho'
         select 'Encarregado', from: 'Função'
@@ -100,6 +100,47 @@ describe 'Workshop employees', :maintenance do
         visit edit_workshop_employee_path(stranger)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a employee' do
+      let!(:active_employee) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
+      let!(:inactive_employee) { create(:workshop_employee, tenant:, name: 'ANDRÉ ROCHA', active: false) }
+      let!(:stranger_employee) { create(:workshop_employee, tenant: other_tenant, name: 'FUNCIONÁRIO DE OUTRA') }
+
+      scenario 'offers the toggle that matches the status of each employee' do
+        visit workshop_employees_path
+
+        expect(WorkshopEmployee.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_workshop_employee_path(active_employee))
+        expect(page).to have_link('Ativar', href: activate_workshop_employee_path(inactive_employee))
+      end
+
+      scenario 'deactivates an active employee from the listing' do
+        visit workshop_employees_path
+
+        expect { page.driver.submit :patch, deactivate_workshop_employee_path(active_employee), {} }.not_to change(WorkshopEmployee, :count)
+
+        expect(page).to have_current_path(workshop_employees_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_employee.reload).not_to be_active
+      end
+
+      scenario 'activates an inactive employee from the listing' do
+        visit workshop_employees_path
+
+        expect { page.driver.submit :patch, activate_workshop_employee_path(inactive_employee), {} }.not_to change(WorkshopEmployee, :count)
+
+        expect(page).to have_current_path(workshop_employees_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_employee.reload).to be_active
+      end
+
+      scenario 'does not change the status of a employee of another tenant' do
+        page.driver.submit :patch, deactivate_workshop_employee_path(stranger_employee), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_employee.reload).to be_active
       end
     end
 

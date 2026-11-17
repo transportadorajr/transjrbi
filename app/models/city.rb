@@ -1,4 +1,5 @@
 class City < ApplicationRecord
+  include Activatable
   include Sortable
   include Exportable
 
@@ -22,6 +23,15 @@ class City < ApplicationRecord
   def compacted_name
     CustomerGroup.compact(name)
   end
+
+  class << self
+    def statuses
+      {
+        I18n.t('cities.index.active') => :active,
+        I18n.t('cities.index.deactivated') => :deactivated,
+      }
+    end
+  end
 end
 
 # == Schema Information
@@ -29,6 +39,7 @@ end
 # Table name: cities
 #
 #  id              :bigint           not null, primary key
+#  activated_at    :datetime
 #  name            :string           not null
 #  state           :string           not null
 #  created_at      :datetime         not null

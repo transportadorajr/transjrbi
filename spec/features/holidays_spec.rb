@@ -60,11 +60,11 @@ describe 'Holidays' do
         expect(Holiday.count).to eq(5)
         expect(html_table_to_rows).to eq(
           [
-            %w[Data Nome Abrangência Tipo Ações],
-            ['29/04/2026 (quarta-feira)', 'Aniversário de Ipatinga', 'Municipal', 'Feriado', 'Opções Alterar Excluir'],
-            ['02/11/2026 (segunda-feira)', 'Finados', 'Nacional', 'Feriado', 'Opções Alterar Excluir'],
+            %w[Data Nome Abrangência Tipo Status Ações],
+            ['29/04/2026 (quarta-feira)', 'Aniversário de Ipatinga', 'Municipal', 'Feriado', 'Ativo', 'Opções Alterar Inativar Excluir'],
+            ['02/11/2026 (segunda-feira)', 'Finados', 'Nacional', 'Feriado', 'Ativo', 'Opções Alterar Inativar Excluir'],
             ['20/11/2026 (sexta-feira)', 'Dia Nacional de Zumbi e da Consciência Negra', 'Nacional', 'Feriado',
-             'Opções Alterar Excluir'],
+             'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_link('Novo Feriado', href: new_holiday_path)
@@ -78,8 +78,8 @@ describe 'Holidays' do
 
         expect(html_table_to_rows).to eq(
           [
-            %w[Data Nome Abrangência Tipo Ações],
-            ['08/02/2027 (segunda-feira)', 'Carnaval (segunda-feira)', 'Nacional', 'Ponto facultativo', 'Opções Alterar Excluir'],
+            %w[Data Nome Abrangência Tipo Status Ações],
+            ['08/02/2027 (segunda-feira)', 'Carnaval (segunda-feira)', 'Nacional', 'Ponto facultativo', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
 
@@ -91,8 +91,8 @@ describe 'Holidays' do
 
         expect(html_table_to_rows).to eq(
           [
-            %w[Data Nome Abrangência Tipo Ações],
-            ['29/04/2026 (quarta-feira)', 'Aniversário de Ipatinga', 'Municipal', 'Feriado', 'Opções Alterar Excluir'],
+            %w[Data Nome Abrangência Tipo Status Ações],
+            ['29/04/2026 (quarta-feira)', 'Aniversário de Ipatinga', 'Municipal', 'Feriado', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
       end
@@ -141,6 +141,53 @@ describe 'Holidays' do
         visit edit_holiday_path(stranger_holiday)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a holiday' do
+      let!(:active_holiday) { create(:holiday, tenant:, date: Date.new(2026, 11, 2), name: 'Finados') }
+      let!(:inactive_holiday) { create(:holiday, tenant:, date: Date.new(2026, 11, 20), activated_at: nil) }
+      let!(:stranger_holiday) { create(:holiday, tenant: other_tenant) }
+
+      scenario 'offers the toggle that matches the status of each holiday' do
+        visit holidays_path
+
+        expect(page).to have_link('Inativar', href: deactivate_holiday_path(active_holiday))
+        expect(page).to have_link('Ativar', href: activate_holiday_path(inactive_holiday))
+      end
+
+      scenario 'filters the holidays by status' do
+        visit holidays_path(status: 'deactivated')
+
+        expect(page).to have_css("#holiday_#{inactive_holiday.id}")
+        expect(page).to have_no_css("#holiday_#{active_holiday.id}")
+      end
+
+      scenario 'deactivates an active holiday from the listing' do
+        visit holidays_path
+
+        expect { page.driver.submit :patch, deactivate_holiday_path(active_holiday), {} }.not_to change(Holiday, :count)
+
+        expect(page).to have_current_path(holidays_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_holiday.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive holiday from the listing' do
+        visit holidays_path
+
+        expect { page.driver.submit :patch, activate_holiday_path(inactive_holiday), {} }.not_to change(Holiday, :count)
+
+        expect(page).to have_current_path(holidays_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_holiday.reload).to be_activated
+      end
+
+      scenario 'does not change the status of a holiday of another tenant' do
+        page.driver.submit :patch, deactivate_holiday_path(stranger_holiday), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_holiday.reload).to be_activated
       end
     end
 

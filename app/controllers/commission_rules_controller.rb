@@ -1,9 +1,11 @@
 class CommissionRulesController < BaseController
+  include Activation
+
   has_scope :by_name, as: :name
   has_scope :by_customer_group, as: :customer_group_id
   has_scope :by_status, as: :status
 
-  before_action :set_commission_rule, only: %i[show edit update destroy]
+  before_action :set_commission_rule, only: %i[show edit update destroy activate deactivate]
 
   def index
     authorize!(:read, :commission_rules)
@@ -77,6 +79,10 @@ class CommissionRulesController < BaseController
   end
 
   private
+
+  def activation_form
+    CommissionRuleForm.for_commission_rule(@commission_rule)
+  end
 
   def set_commission_rule
     @commission_rule = current_tenant.commission_rules.find(params.expect(:id))

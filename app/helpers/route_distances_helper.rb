@@ -3,6 +3,7 @@ module RouteDistancesHelper
     menus = []
 
     menus << route_distance_edit_menu(route_distance) if can?(:update, :route_distances)
+    menus << activation_menu(route_distance, active: route_distance.activated?) if can?(:update, :route_distances)
     menus << route_distance_destroy_menu(route_distance) if can?(:destroy, :route_distances)
 
     menus
@@ -64,10 +65,10 @@ module RouteDistancesHelper
       title: t('route_distances.index.pdf.header'),
       columns: [pdf_column(RouteDistance.human_attribute_name(:customer), '2fr'), pdf_column(RouteDistance.human_attribute_name(:route), '3fr'),
                 pdf_column(RouteDistance.human_attribute_name(:distance_km), align: :right),
-                pdf_column(RouteDistance.human_attribute_name(:documents_count), align: :right)],
+                pdf_column(RouteDistance.human_attribute_name(:documents_count), align: :right), pdf_column(RouteDistance.human_attribute_name(:status))],
       rows: route_distances.map do |route_distance|
         [route_distance_customer(route_distance), route_distance_route(route_distance), route_distance_km(route_distance.distance_km),
-         route_distance.documents_count]
+         route_distance.documents_count, activation_status_label(:route_distances, route_distance.activated?)]
       end,
     )
   end

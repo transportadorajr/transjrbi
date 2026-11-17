@@ -39,8 +39,8 @@ describe 'Maintenance services', :maintenance do
         expect(html_table_to_rows).to eq(
           [
             ['Código', 'Descrição', 'Valor de referência', 'Ativo', 'Ações'],
-            ['-', 'ALINHAMENTO', 'R$ 0,00', 'Inativo', ''],
-            ['RET-01', 'RETÍFICA DE MOTOR', 'R$ 8.500,00', 'Ativo', ''],
+            ['-', 'ALINHAMENTO', 'R$ 0,00', 'Inativo', 'Opções Alterar Ativar'],
+            ['RET-01', 'RETÍFICA DE MOTOR', 'R$ 8.500,00', 'Ativo', 'Opções Alterar Inativar'],
           ],
         )
         expect(page).to have_link('Novo Serviço', href: new_maintenance_service_path)
@@ -57,7 +57,7 @@ describe 'Maintenance services', :maintenance do
 
       scenario 'edits a service' do
         visit maintenance_services_path
-        within("#maintenance_service_#{alignment.id}") { click_on 'Alterar' }
+        within("#maintenance_service_#{alignment.id} .inline-actions") { click_on 'Alterar' }
 
         fill_in 'Valor de referência', with: '180,00'
         check 'Ativo'
@@ -73,6 +73,47 @@ describe 'Maintenance services', :maintenance do
         visit edit_maintenance_service_path(stranger)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a service' do
+      let!(:active_service) { create(:maintenance_service, tenant:, description: 'RETÍFICA DE MOTOR') }
+      let!(:inactive_service) { create(:maintenance_service, tenant:, description: 'ALINHAMENTO', active: false) }
+      let!(:stranger_service) { create(:maintenance_service, tenant: other_tenant, description: 'SERVIÇO DE OUTRA') }
+
+      scenario 'offers the toggle that matches the status of each service' do
+        visit maintenance_services_path
+
+        expect(MaintenanceService.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_maintenance_service_path(active_service))
+        expect(page).to have_link('Ativar', href: activate_maintenance_service_path(inactive_service))
+      end
+
+      scenario 'deactivates an active service from the listing' do
+        visit maintenance_services_path
+
+        expect { page.driver.submit :patch, deactivate_maintenance_service_path(active_service), {} }.not_to change(MaintenanceService, :count)
+
+        expect(page).to have_current_path(maintenance_services_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_service.reload).not_to be_active
+      end
+
+      scenario 'activates an inactive service from the listing' do
+        visit maintenance_services_path
+
+        expect { page.driver.submit :patch, activate_maintenance_service_path(inactive_service), {} }.not_to change(MaintenanceService, :count)
+
+        expect(page).to have_current_path(maintenance_services_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_service.reload).to be_active
+      end
+
+      scenario 'does not change the status of a service of another tenant' do
+        page.driver.submit :patch, deactivate_maintenance_service_path(stranger_service), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_service.reload).to be_active
       end
     end
 

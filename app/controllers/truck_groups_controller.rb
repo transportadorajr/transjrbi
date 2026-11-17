@@ -1,8 +1,10 @@
 class TruckGroupsController < BaseController
+  include Activation
+
   has_scope :by_name, as: :name
   has_scope :by_status, as: :status
 
-  before_action :set_truck_group, only: %i[show edit update destroy]
+  before_action :set_truck_group, only: %i[show edit update destroy activate deactivate]
 
   def index
     authorize!(:read, :truck_groups)
@@ -77,6 +79,10 @@ class TruckGroupsController < BaseController
   end
 
   private
+
+  def activation_form
+    TruckGroupForm.for_truck_group(@truck_group)
+  end
 
   def set_truck_group
     @truck_group = current_tenant.truck_groups.find(params.expect(:id))
