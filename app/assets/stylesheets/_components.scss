@@ -1138,3 +1138,30 @@
     padding: 1rem;
   }
 }
+
+.signature-pad {
+  .signature-pad-canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 1;
+    background: #fff;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+  }
+
+  &.signature-pad-signed .signature-pad-canvas {
+    border-style: solid;
+    border-color: var(--bs-success);
+  }
+}
+
+.signature-image {
+  display: block;
+  width: 100%;
+  max-width: 18rem;
+  aspect-ratio: 3 / 1;
+  border-bottom: 1px solid var(--bs-border-color);
+}

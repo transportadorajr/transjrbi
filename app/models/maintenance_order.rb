@@ -28,6 +28,7 @@ class MaintenanceOrder < ApplicationRecord
   has_many :labors, class_name: 'MaintenanceOrderLabor', dependent: :delete_all
   has_many :services, class_name: 'MaintenanceOrderService', dependent: :delete_all
   has_many :part_movements, class_name: 'MaintenancePartMovement', dependent: :restrict_with_error
+  has_many :signatures, class_name: 'MaintenanceOrderSignature', dependent: :delete_all
 
   enum :equipment_type, EQUIPMENTS.index_with(&:to_s), validate: true, prefix: true
   enum :maintenance_type, MAINTENANCES.index_with(&:to_s), validate: true, prefix: true
@@ -100,6 +101,18 @@ class MaintenanceOrder < ApplicationRecord
     PENDING_STATUSES.include?(status_type.to_sym)
   end
 
+  def signing_mechanics
+    employee_ids = labors.select(:workshop_employee_id)
+    mechanics = WorkshopEmployee.where(id: employee_ids).order(:name)
+    return mechanics if mechanics.exists? || responsible_employee_id.nil?
+
+    WorkshopEmployee.where(id: responsible_employee_id)
+  end
+
+  def content_digest
+    Digest::SHA256.hexdigest(digest_content.to_json)
+  end
+
   def validate_start
     return transition_not_allowed unless may_start?
 
@@ -120,6 +133,16 @@ class MaintenanceOrder < ApplicationRecord
 
   private
 
+  def digest_content
+    {
+      number:, plate:, odometer_km:, opened_at: opened_at&.iso8601, finished_at: finished_at&.iso8601, release_test_type:,
+      next_preventive_km:, reported_defect:, diagnosis:, performed_service:, total_cents:,
+      parts: parts.order(:id).map { |part| [part.description, part.quantity.to_s, part.total_cents] },
+      labors: labors.order(:id).map { |labor| [labor.workshop_employee_id, labor.worked_on.iso8601, labor.hours.to_s, labor.activity] },
+      services: services.order(:id).map { |service| [service.description, service.approved_cents] }
+    }
+  end
+
   def transition_not_allowed
     errors.add(:base, :transition_not_allowed, status: status_type_name.downcase)
     nil
@@ -132,6 +155,7 @@ end
 #
 #  id                      :bigint           not null, primary key
 #  affected_system_type    :enum             not null
+#  atua_order_number       :string
 #  diagnosis               :text
 #  driver_code             :bigint
 #  driver_name             :string
@@ -148,6 +172,8 @@ end
 #  parts_total_cents       :bigint           default(0), not null
 #  performed_service       :text
 #  plate                   :string           not null
+#  posted_on               :date
+#  posting_verified        :boolean          default(FALSE), not null
 #  priority_type           :enum             default("medium"), not null
 #  release_test_type       :enum
 #  reported_defect         :text             not null
@@ -158,23 +184,27 @@ end
 #  created_at              :datetime         not null
 #  updated_at              :datetime         not null
 #  opened_by_id            :bigint
+#  posted_by_id            :bigint
 #  responsible_employee_id :bigint
 #  supervisor_id           :bigint
 #  tenant_id               :bigint           not null
 #
 # Indexes
 #
-#  index_maintenance_orders_on_opened_by_id               (opened_by_id)
-#  index_maintenance_orders_on_responsible_employee_id    (responsible_employee_id)
-#  index_maintenance_orders_on_supervisor_id              (supervisor_id)
-#  index_maintenance_orders_on_tenant_id                  (tenant_id)
-#  index_maintenance_orders_on_tenant_id_and_number       (tenant_id,number) UNIQUE
-#  index_maintenance_orders_on_tenant_id_and_plate        (tenant_id,plate)
-#  index_maintenance_orders_on_tenant_id_and_status_type  (tenant_id,status_type)
+#  index_maintenance_orders_on_opened_by_id                     (opened_by_id)
+#  index_maintenance_orders_on_posted_by_id                     (posted_by_id)
+#  index_maintenance_orders_on_responsible_employee_id          (responsible_employee_id)
+#  index_maintenance_orders_on_supervisor_id                    (supervisor_id)
+#  index_maintenance_orders_on_tenant_id                        (tenant_id)
+#  index_maintenance_orders_on_tenant_id_and_atua_order_number  (tenant_id,atua_order_number) UNIQUE WHERE (atua_order_number IS NOT NULL)
+#  index_maintenance_orders_on_tenant_id_and_number             (tenant_id,number) UNIQUE
+#  index_maintenance_orders_on_tenant_id_and_plate              (tenant_id,plate)
+#  index_maintenance_orders_on_tenant_id_and_status_type        (tenant_id,status_type)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (opened_by_id => users.id)
+#  fk_rails_...  (posted_by_id => users.id)
 #  fk_rails_...  (responsible_employee_id => workshop_employees.id)
 #  fk_rails_...  (supervisor_id => workshop_employees.id)
 #  fk_rails_...  (tenant_id => tenants.id)

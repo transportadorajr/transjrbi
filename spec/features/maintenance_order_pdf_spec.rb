@@ -67,6 +67,28 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('Gerado em 12/11/2026 09:00.')
     end
 
+    context 'when the order was signed on the closing' do
+      let!(:supervisor_signature) do
+        create(:maintenance_order_signature, maintenance_order:, workshop_employee: supervisor, signer_role_type: 'supervisor',
+                                             signed_at: Time.zone.local(2026, 11, 11, 17, 30))
+      end
+      let!(:mechanic_signature) do
+        create(:maintenance_order_signature, maintenance_order:, workshop_employee: mechanic, signer_role_type: 'mechanic',
+                                             signed_at: Time.zone.local(2026, 11, 11, 17, 31))
+      end
+
+      scenario 'prints the signatures drawn by the supervisor and the mechanics' do
+        visit maintenance_order_path(maintenance_order, format: :pdf)
+
+        text = pdf_text
+        expect(MaintenanceOrderSignature.count).to eq(2)
+        expect(text).to include('PAULO LIMAEncarregado · assinada em 11/11/2026 17:30')
+        expect(text).to include('CARLOS SOUZAMecânico · assinada em 11/11/2026 17:31')
+        expect(text).to include("Código de verificação: #{supervisor_signature.content_digest}")
+        expect(text).not_to include('Funcionário responsável')
+      end
+    end
+
     scenario 'prints an order without items' do
       empty_order = create(:maintenance_order, tenant:, number: 8)
 

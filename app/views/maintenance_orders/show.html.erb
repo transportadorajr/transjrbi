@@ -101,6 +101,7 @@
   </div>
 
   <%= maintenance_order_closing_card(@maintenance_order) %>
+  <%= maintenance_order_signatures_card(@signatures) %>
 
   <%= render 'parts', maintenance_order: @maintenance_order, parts: @parts %>
   <%= render 'labors', maintenance_order: @maintenance_order, labors: @labors %>

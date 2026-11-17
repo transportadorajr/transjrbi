@@ -3,6 +3,7 @@ module TypstHelper
   TYPST_BORDER_COLOR = '#cccccc'.freeze
   TYPST_MUTED_COLOR = '#555555'.freeze
   TYPST_HIGHLIGHT_COLUMNS = 4
+  TYPST_SIGNATURE_HEIGHT = '36pt'.freeze
 
   def typst_text(value)
     escaped = value.to_s.gsub('\\', '\\\\\\\\').gsub('"', '\"')
@@ -113,8 +114,9 @@ module TypstHelper
   end
 
   def typst_signatures(labels, columns: 2, width: '100%')
-    cells = labels.map do |label, name|
-      'block(width: 100%, inset: (top: 40pt, x: 8pt), [#line(length: 100%, stroke: 0.5pt) ' \
+    cells = labels.map do |label, name, svg|
+      "block(width: 100%, inset: (top: #{svg.present? ? 4 : 40}pt, x: 8pt), [#{typst_signature_image(svg)}" \
+        '#line(length: 100%, stroke: 0.5pt) ' \
         "#{typst_signature_name(name)}" \
         "#align(center, text(8pt, fill: rgb(\"#{TYPST_MUTED_COLOR}\"), #{typst_text(typst_plain(label))}))])"
     end
@@ -131,6 +133,12 @@ module TypstHelper
   end
 
   private
+
+  def typst_signature_image(svg)
+    return '' if svg.blank?
+
+    "#align(center, image(bytes(#{typst_text(svg)}), format: \"svg\", height: #{TYPST_SIGNATURE_HEIGHT})) "
+  end
 
   def typst_signature_name(name)
     return '' if name.blank?

@@ -59,7 +59,8 @@
 
 #v(1.5em)
 
-<%= typst_signatures(maintenance_order_pdf_signatures(@maintenance_order)) %>
+<%= typst_signatures(maintenance_order_pdf_signatures(@maintenance_order, @signatures)) %>
+<%= maintenance_order_pdf_digest(@signatures) %>
 
 #v(0.1em)
 

@@ -97,6 +97,9 @@ pt-BR:
       maintenance_order:
         one: Ordem de serviço
         other: Ordens de serviço
+      maintenance_order_signature:
+        one: Assinatura da OS
+        other: Assinaturas da OS
       route_distance:
         one: Trecho de km
         other: Trechos de km
@@ -133,6 +136,12 @@ pt-BR:
         name: Nome
         role_type: Função
         active: Ativo
+      maintenance_order_signature:
+        signer_name: Nome
+        signer_role_type: Função
+        signed_at: Assinada em
+        strokes: Assinatura
+        content_digest: Código de verificação
       maintenance_order:
         number: Nº da OS
         plate: Placa
@@ -946,6 +955,8 @@ pt-BR:
         release_test_type: Teste de liberação
         next_preventive_km: Próxima preventiva (km)
         performed_service: Serviço executado
+        supervisor_id: Encarregado
+        supervisor_signature: Assinatura do encarregado
       maintenance_order_form:
         plate: Placa
         opened_at: Data e hora de abertura
@@ -1105,10 +1116,14 @@ pt-BR:
           attributes:
             base:
               not_pending: A OS não pode ser encerrada porque está %{status}.
+              no_mechanic: Lance a mão de obra ou indique o funcionário responsável antes de encerrar a OS.
+              mechanic_signature_missing: Falta a assinatura de %{name}.
             finished_at:
               before_opening: não pode ser antes da abertura da OS
             next_preventive_km:
               behind_odometer: deve ser maior que o KM da abertura
+            supervisor_id:
+              inclusion: não está cadastrado como encarregado ativo
         supplier_form:
           attributes:
             name:
@@ -1245,6 +1260,10 @@ pt-BR:
       role_type:
         mechanic: Mecânico
         supervisor: Encarregado
+    maintenance_order_signature:
+      signer_role_type:
+        supervisor: Encarregado
+        mechanic: Mecânico
     maintenance_order:
       equipment_type:
         truck_tractor: Cavalo mecânico
@@ -2585,6 +2604,14 @@ pt-BR:
       title: Encerrar Ordem de Serviço
       submit: Encerrar OS
       next_preventive_km_hint: KM em que o veículo deve voltar para a próxima preventiva.
+      signatures: Assinaturas
+      signatures_text: O encarregado e cada mecânico da mão de obra assinam confirmando que o serviço foi executado como descrito na OS.
+      supervisor_placeholder: Escolha o encarregado
+      signature_label: "%{name} · %{role}"
+      signature_hint: Assine com o dedo ou a caneta dentro do quadro.
+      signature_pad: Quadro de assinatura de %{name}
+      clear_signature: Limpar
+      undo_signature: Desfazer
     start:
       success: OS em execução.
     wait_parts:
@@ -2619,6 +2646,10 @@ pt-BR:
       no_services: Nenhum serviço terceirizado lançado nesta OS.
       closing: Encerramento
       print: Imprimir OS
+      signatures: Assinaturas
+      signature_alt: Assinatura de %{name}
+      signed_at: Assinada em %{time}
+      content_digest: 'Código de verificação: %{digest}'
       pdf:
         header: Ficha da Ordem de Serviço nº %{number} - %{company}
         subtitle: Manutenção da frota · Placa %{plate} · %{status}
@@ -2626,6 +2657,7 @@ pt-BR:
         signatures:
           supervisor: Encarregado responsável
           responsible_employee: Funcionário responsável
+          signed: "%{role} · assinada em %{time}"
     new:
       title: Nova Ordem de Serviço
       back: Voltar para ordens de serviço

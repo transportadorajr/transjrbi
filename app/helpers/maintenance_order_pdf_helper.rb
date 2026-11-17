@@ -108,13 +108,30 @@ module MaintenanceOrderPdfHelper
     render 'shared/pdf_table', report:, plain_header: true
   end
 
-  def maintenance_order_pdf_signatures(maintenance_order)
+  def maintenance_order_pdf_signatures(maintenance_order, signatures)
+    return maintenance_order_pdf_signed(signatures) if signatures.any?
+
     SIGNATURES.map do |signature|
       [t(signature, scope: 'maintenance_orders.show.pdf.signatures'), maintenance_order.public_send(signature)&.name]
     end
   end
 
+  def maintenance_order_pdf_digest(signatures)
+    return if signatures.none?
+
+    typst_markup("#align(center, text(7pt, fill: rgb(\"#{TypstHelper::TYPST_MUTED_COLOR}\"), " \
+                 "#{typst_text(maintenance_order_signature_digest(signatures.first))}))")
+  end
+
   private
+
+  def maintenance_order_pdf_signed(signatures)
+    signatures.map do |signature|
+      label = t('maintenance_orders.show.pdf.signatures.signed', role: signature.signer_role_type_name,
+                                                                 time: l(signature.signed_at, format: :date_time))
+      [label, signature.signer_name, signature.to_svg]
+    end
+  end
 
   def maintenance_order_pdf_release_test(maintenance_order)
     return tax_value(nil) if maintenance_order.release_test_type.nil?

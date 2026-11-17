@@ -17,6 +17,7 @@
       <div class="col-12">
         <%= f.input :performed_service, as: :text, required: true, input_html: { class: 'form-control bg-light', rows: 4 } %>
       </div>
+      <%= maintenance_order_finish_signatures(f, finish_form) %>
     </div>
 
     <div class="d-flex flex-column flex-md-row-reverse gap-2 mt-4">

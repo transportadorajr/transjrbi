@@ -54,3 +54,6 @@ application.register('auto-submit', AutoSubmitController);
 
 import GoalLinesController from './goal_lines_controller';
 application.register('goal-lines', GoalLinesController);
+
+import SignaturePadController from './signature_pad_controller';
+application.register('signature-pad', SignaturePadController);
