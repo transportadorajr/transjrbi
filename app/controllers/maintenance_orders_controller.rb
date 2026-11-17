@@ -106,7 +106,7 @@ class MaintenanceOrdersController < BaseController
   def finish
     authorize!(:update, :maintenance_orders)
 
-    @finish_form = MaintenanceOrderFinishForm.new(maintenance_order: @maintenance_order, **finish_params)
+    @finish_form = MaintenanceOrderFinishForm.new(maintenance_order: @maintenance_order, finished_by: current_user, **finish_params)
 
     if @finish_form.save
       redirect_to maintenance_order_path(@maintenance_order), notice: t('.success'), status: :see_other

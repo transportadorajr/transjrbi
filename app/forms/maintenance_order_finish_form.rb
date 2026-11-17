@@ -17,7 +17,7 @@ class MaintenanceOrderFinishForm < BaseForm
   validate :finished_at_must_not_precede_opening
   validate :next_preventive_must_be_ahead
 
-  attr_accessor :maintenance_order
+  attr_accessor :maintenance_order, :finished_by
 
   class << self
     def enum_i18n_key
@@ -38,7 +38,11 @@ class MaintenanceOrderFinishForm < BaseForm
     maintenance_order.release_test_type = release_test_type
     maintenance_order.next_preventive_km = next_preventive_km
     maintenance_order.performed_service = performed_service
-    maintenance_order.finish!
+
+    transaction do
+      maintenance_order.finish!
+      MaintenanceOrders::DeductStockCommand.call(maintenance_order, created_by: finished_by)
+    end
   end
 
   private

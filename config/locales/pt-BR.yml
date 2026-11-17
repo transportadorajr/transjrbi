@@ -190,6 +190,27 @@ pt-BR:
         name: Nome
         document: CNPJ / CPF
         active: Ativo
+      maintenance_part:
+        code: Código
+        description: Descrição
+        unit: Unidade
+        brand: Marca
+        unit_price: Valor unitário
+        quantity: Saldo
+        active: Ativo
+      maintenance_service:
+        code: Código
+        description: Descrição
+        price: Valor de referência
+        active: Ativo
+      maintenance_part_movement:
+        moved_on: Data
+        maintenance_part: Peça
+        movement_type: Tipo
+        quantity: Quantidade
+        balance: Saldo
+        origin: Origem
+        created_by: Responsável
       route_distance:
         customer: Cliente
         customer_code: Cliente
@@ -872,8 +893,30 @@ pt-BR:
         name: Nome
         document: CNPJ / CPF
         active: Ativo
+      maintenance_part_form:
+        code: Código
+        description: Descrição
+        unit: Unidade
+        brand: Marca
+        unit_price: Valor unitário
+        active: Ativo
+      maintenance_service_form:
+        code: Código
+        description: Descrição
+        price: Valor de referência
+        active: Ativo
+      maintenance_part_movement_form:
+        movement_type: Tipo
+        maintenance_part_id: Peça
+        moved_on: Data
+        quantity: Quantidade
+        unit_cost: Custo unitário
+        supplier_id: Fornecedor
+        invoice_number: Nº da NF
+        notes: Observação
       maintenance_order_part_form:
         code: Código
+        maintenance_part_id: Peça do cadastro
         description: Descrição
         quantity: Quantidade
         unit: Unidade
@@ -889,6 +932,7 @@ pt-BR:
         activity: Atividade realizada
       maintenance_order_service_form:
         supplier_id: Fornecedor
+        maintenance_service_id: Serviço do cadastro
         description: Serviço
         quote_number: Nº do orçamento
         quoted: Valor orçado
@@ -1064,8 +1108,38 @@ pt-BR:
               taken: já está cadastrado
             document:
               invalid: deve ter 11 dígitos (CPF) ou 14 dígitos (CNPJ)
+        maintenance_part_form:
+          attributes:
+            code:
+              taken: já está cadastrado em outra peça
+            description:
+              taken: já está cadastrada
+            unit_price:
+              invalid: não é um valor válido
+        maintenance_service_form:
+          attributes:
+            code:
+              taken: já está cadastrado em outro serviço
+            description:
+              taken: já está cadastrado
+            price:
+              invalid: não é um valor válido
+        maintenance_part_movement_form:
+          attributes:
+            maintenance_part_id:
+              inclusion: não está cadastrada como peça ativa
+            supplier_id:
+              inclusion: não está cadastrado como fornecedor ativo
+            moved_on:
+              future: não pode ser no futuro
+            quantity:
+              unchanged: é igual ao saldo atual da peça
+            unit_cost:
+              invalid: não é um valor válido
         maintenance_order_part_form:
           attributes:
+            maintenance_part_id:
+              inclusion: não está cadastrada como peça ativa
             unit_price:
               invalid: não é um valor válido
         maintenance_order_labor_form:
@@ -1080,6 +1154,8 @@ pt-BR:
               blank_without_times: deve ser informado quando não houver início e fim
         maintenance_order_service_form:
           attributes:
+            maintenance_service_id:
+              inclusion: não está cadastrado como serviço ativo
             supplier_id:
               inclusion: não está cadastrado como fornecedor ativo
             quoted:
@@ -1214,6 +1290,11 @@ pt-BR:
       source_type:
         stock: Estoque
         purchase: Compra direta
+    maintenance_part_movement:
+      movement_type:
+        entry: Entrada
+        exit: Saída
+        adjustment: Ajuste
     holiday:
       scope_type:
         national: Nacional
@@ -1377,6 +1458,12 @@ pt-BR:
       supplier:
         create: Cadastrar Fornecedor
         update: Salvar Alterações
+      maintenance_catalog:
+        create: Cadastrar
+        update: Salvar Alterações
+      maintenance_part_movement:
+        entry: Registrar Entrada
+        adjustment: Registrar Ajuste
       maintenance_order_item:
         create: Adicionar
         update: Salvar Alterações
@@ -1463,6 +1550,11 @@ pt-BR:
         show: Visualizar
         edit: Alterar
       supplier:
+        edit: Alterar
+      maintenance_part:
+        edit: Alterar
+        movements: Movimentações
+      maintenance_service:
         edit: Alterar
       maintenance_order_part:
         edit: Alterar
@@ -1652,6 +1744,8 @@ pt-BR:
     maintenance_orders: Ordens de serviço
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
+    maintenance_parts: Peças da manutenção
+    maintenance_services: Serviços da manutenção
     users: Usuários
     transport_documents: CT-es
     manifests: Manifestos
@@ -2566,6 +2660,85 @@ pt-BR:
       supplier_data: Dados do Fornecedor
       supplier_data_text: Os fornecedores ativos aparecem para escolha nos serviços terceirizados das ordens de serviço.
       active_hint: Fornecedores inativos não aparecem para escolha nos novos serviços.
+  maintenance_catalog:
+    status:
+      active: Ativo
+      inactive: Inativo
+    filters:
+      term: Código ou descrição
+      term_placeholder: Buscar por código ou descrição
+      all: Todos
+  maintenance_parts:
+    index:
+      title: Peças
+      subtitle: Peças e materiais usados nas ordens de serviço.
+      new_item: Nova Peça
+    new:
+      title: Nova Peça
+      back: Voltar para peças
+    create:
+      success: Peça cadastrada com sucesso.
+    edit:
+      title: Alterar Peça
+      back: Voltar para peças
+    update:
+      success: Peça atualizada com sucesso.
+    form:
+      data: Dados da Peça
+      data_text: As peças ativas aparecem para escolha nas peças das ordens de serviço.
+      unit_hint: Ex. UN, L, KG, M.
+      unit_price_hint: Sugerido ao lançar a peça na OS; pode ser alterado em cada OS.
+      active_hint: Peças inativas não aparecem para escolha nas novas OS.
+  maintenance_services:
+    index:
+      title: Serviços
+      subtitle: Serviços terceirizados contratados nas ordens de serviço.
+      new_item: Novo Serviço
+    new:
+      title: Novo Serviço
+      back: Voltar para serviços
+    create:
+      success: Serviço cadastrado com sucesso.
+    edit:
+      title: Alterar Serviço
+      back: Voltar para serviços
+    update:
+      success: Serviço atualizado com sucesso.
+    form:
+      data: Dados do Serviço
+      data_text: Os serviços ativos aparecem para escolha nos serviços terceirizados das ordens de serviço.
+      price_hint: Sugerido como valor orçado ao lançar o serviço na OS.
+      active_hint: Serviços inativos não aparecem para escolha nas novas OS.
+  maintenance_part_movements:
+    index:
+      title: Estoque
+      subtitle: Entradas, saídas e ajustes do estoque de peças da oficina.
+      new_entry: Nova Entrada
+      new_adjustment: Ajuste de Estoque
+    new:
+      entry_title: Nova Entrada de Estoque
+      adjustment_title: Ajuste de Estoque
+      back: Voltar para o estoque
+    create:
+      entry: Entrada registrada com sucesso.
+      adjustment: Ajuste registrado com sucesso.
+    filters:
+      start_date: Data inicial
+      end_date: Data final
+    origin:
+      order: OS nº %{number}
+      invoice: NF %{number}
+    form:
+      entry_data: Dados da Entrada
+      entry_text: Informe a peça recebida, a quantidade e a nota fiscal. O saldo da peça aumenta na hora.
+      adjustment_data: Dados do Ajuste
+      adjustment_text: Use depois de uma contagem do estoque. O saldo da peça passa a ser a quantidade contada.
+      part_placeholder: Buscar peça cadastrada
+      part_option: '%{part} (saldo: %{balance})'
+      unit_cost_hint: Quando informado, passa a ser o valor unitário sugerido da peça nas OS.
+      counted_quantity: Quantidade contada
+      counted_quantity_hint: A diferença para o saldo atual é registrada como ajuste.
+      notes_hint: Explique o motivo do ajuste (ex. inventário, perda, avaria).
   maintenance_order_items:
     part:
       add: Adicionar peça
@@ -2586,6 +2759,8 @@ pt-BR:
   maintenance_order_parts:
     form:
       source_type_hint: Itens do estoque também devem ser lançados.
+      catalog_placeholder: Buscar peça cadastrada
+      catalog_hint: Ao escolher uma peça, o código, a descrição, a unidade e o valor são preenchidos e podem ser ajustados. Para uma peça fora do cadastro, deixe em branco e preencha os campos.
     create:
       success: Peça adicionada à OS.
     update:
@@ -2604,6 +2779,8 @@ pt-BR:
   maintenance_order_services:
     form:
       supplier_hint: Cadastre novos fornecedores no menu Manutenção.
+      catalog_placeholder: Buscar serviço cadastrado
+      catalog_hint: Ao escolher um serviço, a descrição e o valor de referência são preenchidos. Para um serviço fora do cadastro, deixe em branco e preencha os campos.
       approved_hint: Enquanto não houver valor aprovado, o total da OS considera o valor orçado.
     create:
       success: Serviço terceirizado adicionado à OS.
@@ -3403,6 +3580,9 @@ pt-BR:
     maintenance_orders: Ordens de serviço
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
+    maintenance_parts: Peças
+    maintenance_part_movements: Estoque
+    maintenance_services: Serviços
     transport_documents: CT-es
     manifests: Manifestos
     route_distances: Trechos de km

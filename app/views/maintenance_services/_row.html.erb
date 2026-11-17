@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="d-none d-md-table-cell text-nowrap"><%= maintenance_catalog_value(item.code) %></td>
+  <td class="fw-semibold text-break"><%= item.description %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(item.price) %></td>
+  <td><%= maintenance_catalog_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(maintenance_services_menu(item)) %>
+  </td>
+</tr>

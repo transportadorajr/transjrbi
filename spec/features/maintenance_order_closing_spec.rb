@@ -60,6 +60,41 @@ describe 'Maintenance order closing', :maintenance, flipper: :maintenance do
                                            'PRÓXIMA PREVENTIVA' => '482.300 km')
     end
 
+    context 'when the order uses registered parts' do
+      let!(:parts_resource) { create(:resource, name: 'Peças da manutenção', slug: 'maintenance_parts') }
+      let!(:lining) { create(:maintenance_part, tenant:, description: 'LONA DE FREIO', unit: 'UN', quantity: 10) }
+      let!(:oil) { create(:maintenance_part, tenant:, description: 'ÓLEO 15W40', unit: 'L', quantity: 5) }
+      let!(:stock_part) { create(:maintenance_order_part, maintenance_order:, maintenance_part: lining, quantity: 4, source_type: :stock) }
+      let!(:purchased_part) do
+        create(:maintenance_order_part, maintenance_order:, maintenance_part: lining, quantity: 2, source_type: :purchase)
+      end
+      let!(:short_part) { create(:maintenance_order_part, maintenance_order:, maintenance_part: oil, quantity: 8, source_type: :stock) }
+      let!(:free_part) { create(:maintenance_order_part, maintenance_order:, description: 'PARAFUSO', quantity: 6, source_type: :stock) }
+
+      scenario 'takes the stock parts out of the stock when the order is finished' do
+        page.driver.submit :patch, finish_maintenance_order_path(maintenance_order),
+                           { maintenance_order_finish: { finished_at: '2026-11-11T17:30', release_test_type: 'road_test',
+                                                         performed_service: 'Troca das lonas' } }
+
+        expect(maintenance_order.reload).to be_finished
+        expect(MaintenancePartMovement.count).to eq(2)
+        expect(lining.reload.quantity).to eq(6)
+        expect(oil.reload.quantity).to eq(-3)
+        expect(stock_part.stock_movement).to have_attributes(movement_type: 'exit', quantity: -4, balance: 6, maintenance_order:,
+                                                             moved_on: Date.new(2026, 11, 11), created_by: owner)
+
+        visit maintenance_part_movements_path
+
+        expect(html_table_to_rows).to eq(
+          [
+            ['Data', 'Peça', 'Tipo', 'Quantidade', 'Saldo', 'Origem', 'Responsável'],
+            ['11/11/2026', 'ÓLEO 15W40', 'Saída', '-8 L', '-3 L', 'OS nº 7', owner.name],
+            ['11/11/2026', 'LONA DE FREIO', 'Saída', '-4 UN', '6 UN', 'OS nº 7', owner.name],
+          ],
+        )
+      end
+    end
+
     scenario 'keeps the finish modal open with the errors', :js do
       visit maintenance_order_path(maintenance_order)
       click_on 'Encerrar OS'

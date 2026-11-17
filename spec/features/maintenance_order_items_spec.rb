@@ -110,6 +110,72 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
       end
     end
 
+    context 'when the parts and services are registered' do
+      let!(:lining) do
+        create(:maintenance_part, tenant:, code: 'LF-123', description: 'LONA DE FREIO', unit: 'UN', unit_price_cents: 8_500)
+      end
+      let!(:old_lining) { create(:maintenance_part, tenant:, description: 'LONA ANTIGA', active: false) }
+      let!(:stranger_part) { create(:maintenance_part, tenant: other_tenant, description: 'LONA DE OUTRA') }
+      let!(:grinding) { create(:maintenance_service, tenant:, description: 'RETÍFICA DO TAMBOR', price_cents: 45_000) }
+
+      scenario 'adds a registered part filling its fields', :js do
+        visit maintenance_order_path(maintenance_order)
+        click_on 'Adicionar peça'
+
+        within('#maintenance_part_select') do
+          find('.select2-trigger').click
+          expect(page).to have_css('.select2-option', count: 1)
+          expect(page).to have_no_css('.select2-option', text: 'LONA ANTIGA')
+          find('.select2-option', text: 'LF-123 - LONA DE FREIO').click
+        end
+
+        within('#maintenance_order_item_modal') do
+          expect(page).to have_field('Código', with: 'LF-123')
+          expect(page).to have_field('Descrição', with: 'LONA DE FREIO')
+          expect(page).to have_field('Unidade', with: 'UN')
+          expect(page).to have_field('Valor unitário', with: '85,00')
+          fill_in 'Quantidade', with: '2'
+          select 'Estoque', from: 'Origem'
+          click_on 'Adicionar'
+        end
+
+        expect(page).to have_text('Peça adicionada à OS.')
+        expect(MaintenanceOrderPart.count).to eq(1)
+        expect(MaintenanceOrderPart.last).to have_attributes(maintenance_part: lining, code: 'LF-123', description: 'LONA DE FREIO',
+                                                             quantity: 2, unit: 'UN', unit_price_cents: 8_500, total_cents: 17_000)
+      end
+
+      scenario 'adds a registered service suggesting its reference price', :js do
+        visit maintenance_order_path(maintenance_order)
+        click_on 'Adicionar serviço'
+
+        within('#maintenance_service_select') do
+          find('.select2-trigger').click
+          find('.select2-option', text: 'RETÍFICA DO TAMBOR').click
+        end
+
+        within('#maintenance_order_item_modal') do
+          expect(page).to have_field('Valor orçado', with: '450,00')
+          select 'RETÍFICA IPATINGA', from: 'Fornecedor'
+          click_on 'Adicionar'
+        end
+
+        expect(page).to have_text('Serviço terceirizado adicionado à OS.')
+        expect(MaintenanceOrderService.count).to eq(1)
+        expect(MaintenanceOrderService.last).to have_attributes(maintenance_service: grinding, supplier:,
+                                                                description: 'RETÍFICA DO TAMBOR', quoted_cents: 45_000)
+      end
+
+      scenario 'does not add a part registered by another tenant' do
+        page.driver.submit :post, maintenance_order_parts_path(maintenance_order),
+                           { maintenance_order_part: { maintenance_part_id: stranger_part.id, quantity: '1', source_type: 'stock' } }
+
+        expect(page.status_code).to eq(422)
+        expect(MaintenanceOrderPart.count).to eq(0)
+        expect(page.body).to include('Peça do cadastro não está cadastrada como peça ativa')
+      end
+    end
+
     context 'when the order has items' do
       let!(:part) do
         create(:maintenance_order_part, maintenance_order:, code: 'LF-123', description: 'LONA DE FREIO', quantity: 4, unit: 'UN',

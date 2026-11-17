@@ -46,6 +46,8 @@ end
   'maintenance_orders' => { name: 'Ordens de serviço', writable: true },
   'workshop_employees' => { name: 'Funcionários da oficina', writable: true },
   'suppliers' => { name: 'Fornecedores', writable: true },
+  'maintenance_parts' => { name: 'Peças da manutenção', writable: true },
+  'maintenance_services' => { name: 'Serviços da manutenção', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)

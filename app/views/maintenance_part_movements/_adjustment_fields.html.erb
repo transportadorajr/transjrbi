@@ -1,0 +1,9 @@
+<div class="col-12 col-lg-4">
+  <%= f.input :quantity, label: t('maintenance_part_movements.form.counted_quantity'), required: true,
+                         hint: t('maintenance_part_movements.form.counted_quantity_hint'),
+                         input_html: { class: 'form-control', inputmode: :decimal, autocomplete: 'off' } %>
+</div>
+<div class="col-12 col-lg-8">
+  <%= f.input :notes, required: true, hint: t('maintenance_part_movements.form.notes_hint'),
+                      input_html: { class: 'form-control', autocomplete: 'off' } %>
+</div>

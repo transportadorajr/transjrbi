@@ -1,0 +1,23 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(MaintenanceService.human_attribute_name(:code), :code, class: 'd-none d-md-table-cell') %>
+        <%= sortable_header(MaintenanceService.human_attribute_name(:description), :description) %>
+        <%= sortable_header(MaintenanceService.human_attribute_name(:price), :price, first_direction: :desc,
+                                                                                     class: 'd-none d-md-table-cell text-end') %>
+        <th><%= MaintenanceService.human_attribute_name(:active) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

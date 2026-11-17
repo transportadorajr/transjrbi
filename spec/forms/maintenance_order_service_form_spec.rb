@@ -7,6 +7,33 @@ RSpec.describe MaintenanceOrderServiceForm do
   let!(:part) { create(:maintenance_order_part, maintenance_order:, total_cents: 10_000) }
 
   describe '#save' do
+    context 'when the service is registered' do
+      let!(:grinding) { create(:maintenance_service, tenant:, description: 'RETÍFICA DO TAMBOR', price_cents: 45_000) }
+
+      it 'fills the description and the quoted value from the registered service' do
+        form = described_class.new(maintenance_order:, maintenance_service_id: grinding.id, supplier_id: supplier.id)
+
+        expect(form.save).to be(true)
+        expect(MaintenanceOrderService.last).to have_attributes(maintenance_service: grinding, description: 'RETÍFICA DO TAMBOR',
+                                                                quoted_cents: 45_000)
+      end
+
+      it 'keeps the quoted value of the supplier' do
+        form = described_class.new(maintenance_order:, maintenance_service_id: grinding.id, supplier_id: supplier.id, quoted: '420,00')
+
+        expect(form.save).to be(true)
+        expect(MaintenanceOrderService.last).to have_attributes(quoted_cents: 42_000)
+      end
+
+      it 'rejects a service of another tenant' do
+        stranger = create(:maintenance_service, description: 'SOLDA')
+        form = described_class.new(maintenance_order:, maintenance_service_id: stranger.id, supplier_id: supplier.id, description: 'Solda')
+
+        expect(form.save).to be_falsey
+        expect(form.errors.full_messages).to include('Serviço do cadastro não está cadastrado como serviço ativo')
+      end
+    end
+
     it 'adds the service to the order and recalculates the totals with the approved value' do
       form = described_class.new(maintenance_order:, supplier_id: supplier.id, description: ' Retífica do tambor ', quote_number: ' 77 ',
                                  quoted: '450,00', approved: '420,00', approved_by_name: ' marcos ', invoice_number: '9981')

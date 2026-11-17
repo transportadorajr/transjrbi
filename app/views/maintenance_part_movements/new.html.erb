@@ -1,0 +1,16 @@
+<% content_for :title, maintenance_part_movement_title(@movement_form) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('maintenance_part_movements.index.title'), maintenance_part_movements_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= maintenance_part_movement_title(@movement_form) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag maintenance_part_movement_title(@movement_form), back_path: maintenance_part_movements_path,
+                                                                         back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'form', movement_form: @movement_form %>
+</div>

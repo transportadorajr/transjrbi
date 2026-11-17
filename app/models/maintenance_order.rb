@@ -26,6 +26,7 @@ class MaintenanceOrder < ApplicationRecord
   has_many :parts, class_name: 'MaintenanceOrderPart', dependent: :delete_all
   has_many :labors, class_name: 'MaintenanceOrderLabor', dependent: :delete_all
   has_many :services, class_name: 'MaintenanceOrderService', dependent: :delete_all
+  has_many :part_movements, class_name: 'MaintenancePartMovement', dependent: :restrict_with_error
 
   enum :equipment_type, EQUIPMENTS.index_with(&:to_s), validate: true, prefix: true
   enum :maintenance_type, MAINTENANCES.index_with(&:to_s), validate: true, prefix: true

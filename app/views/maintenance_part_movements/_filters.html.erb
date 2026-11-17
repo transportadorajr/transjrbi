@@ -1,0 +1,32 @@
+<%= render layout: 'components/new_modal',
+           locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
+                     dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
+  <%= form_with url: maintenance_part_movements_path, method: :get, data: { controller: 'date-range' } do |f| %>
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <%= f.label :start_date, t('maintenance_part_movements.filters.start_date'), class: 'form-label fw-medium' %>
+        <%= f.date_field :start_date, value: params[:start_date], class: 'form-control bg-light',
+                                      data: { date_range_target: 'start', action: 'change->date-range#openEnd' } %>
+      </div>
+      <div class="col-12 col-md-6">
+        <%= f.label :end_date, t('maintenance_part_movements.filters.end_date'), class: 'form-label fw-medium' %>
+        <%= f.date_field :end_date, value: params[:end_date], class: 'form-control bg-light', data: { date_range_target: 'end' } %>
+      </div>
+      <div class="col-12">
+        <%= f.label :maintenance_part_id, MaintenancePartMovement.human_attribute_name(:maintenance_part), class: 'form-label fw-medium' %>
+        <%= f.select :maintenance_part_id, maintenance_part_movement_part_options(@maintenance_parts), { include_blank: t('shared.all') },
+                     class: 'form-select bg-light' %>
+      </div>
+      <div class="col-12">
+        <%= f.label :movement_type, MaintenancePartMovement.human_attribute_name(:movement_type), class: 'form-label fw-medium' %>
+        <%= f.select :movement_type, options_for_select(MaintenancePartMovement.enum_options_for_select(:movement_type), params[:movement_type]),
+                     { include_blank: t('shared.all') }, class: 'form-select bg-light' %>
+      </div>
+    </div>
+
+    <div class="d-flex flex-column gap-2 mt-4">
+      <%= f.button t('shared.apply_filters'), class: 'btn btn-primary w-100 btn-round' %>
+      <%= link_to t('shared.clear_filters'), maintenance_part_movements_path, class: 'btn btn-light w-100 btn-round' %>
+    </div>
+  <% end %>
+<% end %>

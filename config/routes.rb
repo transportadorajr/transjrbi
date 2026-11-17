@@ -60,6 +60,9 @@ Rails.application.routes.draw do
     end
     resources :workshop_employees, except: %i[show destroy]
     resources :suppliers, except: %i[show destroy]
+    resources :maintenance_parts, except: %i[show destroy]
+    resources :maintenance_services, except: %i[show destroy]
+    resources :maintenance_part_movements, only: %i[index new create]
     root 'maintenance_home#index', as: :maintenance_root
   end
 
