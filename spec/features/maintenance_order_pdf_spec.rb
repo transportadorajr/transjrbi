@@ -62,7 +62,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('RETÍFICA IPATINGA', 'Retífica do tambor', 'R$ 450,00', 'R$ 420,00', 'MARCOS')
       expect(text).to include('R$ 760,00')
       expect(text).to include('11/11/2026 17:30', 'Rodagem', '482.300 km')
-      expect(text).to include('PAULO LIMAEncarregado responsável')
+      expect(text).to include('PAULO LIMAEncarregado responsável', 'JOAO MENDESFuncionário responsável')
       expect(text).not_to include('Mecânico responsável', 'Motorista (veículo liberado)', 'Compras (aprovação)')
       expect(text).to include('Gerado em 12/11/2026 09:00.')
     end
@@ -76,6 +76,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('Nenhuma peça lançada nesta OS.', 'Nenhuma mão de obra lançada nesta OS.',
                               'Nenhum serviço terceirizado lançado nesta OS.')
       expect(text).to include('R$ 0,00')
+      expect(text).to include('Encarregado responsável', 'Funcionário responsável')
     end
 
     scenario 'does not print an order of another tenant' do

@@ -2625,6 +2625,7 @@ pt-BR:
         filename: os_%{number}.pdf
         signatures:
           supervisor: Encarregado responsável
+          responsible_employee: Funcionário responsável
     new:
       title: Nova Ordem de Serviço
       back: Voltar para ordens de serviço
