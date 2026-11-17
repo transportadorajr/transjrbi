@@ -145,6 +145,12 @@ class MaintenanceOrdersController < BaseController
     @plates = current_tenant.atua_vehicles.active.where.not(plate: [nil, '']).distinct.order(:plate).pluck(:plate)
     @drivers = current_tenant.atua_vehicles.drivers.order(:driver_name)
     @supervisors = current_tenant.workshop_employees.supervisor.active.order(:name)
+    @workshop_employees = responsible_employee_options
+  end
+
+  def responsible_employee_options
+    employees = current_tenant.workshop_employees
+    employees.active.or(employees.where(id: @maintenance_order&.responsible_employee_id)).order(:name)
   end
 
   def maintenance_order_params

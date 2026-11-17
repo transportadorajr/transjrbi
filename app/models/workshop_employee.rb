@@ -8,6 +8,8 @@ class WorkshopEmployee < ApplicationRecord
   belongs_to :tenant
   has_many :supervised_maintenance_orders, class_name: 'MaintenanceOrder', foreign_key: :supervisor_id,
                                            inverse_of: :supervisor, dependent: :restrict_with_error
+  has_many :responsible_maintenance_orders, class_name: 'MaintenanceOrder', foreign_key: :responsible_employee_id,
+                                            inverse_of: :responsible_employee, dependent: :restrict_with_error
   has_many :maintenance_order_labors, dependent: :restrict_with_error
 
   enum :role_type, ROLES.index_with(&:to_s), validate: true

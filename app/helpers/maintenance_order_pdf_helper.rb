@@ -19,6 +19,7 @@ module MaintenanceOrderPdfHelper
       [MaintenanceOrder.human_attribute_name(:hour_meter), maintenance_order_hour_meter(maintenance_order)],
       [MaintenanceOrder.human_attribute_name(:driver_name), tax_value(maintenance_order.driver_name)],
       [MaintenanceOrder.human_attribute_name(:supervisor), tax_value(maintenance_order.supervisor&.name)],
+      [MaintenanceOrder.human_attribute_name(:responsible_employee), tax_value(maintenance_order.responsible_employee&.name)],
     ]
   end
 

@@ -46,9 +46,10 @@ describe 'Maintenance orders', :maintenance do
 
     context 'when there are maintenance orders' do
       let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
+      let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
       let!(:brakes_order) do
         create(:maintenance_order, tenant:, number: 1, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 3, 7, 15),
-                                   supervisor:, opened_by: owner, odometer_km: 452_300, hour_meter: BigDecimal('1250.5'),
+                                   supervisor:, responsible_employee: mechanic, opened_by: owner, odometer_km: 452_300, hour_meter: BigDecimal('1250.5'),
                                    driver_code: 501, driver_name: 'JOSE DA SILVA', vehicle_stopped: true, priority_type: 'high',
                                    diagnosis: 'Lonas gastas', performed_service: "Troca das lonas\nRegulagem do freio")
       end
@@ -152,7 +153,8 @@ describe 'Maintenance orders', :maintenance do
         expect(dl_to_hash('#vehicle_data')).to eq(
           'Nº da OS' => '1', 'Situação' => 'Aberta', 'Abertura' => '03/11/2026 07:15', 'Placa' => 'EXU1A23',
           'KM' => '452.300 km', 'Horímetro' => '1.250,5 h', 'Motorista' => 'JOSE DA SILVA',
-          'Encarregado responsável' => 'PAULO LIMA', 'Tipo de equipamento' => 'Cavalo mecânico', 'Aberta por' => 'Bruna Dona'
+          'Encarregado responsável' => 'PAULO LIMA', 'Funcionário responsável' => 'CARLOS SOUZA',
+          'Tipo de equipamento' => 'Cavalo mecânico', 'Aberta por' => 'Bruna Dona'
         )
         expect(dl_to_hash('#classification')).to eq(
           'Tipo de manutenção' => 'Corretiva', 'Prioridade' => 'Alta', 'Veículo parado' => 'Sim',
@@ -168,7 +170,8 @@ describe 'Maintenance orders', :maintenance do
         visit maintenance_order_path(tire_order)
 
         expect(dl_to_hash('#vehicle_data')).to include('KM' => '-', 'Horímetro' => '-', 'Motorista' => '-',
-                                                       'Encarregado responsável' => '-', 'Tipo de equipamento' => 'Outro: GUINDASTE',
+                                                       'Encarregado responsável' => '-', 'Funcionário responsável' => '-',
+                                                       'Tipo de equipamento' => 'Outro: GUINDASTE',
                                                        'Aberta por' => '-')
         expect(dl_to_hash('#classification')).to include('Veículo parado' => 'Não')
         expect(dl_to_hash('#description')).to include('Diagnóstico' => '-', 'Serviço executado' => '-')
@@ -190,6 +193,25 @@ describe 'Maintenance orders', :maintenance do
         expect(engine_order.reload).to have_attributes(number: 3, plate: 'EXU9B87', diagnosis: 'Bico injetor entupido',
                                                        performed_service: 'Limpeza dos bicos injetores', odometer_km: 610_200,
                                                        supervisor:, reported_defect: 'Motor falhando')
+      end
+
+      scenario 'changes the responsible employee of an order', :js do
+        inactive = create(:workshop_employee, tenant:, name: 'ANTONIO RAMOS', active: false)
+        engine_order.update!(responsible_employee: inactive)
+
+        visit edit_maintenance_order_path(engine_order)
+        within('#responsible_employee_select') do
+          expect(page).to have_css('.select2-selected', text: 'ANTONIO RAMOS (Mecânico)')
+          find('.select2-trigger').click
+          expect(page).to have_css('.select2-option', count: 3)
+          find('.select2-option', text: 'PAULO LIMA (Encarregado)').click
+        end
+
+        expect { click_on 'Salvar Alterações' }.not_to change(MaintenanceOrder, :count)
+
+        expect(page).to have_text('Ordem de serviço atualizada com sucesso.')
+        expect(page).to have_css('#vehicle_data dd', exact_text: 'PAULO LIMA')
+        expect(engine_order.reload.responsible_employee).to eq(supervisor)
       end
 
       scenario 'does not open an order of another tenant' do
@@ -236,6 +258,12 @@ describe 'Maintenance orders', :maintenance do
         fill_in 'KM', with: '452300'
         expect(page).to have_no_select('Encarregado responsável', with_options: ['ANTIGO ENCARREGADO', 'CARLOS SOUZA'])
         expect(page).to have_select('Encarregado responsável', selected: 'PAULO LIMA')
+        within('#responsible_employee_select') do
+          find('.select2-trigger').click
+          expect(page).to have_no_css('.select2-option', text: 'ANTIGO ENCARREGADO')
+          find('.select2-search').fill_in(with: 'carl')
+          find('.select2-option', text: 'CARLOS SOUZA (Mecânico)').click
+        end
         select 'Cavalo mecânico', from: 'Tipo de equipamento'
         select 'Corretiva', from: 'Tipo de manutenção'
         select 'Alta', from: 'Prioridade'
@@ -250,9 +278,10 @@ describe 'Maintenance orders', :maintenance do
         expect(MaintenanceOrder.count).to eq(2)
         expect(maintenance_order).to have_attributes(
           tenant:, number: 42, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 11, 10), odometer_km: 452_300,
-          driver_code: 501, driver_name: 'JOSE DA SILVA', supervisor:, opened_by: owner, equipment_type: 'truck_tractor',
-          maintenance_type: 'corrective', priority_type: 'high', vehicle_stopped: true, execution_place_type: 'internal_workshop',
-          affected_system_type: 'brakes', reported_defect: 'Freio puxando para a direita', status_type: 'open'
+          driver_code: 501, driver_name: 'JOSE DA SILVA', supervisor:, responsible_employee: mechanic, opened_by: owner,
+          equipment_type: 'truck_tractor', maintenance_type: 'corrective', priority_type: 'high', vehicle_stopped: true,
+          execution_place_type: 'internal_workshop', affected_system_type: 'brakes',
+          reported_defect: 'Freio puxando para a direita', status_type: 'open'
         )
       end
 

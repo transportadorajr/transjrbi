@@ -22,6 +22,7 @@ class MaintenanceOrder < ApplicationRecord
 
   belongs_to :tenant
   belongs_to :supervisor, class_name: 'WorkshopEmployee', optional: true
+  belongs_to :responsible_employee, class_name: 'WorkshopEmployee', optional: true
   belongs_to :opened_by, class_name: 'User', optional: true
   has_many :parts, class_name: 'MaintenanceOrderPart', dependent: :delete_all
   has_many :labors, class_name: 'MaintenanceOrderLabor', dependent: :delete_all
@@ -129,40 +130,42 @@ end
 #
 # Table name: maintenance_orders
 #
-#  id                   :bigint           not null, primary key
-#  affected_system_type :enum             not null
-#  diagnosis            :text
-#  driver_code          :bigint
-#  driver_name          :string
-#  equipment_other      :string
-#  equipment_type       :enum             not null
-#  execution_place_type :enum             default("internal_workshop"), not null
-#  finished_at          :datetime
-#  hour_meter           :decimal(10, 1)
-#  maintenance_type     :enum             not null
-#  next_preventive_km   :integer
-#  number               :bigint           not null
-#  odometer_km          :integer
-#  opened_at            :datetime         not null
-#  parts_total_cents    :bigint           default(0), not null
-#  performed_service    :text
-#  plate                :string           not null
-#  priority_type        :enum             default("medium"), not null
-#  release_test_type    :enum
-#  reported_defect      :text             not null
-#  services_total_cents :bigint           default(0), not null
-#  status_type          :enum             default("open"), not null
-#  total_cents          :bigint           default(0), not null
-#  vehicle_stopped      :boolean          default(FALSE), not null
-#  created_at           :datetime         not null
-#  updated_at           :datetime         not null
-#  opened_by_id         :bigint
-#  supervisor_id        :bigint
-#  tenant_id            :bigint           not null
+#  id                      :bigint           not null, primary key
+#  affected_system_type    :enum             not null
+#  diagnosis               :text
+#  driver_code             :bigint
+#  driver_name             :string
+#  equipment_other         :string
+#  equipment_type          :enum             not null
+#  execution_place_type    :enum             default("internal_workshop"), not null
+#  finished_at             :datetime
+#  hour_meter              :decimal(10, 1)
+#  maintenance_type        :enum             not null
+#  next_preventive_km      :integer
+#  number                  :bigint           not null
+#  odometer_km             :integer
+#  opened_at               :datetime         not null
+#  parts_total_cents       :bigint           default(0), not null
+#  performed_service       :text
+#  plate                   :string           not null
+#  priority_type           :enum             default("medium"), not null
+#  release_test_type       :enum
+#  reported_defect         :text             not null
+#  services_total_cents    :bigint           default(0), not null
+#  status_type             :enum             default("open"), not null
+#  total_cents             :bigint           default(0), not null
+#  vehicle_stopped         :boolean          default(FALSE), not null
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  opened_by_id            :bigint
+#  responsible_employee_id :bigint
+#  supervisor_id           :bigint
+#  tenant_id               :bigint           not null
 #
 # Indexes
 #
 #  index_maintenance_orders_on_opened_by_id               (opened_by_id)
+#  index_maintenance_orders_on_responsible_employee_id    (responsible_employee_id)
 #  index_maintenance_orders_on_supervisor_id              (supervisor_id)
 #  index_maintenance_orders_on_tenant_id                  (tenant_id)
 #  index_maintenance_orders_on_tenant_id_and_number       (tenant_id,number) UNIQUE
@@ -172,6 +175,7 @@ end
 # Foreign Keys
 #
 #  fk_rails_...  (opened_by_id => users.id)
+#  fk_rails_...  (responsible_employee_id => workshop_employees.id)
 #  fk_rails_...  (supervisor_id => workshop_employees.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
