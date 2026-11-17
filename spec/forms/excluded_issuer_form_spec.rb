@@ -70,15 +70,15 @@ RSpec.describe ExcludedIssuerForm do
 
       expect { form.save_activation(false) }.not_to change(ExcludedIssuer, :count)
 
-      expect(excluded_issuer.reload).to have_attributes(code: 6190, name: 'MAYCON DORALINO SANTOS LORENA', active: false)
+      expect(excluded_issuer.reload).to have_attributes(code: 6190, name: 'MAYCON DORALINO SANTOS LORENA', activated: false)
     end
 
     it 'activates the exclusion again' do
-      excluded_issuer.update!(active: false)
+      excluded_issuer.update!(activated: false)
       form = described_class.for_excluded_issuer(excluded_issuer)
 
       expect(form.save_activation(true)).to be(true)
-      expect(excluded_issuer.reload).to be_active
+      expect(excluded_issuer.reload).to be_activated
     end
   end
 end

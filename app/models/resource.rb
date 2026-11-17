@@ -1,4 +1,5 @@
 class Resource < ApplicationRecord
+  include Activatable
   include Sortable
 
   SLUG_FORMAT = /\A[a-z][a-z0-9_]*\z/
@@ -8,8 +9,6 @@ class Resource < ApplicationRecord
   has_many :accesses, dependent: :restrict_with_error
 
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
-  scope :active, -> { where(active: true) }
-  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
   scope :by_slug, ->(slug) { where(arel_table[:slug].matches("%#{sanitize_sql_like(slug)}%")) }
 
   class << self
@@ -34,13 +33,13 @@ end
 #
 # Table name: resources
 #
-#  id         :bigint           not null, primary key
-#  active     :boolean          default(TRUE), not null
-#  name       :string           not null
-#  slug       :string           not null
-#  writable   :boolean          default(TRUE), not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
+#  id           :bigint           not null, primary key
+#  activated_at :datetime
+#  name         :string           not null
+#  slug         :string           not null
+#  writable     :boolean          default(TRUE), not null
+#  created_at   :datetime         not null
+#  updated_at   :datetime         not null
 #
 # Indexes
 #

@@ -143,7 +143,7 @@ describe 'Cities' do
 
     context 'when changing the status of a city' do
       let!(:active_city) { create(:city, tenant:, name: 'Ipatinga') }
-      let!(:inactive_city) { create(:city, tenant:, name: 'Timóteo', active: false) }
+      let!(:inactive_city) { create(:city, tenant:, name: 'Timóteo', activated_at: nil) }
       let!(:stranger_city) { create(:city, tenant: other_tenant, name: 'Cidade de Outra') }
 
       scenario 'offers the toggle that matches the status of each city' do
@@ -167,7 +167,7 @@ describe 'Cities' do
 
         expect(page).to have_current_path(cities_path)
         expect(page).to have_text('Registro inativado com sucesso.')
-        expect(active_city.reload).not_to be_active
+        expect(active_city.reload).not_to be_activated
       end
 
       scenario 'activates an inactive city from the listing' do
@@ -177,14 +177,14 @@ describe 'Cities' do
 
         expect(page).to have_current_path(cities_path)
         expect(page).to have_text('Registro ativado com sucesso.')
-        expect(inactive_city.reload).to be_active
+        expect(inactive_city.reload).to be_activated
       end
 
       scenario 'does not change the status of a city of another tenant' do
         page.driver.submit :patch, deactivate_city_path(stranger_city), {}
 
         expect(page.status_code).to eq(404)
-        expect(stranger_city.reload).to be_active
+        expect(stranger_city.reload).to be_activated
       end
     end
 

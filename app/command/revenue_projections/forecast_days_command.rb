@@ -27,7 +27,7 @@ module RevenueProjections
       @forecaster ||= begin
         daily_totals = tenant.revenue_projection_daily_totals
           .where(date: (dates.first - RevenueProjection::Forecaster::BASELINE_DAYS)...dates.last).index_by(&:date)
-        calendar = RevenueProjection::Calendar.new(tenant.holidays.active.where(date: (dates.first - RevenueProjection::Forecaster::BASELINE_DAYS)..dates.last)
+        calendar = RevenueProjection::Calendar.new(tenant.holidays.activated.where(date: (dates.first - RevenueProjection::Forecaster::BASELINE_DAYS)..dates.last)
                                                      .index_by(&:date))
 
         RevenueProjection::Forecaster.new(daily_totals, calendar, RevenueProjection::FactorSet.new(RevenueProjection::Factor.where(tenant:)))

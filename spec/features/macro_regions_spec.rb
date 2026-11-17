@@ -120,7 +120,7 @@ describe 'Macro regions' do
 
     context 'when changing the status of a region' do
       let!(:active_region) { create(:macro_region, tenant:) }
-      let!(:inactive_region) { create(:macro_region, :sao_paulo, tenant:, active: false) }
+      let!(:inactive_region) { create(:macro_region, :sao_paulo, tenant:, activated_at: nil) }
       let!(:stranger_region) { create(:macro_region, tenant: other_tenant, name: 'REGIÃO DE OUTRA', city_names: []) }
 
       scenario 'offers the toggle that matches the status of each region' do
@@ -144,7 +144,7 @@ describe 'Macro regions' do
 
         expect(page).to have_current_path(macro_regions_path)
         expect(page).to have_text('Registro inativado com sucesso.')
-        expect(active_region.reload).not_to be_active
+        expect(active_region.reload).not_to be_activated
       end
 
       scenario 'activates an inactive region from the listing' do
@@ -154,14 +154,14 @@ describe 'Macro regions' do
 
         expect(page).to have_current_path(macro_regions_path)
         expect(page).to have_text('Registro ativado com sucesso.')
-        expect(inactive_region.reload).to be_active
+        expect(inactive_region.reload).to be_activated
       end
 
       scenario 'does not change the status of a region of another tenant' do
         page.driver.submit :patch, deactivate_macro_region_path(stranger_region), {}
 
         expect(page.status_code).to eq(404)
-        expect(stranger_region.reload).to be_active
+        expect(stranger_region.reload).to be_activated
       end
     end
 

@@ -146,7 +146,7 @@ describe 'Holidays' do
 
     context 'when changing the status of a holiday' do
       let!(:active_holiday) { create(:holiday, tenant:, date: Date.new(2026, 11, 2), name: 'Finados') }
-      let!(:inactive_holiday) { create(:holiday, tenant:, date: Date.new(2026, 11, 20), active: false) }
+      let!(:inactive_holiday) { create(:holiday, tenant:, date: Date.new(2026, 11, 20), activated_at: nil) }
       let!(:stranger_holiday) { create(:holiday, tenant: other_tenant) }
 
       scenario 'offers the toggle that matches the status of each holiday' do
@@ -170,7 +170,7 @@ describe 'Holidays' do
 
         expect(page).to have_current_path(holidays_path)
         expect(page).to have_text('Registro inativado com sucesso.')
-        expect(active_holiday.reload).not_to be_active
+        expect(active_holiday.reload).not_to be_activated
       end
 
       scenario 'activates an inactive holiday from the listing' do
@@ -180,14 +180,14 @@ describe 'Holidays' do
 
         expect(page).to have_current_path(holidays_path)
         expect(page).to have_text('Registro ativado com sucesso.')
-        expect(inactive_holiday.reload).to be_active
+        expect(inactive_holiday.reload).to be_activated
       end
 
       scenario 'does not change the status of a holiday of another tenant' do
         page.driver.submit :patch, deactivate_holiday_path(stranger_holiday), {}
 
         expect(page.status_code).to eq(404)
-        expect(stranger_holiday.reload).to be_active
+        expect(stranger_holiday.reload).to be_activated
       end
     end
 

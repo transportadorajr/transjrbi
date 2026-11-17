@@ -457,7 +457,7 @@ end
 
 - Always create monetary fields in the database as `bigint` with a `_cents` suffix (e.g., `price_cents`). When manually initializing a Money object from these fields, always use `Money.from_cents` (e.g., `Money.from_cents(value)`).
 
-- Do not use the `is_` prefix for boolean columns, methods, or variables (e.g., prefer `active` over `is_active`, `default` over `is_default`). In Ruby, boolean methods automatically use the `?` convention (e.g., `active?`), making the `is_` prefix redundant and contrary to Rails conventions.
+- Do not use the `is_` prefix for boolean methods or variables (e.g., prefer `activated?` over `is_activated?`, `default` over `is_default`). In Ruby, boolean methods automatically use the `?` convention, making the `is_` prefix redundant and contrary to Rails conventions. Boolean database columns are not allowed at all — see the Database section.
 
 - Never use `includes` to eager load associations. Always use `preload` instead. We avoid `includes` because its automatic strategy selection (join vs. separate query) can produce unpredictable behavior; `preload` is explicit and always issues separate queries.
 
@@ -472,6 +472,11 @@ end
 ```
 
 ## Database
+
+- **Never create a boolean column.** A yes/no state is stored as a nullable `datetime` named `<state>_at`, and the model exposes it with `time_based_flag` (`activated_at` → `activated?`, `activated=`, `.activated`, `.not_activated`). Form objects may still have a virtual boolean attribute (`attribute :active, :boolean`) for the checkbox, and persist it as `activated: active`.
+- The active/inactive status of a record is always `activated_at`, never an `active` boolean. Include the `Activatable` concern (`app/models/concerns/activatable.rb`), which declares `time_based_flag :activated, scheduled: false`, the `by_status` scope and an active-by-default `activated_at`. `scheduled: false` makes `.activated` mean "`activated_at` is present", so a spec that travels back in time does not see the record as inactive.
+- When the column is added to an existing table, give it `default: -> { 'CURRENT_TIMESTAMP' }` so the version still serving during the deploy keeps creating active records (`Activatable` makes an explicit `activated_at: nil` on create still be saved as nil).
+- The boolean `active` columns of `suppliers`, `workshop_employees`, `maintenance_parts` and `maintenance_services` are legacy: migrate them to `activated_at` with expand/contract when they are touched, and never copy that pattern.
 
 - Every enum created in the database must have the `_type` suffix. This applies both to the column that holds the enum and to the PostgreSQL enum type backing it, so the column reads as a type discriminator and stays consistent with the existing ones (`user_type`, `estimates_owner_type`, `name_type`).
 

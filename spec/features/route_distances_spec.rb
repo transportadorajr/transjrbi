@@ -124,7 +124,7 @@ describe 'Route distances' do
 
     context 'when changing the status of a route' do
       let!(:active_route) { create(:route_distance, tenant:, customer_code: 7001) }
-      let!(:inactive_route) { create(:route_distance, tenant:, customer_code: 7002, origin_city: 'SERRA', origin_state: 'ES', active: false) }
+      let!(:inactive_route) { create(:route_distance, tenant:, customer_code: 7002, origin_city: 'SERRA', origin_state: 'ES', activated_at: nil) }
       let!(:stranger_route) { create(:route_distance, tenant: other_tenant) }
 
       scenario 'offers the toggle that matches the status of each route' do
@@ -148,7 +148,7 @@ describe 'Route distances' do
 
         expect(page).to have_current_path(route_distances_path)
         expect(page).to have_text('Registro inativado com sucesso.')
-        expect(active_route.reload).not_to be_active
+        expect(active_route.reload).not_to be_activated
       end
 
       scenario 'activates an inactive route from the listing' do
@@ -158,14 +158,14 @@ describe 'Route distances' do
 
         expect(page).to have_current_path(route_distances_path)
         expect(page).to have_text('Registro ativado com sucesso.')
-        expect(inactive_route.reload).to be_active
+        expect(inactive_route.reload).to be_activated
       end
 
       scenario 'does not change the status of a route of another tenant' do
         page.driver.submit :patch, deactivate_route_distance_path(stranger_route), {}
 
         expect(page.status_code).to eq(404)
-        expect(stranger_route.reload).to be_active
+        expect(stranger_route.reload).to be_activated
       end
     end
 
@@ -281,7 +281,7 @@ describe 'Route distances' do
           page.driver.submit :patch, deactivate_route_distance_path(route_distance), {}
 
           expect(page).to have_text('Registro inativado com sucesso.')
-          expect(route_distance.reload).not_to be_active
+          expect(route_distance.reload).not_to be_activated
           expect(document.reload).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: nil, route_distance_id: nil)
 
           page.driver.submit :patch, activate_route_distance_path(route_distance), {}

@@ -47,7 +47,7 @@ describe 'Listing Excel exports' do
 
         expect_xlsx_download('cidades')
         expect(City.count).to eq(3)
-        expect(downloaded_xlsx_rows.first).to eq(['Macro região', 'Nome', 'UF', 'Criado em', 'Atualizado em', 'Ativa'])
+        expect(downloaded_xlsx_rows.first).to eq(['Macro região', 'Nome', 'UF', 'Criado em', 'Atualizado em', 'Ativada em'])
         expect(downloaded_xlsx_records.map { |record| record.slice('Macro região', 'Nome', 'UF') }).to eq(
           [{ 'Macro região' => nil, 'Nome' => 'Betim', 'UF' => 'MG' }, { 'Macro região' => 'VALE DO AÇO/MG', 'Nome' => 'Ipatinga', 'UF' => 'MG' }],
         )

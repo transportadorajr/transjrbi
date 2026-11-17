@@ -23,7 +23,7 @@ class HolidayForm < BaseForm
   class << self
     def for_holiday(holiday)
       form = new(date: holiday.date, name: holiday.name, scope_type: holiday.scope_type, kind_type: holiday.kind_type,
-                 active: holiday.active?, tenant: holiday.tenant)
+                 active: holiday.activated?, tenant: holiday.tenant)
       form.holiday = holiday
       form
     end
@@ -34,7 +34,7 @@ class HolidayForm < BaseForm
   end
 
   def submit
-    holiday.update!(date:, name:, scope_type:, kind_type:, active:)
+    holiday.update!(date:, name:, scope_type:, kind_type:, activated: active)
   end
 
   private

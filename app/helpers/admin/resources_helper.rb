@@ -1,7 +1,7 @@
 module Admin
   module ResourcesHelper
     def admin_resource_menu(resource)
-      [admin_resource_edit_menu(resource), activation_menu(resource, active: resource.active?, namespace: :admin),
+      [admin_resource_edit_menu(resource), activation_menu(resource, active: resource.activated?, namespace: :admin),
        admin_resource_destroy_menu(resource)]
     end
 

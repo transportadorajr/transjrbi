@@ -45,7 +45,7 @@ module RevenueProjections
     end
 
     def calendar
-      @calendar ||= RevenueProjection::Calendar.new(tenant.holidays.active.where(date: dates.first..dates.last).index_by(&:date))
+      @calendar ||= RevenueProjection::Calendar.new(tenant.holidays.activated.where(date: dates.first..dates.last).index_by(&:date))
     end
   end
 end

@@ -28,7 +28,7 @@ class RouteDistanceForm < BaseForm
       form = new(
         customer_code: route_distance.customer_code.to_s, origin_city: route_distance.origin_city, origin_state: route_distance.origin_state,
         destination_city: route_distance.destination_city, destination_state: route_distance.destination_state,
-        distance_km: format_distance(route_distance.distance_km), active: route_distance.active?,
+        distance_km: format_distance(route_distance.distance_km), active: route_distance.activated?,
         tenant: route_distance.tenant
       )
       form.route_distance = route_distance
@@ -53,7 +53,7 @@ class RouteDistanceForm < BaseForm
   def submit
     transaction do
       route_distance.update!(customer_code:, origin_city:, origin_state:, destination_city:, destination_state:,
-                             distance_km: distance_km_value, active:)
+                             distance_km: distance_km_value, activated: active)
       next if batch_import
 
       RouteDistances::ApplyCommand.call(tenant)

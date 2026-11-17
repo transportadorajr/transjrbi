@@ -2,7 +2,7 @@ module ExcludedIssuersHelper
   def excluded_issuers_menu(excluded_issuer)
     menus = []
 
-    menus << activation_menu(excluded_issuer, active: excluded_issuer.active?) if can?(:update, :excluded_issuers)
+    menus << activation_menu(excluded_issuer, active: excluded_issuer.activated?) if can?(:update, :excluded_issuers)
     menus << excluded_issuer_destroy_menu(excluded_issuer) if can?(:destroy, :excluded_issuers)
 
     menus
@@ -20,7 +20,7 @@ module ExcludedIssuersHelper
                 pdf_column(ExcludedIssuer.human_attribute_name(:freight), align: :right), pdf_column(ExcludedIssuer.human_attribute_name(:status))],
       rows: excluded_issuers.map do |excluded_issuer|
         [excluded_issuer.name, excluded_issuer.code, number_with_delimiter(excluded_issuer.documents_count), tax_money(excluded_issuer.freight),
-         activation_status_label(:excluded_issuers, excluded_issuer.active?)]
+         activation_status_label(:excluded_issuers, excluded_issuer.activated?)]
       end,
     )
   end

@@ -107,7 +107,7 @@ describe 'Excluded issuers' do
 
     context 'when changing the status of a issuer' do
       let!(:active_issuer) { create(:excluded_issuer, tenant:, name: 'MAYCON DORALINO SANTOS LORENA') }
-      let!(:inactive_issuer) { create(:excluded_issuer, tenant:, name: 'JEFFERSON ANDRE REMONATTO', active: false) }
+      let!(:inactive_issuer) { create(:excluded_issuer, tenant:, name: 'JEFFERSON ANDRE REMONATTO', activated_at: nil) }
       let!(:stranger_issuer) { create(:excluded_issuer, tenant: other_tenant, name: 'EMISSOR DE OUTRA') }
 
       scenario 'offers the toggle that matches the status of each issuer' do
@@ -131,7 +131,7 @@ describe 'Excluded issuers' do
 
         expect(page).to have_current_path(excluded_issuers_path)
         expect(page).to have_text('Registro inativado com sucesso.')
-        expect(active_issuer.reload).not_to be_active
+        expect(active_issuer.reload).not_to be_activated
       end
 
       scenario 'activates an inactive issuer from the listing' do
@@ -141,14 +141,14 @@ describe 'Excluded issuers' do
 
         expect(page).to have_current_path(excluded_issuers_path)
         expect(page).to have_text('Registro ativado com sucesso.')
-        expect(inactive_issuer.reload).to be_active
+        expect(inactive_issuer.reload).to be_activated
       end
 
       scenario 'does not change the status of a issuer of another tenant' do
         page.driver.submit :patch, deactivate_excluded_issuer_path(stranger_issuer), {}
 
         expect(page.status_code).to eq(404)
-        expect(stranger_issuer.reload).to be_active
+        expect(stranger_issuer.reload).to be_activated
       end
     end
 

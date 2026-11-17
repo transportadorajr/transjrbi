@@ -30,7 +30,7 @@ describe 'Admin resources', :admin do
       page.driver.submit :patch, deactivate_admin_resource_path(resource), {}
 
       expect(page).to have_current_path(admin_login_path)
-      expect(resource.reload).to be_active
+      expect(resource.reload).to be_activated
     end
   end
 
@@ -194,7 +194,7 @@ describe 'Admin resources', :admin do
 
     context 'when changing the status of a resource' do
       let!(:active_resource) { create(:resource, name: 'Fretes', slug: 'freights') }
-      let!(:inactive_resource) { create(:resource, name: 'Relatórios', slug: 'reports', active: false) }
+      let!(:inactive_resource) { create(:resource, name: 'Relatórios', slug: 'reports', activated_at: nil) }
 
       scenario 'offers the toggle that matches the status of each resource' do
         visit admin_resources_path
@@ -216,7 +216,7 @@ describe 'Admin resources', :admin do
 
         expect(page).to have_current_path(admin_resources_path)
         expect(page).to have_text('Registro inativado com sucesso.')
-        expect(active_resource.reload).not_to be_active
+        expect(active_resource.reload).not_to be_activated
       end
 
       scenario 'activates an inactive resource' do
@@ -226,7 +226,7 @@ describe 'Admin resources', :admin do
 
         expect(page).to have_current_path(admin_resources_path)
         expect(page).to have_text('Registro ativado com sucesso.')
-        expect(inactive_resource.reload).to be_active
+        expect(inactive_resource.reload).to be_activated
       end
     end
 

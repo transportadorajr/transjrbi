@@ -2,7 +2,7 @@
   <td class="fw-semibold text-break"><%= item.translated_name %></td>
   <td class="d-none d-md-table-cell font-monospace text-muted text-break"><%= item.slug %></td>
   <td><%= admin_resource_writable_badge(item) %></td>
-  <td><%= activation_status_badge(%i[admin resources], item.active?) %></td>
+  <td><%= activation_status_badge(%i[admin resources], item.activated?) %></td>
   <td class="text-end text-nowrap">
     <%= responsive_actions_menu(admin_resource_menu(item)) %>
   </td>

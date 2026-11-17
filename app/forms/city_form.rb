@@ -18,7 +18,7 @@ class CityForm < BaseForm
 
   class << self
     def for_city(city)
-      form = new(name: city.name, state: city.state, macro_region_id: city.macro_region_id, active: city.active?,
+      form = new(name: city.name, state: city.state, macro_region_id: city.macro_region_id, active: city.activated?,
                  tenant: city.tenant)
       form.city = city
       form
@@ -36,11 +36,11 @@ class CityForm < BaseForm
   def available_macro_regions
     regions = tenant.macro_regions.where(remaining_state: false)
 
-    regions.active.or(regions.where(id: macro_region_id)).order(:state, MacroRegion.sort_text(MacroRegion.arel_table[:name]))
+    regions.activated.or(regions.where(id: macro_region_id)).order(:state, MacroRegion.sort_text(MacroRegion.arel_table[:name]))
   end
 
   def submit
-    city.update!(name:, state:, macro_region:, active:)
+    city.update!(name:, state:, macro_region:, activated: active)
 
     MacroRegions::AssignRemainingStateCommand.call(tenant)
     MacroRegions::AssignCommand.call(tenant)

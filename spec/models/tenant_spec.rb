@@ -62,7 +62,7 @@ RSpec.describe Tenant do
     end
 
     it 'counts again the freights of an excluded issuer that was deactivated' do
-      tenant.excluded_issuers.update_all(active: false)
+      tenant.excluded_issuers.update_all(activated_at: nil)
 
       expect(tenant.billable_freights.pluck(:issuer_code)).to include(77)
       expect(tenant.billable_freights.count).to eq(3)

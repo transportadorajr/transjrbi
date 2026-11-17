@@ -67,7 +67,7 @@ class RevenueGoal
 
     def regions_options
       regions = tenant.macro_regions
-      regions.where(id: goal_values(:regions)).or(regions.active).order(:name, :id).to_h { |region| [region.id.to_s, region.name] }
+      regions.where(id: goal_values(:regions)).or(regions.activated).order(:name, :id).to_h { |region| [region.id.to_s, region.name] }
     end
 
     def vehicles_billing(relation)

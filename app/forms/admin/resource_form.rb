@@ -15,7 +15,7 @@ module Admin
 
     class << self
       def for_resource(resource)
-        form = new(name: resource.name, slug: resource.slug, writable: resource.writable, active: resource.active?)
+        form = new(name: resource.name, slug: resource.slug, writable: resource.writable, active: resource.activated?)
         form.resource = resource
         form
       end
@@ -26,7 +26,7 @@ module Admin
     end
 
     def submit
-      resource.update!(name:, slug:, writable:, active:)
+      resource.update!(name:, slug:, writable:, activated: active)
     end
 
     private

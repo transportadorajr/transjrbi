@@ -1,4 +1,5 @@
 class MacroRegion < ApplicationRecord
+  include Activatable
   include Sortable
   include Exportable
 
@@ -19,8 +20,6 @@ class MacroRegion < ApplicationRecord
   validates :state, format: { with: /\A[A-Z]{2}\z/ }
 
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
-  scope :active, -> { where(active: true) }
-  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
 
   class << self
     def statuses
@@ -45,7 +44,7 @@ class MacroRegion < ApplicationRecord
   def covers_city?(city)
     compacted_city = CustomerGroup.compact(city)
 
-    compacted_city.present? && cities.any? { |region_city| region_city.active? && region_city.compacted_name == compacted_city }
+    compacted_city.present? && cities.any? { |region_city| region_city.activated? && region_city.compacted_name == compacted_city }
   end
 end
 
@@ -54,7 +53,7 @@ end
 # Table name: macro_regions
 #
 #  id              :bigint           not null, primary key
-#  active          :boolean          default(TRUE), not null
+#  activated_at    :datetime
 #  name            :string           not null
 #  remaining_state :boolean          default(FALSE), not null
 #  state           :string           not null

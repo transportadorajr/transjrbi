@@ -12,7 +12,7 @@ class ExcludedIssuerForm < BaseForm
 
   class << self
     def for_excluded_issuer(excluded_issuer)
-      form = new(code: excluded_issuer.code, active: excluded_issuer.active?, tenant: excluded_issuer.tenant)
+      form = new(code: excluded_issuer.code, active: excluded_issuer.activated?, tenant: excluded_issuer.tenant)
       form.excluded_issuer = excluded_issuer
       form
     end
@@ -27,9 +27,9 @@ class ExcludedIssuerForm < BaseForm
   end
 
   def submit
-    return excluded_issuer.update!(active:) if persisted?
+    return excluded_issuer.update!(activated: active) if persisted?
 
-    excluded_issuer.update!(code:, name: issuer_name, active:)
+    excluded_issuer.update!(code:, name: issuer_name, activated: active)
   end
 
   private

@@ -49,7 +49,7 @@ class GoalsController < BaseController
   end
 
   def holidays(dates)
-    current_tenant.holidays.active.where(date: dates).index_by(&:date)
+    current_tenant.holidays.activated.where(date: dates).index_by(&:date)
   end
 
   def reference_date

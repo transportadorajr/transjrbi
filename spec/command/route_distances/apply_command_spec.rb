@@ -64,7 +64,7 @@ RSpec.describe RouteDistances::ApplyCommand do
 
     before do
       described_class.call(tenant)
-      route_distance.update!(active: false)
+      route_distance.update!(activated: false)
     end
 
     it 'restores the distance from Atua' do

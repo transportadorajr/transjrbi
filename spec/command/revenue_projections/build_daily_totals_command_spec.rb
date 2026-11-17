@@ -23,7 +23,7 @@ RSpec.describe RevenueProjections::BuildDailyTotalsCommand do
   end
 
   it 'treats an inactive holiday as a regular day' do
-    tenant.holidays.update_all(active: false)
+    tenant.holidays.update_all(activated_at: nil)
 
     rows = described_class.call(tenant, tenant.billable_freights.by_plate('AAA1A11'), Date.new(2026, 11, 2)..Date.new(2026, 11, 2))
 

@@ -109,7 +109,7 @@ class UsersController < BaseController
   end
 
   def set_resources
-    @resources = Resource.active.order(:name)
+    @resources = Resource.activated.order(:name)
   end
 
   def user_params

@@ -118,7 +118,7 @@ RSpec.describe Ability do
     end
 
     it 'cannot reach an inactive resource even with access' do
-      freights.update!(active: false)
+      freights.update!(activated: false)
 
       expect(ability).not_to be_able_to(:read, :freights)
       expect(ability).to be_able_to(:read, :reports)
@@ -138,7 +138,7 @@ RSpec.describe Ability do
     end
 
     it 'cannot reach an inactive resource' do
-      freights.update!(active: false)
+      freights.update!(activated: false)
 
       expect(ability).not_to be_able_to(:read, :freights)
     end

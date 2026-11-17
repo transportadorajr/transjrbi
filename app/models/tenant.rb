@@ -59,7 +59,7 @@ class Tenant < ApplicationRecord
   encrypts :atua_device_hash
 
   def billable_freights
-    atua_transport_documents.freights.without_issuers(excluded_issuers.active.select(:code))
+    atua_transport_documents.freights.without_issuers(excluded_issuers.activated.select(:code))
   end
 
   def last_synced_at

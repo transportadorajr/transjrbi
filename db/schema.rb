@@ -606,7 +606,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
     t.string "state", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "active", default: true, null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
     t.index ["macro_region_id"], name: "index_cities_on_macro_region_id"
     t.index ["tenant_id", "state", "name"], name: "index_cities_on_tenant_id_and_state_and_name", unique: true
     t.index ["tenant_id"], name: "index_cities_on_tenant_id"
@@ -708,7 +708,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
     t.string "name", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "active", default: true, null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
     t.index ["tenant_id", "code"], name: "index_excluded_issuers_on_tenant_id_and_code", unique: true
     t.index ["tenant_id"], name: "index_excluded_issuers_on_tenant_id"
   end
@@ -884,7 +884,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
     t.enum "kind_type", default: "holiday", null: false, enum_type: "holiday_kind_type"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "active", default: true, null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
     t.index ["tenant_id", "date"], name: "index_holidays_on_tenant_id_and_date", unique: true
     t.index ["tenant_id"], name: "index_holidays_on_tenant_id"
   end
@@ -921,7 +921,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
     t.boolean "remaining_state", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "active", default: true, null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
     t.index ["tenant_id", "name"], name: "index_macro_regions_on_tenant_id_and_name", unique: true
     t.index ["tenant_id", "state"], name: "index_macro_regions_on_remaining_state", unique: true, where: "remaining_state"
     t.index ["tenant_id"], name: "index_macro_regions_on_tenant_id"
@@ -1123,7 +1123,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
     t.boolean "writable", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "active", default: true, null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
     t.index ["slug"], name: "index_resources_on_slug", unique: true
   end
 
@@ -1245,7 +1245,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
     t.decimal "distance_km", precision: 14, scale: 2, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.boolean "active", default: true, null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
     t.index ["tenant_id", "customer_code", "origin_state", "origin_city", "destination_state", "destination_city"], name: "index_route_distances_on_customer_and_route", unique: true
     t.index ["tenant_id"], name: "index_route_distances_on_tenant_id"
   end

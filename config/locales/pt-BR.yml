@@ -116,14 +116,14 @@ pt-BR:
         documents_count: Documentos
         freight: Frete bruto
         status: Status
-        active: Ativo
+        activated_at: Ativado em
       holiday:
         date: Data
         name: Nome
         scope_type: Abrangência
         kind_type: Tipo
         status: Status
-        active: Ativo
+        activated_at: Ativado em
       revenue_projection/day_note:
         date: Dia
         body: Anotação
@@ -238,7 +238,7 @@ pt-BR:
         documents_count: CT-es
         customer_name: Nome do cliente
         status: Status
-        active: Ativo
+        activated_at: Ativado em
       truck_group:
         name: Nome
         axles: Quantidades de eixos
@@ -255,13 +255,13 @@ pt-BR:
         coverage: Abrangência
         transport_documents: CT-es com origem na região
         status: Status
-        active: Ativa
+        activated_at: Ativada em
       city:
         name: Nome
         state: UF
         macro_region: Macro região
         status: Status
-        active: Ativa
+        activated_at: Ativada em
       commission_rule:
         name: Nome
         customer_group: Grupo de clientes
@@ -709,7 +709,7 @@ pt-BR:
         slug: Identificador
         writable: Permite edição
         status: Status
-        active: Ativo
+        activated_at: Ativado em
       access:
         resource: Recurso / Módulo
         reads: Apenas Leitura
