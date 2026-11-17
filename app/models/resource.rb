@@ -8,7 +8,18 @@ class Resource < ApplicationRecord
   has_many :accesses, dependent: :restrict_with_error
 
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
+  scope :active, -> { where(active: true) }
+  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
   scope :by_slug, ->(slug) { where(arel_table[:slug].matches("%#{sanitize_sql_like(slug)}%")) }
+
+  class << self
+    def statuses
+      {
+        I18n.t('admin.resources.index.active') => :active,
+        I18n.t('admin.resources.index.deactivated') => :deactivated,
+      }
+    end
+  end
 
   def translated_name
     translation_key = "resource_names.#{slug}"
@@ -24,6 +35,7 @@ end
 # Table name: resources
 #
 #  id         :bigint           not null, primary key
+#  active     :boolean          default(TRUE), not null
 #  name       :string           not null
 #  slug       :string           not null
 #  writable   :boolean          default(TRUE), not null

@@ -38,5 +38,21 @@ RSpec.describe MacroRegions::AssignCommand do
       expect(described_class.call(tenant)).to eq(1)
       expect(cubatao.reload.origin_macro_region).to eq(interior)
     end
+
+    it 'sends the documents of an inactive region to the region of the rest of the state' do
+      described_class.call(tenant)
+      sao_paulo.update!(active: false)
+
+      expect(described_class.call(tenant)).to eq(1)
+      expect(cubatao.reload.origin_macro_region).to eq(interior)
+    end
+
+    it 'leaves out of the region the documents of an inactive city' do
+      described_class.call(tenant)
+      sao_paulo.cities.find_by!(name: 'Cubatão').update!(active: false)
+
+      expect(described_class.call(tenant)).to eq(1)
+      expect(cubatao.reload.origin_macro_region).to eq(interior)
+    end
   end
 end

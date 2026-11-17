@@ -1,10 +1,11 @@
 class WorkshopEmployeesController < BaseController
+  include Activation
   include MaintenanceFeature
 
   has_scope :by_name, as: :name
   has_scope :by_role_type, as: :role_type
 
-  before_action :set_workshop_employee, only: %i[edit update]
+  before_action :set_workshop_employee, only: %i[edit update activate deactivate]
 
   def index
     authorize!(:read, :workshop_employees)
@@ -52,6 +53,10 @@ class WorkshopEmployeesController < BaseController
   end
 
   private
+
+  def activation_form
+    WorkshopEmployeeForm.for_workshop_employee(@workshop_employee)
+  end
 
   def set_workshop_employee
     @workshop_employee = current_tenant.workshop_employees.find(params.expect(:id))

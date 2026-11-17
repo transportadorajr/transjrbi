@@ -60,6 +60,13 @@ RSpec.describe Tenant do
     it 'lists the freights of the tenant out of the excluded issuers' do
       expect(tenant.billable_freights).to contain_exactly(freight, without_issuer)
     end
+
+    it 'counts again the freights of an excluded issuer that was deactivated' do
+      tenant.excluded_issuers.update_all(active: false)
+
+      expect(tenant.billable_freights.pluck(:issuer_code)).to include(77)
+      expect(tenant.billable_freights.count).to eq(3)
+    end
   end
 
   describe '#last_synced_at' do

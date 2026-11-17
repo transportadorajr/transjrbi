@@ -1,9 +1,12 @@
 class CitiesController < BaseController
+  include Activation
+
   has_scope :by_name, as: :name
+  has_scope :by_status, as: :status
   has_scope :by_state, as: :state
   has_scope :by_macro_region, as: :macro_region_id
 
-  before_action :set_city, only: %i[show edit update destroy]
+  before_action :set_city, only: %i[show edit update destroy activate deactivate]
 
   def index
     authorize!(:read, :cities)
@@ -69,11 +72,15 @@ class CitiesController < BaseController
 
   private
 
+  def activation_form
+    CityForm.for_city(@city)
+  end
+
   def set_city
     @city = current_tenant.cities.find(params.expect(:id))
   end
 
   def city_params
-    params.expect(city: %i[name state macro_region_id])
+    params.expect(city: %i[name state macro_region_id active])
   end
 end

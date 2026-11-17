@@ -74,7 +74,8 @@ module ApplicationHelper
   end
 
   def action_color(action)
-    return :danger if action == :destroy
+    return :danger if %i[destroy deactivate].include?(action)
+    return :success if action == :activate
 
     :dark
   end

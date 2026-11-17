@@ -19,6 +19,8 @@ class RouteDistance < ApplicationRecord
   validates :distance_km, numericality: { greater_than: 0 }
   validates :destination_city, uniqueness: { scope: %i[tenant_id customer_code origin_state origin_city destination_state] }
 
+  scope :active, -> { where(active: true) }
+  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
   scope :by_customer, ->(code) { where(customer_code: code) }
   scope :by_origin, ->(city) { where(arel_table[:origin_city].matches("%#{sanitize_sql_like(normalize_city(city))}%")) }
   scope :by_destination, ->(city) { where(arel_table[:destination_city].matches("%#{sanitize_sql_like(normalize_city(city))}%")) }
@@ -30,6 +32,13 @@ class RouteDistance < ApplicationRecord
   }
 
   class << self
+    def statuses
+      {
+        I18n.t('route_distances.index.active') => :active,
+        I18n.t('route_distances.index.deactivated') => :deactivated,
+      }
+    end
+
     def normalize_city(value)
       I18n.transliterate(value.to_s).upcase.squish
     end
@@ -58,6 +67,7 @@ end
 # Table name: route_distances
 #
 #  id                :bigint           not null, primary key
+#  active            :boolean          default(TRUE), not null
 #  customer_code     :bigint           not null
 #  destination_city  :string           not null
 #  destination_state :string           not null

@@ -60,8 +60,8 @@ describe 'Maintenance parts', :maintenance do
         expect(html_table_to_rows).to eq(
           [
             ['Código', 'Descrição', 'Unidade', 'Marca', 'Valor unitário', 'Saldo', 'Ativo', 'Ações'],
-            ['LF-123', 'LONA DE FREIO', 'UN', 'FRAS-LE', 'R$ 85,00', '12 UN', 'Ativo', 'Opções Alterar Movimentações'],
-            ['-', 'ÓLEO 15W40', 'L', '-', 'R$ 28,90', '0 L', 'Inativo', 'Opções Alterar Movimentações'],
+            ['LF-123', 'LONA DE FREIO', 'UN', 'FRAS-LE', 'R$ 85,00', '12 UN', 'Ativo', 'Opções Alterar Inativar Movimentações'],
+            ['-', 'ÓLEO 15W40', 'L', '-', 'R$ 28,90', '0 L', 'Inativo', 'Opções Alterar Ativar Movimentações'],
           ],
         )
         expect(page).to have_link('Nova Peça', href: new_maintenance_part_path)
@@ -111,6 +111,47 @@ describe 'Maintenance parts', :maintenance do
         visit edit_maintenance_part_path(stranger)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a part' do
+      let!(:active_part) { create(:maintenance_part, tenant:, description: 'LONA DE FREIO') }
+      let!(:inactive_part) { create(:maintenance_part, tenant:, description: 'ÓLEO 15W40', active: false) }
+      let!(:stranger_part) { create(:maintenance_part, tenant: other_tenant, description: 'PEÇA DE OUTRA') }
+
+      scenario 'offers the toggle that matches the status of each part' do
+        visit maintenance_parts_path
+
+        expect(MaintenancePart.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_maintenance_part_path(active_part))
+        expect(page).to have_link('Ativar', href: activate_maintenance_part_path(inactive_part))
+      end
+
+      scenario 'deactivates an active part from the listing' do
+        visit maintenance_parts_path
+
+        expect { page.driver.submit :patch, deactivate_maintenance_part_path(active_part), {} }.not_to change(MaintenancePart, :count)
+
+        expect(page).to have_current_path(maintenance_parts_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_part.reload).not_to be_active
+      end
+
+      scenario 'activates an inactive part from the listing' do
+        visit maintenance_parts_path
+
+        expect { page.driver.submit :patch, activate_maintenance_part_path(inactive_part), {} }.not_to change(MaintenancePart, :count)
+
+        expect(page).to have_current_path(maintenance_parts_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_part.reload).to be_active
+      end
+
+      scenario 'does not change the status of a part of another tenant' do
+        page.driver.submit :patch, deactivate_maintenance_part_path(stranger_part), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_part.reload).to be_active
       end
     end
 

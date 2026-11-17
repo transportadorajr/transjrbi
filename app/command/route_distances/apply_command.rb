@@ -27,7 +27,7 @@ module RouteDistances
     attr_reader :tenant, :applied_at, :changes
 
     def routes
-      @routes ||= RouteDistance.where(tenant:).index_by(&:route_key)
+      @routes ||= RouteDistance.where(tenant:).active.index_by(&:route_key)
     end
 
     def candidates

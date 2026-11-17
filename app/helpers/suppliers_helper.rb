@@ -3,6 +3,7 @@ module SuppliersHelper
     menus = []
 
     menus << supplier_edit_menu(supplier) if can?(:update, :suppliers)
+    menus << activation_menu(supplier, active: supplier.active?) if can?(:update, :suppliers)
 
     menus
   end

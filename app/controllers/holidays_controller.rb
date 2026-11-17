@@ -1,9 +1,12 @@
 class HolidaysController < BaseController
+  include Activation
+
   has_scope :by_year, as: :year, default: -> { Date.current.year }
   has_scope :by_name, as: :name
+  has_scope :by_status, as: :status
   has_scope :by_scope_type, as: :scope_type
 
-  before_action :set_holiday, only: %i[edit update destroy]
+  before_action :set_holiday, only: %i[edit update destroy activate deactivate]
 
   def index
     authorize!(:read, :holidays)
@@ -62,12 +65,16 @@ class HolidaysController < BaseController
 
   private
 
+  def activation_form
+    HolidayForm.for_holiday(@holiday)
+  end
+
   def set_holiday
     @holiday = current_tenant.holidays.find(params.expect(:id))
   end
 
   def holiday_params
-    params.expect(holiday: %i[date name scope_type kind_type])
+    params.expect(holiday: %i[date name scope_type kind_type active])
   end
 
   def holiday_years

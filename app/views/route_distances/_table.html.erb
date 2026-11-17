@@ -7,6 +7,7 @@
         <%= sortable_header(RouteDistance.human_attribute_name(:distance_km), :distance_km, first_direction: :desc,
                                                                                             class: 'd-none d-md-table-cell text-end') %>
         <th class="d-none d-lg-table-cell text-end"><%= RouteDistance.human_attribute_name(:documents_count) %></th>
+        <th><%= RouteDistance.human_attribute_name(:status) %></th>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>

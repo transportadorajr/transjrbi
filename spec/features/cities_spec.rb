@@ -52,10 +52,10 @@ describe 'Cities' do
         expect(City.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Ações'],
-            ['Ipatinga', 'MG', 'VALE DO AÇO/MG', 'Opções Visualizar Alterar Excluir'],
-            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Opções Visualizar Alterar Excluir'],
-            ['Cubatão', 'SP', 'Sem macro região', 'Opções Visualizar Alterar Excluir'],
+            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
+            ['Ipatinga', 'MG', 'VALE DO AÇO/MG', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Cubatão', 'SP', 'Sem macro região', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_link('Nova Cidade', href: new_city_path)
@@ -100,8 +100,8 @@ describe 'Cities' do
         expect(City.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Ações'],
-            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Opções Visualizar Alterar Excluir'],
+            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
+            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
       end
@@ -113,8 +113,8 @@ describe 'Cities' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Ações'],
-            ['Cubatão', 'SP', 'Sem macro região', 'Opções Visualizar Alterar Excluir'],
+            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
+            ['Cubatão', 'SP', 'Sem macro região', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
       end
@@ -138,6 +138,53 @@ describe 'Cities' do
         visit city_path(stranger_city)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a city' do
+      let!(:active_city) { create(:city, tenant:, name: 'Ipatinga') }
+      let!(:inactive_city) { create(:city, tenant:, name: 'Timóteo', active: false) }
+      let!(:stranger_city) { create(:city, tenant: other_tenant, name: 'Cidade de Outra') }
+
+      scenario 'offers the toggle that matches the status of each city' do
+        visit cities_path
+
+        expect(page).to have_link('Inativar', href: deactivate_city_path(active_city))
+        expect(page).to have_link('Ativar', href: activate_city_path(inactive_city))
+      end
+
+      scenario 'filters the citys by status' do
+        visit cities_path(status: 'deactivated')
+
+        expect(page).to have_css("#city_#{inactive_city.id}")
+        expect(page).to have_no_css("#city_#{active_city.id}")
+      end
+
+      scenario 'deactivates an active city from the listing' do
+        visit cities_path
+
+        expect { page.driver.submit :patch, deactivate_city_path(active_city), {} }.not_to change(City, :count)
+
+        expect(page).to have_current_path(cities_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_city.reload).not_to be_active
+      end
+
+      scenario 'activates an inactive city from the listing' do
+        visit cities_path
+
+        expect { page.driver.submit :patch, activate_city_path(inactive_city), {} }.not_to change(City, :count)
+
+        expect(page).to have_current_path(cities_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_city.reload).to be_active
+      end
+
+      scenario 'does not change the status of a city of another tenant' do
+        page.driver.submit :patch, deactivate_city_path(stranger_city), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_city.reload).to be_active
       end
     end
 
@@ -264,8 +311,8 @@ describe 'Cities' do
         expect(City.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Ações'],
-            ['Ipatinga', 'MG', 'Sem macro região', ''],
+            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
+            ['Ipatinga', 'MG', 'Sem macro região', 'Ativa', ''],
           ],
         )
         expect(page).to have_no_link('Nova Cidade')

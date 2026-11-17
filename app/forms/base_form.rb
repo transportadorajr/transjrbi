@@ -72,6 +72,17 @@ class BaseForm
     errors.empty?
   end
 
+  def save_activation(active)
+    @activation_only = true
+    self.active = active
+
+    save
+  end
+
+  def activation_only?
+    @activation_only.present?
+  end
+
   def submit
     raise NotImplementedError
   end

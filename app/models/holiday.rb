@@ -18,7 +18,18 @@ class Holiday < ApplicationRecord
 
   scope :by_year, ->(year) { where(date: Date.new(year.to_i).all_year) }
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
+  scope :active, -> { where(active: true) }
+  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
   scope :by_scope_type, ->(scope_type) { where(scope_type:) }
+
+  class << self
+    def statuses
+      {
+        I18n.t('holidays.index.active') => :active,
+        I18n.t('holidays.index.deactivated') => :deactivated,
+      }
+    end
+  end
 end
 
 # == Schema Information
@@ -26,6 +37,7 @@ end
 # Table name: holidays
 #
 #  id         :bigint           not null, primary key
+#  active     :boolean          default(TRUE), not null
 #  date       :date             not null
 #  kind_type  :enum             default("holiday"), not null
 #  name       :string           not null

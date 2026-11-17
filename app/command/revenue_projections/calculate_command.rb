@@ -86,7 +86,7 @@ module RevenueProjections
     end
 
     def holidays
-      @holidays ||= tenant.holidays.where(date: (reference_date - RevenueProjection::Forecaster::BASELINE_DAYS)..period.last).index_by(&:date)
+      @holidays ||= tenant.holidays.active.where(date: (reference_date - RevenueProjection::Forecaster::BASELINE_DAYS)..period.last).index_by(&:date)
     end
 
     def factors

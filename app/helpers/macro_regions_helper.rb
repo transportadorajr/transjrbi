@@ -4,6 +4,7 @@ module MacroRegionsHelper
 
     menus << macro_region_show_menu(macro_region) if can?(:read, :macro_regions)
     menus << macro_region_edit_menu(macro_region) if can?(:update, :macro_regions)
+    menus << activation_menu(macro_region, active: macro_region.active?) if can?(:update, :macro_regions)
     menus << macro_region_destroy_menu(macro_region) if can?(:destroy, :macro_regions)
 
     menus
@@ -50,8 +51,10 @@ module MacroRegionsHelper
     PdfReport.new(
       title: t('macro_regions.index.pdf.header'),
       columns: [pdf_column(MacroRegion.human_attribute_name(:name), '2fr'), pdf_column(MacroRegion.human_attribute_name(:state)),
-                pdf_column(MacroRegion.human_attribute_name(:coverage), '3fr')],
-      rows: macro_regions.map { |macro_region| [macro_region.name, macro_region.state, macro_region_coverage(macro_region)] },
+                pdf_column(MacroRegion.human_attribute_name(:coverage), '3fr'), pdf_column(MacroRegion.human_attribute_name(:status))],
+      rows: macro_regions.map do |macro_region|
+        [macro_region.name, macro_region.state, macro_region_coverage(macro_region), activation_status_label(:macro_regions, macro_region.active?)]
+      end,
     )
   end
 

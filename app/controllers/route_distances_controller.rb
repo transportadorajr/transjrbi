@@ -1,9 +1,12 @@
 class RouteDistancesController < BaseController
+  include Activation
+
   has_scope :by_customer, as: :customer_code
   has_scope :by_origin, as: :origin
   has_scope :by_destination, as: :destination
+  has_scope :by_status, as: :status
 
-  before_action :set_route_distance, only: %i[edit update destroy]
+  before_action :set_route_distance, only: %i[edit update destroy activate deactivate]
   before_action :load_customers, only: %i[index new edit create update]
 
   def index
@@ -77,6 +80,10 @@ class RouteDistancesController < BaseController
 
   private
 
+  def activation_form
+    RouteDistanceForm.for_route_distance(@route_distance)
+  end
+
   def set_route_distance
     @route_distance = current_tenant.route_distances.find(params.expect(:id))
   end
@@ -87,7 +94,7 @@ class RouteDistancesController < BaseController
   end
 
   def route_distance_params
-    params.expect(route_distance: %i[customer_code origin_city origin_state destination_city destination_state distance_km])
+    params.expect(route_distance: %i[customer_code origin_city origin_state destination_city destination_state distance_km active])
   end
 
   def import_notice(result)

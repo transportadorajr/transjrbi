@@ -1,4 +1,11 @@
 Rails.application.routes.draw do
+  concern :activatable do
+    member do
+      patch :activate
+      patch :deactivate
+    end
+  end
+
   constraints subdomain: Transjrbi::ADMIN_SUBDOMAIN do
     namespace :admin, path: '/' do
       get 'login', to: 'sessions#new', as: :login
@@ -13,7 +20,7 @@ Rails.application.routes.draw do
       resources :tenants, only: %i[index new create edit update] do
         resource :device_registration, only: %i[create update]
       end
-      resources :resources, only: %i[index new create edit update destroy]
+      resources :resources, only: %i[index new create edit update destroy], concerns: :activatable
 
       constraints ->(request) { Admin::Session.authenticate(request.session[Admin::Authentication::SESSION_TOKEN_KEY]) } do
         mount Flipper::UI.app(Flipper), at: 'flipper', as: :flipper
@@ -58,10 +65,10 @@ Rails.application.routes.draw do
       resources :labors, controller: 'maintenance_order_labors', only: %i[new create edit update destroy]
       resources :services, controller: 'maintenance_order_services', only: %i[new create edit update destroy]
     end
-    resources :workshop_employees, except: %i[show destroy]
-    resources :suppliers, except: %i[show destroy]
-    resources :maintenance_parts, except: %i[show destroy]
-    resources :maintenance_services, except: %i[show destroy]
+    resources :workshop_employees, except: %i[show destroy], concerns: :activatable
+    resources :suppliers, except: %i[show destroy], concerns: :activatable
+    resources :maintenance_parts, except: %i[show destroy], concerns: :activatable
+    resources :maintenance_services, except: %i[show destroy], concerns: :activatable
     resources :maintenance_part_movements, only: %i[index new create]
     root 'maintenance_home#index', as: :maintenance_root
   end
@@ -85,26 +92,26 @@ Rails.application.routes.draw do
       get :product_options, on: :collection
     end
     resources :customers, only: %i[index show]
-    resources :customer_groups do
+    resources :customer_groups, concerns: :activatable do
       patch :regroup, on: :member
     end
-    resources :product_groups
+    resources :product_groups, concerns: :activatable
     resources :drivers, only: %i[index show edit update destroy]
     resources :expenses, only: %i[index show]
-    resources :commission_rules
-    resources :macro_regions
-    resources :cities
-    resources :truck_groups
+    resources :commission_rules, concerns: :activatable
+    resources :macro_regions, concerns: :activatable
+    resources :cities, concerns: :activatable
+    resources :truck_groups, concerns: :activatable
     resource :own_fleet, only: %i[show edit update]
     resource :revenue_goals, only: %i[show edit update] do
       post :replicate
     end
-    resources :excluded_issuers, only: %i[index new create destroy]
-    resources :holidays, except: :show
-    resources :route_distances, except: :show do
+    resources :excluded_issuers, only: %i[index new create destroy], concerns: :activatable
+    resources :holidays, except: :show, concerns: :activatable
+    resources :route_distances, except: :show, concerns: :activatable do
       post :import, on: :collection
     end
-    resources :tonnage_rates
+    resources :tonnage_rates, concerns: :activatable
     resource :insurance_rate, only: %i[show edit update]
     resource :freight_billing, only: :show do
       get :detail

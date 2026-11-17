@@ -1,10 +1,22 @@
 class ExcludedIssuerForm < BaseForm
   attribute :code, :integer
+  attribute :active, :boolean, default: true
 
   validates :code, presence: true
-  validate :code_must_be_available
+  validate :code_must_be_available, unless: :persisted?
 
   attr_accessor :tenant
+  attr_writer :excluded_issuer
+
+  delegate :persisted?, to: :excluded_issuer
+
+  class << self
+    def for_excluded_issuer(excluded_issuer)
+      form = new(code: excluded_issuer.code, active: excluded_issuer.active?, tenant: excluded_issuer.tenant)
+      form.excluded_issuer = excluded_issuer
+      form
+    end
+  end
 
   def excluded_issuer
     @excluded_issuer ||= tenant.excluded_issuers.new
@@ -15,7 +27,9 @@ class ExcludedIssuerForm < BaseForm
   end
 
   def submit
-    excluded_issuer.update!(code:, name: issuer_name)
+    return excluded_issuer.update!(active:) if persisted?
+
+    excluded_issuer.update!(code:, name: issuer_name, active:)
   end
 
   private

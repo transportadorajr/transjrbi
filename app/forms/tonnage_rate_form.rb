@@ -72,7 +72,7 @@ class TonnageRateForm < BaseForm
   def submit
     transaction do
       tonnage_rate.update!(customer_group_id:, name:, nickname: selected_origin.nickname.presence, origin_city: selected_origin.city,
-                           origin_state: selected_origin.state, valid_month: valid_month_value, rate_cents:, activated: active, copied_from: nil)
+                           origin_state: selected_origin.state, valid_month: valid_month_value, rate_cents:, activated: active, **review_attributes)
     end
 
     FreightExpenses::CalculateJob.perform_later(tenant.id)
@@ -83,6 +83,10 @@ class TonnageRateForm < BaseForm
   end
 
   private
+
+  def review_attributes
+    activation_only? ? {} : { copied_from: nil }
+  end
 
   def default_customer_group
     tenant&.customer_groups&.find_by(name: TonnageRate::DEFAULT_CUSTOMER_GROUP_NAME)

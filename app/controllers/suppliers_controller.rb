@@ -1,9 +1,10 @@
 class SuppliersController < BaseController
+  include Activation
   include MaintenanceFeature
 
   has_scope :by_name, as: :name
 
-  before_action :set_supplier, only: %i[edit update]
+  before_action :set_supplier, only: %i[edit update activate deactivate]
 
   def index
     authorize!(:read, :suppliers)
@@ -51,6 +52,10 @@ class SuppliersController < BaseController
   end
 
   private
+
+  def activation_form
+    SupplierForm.for_supplier(@supplier)
+  end
 
   def set_supplier
     @supplier = current_tenant.suppliers.find(params.expect(:id))

@@ -1,5 +1,10 @@
 class ExcludedIssuersController < BaseController
+  include Activation
+
   has_scope :by_name, as: :name
+  has_scope :by_status, as: :status
+
+  before_action :set_excluded_issuer, only: %i[activate deactivate]
 
   def index
     authorize!(:read, :excluded_issuers)
@@ -36,6 +41,14 @@ class ExcludedIssuersController < BaseController
   end
 
   private
+
+  def set_excluded_issuer
+    @excluded_issuer = current_tenant.excluded_issuers.find(params.expect(:id))
+  end
+
+  def activation_form
+    ExcludedIssuerForm.for_excluded_issuer(@excluded_issuer)
+  end
 
   def excluded_issuer_params
     params.expect(excluded_issuer: [:code])

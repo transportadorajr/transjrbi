@@ -117,6 +117,13 @@ RSpec.describe Ability do
       expect(ability).not_to be_able_to(:read, :trips)
     end
 
+    it 'cannot reach an inactive resource even with access' do
+      freights.update!(active: false)
+
+      expect(ability).not_to be_able_to(:read, :freights)
+      expect(ability).to be_able_to(:read, :reports)
+    end
+
     it 'does not use the accesses of another user' do
       expect(described_class.new(create(:user, tenant:))).not_to be_able_to(:read, :freights)
     end
@@ -128,6 +135,12 @@ RSpec.describe Ability do
 
     it 'manages every resource' do
       expect(ability).to be_able_to(:manage, :freights)
+    end
+
+    it 'cannot reach an inactive resource' do
+      freights.update!(active: false)
+
+      expect(ability).not_to be_able_to(:read, :freights)
     end
   end
 

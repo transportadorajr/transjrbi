@@ -62,10 +62,10 @@ describe 'Tonnage rates' do
         expect(html_table_to_rows).to eq(
           [
             ['Origem', 'Nome', 'Grupo de clientes', 'Vigência', 'Média de', 'Valor por tonelada', 'Status', 'Ações'],
-            ['Cubatão/SP (Cubatão)', 'Brasiltec', 'USIMINAS', '10/2026', '09/2026', 'R$ 12,57/t', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['Cubatão/SP (Cubatão)', 'Brasiltec', 'USIMINAS', '10/2026', '09/2026', 'R$ 12,57/t', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
             ['Santo André/SP (Utinga)', 'Brasiltec', 'USIMINAS', '10/2026', '09/2026', 'R$ 18,02/t', 'Ativo',
-             'Opções Visualizar Alterar Excluir'],
-            ['Ipatinga/MG', 'Brasiltec', 'USIMINAS', '09/2026', '08/2026', 'R$ 8,50/t', 'Inativo', 'Opções Visualizar Alterar Excluir'],
+             'Opções Visualizar Alterar Inativar Excluir'],
+            ['Ipatinga/MG', 'Brasiltec', 'USIMINAS', '09/2026', '08/2026', 'R$ 8,50/t', 'Inativo', 'Opções Visualizar Alterar Ativar Excluir'],
           ],
         )
         expect(page).to have_css('.counter-card', text: "Total de custos\n3")
@@ -144,6 +144,47 @@ describe 'Tonnage rates' do
         visit tonnage_rate_path(stranger_rate)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a rate' do
+      let!(:active_rate) { create(:tonnage_rate, tenant:, customer_group: usiminas) }
+      let!(:inactive_rate) { create(:tonnage_rate, tenant:, customer_group: usiminas, nickname: 'Utinga', origin_city: 'Santo André', activated_at: nil) }
+      let!(:stranger_rate) { create(:tonnage_rate, tenant: other_tenant, customer_group: create(:customer_group, tenant: other_tenant)) }
+
+      scenario 'offers the toggle that matches the status of each rate' do
+        visit tonnage_rates_path
+
+        expect(TonnageRate.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_tonnage_rate_path(active_rate))
+        expect(page).to have_link('Ativar', href: activate_tonnage_rate_path(inactive_rate))
+      end
+
+      scenario 'deactivates an active rate from the listing' do
+        visit tonnage_rates_path
+
+        expect { page.driver.submit :patch, deactivate_tonnage_rate_path(active_rate), {} }.not_to change(TonnageRate, :count)
+
+        expect(page).to have_current_path(tonnage_rates_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_rate.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive rate from the listing' do
+        visit tonnage_rates_path
+
+        expect { page.driver.submit :patch, activate_tonnage_rate_path(inactive_rate), {} }.not_to change(TonnageRate, :count)
+
+        expect(page).to have_current_path(tonnage_rates_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_rate.reload).to be_activated
+      end
+
+      scenario 'does not change the status of a rate of another tenant' do
+        page.driver.submit :patch, deactivate_tonnage_rate_path(stranger_rate), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_rate.reload).to be_activated
       end
     end
 
@@ -256,7 +297,7 @@ describe 'Tonnage rates' do
         expect(TonnageRate.count).to eq(2)
         expect(html_table_to_rows.drop(1)).to eq(
           [['Cubatão/SP (Cubatão)', 'Brasiltec', 'USIMINAS', '11/2026', '10/2026', 'R$ 12,57/t', 'Ativo Copiado de 10/2026 – revisar',
-            'Opções Visualizar Alterar Excluir']],
+            'Opções Visualizar Alterar Inativar Excluir']],
         )
 
         click_on 'Cubatão/SP (Cubatão)'

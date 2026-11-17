@@ -13,6 +13,8 @@ class ExcludedIssuer < ApplicationRecord
   validates :code, uniqueness: { scope: :tenant_id }
 
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
+  scope :active, -> { where(active: true) }
+  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
   scope :with_document_totals, -> {
     documents = Atua::TransportDocument.active.not_canceled
       .where(Atua::TransportDocument.arel_table[:tenant_id].eq(arel_table[:tenant_id]))
@@ -26,6 +28,13 @@ class ExcludedIssuer < ApplicationRecord
   }
 
   class << self
+    def statuses
+      {
+        I18n.t('excluded_issuers.index.active') => :active,
+        I18n.t('excluded_issuers.index.deactivated') => :deactivated,
+      }
+    end
+
     def available_issuers(tenant)
       tenant.atua_transport_documents
         .where.not(issuer_code: nil)
@@ -46,6 +55,7 @@ end
 # Table name: excluded_issuers
 #
 #  id         :bigint           not null, primary key
+#  active     :boolean          default(TRUE), not null
 #  code       :integer          not null
 #  name       :string           not null
 #  created_at :datetime         not null

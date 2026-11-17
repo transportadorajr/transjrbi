@@ -73,9 +73,9 @@ describe 'Route distances' do
         expect(RouteDistance.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Cliente', 'Trecho', 'KM considerado', 'CT-es', 'Ações'],
-            ['ARCELORMITTAL BRASIL S.A.', 'IPATINGA/MG → CAXIAS DO SUL/RS', '1.450,00 km', '2', 'Opções Alterar Excluir'],
-            ['GERDAU ACOS LONGOS S.A.', 'SERRA/ES → CURITIBA/PR', '1.210,50 km', '0', 'Opções Alterar Excluir'],
+            ['Cliente', 'Trecho', 'KM considerado', 'CT-es', 'Status', 'Ações'],
+            ['ARCELORMITTAL BRASIL S.A.', 'IPATINGA/MG → CAXIAS DO SUL/RS', '1.450,00 km', '2', 'Ativo', 'Opções Alterar Inativar Excluir'],
+            ['GERDAU ACOS LONGOS S.A.', 'SERRA/ES → CURITIBA/PR', '1.210,50 km', '0', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_link('Novo Trecho', href: new_route_distance_path)
@@ -88,8 +88,8 @@ describe 'Route distances' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Cliente', 'Trecho', 'KM considerado', 'CT-es', 'Ações'],
-            ['GERDAU ACOS LONGOS S.A.', 'SERRA/ES → CURITIBA/PR', '1.210,50 km', '0', 'Opções Alterar Excluir'],
+            ['Cliente', 'Trecho', 'KM considerado', 'CT-es', 'Status', 'Ações'],
+            ['GERDAU ACOS LONGOS S.A.', 'SERRA/ES → CURITIBA/PR', '1.210,50 km', '0', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
 
@@ -101,8 +101,8 @@ describe 'Route distances' do
         expect(RouteDistance.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Cliente', 'Trecho', 'KM considerado', 'CT-es', 'Ações'],
-            ['ARCELORMITTAL BRASIL S.A.', 'IPATINGA/MG → CAXIAS DO SUL/RS', '1.450,00 km', '2', 'Opções Alterar Excluir'],
+            ['Cliente', 'Trecho', 'KM considerado', 'CT-es', 'Status', 'Ações'],
+            ['ARCELORMITTAL BRASIL S.A.', 'IPATINGA/MG → CAXIAS DO SUL/RS', '1.450,00 km', '2', 'Ativo', 'Opções Alterar Inativar Excluir'],
           ],
         )
       end
@@ -119,6 +119,53 @@ describe 'Route distances' do
         visit edit_route_distance_path(stranger)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a route' do
+      let!(:active_route) { create(:route_distance, tenant:, customer_code: 7001) }
+      let!(:inactive_route) { create(:route_distance, tenant:, customer_code: 7002, origin_city: 'SERRA', origin_state: 'ES', active: false) }
+      let!(:stranger_route) { create(:route_distance, tenant: other_tenant) }
+
+      scenario 'offers the toggle that matches the status of each route' do
+        visit route_distances_path
+
+        expect(page).to have_link('Inativar', href: deactivate_route_distance_path(active_route))
+        expect(page).to have_link('Ativar', href: activate_route_distance_path(inactive_route))
+      end
+
+      scenario 'filters the routes by status' do
+        visit route_distances_path(status: 'deactivated')
+
+        expect(page).to have_css("#route_distance_#{inactive_route.id}")
+        expect(page).to have_no_css("#route_distance_#{active_route.id}")
+      end
+
+      scenario 'deactivates an active route from the listing' do
+        visit route_distances_path
+
+        expect { page.driver.submit :patch, deactivate_route_distance_path(active_route), {} }.not_to change(RouteDistance, :count)
+
+        expect(page).to have_current_path(route_distances_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_route.reload).not_to be_active
+      end
+
+      scenario 'activates an inactive route from the listing' do
+        visit route_distances_path
+
+        expect { page.driver.submit :patch, activate_route_distance_path(inactive_route), {} }.not_to change(RouteDistance, :count)
+
+        expect(page).to have_current_path(route_distances_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_route.reload).to be_active
+      end
+
+      scenario 'does not change the status of a route of another tenant' do
+        page.driver.submit :patch, deactivate_route_distance_path(stranger_route), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_route.reload).to be_active
       end
     end
 
@@ -226,6 +273,22 @@ describe 'Route distances' do
           expect(page).to have_current_path(route_distances_path)
           expect(page).to have_text('Trecho excluído. Os CT-es dele voltaram a usar o KM informado pelo Atua.')
           expect(document.reload).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: nil, distance_adjusted_at: nil)
+        end
+
+        scenario 'gives the transport documents their distance back when the route is deactivated and applies it again on activation' do
+          visit route_distances_path
+
+          page.driver.submit :patch, deactivate_route_distance_path(route_distance), {}
+
+          expect(page).to have_text('Registro inativado com sucesso.')
+          expect(route_distance.reload).not_to be_active
+          expect(document.reload).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: nil, route_distance_id: nil)
+
+          page.driver.submit :patch, activate_route_distance_path(route_distance), {}
+
+          expect(page).to have_text('Registro ativado com sucesso.')
+          expect(document.reload).to have_attributes(distance_km: BigDecimal('1450'), original_distance_km: BigDecimal('1300'),
+                                                     route_distance_id: route_distance.id)
         end
       end
     end

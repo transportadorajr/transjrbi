@@ -19,8 +19,17 @@ class MacroRegion < ApplicationRecord
   validates :state, format: { with: /\A[A-Z]{2}\z/ }
 
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
+  scope :active, -> { where(active: true) }
+  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
 
   class << self
+    def statuses
+      {
+        I18n.t('macro_regions.index.active') => :active,
+        I18n.t('macro_regions.index.deactivated') => :deactivated,
+      }
+    end
+
     def unassigned_origins(tenant)
       tenant.atua_transport_documents.active.freights.where(origin_macro_region_id: nil).where.not(origin_city: [nil, ''])
         .group(:origin_city, :origin_state).count.sort_by { |(city, state), count| [-count, state.to_s, city] }
@@ -36,7 +45,7 @@ class MacroRegion < ApplicationRecord
   def covers_city?(city)
     compacted_city = CustomerGroup.compact(city)
 
-    compacted_city.present? && cities.any? { |region_city| region_city.compacted_name == compacted_city }
+    compacted_city.present? && cities.any? { |region_city| region_city.active? && region_city.compacted_name == compacted_city }
   end
 end
 
@@ -45,6 +54,7 @@ end
 # Table name: macro_regions
 #
 #  id              :bigint           not null, primary key
+#  active          :boolean          default(TRUE), not null
 #  name            :string           not null
 #  remaining_state :boolean          default(FALSE), not null
 #  state           :string           not null

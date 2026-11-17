@@ -21,6 +21,12 @@
                                   include_blank: t('helpers.select.prompt'), hint: t('holidays.form.kind_type_hint'),
                                   input_html: { class: 'form-select' } %>
         </div>
+        <div class="col-12">
+          <%= f.input :active,
+                      as: :boolean,
+                      hint: t('holidays.form.active_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
       </div>
     </div>
 

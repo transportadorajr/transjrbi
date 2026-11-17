@@ -3,6 +3,7 @@ class MacroRegionForm < BaseForm
   attribute :state, :string
   attribute :city_ids, default: -> { [] }
   attribute :remaining_state, :boolean, default: false
+  attribute :active, :boolean, default: true
 
   before_validation :normalize_fields
 
@@ -22,7 +23,8 @@ class MacroRegionForm < BaseForm
   class << self
     def for_macro_region(macro_region)
       form = new(name: macro_region.name, state: macro_region.state, city_ids: macro_region.city_ids,
-                 remaining_state: macro_region.remaining_state, tenant: macro_region.tenant)
+                 remaining_state: macro_region.remaining_state, active: macro_region.active?,
+                 tenant: macro_region.tenant)
       form.macro_region = macro_region
       form
     end
@@ -39,12 +41,14 @@ class MacroRegionForm < BaseForm
   end
 
   def available_cities
-    tenant.cities.where(macro_region_id: [nil, macro_region.id, *remaining_region_ids].uniq).order(:state, City.sort_text(City.arel_table[:name]))
+    cities = tenant.cities.where(macro_region_id: [nil, macro_region.id, *remaining_region_ids].uniq)
+
+    cities.active.or(cities.where(id: city_ids)).order(:state, City.sort_text(City.arel_table[:name]))
   end
 
   def submit
     transaction do
-      macro_region.update!(name:, state:, remaining_state:)
+      macro_region.update!(name:, state:, remaining_state:, active:)
       macro_region.cities = selected_cities.to_a unless remaining_state
     end
 

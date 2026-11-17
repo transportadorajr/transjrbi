@@ -14,6 +14,8 @@ class City < ApplicationRecord
   validates :state, format: { with: /\A[A-Z]{2}\z/ }
 
   scope :by_name, ->(name) { where(arel_table[:name].matches("%#{sanitize_sql_like(name)}%")) }
+  scope :active, -> { where(active: true) }
+  scope :by_status, ->(status) { where(active: status.to_s == 'active') }
   scope :by_state, ->(state) { where(state: state.to_s.strip.upcase) }
   scope :by_macro_region, ->(macro_region_id) {
     where(macro_region_id: macro_region_id.to_s == MacroRegion::OTHERS ? nil : macro_region_id)
@@ -22,6 +24,15 @@ class City < ApplicationRecord
   def compacted_name
     CustomerGroup.compact(name)
   end
+
+  class << self
+    def statuses
+      {
+        I18n.t('cities.index.active') => :active,
+        I18n.t('cities.index.deactivated') => :deactivated,
+      }
+    end
+  end
 end
 
 # == Schema Information
@@ -29,6 +40,7 @@ end
 # Table name: cities
 #
 #  id              :bigint           not null, primary key
+#  active          :boolean          default(TRUE), not null
 #  name            :string           not null
 #  state           :string           not null
 #  created_at      :datetime         not null

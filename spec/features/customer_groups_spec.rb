@@ -59,8 +59,8 @@ describe 'Customer groups' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Clientes', 'Termos', 'Status', 'Ações'],
-            ['MOVISTAR', '0', 'Sem termos', 'Inativo', 'Opções Visualizar Alterar Excluir'],
-            ['TERRAFEC', '2', '2JM, TERRINHA ALIMENTOS', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['MOVISTAR', '0', 'Sem termos', 'Inativo', 'Opções Visualizar Alterar Ativar Excluir'],
+            ['TERRAFEC', '2', '2JM, TERRINHA ALIMENTOS', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_css('.counter-card', text: "Total de grupos\n2")
@@ -79,7 +79,7 @@ describe 'Customer groups' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Clientes', 'Termos', 'Status', 'Ações'],
-            ['TERRAFEC', '2', '2JM, TERRINHA ALIMENTOS', 'Ativo', 'Opções Visualizar Alterar Excluir'],
+            ['TERRAFEC', '2', '2JM, TERRINHA ALIMENTOS', 'Ativo', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
       end
@@ -113,6 +113,47 @@ describe 'Customer groups' do
         visit customer_group_path(stranger_group)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a group' do
+      let!(:active_group) { create(:customer_group, tenant:, name: 'TERRAFEC') }
+      let!(:inactive_group) { create(:customer_group, tenant:, name: 'MOVISTAR', activated_at: nil) }
+      let!(:stranger_group) { create(:customer_group, tenant: other_tenant, name: 'GRUPO DE OUTRA EMPRESA') }
+
+      scenario 'offers the toggle that matches the status of each group' do
+        visit customer_groups_path
+
+        expect(CustomerGroup.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_customer_group_path(active_group))
+        expect(page).to have_link('Ativar', href: activate_customer_group_path(inactive_group))
+      end
+
+      scenario 'deactivates an active group from the listing' do
+        visit customer_groups_path
+
+        expect { page.driver.submit :patch, deactivate_customer_group_path(active_group), {} }.not_to change(CustomerGroup, :count)
+
+        expect(page).to have_current_path(customer_groups_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_group.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive group from the listing' do
+        visit customer_groups_path
+
+        expect { page.driver.submit :patch, activate_customer_group_path(inactive_group), {} }.not_to change(CustomerGroup, :count)
+
+        expect(page).to have_current_path(customer_groups_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_group.reload).to be_activated
+      end
+
+      scenario 'does not change the status of a group of another tenant' do
+        page.driver.submit :patch, deactivate_customer_group_path(stranger_group), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_group.reload).to be_activated
       end
     end
 

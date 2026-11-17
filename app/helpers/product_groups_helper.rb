@@ -4,6 +4,7 @@ module ProductGroupsHelper
 
     menus << product_group_show_menu(product_group) if can?(:read, :product_groups)
     menus << product_group_edit_menu(product_group) if can?(:update, :product_groups)
+    menus << activation_menu(product_group, active: product_group.activated?) if can?(:update, :product_groups)
     menus << product_group_destroy_menu(product_group) if can?(:destroy, :product_groups)
 
     menus

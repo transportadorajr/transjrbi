@@ -3,6 +3,7 @@ module HolidaysHelper
     menus = []
 
     menus << holiday_edit_menu(holiday) if can?(:update, :holidays)
+    menus << activation_menu(holiday, active: holiday.active?) if can?(:update, :holidays)
     menus << holiday_destroy_menu(holiday) if can?(:destroy, :holidays)
 
     menus

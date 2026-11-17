@@ -27,13 +27,13 @@ class Ability
   private
 
   def access_privileges(user)
-    user.accesses.preload(:resource).find_each do |access|
+    user.accesses.where(resource: Resource.active).preload(:resource).find_each do |access|
       can(access.abilities, access.resource_symbol) if access.abilities.any? && resource_allowed?(access.resource_symbol)
     end
   end
 
   def resource_privileges
-    Resource.pluck(:slug).map(&:to_sym).select { |slug| resource_allowed?(slug) }.each { |slug| can(:manage, slug) }
+    Resource.active.pluck(:slug).map(&:to_sym).select { |slug| resource_allowed?(slug) }.each { |slug| can(:manage, slug) }
   end
 
   def resource_allowed?(slug)

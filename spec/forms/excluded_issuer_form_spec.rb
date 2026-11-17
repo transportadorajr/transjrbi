@@ -61,4 +61,24 @@ RSpec.describe ExcludedIssuerForm do
       expect(described_class.new(tenant:).issuer_options).to eq([['MAYCON DORALINO SANTOS LORENA (6190)', 6190]])
     end
   end
+
+  describe '#save_activation' do
+    let!(:excluded_issuer) { create(:excluded_issuer, tenant:, code: 6190, name: 'MAYCON DORALINO SANTOS LORENA') }
+
+    it 'deactivates the exclusion keeping the issuer' do
+      form = described_class.for_excluded_issuer(excluded_issuer)
+
+      expect { form.save_activation(false) }.not_to change(ExcludedIssuer, :count)
+
+      expect(excluded_issuer.reload).to have_attributes(code: 6190, name: 'MAYCON DORALINO SANTOS LORENA', active: false)
+    end
+
+    it 'activates the exclusion again' do
+      excluded_issuer.update!(active: false)
+      form = described_class.for_excluded_issuer(excluded_issuer)
+
+      expect(form.save_activation(true)).to be(true)
+      expect(excluded_issuer.reload).to be_active
+    end
+  end
 end

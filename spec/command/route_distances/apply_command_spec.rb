@@ -59,6 +59,22 @@ RSpec.describe RouteDistances::ApplyCommand do
     end
   end
 
+  context 'with a document adjusted by a route that was deactivated' do
+    let!(:document) { document_on_route }
+
+    before do
+      described_class.call(tenant)
+      route_distance.update!(active: false)
+    end
+
+    it 'restores the distance from Atua' do
+      expect(described_class.call(tenant)).to eq(1)
+
+      expect(document.reload).to have_attributes(distance_km: BigDecimal('1300'), original_distance_km: nil, route_distance_id: nil,
+                                                 distance_adjusted_at: nil)
+    end
+  end
+
   context 'with a document adjusted that no longer matches a route' do
     let!(:document) do
       create(:atua_transport_document, tenant:, taker_code: 7009, distance_km: BigDecimal('450'), original_distance_km: BigDecimal('300'),

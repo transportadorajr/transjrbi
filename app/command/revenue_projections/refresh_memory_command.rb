@@ -49,7 +49,7 @@ module RevenueProjections
     end
 
     def refresh_day_types
-      calendar = RevenueProjection::Calendar.new(tenant.holidays.where(date: first_date..).index_by(&:date))
+      calendar = RevenueProjection::Calendar.new(tenant.holidays.active.where(date: first_date..).index_by(&:date))
       totals = tenant.revenue_projection_daily_totals
 
       totals.pluck(:date).group_by { calendar.day_type(it) }.each do |day_type, dates|

@@ -4,6 +4,7 @@ module CommissionRulesHelper
 
     menus << commission_rule_show_menu(commission_rule) if can?(:read, :commission_rules)
     menus << commission_rule_edit_menu(commission_rule) if can?(:update, :commission_rules)
+    menus << activation_menu(commission_rule, active: commission_rule.activated?) if can?(:update, :commission_rules)
     menus << commission_rule_destroy_menu(commission_rule) if can?(:destroy, :commission_rules)
 
     menus

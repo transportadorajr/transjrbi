@@ -59,10 +59,10 @@ describe 'Commission rules' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Grupo de clientes', 'Destino', 'Base de cálculo', 'Comissão', 'Status', 'Ações'],
-            ['Argentina', 'USIMINAS', 'Exterior (UF EX)', 'Frete bruto', '1,30%', 'Ativa', 'Opções Visualizar Alterar Excluir'],
+            ['Argentina', 'USIMINAS', 'Exterior (UF EX)', 'Frete bruto', '1,30%', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
             ['Nacional', 'USIMINAS', 'Nacional (qualquer UF brasileira)', 'Frete bruto sem ICMS', '2,00%', 'Ativa',
-             'Opções Visualizar Alterar Excluir'],
-            ['Paraguai', 'USIMINAS', 'Exterior (UF EX)', 'Frete bruto', '1,50%', 'Inativa', 'Opções Visualizar Alterar Excluir'],
+             'Opções Visualizar Alterar Inativar Excluir'],
+            ['Paraguai', 'USIMINAS', 'Exterior (UF EX)', 'Frete bruto', '1,50%', 'Inativa', 'Opções Visualizar Alterar Ativar Excluir'],
           ],
         )
         expect(page).to have_css('.counter-card', text: "Total de regras\n3")
@@ -82,7 +82,7 @@ describe 'Commission rules' do
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Grupo de clientes', 'Destino', 'Base de cálculo', 'Comissão', 'Status', 'Ações'],
-            ['Paraguai', 'USIMINAS', 'Exterior (UF EX)', 'Frete bruto', '1,50%', 'Inativa', 'Opções Visualizar Alterar Excluir'],
+            ['Paraguai', 'USIMINAS', 'Exterior (UF EX)', 'Frete bruto', '1,50%', 'Inativa', 'Opções Visualizar Alterar Ativar Excluir'],
           ],
         )
       end
@@ -122,6 +122,47 @@ describe 'Commission rules' do
         visit commission_rule_path(stranger_rule)
 
         expect(page.status_code).to eq(404)
+      end
+    end
+
+    context 'when changing the status of a rule' do
+      let!(:active_rule) { create(:commission_rule, tenant:, customer_group: usiminas) }
+      let!(:inactive_rule) { create(:commission_rule, :paraguay, tenant:, customer_group: usiminas, activated_at: nil) }
+      let!(:stranger_rule) { create(:commission_rule, tenant: other_tenant, customer_group: create(:customer_group, tenant: other_tenant)) }
+
+      scenario 'offers the toggle that matches the status of each rule' do
+        visit commission_rules_path
+
+        expect(CommissionRule.count).to eq(3)
+        expect(page).to have_link('Inativar', href: deactivate_commission_rule_path(active_rule))
+        expect(page).to have_link('Ativar', href: activate_commission_rule_path(inactive_rule))
+      end
+
+      scenario 'deactivates an active rule from the listing' do
+        visit commission_rules_path
+
+        expect { page.driver.submit :patch, deactivate_commission_rule_path(active_rule), {} }.not_to change(CommissionRule, :count)
+
+        expect(page).to have_current_path(commission_rules_path)
+        expect(page).to have_text('Registro inativado com sucesso.')
+        expect(active_rule.reload).not_to be_activated
+      end
+
+      scenario 'activates an inactive rule from the listing' do
+        visit commission_rules_path
+
+        expect { page.driver.submit :patch, activate_commission_rule_path(inactive_rule), {} }.not_to change(CommissionRule, :count)
+
+        expect(page).to have_current_path(commission_rules_path)
+        expect(page).to have_text('Registro ativado com sucesso.')
+        expect(inactive_rule.reload).to be_activated
+      end
+
+      scenario 'does not change the status of a rule of another tenant' do
+        page.driver.submit :patch, deactivate_commission_rule_path(stranger_rule), {}
+
+        expect(page.status_code).to eq(404)
+        expect(stranger_rule.reload).to be_activated
       end
     end
 

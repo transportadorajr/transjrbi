@@ -3,6 +3,7 @@ module MaintenanceCatalogHelper
     menus = []
 
     menus << Menu.new(name: :edit, record: part, url: edit_maintenance_part_path(part), icon: :pencil) if can?(:update, :maintenance_parts)
+    menus << activation_menu(part, active: part.active?) if can?(:update, :maintenance_parts)
     menus << Menu.new(name: :movements, record: part, url: maintenance_part_movements_path(maintenance_part_id: part.id), icon: :'box-seam')
 
     menus
@@ -12,6 +13,7 @@ module MaintenanceCatalogHelper
     menus = []
 
     menus << Menu.new(name: :edit, record: service, url: edit_maintenance_service_path(service), icon: :pencil) if can?(:update, :maintenance_services)
+    menus << activation_menu(service, active: service.active?) if can?(:update, :maintenance_services)
 
     menus
   end

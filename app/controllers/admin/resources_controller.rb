@@ -1,9 +1,12 @@
 module Admin
   class ResourcesController < BaseController
+    include ::Activation
+
     has_scope :by_name, as: :name
     has_scope :by_slug, as: :slug
+    has_scope :by_status, as: :status
 
-    before_action :set_resource, only: %i[edit update destroy]
+    before_action :set_resource, only: %i[edit update destroy activate deactivate]
 
     def index
       @resources = apply_sort(apply_scopes(Resource.all), :name, :id).page(params[:page])
@@ -50,12 +53,18 @@ module Admin
 
     private
 
+    def authorize_activation!; end
+
+    def activation_form
+      Admin::ResourceForm.for_resource(@resource)
+    end
+
     def set_resource
       @resource = Resource.find(params.expect(:id))
     end
 
     def resource_params
-      params.expect(admin_resource: %i[name slug writable])
+      params.expect(admin_resource: %i[name slug writable active])
     end
   end
 end
