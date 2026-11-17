@@ -195,23 +195,26 @@ describe 'Maintenance orders', :maintenance do
                                                        supervisor:, reported_defect: 'Motor falhando')
       end
 
-      scenario 'changes the responsible employee of an order', :js do
-        inactive = create(:workshop_employee, tenant:, name: 'ANTONIO RAMOS', active: false)
-        engine_order.update!(responsible_employee: inactive)
+      context 'when the responsible employee was deactivated' do
+        let!(:inactive_mechanic) { create(:workshop_employee, tenant:, name: 'ANTONIO RAMOS', active: false) }
 
-        visit edit_maintenance_order_path(engine_order)
-        within('#responsible_employee_select') do
-          expect(page).to have_css('.select2-selected', text: 'ANTONIO RAMOS (Mecânico)')
-          find('.select2-trigger').click
-          expect(page).to have_css('.select2-option', count: 3)
-          find('.select2-option', text: 'PAULO LIMA (Encarregado)').click
+        before { engine_order.update!(responsible_employee: inactive_mechanic) }
+
+        scenario 'keeps the inactive employee on the list and changes the responsible one', :js do
+          visit edit_maintenance_order_path(engine_order)
+          within('#responsible_employee_select') do
+            expect(page).to have_css('.select2-selected', text: 'ANTONIO RAMOS (Mecânico)')
+            find('.select2-trigger').click
+            expect(page).to have_css('.select2-option', count: 3)
+            find('.select2-option', text: 'PAULO LIMA (Encarregado)').click
+          end
+
+          expect { click_on 'Salvar Alterações' }.not_to change(MaintenanceOrder, :count)
+
+          expect(page).to have_text('Ordem de serviço atualizada com sucesso.')
+          expect(page).to have_css('#vehicle_data dd', exact_text: 'PAULO LIMA')
+          expect(engine_order.reload.responsible_employee).to eq(supervisor)
         end
-
-        expect { click_on 'Salvar Alterações' }.not_to change(MaintenanceOrder, :count)
-
-        expect(page).to have_text('Ordem de serviço atualizada com sucesso.')
-        expect(page).to have_css('#vehicle_data dd', exact_text: 'PAULO LIMA')
-        expect(engine_order.reload.responsible_employee).to eq(supervisor)
       end
 
       scenario 'does not open an order of another tenant' do
