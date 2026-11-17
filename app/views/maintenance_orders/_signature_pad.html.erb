@@ -1,0 +1,22 @@
+<div class="signature-pad" data-controller="signature-pad">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+    <%= label_tag id, label, class: 'form-label fw-medium mb-0' %>
+    <div class="d-flex gap-2">
+      <%= button_tag type: :button, class: 'btn btn-sm btn-outline-secondary', data: { action: 'signature-pad#undo' } do %>
+        <%= icon(:'arrow-counterclockwise', class: 'me-1') %>
+        <%= t('maintenance_orders.finish_modal.undo_signature') %>
+      <% end %>
+      <%= button_tag type: :button, class: 'btn btn-sm btn-outline-secondary', data: { action: 'signature-pad#clear' } do %>
+        <%= icon(:eraser, class: 'me-1') %>
+        <%= t('maintenance_orders.finish_modal.clear_signature') %>
+      <% end %>
+    </div>
+  </div>
+  <%= content_tag :canvas, '', id:, class: 'signature-pad-canvas', role: :img,
+                               aria: { label: t('maintenance_orders.finish_modal.signature_pad', name: label) },
+                               data: { signature_pad_target: 'canvas',
+                                       action: 'pointerdown->signature-pad#start pointermove->signature-pad#move ' \
+                                               'pointerup->signature-pad#end pointercancel->signature-pad#end' } %>
+  <%= hidden_field_tag name, value, id: "#{id}_strokes", data: { signature_pad_target: 'input' } %>
+  <div class="form-text"><%= t('maintenance_orders.finish_modal.signature_hint') %></div>
+</div>

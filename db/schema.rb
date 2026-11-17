@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_17_150048) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_17_155451) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -37,6 +37,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_150048) do
   create_enum "maintenance_order_part_source_type", ["stock", "purchase"]
   create_enum "maintenance_order_priority_type", ["high", "medium", "low"]
   create_enum "maintenance_order_release_test_type", ["road_test", "yard_test", "not_applicable"]
+  create_enum "maintenance_order_signature_signer_role_type", ["supervisor", "mechanic"]
   create_enum "maintenance_order_status_type", ["open", "in_progress", "waiting_parts", "finished", "cancelled"]
   create_enum "maintenance_part_movement_type", ["entry", "exit", "adjustment"]
   create_enum "revenue_goal_target_type", ["company", "vehicle", "customer_group", "region", "driver"]
@@ -976,6 +977,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_150048) do
     t.index ["tenant_id"], name: "index_maintenance_order_services_on_tenant_id"
   end
 
+  create_table "maintenance_order_signatures", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "maintenance_order_id", null: false
+    t.bigint "workshop_employee_id", null: false
+    t.bigint "signed_by_id"
+    t.enum "signer_role_type", null: false, enum_type: "maintenance_order_signature_signer_role_type"
+    t.string "signer_name", null: false
+    t.jsonb "strokes", default: [], null: false
+    t.datetime "signed_at", null: false
+    t.string "content_digest", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["maintenance_order_id", "signer_role_type", "workshop_employee_id"], name: "index_maintenance_order_signatures_uniqueness", unique: true
+    t.index ["maintenance_order_id"], name: "index_maintenance_order_signatures_on_maintenance_order_id"
+    t.index ["signed_by_id"], name: "index_maintenance_order_signatures_on_signed_by_id"
+    t.index ["tenant_id"], name: "index_maintenance_order_signatures_on_tenant_id"
+    t.index ["workshop_employee_id"], name: "index_maintenance_order_signatures_on_workshop_employee_id"
+  end
+
   create_table "maintenance_orders", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "number", null: false
@@ -1394,6 +1416,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_150048) do
   add_foreign_key "maintenance_order_services", "maintenance_services"
   add_foreign_key "maintenance_order_services", "suppliers"
   add_foreign_key "maintenance_order_services", "tenants"
+  add_foreign_key "maintenance_order_signatures", "maintenance_orders"
+  add_foreign_key "maintenance_order_signatures", "tenants"
+  add_foreign_key "maintenance_order_signatures", "users", column: "signed_by_id"
+  add_foreign_key "maintenance_order_signatures", "workshop_employees"
   add_foreign_key "maintenance_orders", "tenants"
   add_foreign_key "maintenance_orders", "users", column: "opened_by_id"
   add_foreign_key "maintenance_orders", "workshop_employees", column: "responsible_employee_id"

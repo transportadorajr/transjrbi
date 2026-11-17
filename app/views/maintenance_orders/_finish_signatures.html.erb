@@ -1,0 +1,23 @@
+<div class="col-12">
+  <h6 class="fw-semibold mb-1 mt-2"><%= t('maintenance_orders.finish_modal.signatures') %></h6>
+  <p class="text-muted small mb-0"><%= t('maintenance_orders.finish_modal.signatures_text') %></p>
+</div>
+<div class="col-12 col-lg-6">
+  <%= f.input :supervisor_id, collection: maintenance_order_finish_supervisor_options(finish_form), required: true,
+                              include_blank: t('maintenance_orders.finish_modal.supervisor_placeholder'),
+                              input_html: { class: 'form-select bg-light' } %>
+</div>
+<div class="col-12 d-none d-lg-block"></div>
+<div class="col-12 col-lg-6">
+  <%= render 'maintenance_orders/signature_pad', id: 'supervisor_signature', name: f.field_name(:supervisor_signature),
+                                                 value: finish_form.supervisor_signature,
+                                                 label: MaintenanceOrderFinishForm.human_attribute_name(:supervisor_signature) %>
+</div>
+<% finish_form.signing_mechanics.each do |mechanic| %>
+  <div class="col-12 col-lg-6">
+    <%= render 'maintenance_orders/signature_pad', id: "mechanic_signature_#{mechanic.id}",
+                                                   name: f.field_name(:mechanic_signatures, mechanic.id),
+                                                   value: maintenance_order_mechanic_signature(finish_form, mechanic),
+                                                   label: maintenance_order_mechanic_signature_label(mechanic) %>
+  </div>
+<% end %>

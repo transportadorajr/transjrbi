@@ -150,4 +150,50 @@ RSpec.describe MaintenanceOrder do
       expect(described_class.enabled?(tenant)).to be(false)
     end
   end
+
+  describe '#signing_mechanics' do
+    let(:maintenance_order) { create(:maintenance_order, tenant:) }
+    let(:carlos) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
+    let(:ana) { create(:workshop_employee, tenant:, name: 'ANA COSTA') }
+    let(:joao) { create(:workshop_employee, tenant:, name: 'JOAO MENDES') }
+
+    it 'lists each employee of the labor once, by name' do
+      create(:maintenance_order_labor, maintenance_order:, workshop_employee: carlos, worked_on: Date.new(2026, 11, 11))
+      create(:maintenance_order_labor, maintenance_order:, workshop_employee: carlos, worked_on: Date.new(2026, 11, 12))
+      create(:maintenance_order_labor, maintenance_order:, workshop_employee: ana)
+      maintenance_order.update!(responsible_employee: joao)
+
+      expect(maintenance_order.signing_mechanics.map(&:name)).to eq(['ANA COSTA', 'CARLOS SOUZA'])
+    end
+
+    it 'falls back to the responsible employee when no labor was registered' do
+      maintenance_order.update!(responsible_employee: joao)
+
+      expect(maintenance_order.signing_mechanics.map(&:name)).to eq(['JOAO MENDES'])
+    end
+
+    it 'is empty without labor nor responsible employee' do
+      expect(maintenance_order.signing_mechanics).to be_empty
+    end
+  end
+
+  describe '#content_digest' do
+    let(:maintenance_order) { create(:maintenance_order, tenant:, performed_service: 'Troca das lonas') }
+
+    it 'changes when the content of the order changes' do
+      digest = maintenance_order.content_digest
+
+      expect(digest).to match(/\A\h{64}\z/)
+      expect(maintenance_order.content_digest).to eq(digest)
+
+      create(:maintenance_order_labor, maintenance_order:)
+
+      expect(maintenance_order.content_digest).not_to eq(digest)
+
+      with_labor = maintenance_order.content_digest
+      maintenance_order.performed_service = 'Troca das lonas e do tambor'
+
+      expect(maintenance_order.content_digest).not_to eq(with_labor)
+    end
+  end
 end

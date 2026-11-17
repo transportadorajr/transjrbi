@@ -1,0 +1,28 @@
+<div class="card detail-card mb-4">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('maintenance_orders.show.signatures') %></p>
+  </div>
+  <div class="detail-card-body">
+    <div class="row g-4" id="signatures">
+      <% signatures.each do |signature| %>
+        <div class="col-12 col-md-6 col-lg-4 signature">
+          <%= maintenance_order_signature_image(signature) %>
+          <dl class="row detail-list mb-0 mt-2" id="<%= dom_id(signature) %>">
+            <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:signer_name) %></dt>
+            <dd class="col-12 text-break"><%= signature.signer_name %></dd>
+
+            <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:signer_role_type) %></dt>
+            <dd class="col-12"><%= signature.signer_role_type_name %></dd>
+
+            <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:signed_at) %></dt>
+            <dd class="col-12"><%= maintenance_order_signature_signed_at(signature) %></dd>
+          </dl>
+        </div>
+      <% end %>
+    </div>
+    <dl class="row detail-list mb-0 mt-3" id="signature_verification">
+      <dt class="col-12"><%= MaintenanceOrderSignature.human_attribute_name(:content_digest) %></dt>
+      <dd class="col-12 text-break"><%= signatures.first.content_digest %></dd>
+    </dl>
+  </div>
+</div>

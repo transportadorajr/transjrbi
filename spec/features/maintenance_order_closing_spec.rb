@@ -186,6 +186,117 @@ describe 'Maintenance order closing', :maintenance, flipper: :maintenance do
     end
   end
 
+  context 'when the signatures are required', flipper: %i[maintenance maintenance_order_signatures] do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+    let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
+    let!(:carlos) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
+    let!(:ana) { create(:workshop_employee, tenant:, name: 'ANA COSTA') }
+    let!(:carlos_labor) { create(:maintenance_order_labor, maintenance_order:, workshop_employee: carlos) }
+    let!(:ana_labor) { create(:maintenance_order_labor, maintenance_order:, workshop_employee: ana) }
+
+    before do
+      maintenance_order.update!(status_type: 'in_progress', supervisor:)
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'finishes the order with the signature of the supervisor and of each mechanic', :js do
+      visit maintenance_order_path(maintenance_order)
+      click_on 'Encerrar OS'
+
+      within('#maintenance_order_finish_modal') do
+        expect(page).to have_select('Encarregado', selected: 'PAULO LIMA')
+        expect(page).to have_css('label', text: 'Assinatura do encarregado')
+        expect(page).to have_css('label', text: 'ANA COSTA · Mecânico')
+        expect(page).to have_css('label', text: 'CARLOS SOUZA · Mecânico')
+
+        select 'Rodagem', from: 'Teste de liberação'
+        fill_in 'Serviço executado', with: 'Troca das lonas'
+      end
+
+      draw_signature('supervisor_signature')
+      draw_signature("mechanic_signature_#{carlos.id}")
+      draw_signature("mechanic_signature_#{ana.id}")
+
+      expect do
+        within('#maintenance_order_finish_modal') { click_on 'Encerrar OS' }
+
+        expect(page).to have_text('OS encerrada com sucesso.')
+      end.to change(MaintenanceOrderSignature, :count).by(3)
+
+      expect(maintenance_order.reload.status_type).to eq('finished')
+      signatures = maintenance_order.signatures.order(:signer_role_type, :signer_name)
+      expect(signatures.map { |signature| [signature.signer_role_type, signature.signer_name] })
+        .to eq([['supervisor', 'PAULO LIMA'], ['mechanic', 'ANA COSTA'], ['mechanic', 'CARLOS SOUZA']])
+      expect(signatures).to all(have_attributes(signed_by: owner, content_digest: maintenance_order.content_digest))
+      expect(signatures.map { |signature| MaintenanceOrderSignature.drawn?(signature.strokes) }).to all(be(true))
+
+      expect(page).to have_css('#signatures img.signature-image', count: 3)
+      signatures.each do |signature|
+        expect(page).to have_css("img[alt='Assinatura de #{signature.signer_name}']")
+        expect(dl_to_hash("#maintenance_order_signature_#{signature.id}"))
+          .to eq('NOME' => signature.signer_name, 'FUNÇÃO' => signature.signer_role_type_name, 'ASSINADA EM' => '11/11/2026 17:30')
+      end
+      expect(dl_to_hash('#signature_verification')).to eq('CÓDIGO DE VERIFICAÇÃO' => maintenance_order.content_digest)
+    end
+
+    scenario 'keeps the modal open while a mechanic has not signed', :js do
+      visit maintenance_order_path(maintenance_order)
+      click_on 'Encerrar OS'
+
+      within('#maintenance_order_finish_modal') do
+        select 'Rodagem', from: 'Teste de liberação'
+        fill_in 'Serviço executado', with: 'Troca das lonas'
+      end
+
+      draw_signature('supervisor_signature')
+      draw_signature("mechanic_signature_#{carlos.id}")
+
+      within('#maintenance_order_finish_modal') do
+        click_on 'Encerrar OS'
+
+        expect(page).to have_css('.alert-danger', text: 'Falta a assinatura de ANA COSTA.')
+        expect(page).to have_css('.signature-pad-signed', count: 2)
+      end
+
+      expect(maintenance_order.reload.status_type).to eq('in_progress')
+      expect(MaintenanceOrderSignature.count).to eq(0)
+    end
+
+    scenario 'signs on a phone without scrolling sideways', :js do
+      visit maintenance_order_path(maintenance_order)
+      use_mobile_screen
+      click_on 'Encerrar OS'
+
+      within('#maintenance_order_finish_modal') do
+        select 'Funcionamento em pátio', from: 'Teste de liberação'
+        fill_in 'Serviço executado', with: 'Troca das lonas'
+      end
+
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      expect(page.evaluate_script("getComputedStyle(document.getElementById('supervisor_signature')).touchAction")).to eq('none')
+
+      draw_signature('supervisor_signature')
+      draw_signature("mechanic_signature_#{carlos.id}")
+      draw_signature("mechanic_signature_#{ana.id}")
+      within('#maintenance_order_finish_modal') { click_on 'Encerrar OS' }
+
+      expect(page).to have_text('OS encerrada com sucesso.')
+      expect(maintenance_order.signatures.count).to eq(3)
+    end
+
+    scenario 'does not finish the order with a forged signature' do
+      page.driver.submit :patch, finish_maintenance_order_path(maintenance_order),
+                         { maintenance_order_finish: { finished_at: '2026-11-11T17:30', release_test_type: 'road_test',
+                                                       performed_service: 'Troca', supervisor_id: supervisor.id,
+                                                       supervisor_signature: '<svg onload="alert(1)"/>',
+                                                       mechanic_signatures: { carlos.id => signature_strokes, ana.id => signature_strokes } } }
+
+      expect(page.status_code).to eq(422)
+      expect(maintenance_order.reload.status_type).to eq('in_progress')
+      expect(MaintenanceOrderSignature.count).to eq(0)
+    end
+  end
+
   context 'when a user can only read the maintenance orders' do
     let!(:reader) { create(:user, tenant:) }
     let!(:access) { create(:access, user: reader, resource:, reads: true, creates: false) }

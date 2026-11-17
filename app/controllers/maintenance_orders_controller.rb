@@ -31,6 +31,7 @@ class MaintenanceOrdersController < BaseController
     @labors = @maintenance_order.labors.preload(:workshop_employee).order(:worked_on, :start_time, :id)
     @services = @maintenance_order.services.preload(:supplier).order(:id)
     @labor_hours = @labors.sum(:hours)
+    @signatures = @maintenance_order.signatures.order(:signer_role_type, :signer_name, :id)
 
     respond_to do |format|
       format.html
@@ -107,7 +108,8 @@ class MaintenanceOrdersController < BaseController
   def finish
     authorize!(:update, :maintenance_orders)
 
-    @finish_form = MaintenanceOrderFinishForm.new(maintenance_order: @maintenance_order, finished_by: current_user, **finish_params)
+    @finish_form = MaintenanceOrderFinishForm.new(maintenance_order: @maintenance_order, finished_by: current_user,
+                                                  ip_address: request.remote_ip, user_agent: request.user_agent, **finish_params)
 
     if @finish_form.save
       redirect_to maintenance_order_path(@maintenance_order), notice: t('.success'), status: :see_other
