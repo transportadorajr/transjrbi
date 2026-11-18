@@ -22,6 +22,10 @@
     <% end %>
   </div>
 
+  <%= export_summary_shortcuts(@dashboard.shortcut_summaries) %>
+
+  <%= export_summary_shortcut_filter(@shortcut) %>
+
   <div class="row g-2 g-md-3 mb-3" id="export_summary_comparisons">
     <%= render 'comparison_card', title: export_summary_comparison_title(@dashboard.week_comparison, :week),
                                   comparison: @dashboard.week_comparison %>

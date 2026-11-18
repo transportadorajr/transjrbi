@@ -1,0 +1,43 @@
+<% content_for :title, @export_shortcut.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('export_shortcuts.index.title'), export_shortcuts_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @export_shortcut.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @export_shortcut.name, back_path: export_shortcuts_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= export_shortcut_summary_button(@export_shortcut) %>
+      <%= export_shortcut_edit_button(@export_shortcut) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.export_shortcut_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="export_shortcut_data">
+        <dt class="col-12 col-md-3"><%= ExportShortcut.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @export_shortcut.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportShortcut.human_attribute_name(:customer_group) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= export_shortcut_customer_group(@export_shortcut) %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportShortcut.human_attribute_name(:export_plants) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= export_shortcut_plants(@export_shortcut) %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportShortcut.human_attribute_name(:countries) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= export_shortcut_countries(@export_shortcut) %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportShortcut.human_attribute_name(:position) %></dt>
+        <dd class="col-12 col-md-9"><%= @export_shortcut.position %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportShortcut.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-9"><%= export_shortcut_status_badge(@export_shortcut) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

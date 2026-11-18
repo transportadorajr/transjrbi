@@ -30,6 +30,7 @@ module CustomerGroups
         .where.not(id: tenant.commission_rules.select(:customer_group_id))
         .where.not(id: tenant.tonnage_rates.select(:customer_group_id))
         .where.not(id: tenant.export_plants.select(:customer_group_id))
+        .where.not(id: tenant.export_shortcuts.where.not(customer_group_id: nil).select(:customer_group_id))
     end
 
     def recent_taker_codes

@@ -102,6 +102,7 @@ Rails.application.routes.draw do
     resources :expenses, only: %i[index show]
     resources :commission_rules, concerns: :activatable
     resources :export_plants, concerns: :activatable
+    resources :export_shortcuts, concerns: :activatable
     resources :macro_regions, concerns: :activatable
     resources :cities, concerns: :activatable
     resources :truck_groups, concerns: :activatable

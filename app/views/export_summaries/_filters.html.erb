@@ -2,6 +2,7 @@
            locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
                      dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
   <%= form_with url: export_summary_path, method: :get, data: { controller: 'date-range' } do |f| %>
+    <%= export_summary_shortcut_hidden_field(f, @filter_form) %>
     <div class="row g-3">
       <div class="col-12 col-lg-6">
         <%= f.label :start_date, ExportSummaryFilterForm.human_attribute_name(:start_date), class: 'form-label fw-medium' %>

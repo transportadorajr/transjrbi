@@ -50,7 +50,7 @@ RSpec.describe ExportPlant do
 
       expect(arcelor.destroy).to be(false)
       expect(arcelor.errors.full_messages).to eq(
-        ['Não é possível excluir um grupo com clientes, regras de comissão, custos por tonelada ou plantas de exportação vinculados. ' \
+        ['Não é possível excluir um grupo com clientes, regras de comissão, custos por tonelada, plantas ou atalhos de exportação vinculados. ' \
          'Desative o grupo para deixar de usá-lo.'],
       )
     end

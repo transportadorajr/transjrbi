@@ -269,7 +269,7 @@ describe 'Customer groups' do
           expect { page.driver.submit :delete, customer_group_path(customer_group), {} }.not_to change(CustomerGroup, :count)
 
           expect(page).to have_current_path(customer_groups_path)
-          expect(page).to have_text('Não é possível excluir um grupo com clientes, regras de comissão, custos por tonelada ou plantas de exportação vinculados. Desative o grupo para deixar de usá-lo.')
+          expect(page).to have_text('Não é possível excluir um grupo com clientes, regras de comissão, custos por tonelada, plantas ou atalhos de exportação vinculados. Desative o grupo para deixar de usá-lo.')
         end
       end
     end

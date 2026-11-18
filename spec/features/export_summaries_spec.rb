@@ -176,6 +176,42 @@ describe 'Export summary', flipper: { export_summary: :tenant } do
         expect(text).to include('144,5 t')
       end
 
+      context 'with shortcuts of the directors' do
+        let!(:juiz_de_fora) { create(:export_plant, tenant:, customer_group: arcelor, name: 'Juiz de Fora', cities: ['JUIZ DE FORA']) }
+        let!(:shortcut) do
+          create(:export_shortcut, tenant:, name: 'Arcelor Juiz de Fora → Paraguai', export_plant_ids: [juiz_de_fora.id], countries: ['paraguay'])
+        end
+
+        before { create(:export_shortcut, tenant:, name: 'Desligado', activated_at: nil) }
+
+        scenario 'shows the week and the month of each active shortcut and opens its detail' do
+          visit export_summary_path(country: 'argentina')
+
+          within('#export_summary_shortcuts') do
+            expect(page).to have_text('Arcelor Juiz de Fora → Paraguai')
+            expect(page).to have_text('Semana · 0,0 t · Nenhum carregamento · sem base anterior')
+            expect(page).to have_text('Mês · 57,5 t · 1 carregamento · +43,8%')
+            expect(page).to have_no_text('Desligado')
+            click_on 'Ver detalhamento'
+          end
+
+          expect(page).to have_current_path(export_summary_path(shortcut_id: shortcut.id))
+          expect(page).to have_text('Mostrando somente o atalho "Arcelor Juiz de Fora → Paraguai".')
+          expect(html_table_to_rows[1..].map(&:first)).to eq(['Juiz de Fora ARCELORMITTAL · Paraguai', 'Total'])
+
+          click_on 'Ver toda a exportação'
+
+          expect(page).to have_current_path(export_summary_path)
+        end
+
+        scenario 'goes back to the summary when the shortcut no longer exists' do
+          visit export_summary_path(shortcut_id: create(:export_shortcut, tenant: other_tenant).id)
+
+          expect(page).to have_current_path(export_summary_path)
+          expect(page).to have_text('Este atalho não existe mais.')
+        end
+      end
+
       scenario 'refuses an end date before the start date' do
         visit export_summary_path(start_date: '2026-11-10', end_date: '2026-11-01')
 

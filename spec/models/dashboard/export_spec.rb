@@ -106,6 +106,44 @@ RSpec.describe Dashboard::Export do
     end
   end
 
+  context 'with shortcuts of the directors' do
+    let(:filters) { { country: 'argentina' } }
+    let!(:juiz_de_fora) { create(:export_plant, tenant:, customer_group: arcelor, name: 'Juiz de Fora', cities: ['JUIZ DE FORA']) }
+    let(:paraguay) { create(:export_shortcut, tenant:, name: 'Juiz de Fora → Paraguai', export_plant_ids: [juiz_de_fora.id], countries: ['paraguay']) }
+    let(:everything) { create(:export_shortcut, tenant:, name: 'Toda a exportação') }
+
+    subject(:dashboard) do
+      described_class.new(documents: tenant.atua_transport_documents, manifests: tenant.atua_manifests, customers: tenant.atua_customers,
+                          plants: tenant.export_plants.activated, period: october, filters:, shortcuts: [paraguay, everything],
+                          today: Date.new(2026, 10, 21))
+    end
+
+    before do
+      create_loading(code: 1, on: Date.new(2026, 10, 19), documents: [['74001', { weight_tons: 20 }]])
+      create_loading(code: 2, on: Date.new(2026, 10, 12), documents: [['74002', { weight_tons: 10 }]])
+      create_loading(code: 3, on: Date.new(2026, 10, 20), documents: [['74003', { weight_tons: 32, recipient_code: 301, origin_city: 'RESENDE' }]])
+    end
+
+    it 'sums the week and the month of each shortcut leaving the filters of the screen out' do
+      summaries = dashboard.shortcut_summaries.map do |summary|
+        [summary.shortcut.name, summary.week.current_tons, summary.week.previous_tons, summary.month.current_tons]
+      end
+
+      expect(summaries).to eq([['Juiz de Fora → Paraguai', BigDecimal('20'), BigDecimal('10'), BigDecimal('30')],
+                               ['Toda a exportação', BigDecimal('52'), BigDecimal('10'), BigDecimal('62')]])
+      expect(dashboard.total.tons).to eq(BigDecimal('32'))
+    end
+
+    context 'when the summary is filtered by a shortcut' do
+      let(:filters) { { shortcut: paraguay } }
+
+      it 'keeps only the loadings of the shortcut' do
+        expect(dashboard.rows.map(&:plant)).to eq(['Juiz de Fora'])
+        expect(dashboard.total.tons).to eq(BigDecimal('30'))
+      end
+    end
+  end
+
   context 'with loadings of the current and the previous weeks and months' do
     before do
       create_loading(code: 1, on: Date.new(2026, 10, 19), documents: [['74001', { weight_tons: 20 }]])

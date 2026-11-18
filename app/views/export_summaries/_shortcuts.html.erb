@@ -1,0 +1,19 @@
+<%# locals: (summaries:) %>
+
+<p class="dashboard-filter-label mb-2"><%= t('export_summaries.shortcuts.title') %></p>
+
+<div class="row g-2 g-md-3 mb-4" id="export_summary_shortcuts">
+  <% summaries.each do |summary| %>
+    <div class="col-12 col-md-6 col-xl-4">
+      <%= tag.div class: 'card h-100', id: dom_id(summary.shortcut, :summary) do %>
+        <div class="card-body d-flex flex-column gap-2">
+          <p class="fw-semibold mb-0 text-break"><%= summary.shortcut.name %></p>
+          <%= export_summary_shortcut_line(:week, summary.week) %>
+          <%= export_summary_shortcut_line(:month, summary.month) %>
+          <%= link_to t('export_summaries.shortcuts.open'), export_summary_shortcut_path(summary.shortcut),
+                      class: 'small fw-semibold text-decoration-none mt-auto' %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
