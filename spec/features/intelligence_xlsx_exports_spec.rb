@@ -101,6 +101,36 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
+  context 'with access to the export summary', flipper: { export_summary: :tenant, xlsx_export: :tenant } do
+    let!(:resource) { create(:resource, name: 'Resumo da exportação', slug: 'export_summary', writable: false) }
+
+    before do
+      arcelor = create(:customer_group, tenant:, name: 'ARCELORMITTAL')
+      create(:atua_customer, tenant:, code: 100, customer_group: arcelor)
+      create(:atua_customer, tenant:, code: 300, name: 'ACEROS ASUNCION SA', state: 'EX', country_type: 'paraguay')
+      create(:atua_manifest, tenant:, code: 41_001, number: '41001', plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
+      create(:atua_transport_document, tenant:, number: '74001', cargo_destination_type: 'export', taker_code: 100, recipient_code: 300,
+                                       recipient_name: 'ACEROS ASUNCION SA', origin_city: 'JUIZ DE FORA', origin_state: 'MG', weight_tons: BigDecimal('30.5'))
+      create(:atua_manifest_document, tenant:, manifest_code: 41_001, transport_document_number: '74001')
+    end
+
+    scenario 'exports the tons of each plant and country and every document of the total' do
+      visit export_summary_path(october)
+      click_on 'Exportar Excel'
+
+      expect(page.response_headers['Content-Disposition']).to include('attachment', "filename=\"resumo-da-exportacao-#{Date.current.iso8601}.xlsx\"")
+      expect(downloaded_xlsx_records).to eq(
+        [{ 'Cliente' => 'ARCELORMITTAL', 'Planta de origem' => 'JUIZ DE FORA/MG', 'País de destino' => 'Paraguai', 'Toneladas' => 30.5,
+           'Carregamentos' => 1, 'CT-es' => 1, '% do total' => 1 },
+         { 'Cliente' => 'Total', 'Planta de origem' => 'Total', 'País de destino' => 'Total', 'Toneladas' => 30.5, 'Carregamentos' => 1,
+           'CT-es' => 1, '% do total' => 1 }],
+      )
+      expect(downloaded_xlsx_records(1).map { |record| record.slice('CT-e', 'MDF-e', 'Cliente', 'País de destino', 'Toneladas') }).to eq(
+        [{ 'CT-e' => '74001', 'MDF-e' => '41001', 'Cliente' => 'ARCELORMITTAL', 'País de destino' => 'Paraguai', 'Toneladas' => 30.5 }],
+      )
+    end
+  end
+
   context 'with the documents of two trucks in the revenue projection history', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
     let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 

@@ -1,0 +1,14 @@
+<%# locals: (row:) %>
+
+<tr>
+  <td>
+    <span class="fw-semibold d-block text-break"><%= row.plant %></span>
+    <%= export_summary_row_customer_group(row) %>
+  </td>
+  <td class="d-none d-md-table-cell text-break"><%= export_summary_row_country(row) %></td>
+  <td class="text-end text-nowrap fw-semibold"><%= export_summary_tons(row.tons) %></td>
+  <td class="d-none d-md-table-cell text-end"><%= row.loadings_count %></td>
+  <td class="d-none d-lg-table-cell text-end"><%= row.documents_count %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= export_summary_share(row.share) %></td>
+  <td class="text-end"><%= responsive_actions_menu(export_summary_row_menu(row)) %></td>
+</tr>

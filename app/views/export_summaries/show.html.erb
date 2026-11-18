@@ -1,0 +1,41 @@
+<% content_for :title, t('.title') %>
+<% content_for :remote_container, export_summary_opened_detail(@detail_row, @detail_documents) %>
+
+<%= tag.div class: 'page-shell', data: chart_evolution_reveal_data do %>
+  <%= page_header_tag t('.title'), subtitle: export_summary_period_label(@filter_form),
+                                   note: export_summary_last_sync_label(@last_synced_at), wrapper_class: 'page-header-inline' do %>
+    <%= link_to_filters('#filtersModal', applied: @filter_form.filtered?, class: 'btn btn-outline-secondary btn-round') %>
+    <%= pdf_export_button %>
+    <%= xlsx_export_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="dashboard-filter-bar mb-4">
+    <span class="dashboard-filter-label"><%= t('.period_label') %></span>
+
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.period_label') } do %>
+      <% export_summary_period_presets.each do |preset| %>
+        <%= link_to export_summary_period_preset_label(preset), export_summary_period_preset_path(preset),
+                    class: export_summary_period_preset_link_class(preset, @filter_form) %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="row g-2 g-md-3 mb-3" id="export_summary_comparisons">
+    <%= render 'comparison_card', title: export_summary_comparison_title(@dashboard.week_comparison, :week),
+                                  comparison: @dashboard.week_comparison %>
+    <%= render 'comparison_card', title: export_summary_comparison_title(@dashboard.month_comparison, :month),
+                                  comparison: @dashboard.month_comparison %>
+  </div>
+
+  <p class="small text-body-secondary mb-2"><%= t('.rules') %></p>
+
+  <div class="row g-2 g-md-3 mb-4 counter-grid-compact" id="export_summary_totals">
+    <%= counter_card(:primary, t('.tons'), export_summary_tons(@dashboard.total.tons), col_class: 'col-12 col-md-4') %>
+    <%= counter_card(:dark, t('.loadings'), @dashboard.total.loadings_count, col_class: 'col-6 col-md-4') %>
+    <%= counter_card(:dark, t('.documents'), @dashboard.total.documents_count, col_class: 'col-6 col-md-4') %>
+  </div>
+
+  <%= render export_summary_content_partial(@dashboard), dashboard: @dashboard %>
+<% end %>

@@ -134,6 +134,9 @@ Rails.application.routes.draw do
       get :detail, on: :collection
       get :product_options, on: :collection
     end
+    resource :export_summary, only: :show do
+      get :documents
+    end
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection
     end

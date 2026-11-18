@@ -789,6 +789,12 @@ pt-BR:
         product_id: Produto
         macro_region_id: Macro região de origem
         truck_group_id: Tipo de conjunto
+      export_summary_filter_form:
+        start_date: Carregamentos a partir de
+        end_date: Carregamentos até
+        customer_group_id: Cliente
+        plant: Planta de origem
+        country: País de destino
       trip_filter_form:
         start_date: Viagens a partir de
         end_date: Viagens até
@@ -1042,6 +1048,10 @@ pt-BR:
             end_date:
               before_start_date: não pode ser anterior à data inicial
         trip_filter_form:
+          attributes:
+            end_date:
+              before_start_date: não pode ser anterior à data inicial
+        export_summary_filter_form:
           attributes:
             end_date:
               before_start_date: não pode ser anterior à data inicial
@@ -1569,6 +1579,8 @@ pt-BR:
         note: Anotar o dia %{model}
       dashboard/freight/row:
         show: Visualizar
+      dashboard/export/row:
+        documents: Ver CT-es
       dashboard/trip/row:
         show: Visualizar
       dashboard/goals/row:
@@ -1891,6 +1903,7 @@ pt-BR:
     company: Dados da empresa
     freight_billing: Faturamento
     trips: Viagens
+    export_summary: Resumo da exportação
     revenue_projection: Projeção de faturamento
     revenue_projection_notes: Anotações da projeção
     revenue_goals: Metas de faturamento
@@ -3512,6 +3525,67 @@ pt-BR:
       weekly_title: Evolução Semanal
       weekly_subtitle: Frete bruto e líquido por semana de emissão do CT-e, de %{from} a %{to}
       table_title: Detalhamento por %{dimension}
+  export_summaries:
+    tons: '%{value} t'
+    tons_unit: t
+    period_presets:
+      week: Sem. atual
+      month: Mês atual
+      last_month: Mês passado
+      last_three_months: Últimos 3 meses
+    comparison:
+      week: Semana atual (%{from} a %{to})
+      month: Mês atual (%{from} a %{to})
+      loadings:
+        zero: Nenhum carregamento
+        one: 1 carregamento
+        other: '%{count} carregamentos'
+      previous: '%{from} a %{to}: %{tons}'
+      variation: '%{variation} em relação aos mesmos dias do período anterior (%{previous})'
+      no_previous: Sem carregamentos nos mesmos dias do período anterior (%{previous})
+    columns:
+      customer_group: Cliente
+      plant: Planta de origem
+      country: País de destino
+      tons: Toneladas
+      loadings: Carregamentos
+      documents: CT-es
+      share: '% do total'
+    documents:
+      number: CT-e
+      trip_on: Carregamento
+      manifest: MDF-e
+      plate: Placa
+      origin: Origem
+      recipient: Destinatário
+      summary:
+        one: '%{tons} em %{loadings} carregamento(s) e 1 CT-e.'
+        other: '%{tons} em %{loadings} carregamento(s) e %{count} CT-es.'
+      row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
+    xlsx:
+      documents: CT-es
+    show:
+      title: Resumo da Exportação
+      pdf:
+        header: Relatório do Resumo da Exportação
+        filename: resumo_da_exportacao_%{time}.pdf
+      period: Carregamentos de %{from} a %{to}
+      last_sync: 'Última sincronização com a Atua: %{time}'
+      never_synced: Nenhuma sincronização com a Atua até o momento
+      period_label: Período
+      rules: >-
+        Conta cada CT-e de exportação uma vez, na data do primeiro MDF-e válido. CEs (peso zero), CT-es cancelados, complementos de
+        valores e CT-es sem MDF-e ficam de fora.
+      tons: Toneladas carregadas
+      loadings: Carregamentos
+      documents: CT-es
+      evolution_label: Evolução
+      monthly_title: Evolução Mensal por País
+      monthly_subtitle: Toneladas por mês de carregamento, de %{from} a %{to}
+      weekly_title: Evolução Semanal por País
+      weekly_subtitle: Toneladas por semana de carregamento, de %{from} a %{to}
+      table_title: Toneladas por planta e destino
+      table_subtitle: Abra os CT-es de cada linha para conferir o total.
   trips:
     km: '%{distance} km'
     xlsx:
@@ -3831,6 +3905,7 @@ pt-BR:
     intelligence: Inteligência
     freight_billing: Faturamento
     trips: Viagens
+    export_summary: Resumo da exportação
     revenue_projections: Metas e projeções
     revenue_projection_history: Histórico da projeção
     goals: Metas

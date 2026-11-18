@@ -14,6 +14,12 @@ shared:
           feature: trips_dashboard
           controllers:
             - trips
+        - name: export_summary
+          resource: export_summary
+          url: /export_summary
+          feature: export_summary
+          controllers:
+            - export_summaries
     - name: revenue_projections
       icon: bar-chart-line
       menus:

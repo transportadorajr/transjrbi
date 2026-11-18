@@ -7,7 +7,17 @@ module Dashboard
     NO_GROUP_KEY = 'none'.freeze
     KEY_SEPARATOR = '|'.freeze
 
-    Row = Data.define(:key, :customer_group, :plant, :country, :tons, :loadings_count, :documents_count, :share)
+    Row = Data.define(:key, :customer_group, :plant, :country, :tons, :loadings_count, :documents_count, :share) do
+      extend ActiveModel::Naming
+
+      def label
+        [customer_group, plant, country].uniq.join(' · ')
+      end
+
+      def confirmation_name
+        label
+      end
+    end
 
     Comparison = Data.define(:current_period, :previous_period, :current_tons, :previous_tons, :current_loadings, :previous_loadings) do
       def variation
@@ -95,6 +105,21 @@ module Dashboard
 
     def country_options
       Atua::Customer.enum_options_for_select(:country_type) + [[country_label(ExportFacts::UNKNOWN_COUNTRY), ExportFacts::UNKNOWN_COUNTRY]]
+    end
+
+    def customer_group_label(customer_group_id)
+      customer_group_names[customer_group_id] || I18n.t('dashboards.export.no_customer_group')
+    end
+
+    def customer_group_names
+      @customer_group_names ||= CustomerGroup.where(id: customers.where.not(customer_group_id: nil).select(:customer_group_id))
+        .pluck(:id, :name).to_h
+    end
+
+    def country_label(country)
+      return I18n.t('dashboards.export.unknown_country') if country.nil? || country == ExportFacts::UNKNOWN_COUNTRY
+
+      Atua::Customer.human_enum_name(:country_type, country)
     end
 
     private
@@ -187,21 +212,6 @@ module Dashboard
       return BigDecimal('0') if total_tons.zero?
 
       (tons / total_tons * 100).round(1)
-    end
-
-    def customer_group_label(customer_group_id)
-      customer_group_names[customer_group_id] || I18n.t('dashboards.export.no_customer_group')
-    end
-
-    def customer_group_names
-      @customer_group_names ||= CustomerGroup.where(id: customers.where.not(customer_group_id: nil).select(:customer_group_id))
-        .pluck(:id, :name).to_h
-    end
-
-    def country_label(country)
-      return I18n.t('dashboards.export.unknown_country') if country.nil? || country == ExportFacts::UNKNOWN_COUNTRY
-
-      Atua::Customer.human_enum_name(:country_type, country)
     end
   end
 end

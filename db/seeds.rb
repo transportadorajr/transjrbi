@@ -33,6 +33,7 @@ end
   'insurance_rates' => { name: 'Alíquotas de seguro', writable: true },
   'freight_billing' => { name: 'Faturamento', writable: false },
   'trips' => { name: 'Viagens', writable: false },
+  'export_summary' => { name: 'Resumo da exportação', writable: false },
   'macro_regions' => { name: 'Macro regiões', writable: true },
   'truck_groups' => { name: 'Grupos de caminhões', writable: true },
   'own_fleet' => { name: 'Frota própria', writable: true },
