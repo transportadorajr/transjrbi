@@ -2,6 +2,7 @@ module FreightBillingsHelper
   include ChartsHelper
 
   SERIES_COLORS = [BRAND_BLUE, DANGER_RED].freeze
+  COMPARISON_SERIES_COLORS = [BRAND_BLUE, SUCCESS_GREEN].freeze
   DETAIL_MODAL_ID = 'freight_billing_detail_modal'.freeze
   FREIGHTS_MODAL_ID = 'freight_billing_freights_modal'.freeze
   TOLL_PAYER_CLASSES = { toll: 'freight-billing-toll-carrier', undiscounted_toll: 'freight-billing-toll-customer' }.freeze
@@ -86,6 +87,48 @@ module FreightBillingsHelper
 
   def freight_billing_ranking_title(dashboard)
     t('freight_billings.show.ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
+  end
+
+  def freight_billing_comparison_ranking_title(dashboard)
+    t('freight_billings.show.comparison_ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
+  end
+
+  def freight_billing_comparison_ranking_subtitle(dashboard)
+    period = dashboard.period
+    previous = dashboard.previous_period
+    subtitle = t('freight_billings.show.comparison_ranking_subtitle', from: l(period.first), to: l(period.last),
+                                                                      previous_from: l(previous.first), previous_to: l(previous.last))
+
+    safe_join([subtitle, freight_billing_comparison_in_progress(period)].compact, ' ')
+  end
+
+  def freight_billing_comparison_headers(dashboard)
+    return unless dashboard.comparison?
+
+    safe_join([sortable_header(t('freight_billings.columns.previous_gross'), :previous_gross, first_direction: :desc, anchor: 'freight_billing_table',
+                                                                                              class: 'd-none d-lg-table-cell text-end'),
+               sortable_header(t('freight_billings.columns.variation'), :variation, anchor: 'freight_billing_table', class: 'text-end')])
+  end
+
+  def freight_billing_comparison_cells(row, dashboard)
+    return unless dashboard.comparison?
+
+    safe_join([tag.td(tax_money(row.previous_gross), class: 'd-none d-lg-table-cell text-end text-nowrap'),
+               tag.td(freight_billing_variation(row.variation), class: 'text-end text-nowrap')])
+  end
+
+  def freight_billing_variation(variation)
+    return t('tax.blank') unless variation
+
+    tag.span(freight_billing_signed_percentage(variation), class: freight_billing_variation_class(variation))
+  end
+
+  def freight_billing_signed_percentage(variation)
+    return t('tax.blank') unless variation
+
+    formatted = number_to_percentage(variation, precision: 1)
+
+    variation.positive? ? "+#{formatted}" : formatted
   end
 
   def freight_billing_per_km_ranking_title(dashboard)
@@ -198,6 +241,18 @@ module FreightBillingsHelper
     end
   end
 
+  def freight_billing_comparison_ranking_card(dashboard)
+    return unless dashboard.comparison?
+
+    tag.div(class: 'row g-3 mb-4', id: 'freight_billing_comparison') do
+      tag.div(class: 'col-12 col-xl-7') do
+        render('freight_billings/chart_card', title: freight_billing_comparison_ranking_title(dashboard),
+                                              subtitle: freight_billing_comparison_ranking_subtitle(dashboard),
+                                              chart: freight_billing_comparison_ranking_chart(dashboard))
+      end
+    end
+  end
+
   def freight_billing_per_km_ranking_card(dashboard)
     return unless dashboard.per_km_ranking?
 
@@ -236,13 +291,12 @@ module FreightBillingsHelper
 
   def freight_billing_pdf_columns(dashboard)
     [pdf_column(freight_billing_dimension_label(dashboard.dimension), '3fr'),
-     *%i[trips loaded_km gross net toll_total gross_per_km net_per_km share].map do |column|
-       pdf_column(t(column, scope: 'freight_billings.columns'), align: :right)
-     end]
+     *freight_billing_pdf_column_names(dashboard).map { |column| pdf_column(t(column, scope: 'freight_billings.columns'), align: :right) }]
   end
 
   def freight_billing_pdf_row(row, dashboard)
     [freight_billing_row_label(row, dashboard), freight_billing_trips(row.trips_count), freight_billing_km(row.loaded_km), tax_money(row.gross),
+     *([tax_money(row.previous_gross), freight_billing_signed_percentage(row.variation)] if dashboard.comparison?),
      tax_money(row.net), tax_money(row.toll_total), tax_money(row.gross_per_km), tax_money(row.net_per_km), freight_billing_share(row.share)]
   end
 
@@ -267,12 +321,26 @@ module FreightBillingsHelper
                *%i[gross freight_expenses expenses toll undiscounted_toll net gross_per_km net_per_km].map do |column|
                  xlsx_field(t(column, scope: 'freight_billings.columns'), :money, &column)
                end,
-               xlsx_field(t('freight_billings.columns.share'), :percentage, &:share)]
+               xlsx_field(t('freight_billings.columns.share'), :percentage, &:share),
+               *freight_billing_comparison_xlsx_fields(dashboard)]
 
     [Export::Sheet.new(name: freight_billing_table_title(dashboard), columns:, rows: dashboard.empty? ? rows : [*rows, dashboard.total])]
   end
 
   private
+
+  def freight_billing_pdf_column_names(dashboard)
+    comparison = %i[previous_gross variation] if dashboard.comparison?
+
+    [:trips, :loaded_km, :gross, *comparison, :net, :toll_total, :gross_per_km, :net_per_km, :share]
+  end
+
+  def freight_billing_comparison_xlsx_fields(dashboard)
+    return [] unless dashboard.comparison?
+
+    [xlsx_field(t('freight_billings.columns.previous_gross'), :money, &:previous_gross),
+     xlsx_field(t('freight_billings.columns.variation'), :percentage, &:variation)]
+  end
 
   def freight_billing_detail_tolls(row)
     tolls = freight_billing_tolls(row)
@@ -296,6 +364,28 @@ module FreightBillingsHelper
   def freight_billing_per_km_ranking_chart(data)
     bar_chart(freight_billing_series(data),
               height: "#{[data.first[:data].size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
+              legend: 'bottom',
+              **chart_money_options,
+              library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
+  end
+
+  def freight_billing_comparison_in_progress(period)
+    return unless period.cover?(Date.current) && period.last > Date.current
+
+    t('freight_billings.show.comparison_in_progress', today: l(Date.current))
+  end
+
+  def freight_billing_variation_class(variation)
+    if variation.positive?
+      'text-success'
+    elsif variation.negative?
+      'text-danger'
+    end
+  end
+
+  def freight_billing_comparison_ranking_chart(dashboard)
+    bar_chart(freight_billing_series(dashboard.comparison_ranking_data, COMPARISON_SERIES_COLORS),
+              height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
               legend: 'bottom',
               **chart_money_options,
               library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
@@ -345,8 +435,8 @@ module FreightBillingsHelper
     )
   end
 
-  def freight_billing_series(series)
-    series.zip(SERIES_COLORS).map do |serie, color|
+  def freight_billing_series(series, colors = SERIES_COLORS)
+    series.zip(colors).map do |serie, color|
       serie.merge(color:, dataset: { backgroundColor: color, borderWidth: 0, borderRadius: 4, maxBarThickness: 28 })
     end
   end

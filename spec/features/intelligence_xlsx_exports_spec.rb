@@ -59,6 +59,25 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       end
     end
 
+    context 'when the month comparison is turned on', flipper: { xlsx_export: :tenant, freight_month_comparison: :tenant } do
+      before do
+        create(:atua_customer, tenant:, code: 7101, customer_group: create(:customer_group, tenant:, name: 'ARCELOR'))
+        create(:atua_transport_document, tenant:, taker_code: 7101, freight_cents: 1_500_000, issued_at: Time.zone.local(2026, 10, 2, 10))
+        create(:atua_transport_document, tenant:, taker_code: 7101, freight_cents: 1_000_000, issued_at: Time.zone.local(2026, 9, 2, 10))
+      end
+
+      scenario 'exports the previous gross and the variation of each customer group' do
+        visit freight_billing_path(**october, format: :xlsx)
+
+        expect(Atua::TransportDocument.count).to eq(2)
+        expect(downloaded_xlsx_rows.first.last(2)).to eq(['Bruto mês passado', 'Variação'])
+        expect(downloaded_xlsx_records.map { |record| record.slice('Grupo de clientes', 'Frete bruto', 'Bruto mês passado', 'Variação') }).to eq(
+          [{ 'Grupo de clientes' => 'ARCELOR', 'Frete bruto' => 15_000, 'Bruto mês passado' => 10_000, 'Variação' => 0.5 },
+           { 'Grupo de clientes' => 'Total', 'Frete bruto' => 15_000, 'Bruto mês passado' => 10_000, 'Variação' => 0.5 }],
+        )
+      end
+    end
+
     context 'when there are no trips in the period' do
       scenario 'exports only the header row' do
         visit freight_billing_path(**october, format: :xlsx)

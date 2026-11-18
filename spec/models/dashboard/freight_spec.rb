@@ -251,11 +251,11 @@ RSpec.describe Dashboard::Freight do
             empty_share: BigDecimal('15.4'), gross: Money.from_cents(1_500_000),
             freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0),
             net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
-            share: BigDecimal('33.4') },
+            share: BigDecimal('33.4'), previous_gross: nil },
           { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
             empty_share: BigDecimal('0'), gross: Money.from_cents(500_000),
             freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0), net: Money.from_cents(500_000),
-            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('11.1') },
+            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('11.1'), previous_gross: nil },
         ],
       )
     end
@@ -765,6 +765,103 @@ RSpec.describe Dashboard::Freight do
           expect(dashboard.rows.map { |row| [row.label, row.gross.cents] })
             .to eq([['JECI JUNIOR', 1_600_000], ['JECI', 500_000], ['ANA LIMA', 300_000]])
           expect(dashboard.ranking_data.first[:data]).to eq('Sem Admissão' => 5_000.0, 'ANA LIMA' => 3_000.0)
+        end
+      end
+    end
+  end
+
+  describe 'month comparison' do
+    subject(:comparison) do
+      described_class.new(tenant.atua_transport_documents, manifests: tenant.atua_manifests, dimension: comparison_dimension, period:,
+                                                           comparison: comparison_enabled)
+    end
+
+    let(:period) { Date.new(2026, 11, 1)..Date.new(2026, 11, 30) }
+    let(:comparison_dimension) { 'customer_group' }
+    let(:comparison_enabled) { true }
+
+    describe '#previous_period' do
+      {
+        'a whole month of 30 days' => [Date.new(2026, 11, 1)..Date.new(2026, 11, 30), Date.new(2026, 10, 1)..Date.new(2026, 10, 31)],
+        'a whole month of 31 days' => [Date.new(2026, 10, 1)..Date.new(2026, 10, 31), Date.new(2026, 9, 1)..Date.new(2026, 9, 30)],
+        'march' => [Date.new(2026, 3, 1)..Date.new(2026, 3, 31), Date.new(2026, 2, 1)..Date.new(2026, 2, 28)],
+        'january' => [Date.new(2027, 1, 1)..Date.new(2027, 1, 31), Date.new(2026, 12, 1)..Date.new(2026, 12, 31)],
+        'a free interval' => [Date.new(2026, 11, 5)..Date.new(2026, 11, 18), Date.new(2026, 10, 5)..Date.new(2026, 10, 18)],
+        'a week across two months' => [Date.new(2026, 10, 25)..Date.new(2026, 10, 31), Date.new(2026, 9, 25)..Date.new(2026, 9, 30)],
+      }.each do |description, (current, previous)|
+        context "with #{description}" do
+          let(:period) { current }
+
+          it 'is the same period one month before' do
+            expect(comparison.previous_period).to eq(previous)
+          end
+        end
+      end
+    end
+
+    context 'with customer groups billed in both months, only in one of them and before the previous month' do
+      def create_group_document(code, issued_on, freight_cents)
+        create(:atua_transport_document, tenant:, taker_code: code, freight_cents:, posted_on: issued_on, issued_at: issued_on.in_time_zone.change(hour: 23))
+      end
+
+      before do
+        { 'ARCELOR' => 7101, 'PANORAMA' => 7102, 'NOVA' => 7103, 'PERDIDA' => 7104 }.each do |name, code|
+          create(:atua_customer, tenant:, code:, customer_group: create(:customer_group, tenant:, name:))
+        end
+
+        create_group_document(7101, Date.new(2026, 11, 2), 3_237_080)
+        create_group_document(7101, Date.new(2026, 10, 31), 2_510_000)
+        create_group_document(7101, Date.new(2026, 9, 30), 9_000_000)
+        create_group_document(7102, Date.new(2026, 11, 30), 1_004_490)
+        create_group_document(7102, Date.new(2026, 10, 1), 1_580_000)
+        create_group_document(7103, Date.new(2026, 11, 10), 100_000)
+        create_group_document(7104, Date.new(2026, 10, 15), 300_000)
+      end
+
+      it 'compares the gross freight of each group with the same period of the previous month' do
+        expect(comparison).to be_comparison
+        expect(comparison.rows.map { |row| [row.label, row.gross.cents, row.previous_gross.cents, row.variation] }).to eq(
+          [
+            ['ARCELOR', 3_237_080, 2_510_000, BigDecimal('29.0')],
+            ['PANORAMA', 1_004_490, 1_580_000, BigDecimal('-36.4')],
+            ['NOVA', 100_000, 0, nil],
+            ['PERDIDA', 0, 300_000, BigDecimal('-100.0')],
+          ],
+        )
+        expect(comparison.total).to have_attributes(gross: Money.from_cents(4_341_570), previous_gross: Money.from_cents(4_390_000),
+                                                    variation: BigDecimal('-1.1'))
+      end
+
+      it 'plots only the groups billed in the current period, with the variation next to each name' do
+        expect(comparison.comparison_ranking_data).to eq(
+          [
+            { name: 'Mês atual', data: { 'ARCELOR (+29,0%)' => 32_370.8, 'PANORAMA (-36,4%)' => 10_044.9, 'NOVA (novo)' => 1000.0 } },
+            { name: 'Mês passado', data: { 'ARCELOR (+29,0%)' => 25_100.0, 'PANORAMA (-36,4%)' => 15_800.0, 'NOVA (novo)' => 0.0 } },
+          ],
+        )
+      end
+
+      it 'sorts by the previous gross and by the variation' do
+        expect(comparison.sorted_rows('variation', 'asc').map(&:label)).to eq(%w[PERDIDA PANORAMA ARCELOR NOVA])
+        expect(comparison.sorted_rows('previous_gross', 'desc').map(&:label)).to eq(%w[ARCELOR PANORAMA PERDIDA NOVA])
+      end
+
+      context 'when the comparison is turned off' do
+        let(:comparison_enabled) { false }
+
+        it 'lists only the current period without the previous gross' do
+          expect(comparison).not_to be_comparison
+          expect(comparison.rows.map { |row| [row.label, row.previous_gross] }).to eq([['ARCELOR', nil], ['PANORAMA', nil], ['NOVA', nil]])
+          expect(comparison.total.previous_gross).to be_nil
+        end
+      end
+
+      context 'when grouped by another dimension' do
+        let(:comparison_dimension) { 'vehicle' }
+
+        it 'does not compare' do
+          expect(comparison).not_to be_comparison
+          expect(comparison.rows.map(&:previous_gross)).to all(be_nil)
         end
       end
     end

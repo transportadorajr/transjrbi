@@ -14,6 +14,8 @@ module Dashboard
     THIRD_PARTY_KEY = 'third_party'.freeze
     ABBREVIATED_DIMENSIONS = %w[driver customer_group].freeze
     PER_KM_RANKING_DIMENSIONS = %w[customer_group macro_region].freeze
+    COMPARISON_FEATURE = :freight_month_comparison
+    COMPARISON_DIMENSIONS = %w[customer_group].freeze
     NAME_CODE_PREFIX = /\A(\d+[\s-]+)+/
     NAME_PARTICLES = %w[DA DAS DE DO DOS E].freeze
     COMPANY_SUFFIX = %r{\A(LTDA|S/?A|S\.A|EIRELI|ME|EPP|SPE)\.?\z}i
@@ -50,11 +52,17 @@ module Dashboard
     HistoryRow = Data.define(:period, :label, :gross, :net)
 
     Row = Data.define(:key, :label, :trips_count, :loaded_km, :empty_km, :empty_share, :gross, :freight_expenses, :expenses, :toll, :undiscounted_toll, :net, :gross_per_km,
-                      :net_per_km, :share) do
+                      :net_per_km, :share, :previous_gross) do
       extend ActiveModel::Naming
 
       def toll_total
         toll + undiscounted_toll
+      end
+
+      def variation
+        return if previous_gross.nil? || previous_gross.zero?
+
+        ((gross - previous_gross).cents.to_d * 100 / previous_gross.cents).round(1)
       end
 
       def confirmation_name
@@ -66,6 +74,8 @@ module Dashboard
       'label' => ->(row) { I18n.transliterate(row.label).downcase },
       'gross' => ->(row) { row.gross.cents },
       'net' => ->(row) { row.net.cents },
+      'previous_gross' => ->(row) { row.previous_gross&.cents || 0 },
+      'variation' => ->(row) { row.variation || Float::INFINITY },
     }.freeze
 
     attr_reader :dimension, :period
@@ -74,25 +84,40 @@ module Dashboard
       def sanitize_dimension(dimension)
         DIMENSIONS.include?(dimension.to_s) ? dimension.to_s : DEFAULT_DIMENSION
       end
+
+      def comparison_enabled?(tenant)
+        Flipper.enabled?(COMPARISON_FEATURE, tenant)
+      end
     end
 
-    def initialize(documents, manifests:, dimension:, period:, own_fleet: nil)
+    def initialize(documents, manifests:, dimension:, period:, own_fleet: nil, comparison: false)
       @documents = documents
       @manifests = manifests
       @dimension = self.class.sanitize_dimension(dimension)
       @period = period
       @own_fleet = own_fleet
+      @comparison = comparison
     end
 
     delegate :empty?, to: :entries
     delegate :gross, :net, to: :total
 
     def total
-      @total ||= build_row(TOTAL_KEY, I18n.t('dashboards.freight.total'), entries)
+      @total ||= build_row(TOTAL_KEY, I18n.t('dashboards.freight.total'), entries, (previous_entries.sum(&:freight_cents) if comparison?))
     end
 
     def rows
-      @rows ||= grouped_rows(entries)
+      @rows ||= comparison? ? current_rows + lost_rows : current_rows
+    end
+
+    def comparison?
+      @comparison && COMPARISON_DIMENSIONS.include?(dimension)
+    end
+
+    def previous_period
+      last = period.last == period.last.end_of_month ? period.last.prev_month.end_of_month : period.last.prev_month
+
+      period.first.prev_month..last
     end
 
     def per_km_base
@@ -139,6 +164,15 @@ module Dashboard
       [
         { name: I18n.t('dashboards.freight.gross'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.gross.to_f] } },
         { name: I18n.t('dashboards.freight.net'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.net.to_f] } },
+      ]
+    end
+
+    def comparison_ranking_data
+      labels = ranking_rows.zip(ranking_labels).map { |row, label| comparison_label(row, label) }
+
+      [
+        { name: I18n.t('dashboards.freight.current_period'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.gross.to_f] } },
+        { name: I18n.t('dashboards.freight.previous_period'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.previous_gross.to_f] } },
       ]
     end
 
@@ -250,18 +284,54 @@ module Dashboard
     end
 
     def entries
-      @entries ||= begin
-        trips, documents_off_trip = all_facts.partition(&:trip?)
-
-        documents_off_trip.map { |fact| document_entry(fact) } +
-          trips.group_by(&:manifest_code).values.flat_map { |trip_facts| trip_entries(trip_facts) }
-      end
+      @entries ||= entries_of(all_facts(period))
     end
 
-    def grouped_rows(grouped_entries)
-      grouped_entries.group_by { |entry| key_for(entry) }
-        .map { |key, grouped| build_row(row_key(key), label_for(key, grouped), grouped) }
+    def previous_entries
+      @previous_entries ||= comparison? ? entries_of(all_facts(previous_period)) : []
+    end
+
+    def entries_of(facts)
+      trips, documents_off_trip = facts.partition(&:trip?)
+
+      documents_off_trip.map { |fact| document_entry(fact) } +
+        trips.group_by(&:manifest_code).values.flat_map { |trip_facts| trip_entries(trip_facts) }
+    end
+
+    def current_rows
+      @current_rows ||= entries.group_by { |entry| key_for(entry) }
+        .map { |key, grouped| build_row(row_key(key), label_for(key, grouped), grouped, previous_cents_for(key)) }
         .sort_by { |row| [-row.gross.cents, row.label] }
+    end
+
+    def lost_rows
+      current_keys = current_rows.map(&:key)
+
+      previous_entries.group_by { |entry| key_for(entry) }
+        .reject { |key, _| current_keys.include?(row_key(key)) }
+        .map { |key, grouped| build_row(row_key(key), label_for(key, grouped), [], previous_cents_for(key)) }
+        .sort_by { |row| [-row.previous_gross.cents, row.label] }
+    end
+
+    def previous_cents_for(key)
+      previous_cents_by_key.fetch(row_key(key), 0) if comparison?
+    end
+
+    def previous_cents_by_key
+      @previous_cents_by_key ||= previous_entries.group_by { |entry| row_key(key_for(entry)) }.transform_values { |grouped| grouped.sum(&:freight_cents) }
+    end
+
+    def comparison_label(row, label)
+      variation = row.variation
+      return I18n.t('dashboards.freight.comparison_label.new', label:) unless variation
+
+      I18n.t('dashboards.freight.comparison_label.variation', label:, variation: signed_percentage(variation))
+    end
+
+    def signed_percentage(value)
+      formatted = ActiveSupport::NumberHelper.number_to_percentage(value, precision: 1, locale: I18n.locale)
+
+      value.positive? ? "+#{formatted}" : formatted
     end
 
     def row_key(key)
@@ -269,7 +339,7 @@ module Dashboard
     end
 
     def charted_rows
-      eligible = rows.reject { |row| chart_excluded?(row) }
+      eligible = current_rows.reject { |row| chart_excluded?(row) }
 
       eligible.first(RANKING_LIMIT) + eligible.drop(RANKING_LIMIT).select { |row| foz_origin_row?(row) }
     end
@@ -345,8 +415,8 @@ module Dashboard
       facts.sum { |fact| fact.freight_cents.to_i }
     end
 
-    def all_facts
-      issued_documents
+    def all_facts(range)
+      issued_documents(range)
         .left_joins(:taker, :product_group)
         .joins(first_trip_join)
         .pluck(*fact_columns)
@@ -399,7 +469,7 @@ module Dashboard
       SQL
     end
 
-    def build_row(key, label, grouped)
+    def build_row(key, label, grouped, previous_cents = nil)
       measured = grouped.select(&:measured?)
       measured_km = measured.sum(BigDecimal('0'), &:loaded_km)
       gross_cents = grouped.sum(&:freight_cents)
@@ -425,6 +495,7 @@ module Dashboard
         gross_per_km: per_km(measured.sum(&:freight_cents), measured_km),
         net_per_km: per_km(measured.sum(&:net_cents), measured_km),
         share: share_of(gross_cents),
+        previous_gross: previous_cents && Money.from_cents(previous_cents),
       )
     end
 
@@ -531,7 +602,7 @@ module Dashboard
     end
 
     def customer_group_names
-      @customer_group_names ||= CustomerGroup.where(id: entries.filter_map(&:customer_group_id).uniq).pluck(:id, :name).to_h
+      @customer_group_names ||= CustomerGroup.where(id: (entries + previous_entries).filter_map(&:customer_group_id).uniq).pluck(:id, :name).to_h
     end
 
     def product_group_names
