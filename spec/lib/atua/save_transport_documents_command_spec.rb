@@ -71,6 +71,20 @@ RSpec.describe Atua::SaveTransportDocumentsCommand do
     end
   end
 
+  context 'with a foreign recipient of the imported export documents' do
+    let(:recipient_code) do
+      Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).find { |record| record[:cargo_destination_type] == 'export' && record[:recipient_code] }
+        &.fetch(:recipient_code)
+    end
+    let!(:recipient) { create(:atua_customer, tenant:, code: recipient_code, name: 'ACEROS ASUNCION SA', city: 'ASUNCION', state: 'EX') }
+
+    it 'identifies the country of the recipient' do
+      described_class.call(import, spreadsheet)
+
+      expect(recipient.reload.country_type).to eq('paraguay')
+    end
+  end
+
   context 'with product groups of the tenant' do
     let(:product_name) { Atua::MapTransportDocumentsCommand.call(tenant, spreadsheet).filter_map { |record| record[:product_name] }.first }
     let!(:subgroup) { create(:product_subgroup, tenant:, product_names: [product_name]) }

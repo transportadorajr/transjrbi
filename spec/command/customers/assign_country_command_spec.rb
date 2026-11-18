@@ -45,6 +45,23 @@ RSpec.describe Customers::AssignCountryCommand do
     end
   end
 
+  context 'when a customer registered in Brazil receives export cargo' do
+    let!(:by_name) { create(:atua_customer, tenant:, code: 501, name: 'ACINDAR IND ARGENTINA DE ACEROS SA', city: 'CASCAVEL', state: 'PR') }
+    let!(:by_street) { create(:atua_customer, tenant:, code: 502, name: 'DESPACHOS FOZ LTDA', street: 'RUA PARAGUAI, 100', city: 'FOZ DO IGUACU', state: 'PR') }
+
+    before do
+      create(:atua_transport_document, tenant:, cargo_destination_type: 'export', recipient_code: 501)
+      create(:atua_transport_document, tenant:, cargo_destination_type: 'export', recipient_code: 502)
+    end
+
+    it 'looks for the country only in its name' do
+      expect(described_class.call(tenant)).to eq(1)
+
+      expect(by_name.reload.country_type).to eq('argentina')
+      expect(by_street.reload.country_type).to be_nil
+    end
+  end
+
   context 'when the customer moved from abroad to Brazil' do
     let!(:customer) { create(:atua_customer, tenant:, name: 'FERROPAR S A', city: 'CASCAVEL', state: 'PR', country_type: 'paraguay') }
 

@@ -12,6 +12,7 @@ module Atua
         DiscardIcmsComplementsCommand.call(tenant)
         Cities::RegisterOriginsCommand.call(tenant)
         MacroRegions::AssignCommand.call(tenant)
+        Customers::AssignCountryCommand.call(tenant)
         ProductGroups::AssignCommand.call(tenant)
         RouteDistances::ApplyCommand.call(tenant)
       end

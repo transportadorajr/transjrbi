@@ -124,6 +124,10 @@ module Atua
     scope :with_valid_manifest, -> {
       where(id: joins(:manifests).merge(TransportDocumentManifest.active).merge(Manifest.active.not_canceled).select(:id))
     }
+    scope :export_loadings, -> {
+      freights.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'], cargo_destination_type: 'export')
+        .where(arel_table[:issue_kind].is_distinct_from(VALUE_COMPLEMENT))
+    }
     scope :vehicle_sales, -> { where(vehicle_sale: true) }
     scope :freights, -> { where(vehicle_sale: false) }
     scope :by_axles, ->(axles) { where(axles:) }

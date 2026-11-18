@@ -3329,6 +3329,10 @@ pt-BR:
         reconhecidas e o restante é ignorado. Com a lista vazia, nenhum veículo aparece como Terceiro.
       plates_hint: 'Uma placa por linha ou separadas por espaço, vírgula ou ponto e vírgula. Ex.: ALC-6D72/PR, AJR4391.'
   dashboards:
+    export:
+      total: Total
+      no_customer_group: Sem grupo de clientes
+      unknown_country: País não identificado
     goals:
       company: Transportadora
       ungrouped: Sem grupo de clientes

@@ -9,6 +9,7 @@ module Customers
       'bolivia' => ['BOLIVIA', 'SANTA CRUZ DE LA SIERRA', 'COCHABAMBA'],
     }.freeze
     ATTRIBUTES = %i[city name trade_name street complement district].freeze
+    NAME_ATTRIBUTES = %i[name trade_name].freeze
 
     class << self
       def call(tenant)
@@ -40,13 +41,27 @@ module Customers
     def candidates
       customers = tenant.atua_customers.country_not_edited
 
-      customers.foreign.or(customers.where.not(country_type: nil)).select(:id, :state, :country_type, *ATTRIBUTES).order(:id)
+      customers.foreign.or(customers.where(code: export_recipient_codes)).or(customers.where.not(country_type: nil))
+        .select(:id, :code, :state, :country_type, *ATTRIBUTES).order(:id)
+    end
+
+    def export_recipient_codes
+      tenant.atua_transport_documents.active.not_canceled.export_loadings.where.not(recipient_code: nil).select(:recipient_code)
+    end
+
+    def export_recipient?(customer)
+      @export_recipients ||= export_recipient_codes.distinct.pluck(:recipient_code).to_set
+
+      @export_recipients.include?(customer.code)
     end
 
     def country_for(customer)
-      return unless customer.foreign?
+      attributes = if customer.foreign? then ATTRIBUTES
+                   elsif export_recipient?(customer) then NAME_ATTRIBUTES
+                   end
+      return if attributes.nil?
 
-      texts = ATTRIBUTES.filter_map { |attribute| normalize(customer.public_send(attribute)).presence }
+      texts = attributes.filter_map { |attribute| normalize(customer.public_send(attribute)).presence }
 
       texts.each do |text|
         country_type = TERMS.find { |_country, terms| terms.any? { |term| text.include?(" #{term} ") } }&.first
