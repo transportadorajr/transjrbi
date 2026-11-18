@@ -1471,6 +1471,8 @@ pt-BR:
         uruguay: Uruguai
         chile: Chile
         bolivia: Bolívia
+        united_states: Estados Unidos
+        italy: Itália
         other: Outro país
     atua/transport_document:
       cargo_destination_type:

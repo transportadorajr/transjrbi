@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_153652) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_170825) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "admin_http_request_integration_type", ["atua", "tomtom"]
-  create_enum "atua_customer_country_type", ["argentina", "paraguay", "uruguay", "chile", "bolivia", "other"]
+  create_enum "atua_customer_country_type", ["argentina", "paraguay", "uruguay", "chile", "bolivia", "other", "united_states", "italy"]
   create_enum "atua_device_registration_status_type", ["code_sent", "confirmed", "failed"]
   create_enum "atua_import_error_type", ["configuration", "authentication", "device_verification", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles", "toll_vouchers"]
