@@ -3473,6 +3473,11 @@ pt-BR:
       gross: Frete bruto
       net: Frete líquido
       gross_per_km: Frete bruto por km
+      current_period: Mês atual
+      previous_period: Mês passado
+      comparison_label:
+        variation: '%{label} (%{variation})'
+        new: '%{label} (novo)'
       without_admission: Sem Admissão
       foz_origin:
         export: FOZ DO IGUAÇU EXPORTAÇÃO
@@ -3593,6 +3598,8 @@ pt-BR:
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
       share: Participação
+      previous_gross: Bruto mês passado
+      variation: Variação
     show:
       title: Faturamento
       pdf:
@@ -3623,6 +3630,10 @@ pt-BR:
       empty_share: Rodou vazio
       ranking_title: Frete por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de emissão do CT-e
+      comparison_ranking_title: 'Frete bruto por %{dimension}: mês atual x mês passado'
+      comparison_ranking_subtitle: >-
+        Os 15 maiores pelo frete bruto de %{from} a %{to}, comparados com %{previous_from} a %{previous_to}, pela data de emissão do CT-e
+      comparison_in_progress: 'Mês em andamento: CT-es até %{today}.'
       per_km_ranking_title: Frete bruto por km por %{dimension}
       per_km_ranking_subtitle: Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens, do maior para o menor
       monthly_title: Evolução Mensal

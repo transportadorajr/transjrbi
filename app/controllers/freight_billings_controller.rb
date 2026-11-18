@@ -71,7 +71,8 @@ class FreightBillingsController < BaseController
                                         manifests: current_tenant.atua_manifests,
                                         dimension: @filter_form.dimension,
                                         period: @filter_form.period,
-                                        own_fleet: current_tenant.own_fleet)
+                                        own_fleet: current_tenant.own_fleet,
+                                        comparison: Dashboard::Freight.comparison_enabled?(current_tenant))
   end
 
   def filter_params

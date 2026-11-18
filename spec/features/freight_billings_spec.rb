@@ -1777,4 +1777,90 @@ describe 'Freight billing' do
       expect(overflowing).to eq(0)
     end
   end
+
+  context 'when the month comparison is turned on', flipper: { freight_month_comparison: :tenant } do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+    let(:november) { { start_date: '2026-11-01', end_date: '2026-11-30' } }
+
+    def create_group_document(code, issued_on, freight_cents)
+      create(:atua_transport_document, tenant:, taker_code: code, freight_cents:, posted_on: issued_on, issued_at: issued_on.in_time_zone.change(hour: 10))
+    end
+
+    before do
+      { 'ARCELOR' => 7101, 'PANORAMA' => 7102, 'PERDIDA' => 7104 }.each do |name, code|
+        create(:atua_customer, tenant:, code:, customer_group: create(:customer_group, tenant:, name:))
+      end
+      create_group_document(7101, Date.new(2026, 11, 2), 3_237_080)
+      create_group_document(7101, Date.new(2026, 10, 31), 2_510_000)
+      create_group_document(7102, Date.new(2026, 11, 30), 1_004_490)
+      create_group_document(7102, Date.new(2026, 10, 1), 1_580_000)
+      create_group_document(7104, Date.new(2026, 10, 15), 300_000)
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'compares the gross freight of each customer group with the same period of the previous month' do
+      visit freight_billing_path(november)
+
+      expect(Atua::TransportDocument.count).to eq(5)
+      expect(page).to have_css('.chart-card-title', text: 'Frete bruto por Grupo de clientes: mês atual x mês passado')
+      expect(page).to have_css('.chart-card-subtitle', text: 'Os 15 maiores pelo frete bruto de 01/11/2026 a 30/11/2026, comparados com 01/10/2026 a 31/10/2026')
+      expect(html_table_to_rows).to eq(
+        [
+          ['Grupo de clientes', 'Frete bruto', 'Bruto mês passado', 'Variação', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
+          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '76,3%', ''],
+          ['PANORAMA', 'R$ 10.044,90', 'R$ 15.800,00', '-36,4%', 'R$ 10.044,90', 'R$ 0,00', '23,7%', ''],
+          ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00', '-100,0%', 'R$ 0,00', 'R$ 0,00', '0,0%', ''],
+          ['Total', 'R$ 42.415,70', 'R$ 43.900,00', '-3,4%', 'R$ 42.415,70', 'R$ 0,00', '100,0%', ''],
+        ],
+      )
+    end
+
+    scenario 'sorts the groups by the variation' do
+      visit freight_billing_path(november.merge(sort: 'variation', direction: 'asc'))
+
+      expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[PERDIDA PANORAMA ARCELOR Total])
+    end
+
+    scenario 'warns that the month is still in progress' do
+      travel_to(Time.zone.local(2026, 11, 18, 12)) do
+        visit freight_billing_path(november)
+      end
+
+      expect(page).to have_css('.chart-card-subtitle', text: 'Mês em andamento: CT-es até 18/11/2026.')
+    end
+
+    scenario 'keeps the gross and net freight when grouped by another dimension' do
+      visit freight_billing_path(november.merge(dimension: 'vehicle'))
+
+      expect(page).to have_css('.chart-card-title', text: 'Frete por Veículo')
+      expect(page).to have_no_css('th', text: 'Bruto mês passado')
+    end
+
+    scenario 'lists the previous gross and the variation in the PDF' do
+      visit freight_billing_path(november.merge(format: :pdf))
+
+      text = PDF::Inspector::Text.analyze(page.body).strings.join
+      expect(text).to include('Bruto mês passado', 'Variação', 'R$ 25.100,00', '+29,0%', '-100,0%')
+    end
+
+    scenario 'plots the current month in blue and the previous month in green with the variation in each label', :js do
+      visit freight_billing_path(november)
+
+      expect(page).to have_css('.chart-card canvas', minimum: 2)
+      datasets = page.evaluate_script(
+        'Object.values(Chartkick.charts)[0].getChartObject().data.datasets.map((dataset) => [dataset.label, dataset.backgroundColor, dataset.data])',
+      )
+      expect(datasets).to eq([['Mês atual', '#2563eb', [32_370.8, 10_044.9]], ['Mês passado', '#198754', [25_100, 15_800]]])
+      expect(page.evaluate_script('Object.values(Chartkick.charts)[0].getChartObject().data.labels')).to eq(['ARCELOR (+29,0%)', 'PANORAMA (-36,4%)'])
+    end
+
+    scenario 'keeps the variation on a phone without scrolling sideways', :js do
+      use_mobile_screen(width: 360)
+      visit freight_billing_path(november)
+
+      expect(page).to have_css('th', text: /\AVariação\z/i)
+      expect(page).to have_no_css('th', text: /\ABruto mês passado\z/i)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+  end
 end
