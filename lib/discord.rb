@@ -6,6 +6,10 @@ module Discord
       error_webhook_url.present?
     end
 
+    def enabled?
+      Rails.env.production? && configured?
+    end
+
     def error_webhook_url
       Rails.application.credentials.dig(:discord, :error_webhook_url)
     end

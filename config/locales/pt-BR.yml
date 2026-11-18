@@ -4248,6 +4248,9 @@ pt-BR:
       unexpected_ajax_response: 'A Atua respondeu %{action} com um conteúdo que não é JSON.'
       session_expired: A sessão da Atua expirou novamente logo após um novo login.
       request_failed: 'A requisição para %{path} falhou após %{attempts} tentativa(s): %{reason}.'
+      import_failed: 'A importação de %{report} da %{tenant} (%{period}) falhou %{attempts} vezes seguidas e não será tentada de novo automaticamente: %{reason}'
+      import_period: '%{start_date} a %{end_date}'
+      import_without_period: sem período
       too_many_redirects: A Atua redirecionou a requisição vezes demais.
       unexpected_content: 'O relatório %{report} não veio em Excel (.xls): HTTP %{status}, Content-Type %{content_type}. Trecho da resposta: %{excerpt}'
       period_not_supported: O relatório %{report} não aceita período.

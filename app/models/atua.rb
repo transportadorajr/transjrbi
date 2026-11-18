@@ -22,6 +22,7 @@ module Atua
   class LayoutError < Error; end
   class ConversionError < Error; end
   class RetryableError < Error; end
+  class ImportFailedError < Error; end
 
   class << self
     def table_name_prefix
