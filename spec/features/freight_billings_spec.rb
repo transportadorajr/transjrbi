@@ -405,6 +405,34 @@ describe 'Freight billing' do
                    )).to be(true)
           end
 
+          def evolution_filter_sits_right_above_the_chart?
+            page.evaluate_script(<<~JS)
+              (() => {
+                const filter = document.querySelector('#freight_billing_evolution .dashboard-filter-bar').getBoundingClientRect();
+                const chart = [...document.querySelectorAll('#freight_billing_evolution .chart-card')].find((card) => card.checkVisibility()).getBoundingClientRect();
+                return filter.bottom <= chart.top && chart.top - filter.bottom < 40 && Math.abs(filter.left - chart.left) < 1;
+              })()
+            JS
+          end
+
+          scenario 'shows the evolution filter right above the evolution chart' do
+            visit freight_billing_path(october_by_truck)
+
+            within('#freight_billing_evolution') do
+              expect(page).to have_button('Mensal', class: 'btn-primary')
+              expect(page).to have_button('Semanal', class: 'btn-outline-secondary')
+            end
+            expect(page).to have_css('.dashboard-filter-label', text: 'EVOLUÇÃO', count: 1)
+            expect(evolution_filter_sits_right_above_the_chart?).to be(true)
+
+            use_mobile_screen(width: 360)
+            visit freight_billing_path(october_by_truck)
+
+            expect(page).to have_css('#freight_billing_evolution .chart-card-title', text: 'Evolução Mensal')
+            expect(evolution_filter_sits_right_above_the_chart?).to be(true)
+            expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+          end
+
           scenario 'opens the freights issued in that week with the totals of its bars' do
             visit freight_billing_path(october_by_truck)
             click_on 'Semanal'
