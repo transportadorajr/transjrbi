@@ -173,6 +173,7 @@ describe 'Customers' do
           'Endereço' => 'AV. GETULIO VARGAS, 100, PORTARIA 2, CENTRO',
           'CEP' => '35930000',
           'Cidade' => 'JOAO MONLEVADE/MG',
+          'País' => '- Identificado pela cidade e pelo endereço',
           'Telefone' => '(31) 3859-1000',
           'E-mails' => 'logistica@arcelor.com, fiscal@arcelor.com',
           'Forma de pagamento' => 'Boleto',

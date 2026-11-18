@@ -1,0 +1,16 @@
+<% content_for :title, t('.title', name: tax_value(@customer.name)) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('customers.index.title'), customers_path %></li>
+        <li class="breadcrumb-item"><%= link_to tax_value(@customer.name), customer_path(@customer) %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= t('.breadcrumb') %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title', name: tax_value(@customer.name)), back_path: customer_path(@customer), back_title: t('.back'), wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'form', customer_country_form: @customer_country_form %>
+</div>
