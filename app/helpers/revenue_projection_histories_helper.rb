@@ -285,7 +285,7 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_opening_label(history)
-    t('revenue_projection_histories.show.opening', date: l(history.opening.taken_on, format: :chart_week))
+    t(history.period_type, scope: 'revenue_projection_histories.show.opening')
   end
 
   def revenue_projection_history_latest_label(history)

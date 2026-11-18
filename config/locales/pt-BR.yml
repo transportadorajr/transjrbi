@@ -2458,7 +2458,9 @@ pt-BR:
         de feriado, fim de mês e dia da semana são os da empresa.
       range_forecast: Soma das previsões diárias até %{date}
       difference_range: Faturado x previsões diárias
-      opening: Projeção na abertura (%{date})
+      opening:
+        month: Projeção no início do mês
+        week: Projeção no início da semana
       latest_projection: Projeção atual (%{date})
       refreshed_projection: Projeção atual (%{date} %{time})
       refresh_note: >-
