@@ -26,12 +26,14 @@ end
   'customer_groups' => { name: 'Grupos de clientes', writable: true },
   'product_groups' => { name: 'Grupos de produtos', writable: true },
   'commission_rules' => { name: 'Regras de comissão', writable: true },
+  'export_plants' => { name: 'Plantas de exportação', writable: true },
   'freight_expenses' => { name: 'Despesas de frete', writable: false },
   'tonnage_rates' => { name: 'Custos por tonelada', writable: true },
   'company' => { name: 'Dados da empresa', writable: true },
   'insurance_rates' => { name: 'Alíquotas de seguro', writable: true },
   'freight_billing' => { name: 'Faturamento', writable: false },
   'trips' => { name: 'Viagens', writable: false },
+  'export_summary' => { name: 'Resumo da exportação', writable: false },
   'macro_regions' => { name: 'Macro regiões', writable: true },
   'truck_groups' => { name: 'Grupos de caminhões', writable: true },
   'own_fleet' => { name: 'Frota própria', writable: true },
@@ -58,6 +60,7 @@ Flipper.add(Dashboard::Trip::FEATURE)
 Flipper.add(Dashboard::RevenueProjection::FEATURE)
 Flipper.add(Dashboard::Goals::FEATURE)
 Flipper.add(MaintenanceOrder::FEATURE)
+Flipper.add(ExportPlant::FEATURE)
 
 Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?
 

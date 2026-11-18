@@ -1,0 +1,42 @@
+<%# locals: (row:, documents:, replace_url: nil) %>
+
+<%= tag.div class: 'export-summary-documents', data: { turbo_temporary: true } do %>
+  <%= render layout: 'components/new_modal',
+             locals: { id: ExportSummariesHelper::DOCUMENTS_MODAL_ID, title: row.label, auto_show: true, show_footer: false,
+                       dialog_class: 'modal-lg modal-fullscreen-sm-down', replace_url: } do %>
+    <p class="small text-body-secondary mb-3">
+      <%= t('export_summaries.documents.summary', tons: export_summary_tons(row.tons), loadings: row.loadings_count, count: row.documents_count) %>
+    </p>
+
+    <div class="table-responsive">
+      <table class="table app-table align-middle mb-0" id="export_summary_documents">
+        <thead>
+          <tr>
+            <th><%= t('export_summaries.documents.number') %></th>
+            <th><%= t('export_summaries.documents.trip_on') %></th>
+            <th class="d-none d-md-table-cell"><%= t('export_summaries.documents.manifest') %></th>
+            <th class="d-none d-md-table-cell"><%= t('export_summaries.documents.plate') %></th>
+            <th class="d-none d-lg-table-cell"><%= t('export_summaries.documents.recipient') %></th>
+            <th class="text-end"><%= t('export_summaries.columns.tons') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% documents.each do |fact| %>
+            <tr>
+              <td><%= export_summary_document_number(fact) %></td>
+              <td class="text-nowrap"><%= l(fact.trip_on) %></td>
+              <td class="d-none d-md-table-cell"><%= fact.manifest_number %></td>
+              <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(fact.plate) %></td>
+              <td class="d-none d-lg-table-cell text-break"><%= tax_value(fact.recipient_name) %></td>
+              <td class="text-end text-nowrap"><%= export_summary_tons(fact.tons) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-pagination">
+      <%= paginate documents, param_name: ExportSummariesController::DOCUMENTS_PAGE_PARAM, params: export_summary_documents_pagination_params(row) %>
+    </div>
+  <% end %>
+<% end %>

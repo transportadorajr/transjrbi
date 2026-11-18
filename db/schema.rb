@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_143357) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "admin_http_request_integration_type", ["atua", "tomtom"]
+  create_enum "atua_customer_country_type", ["argentina", "paraguay", "uruguay", "chile", "bolivia", "other"]
   create_enum "atua_device_registration_status_type", ["code_sent", "confirmed", "failed"]
   create_enum "atua_import_error_type", ["configuration", "authentication", "device_verification", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles", "toll_vouchers"]
@@ -177,6 +178,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "customer_group_id"
+    t.enum "country_type", enum_type: "atua_customer_country_type"
+    t.datetime "country_edited_at"
     t.index ["atua_import_id"], name: "index_atua_customers_on_atua_import_id"
     t.index ["customer_group_id"], name: "index_atua_customers_on_customer_group_id"
     t.index ["tenant_id", "code"], name: "index_atua_customers_on_tenant_id_and_code", unique: true
@@ -713,6 +716,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
     t.index ["tenant_id"], name: "index_excluded_issuers_on_tenant_id"
   end
 
+  create_table "export_plants", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "customer_group_id", null: false
+    t.string "name", null: false
+    t.string "cities", default: [], null: false, array: true
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_group_id"], name: "index_export_plants_on_customer_group_id"
+    t.index ["tenant_id", "customer_group_id", "name"], name: "idx_on_tenant_id_customer_group_id_name_f57016730f", unique: true
+    t.index ["tenant_id"], name: "index_export_plants_on_tenant_id"
+  end
+
   create_table "flipper_features", force: :cascade do |t|
     t.string "key", null: false
     t.datetime "created_at", null: false
@@ -1032,10 +1048,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
     t.bigint "total_cents", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "atua_order_number"
+    t.date "posted_on"
+    t.bigint "posted_by_id"
+    t.boolean "posting_verified", default: false, null: false
     t.bigint "responsible_employee_id"
     t.index ["opened_by_id"], name: "index_maintenance_orders_on_opened_by_id"
+    t.index ["posted_by_id"], name: "index_maintenance_orders_on_posted_by_id"
     t.index ["responsible_employee_id"], name: "index_maintenance_orders_on_responsible_employee_id"
     t.index ["supervisor_id"], name: "index_maintenance_orders_on_supervisor_id"
+    t.index ["tenant_id", "atua_order_number"], name: "index_maintenance_orders_on_tenant_id_and_atua_order_number", unique: true, where: "(atua_order_number IS NOT NULL)"
     t.index ["tenant_id", "number"], name: "index_maintenance_orders_on_tenant_id_and_number", unique: true
     t.index ["tenant_id", "plate"], name: "index_maintenance_orders_on_tenant_id_and_plate"
     t.index ["tenant_id", "status_type"], name: "index_maintenance_orders_on_tenant_id_and_status_type"
@@ -1403,6 +1425,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
   add_foreign_key "empty_legs", "tenants"
   add_foreign_key "excluded_drivers", "tenants"
   add_foreign_key "excluded_issuers", "tenants"
+  add_foreign_key "export_plants", "customer_groups"
+  add_foreign_key "export_plants", "tenants"
   add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
   add_foreign_key "freight_expenses", "commission_rules"
   add_foreign_key "freight_expenses", "insurance_rates"
@@ -1428,6 +1452,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
   add_foreign_key "maintenance_order_signatures", "workshop_employees"
   add_foreign_key "maintenance_orders", "tenants"
   add_foreign_key "maintenance_orders", "users", column: "opened_by_id"
+  add_foreign_key "maintenance_orders", "users", column: "posted_by_id"
   add_foreign_key "maintenance_orders", "workshop_employees", column: "responsible_employee_id"
   add_foreign_key "maintenance_orders", "workshop_employees", column: "supervisor_id"
   add_foreign_key "maintenance_part_movements", "maintenance_order_parts"

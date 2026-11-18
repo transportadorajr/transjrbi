@@ -58,20 +58,23 @@ RSpec.describe CustomerGroups::PurgeUnusedCommand do
     let!(:terms_group) { create(:customer_group, tenant:, name: 'COM TERMOS', terms: ['TERMO']) }
     let!(:commission_group) { create(:customer_group, tenant:, name: 'COM COMISSAO') }
     let!(:tonnage_group) { create(:customer_group, tenant:, name: 'COM TONELAGEM') }
+    let!(:export_group) { create(:customer_group, tenant:, name: 'COM PLANTA') }
 
     before do
       create(:atua_customer, tenant:, code: 3, customer_group: terms_group)
       create(:atua_customer, tenant:, code: 4, customer_group: commission_group)
       create(:atua_customer, tenant:, code: 5, customer_group: tonnage_group)
+      create(:atua_customer, tenant:, code: 6, customer_group: export_group)
       create(:commission_rule, tenant:, customer_group: commission_group)
       create(:tonnage_rate, tenant:, customer_group: tonnage_group)
+      create(:export_plant, tenant:, customer_group: export_group)
       create(:atua_transport_document, tenant:, issued_at: 13.months.ago)
     end
 
     it 'keeps those groups' do
       described_class.call(tenant)
 
-      expect(tenant.customer_groups.pluck(:name)).to contain_exactly('COM TERMOS', 'COM COMISSAO', 'COM TONELAGEM')
+      expect(tenant.customer_groups.pluck(:name)).to contain_exactly('COM TERMOS', 'COM COMISSAO', 'COM TONELAGEM', 'COM PLANTA')
     end
   end
 

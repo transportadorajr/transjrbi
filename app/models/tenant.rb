@@ -11,6 +11,7 @@ class Tenant < ApplicationRecord
   has_many :atua_device_registrations, class_name: 'Atua::DeviceRegistration', dependent: :destroy
   has_many :freight_expenses, dependent: :delete_all
   has_many :commission_rules, dependent: :delete_all
+  has_many :export_plants, dependent: :delete_all
   has_many :tonnage_rates, dependent: :delete_all
   has_one :insurance_rate, dependent: :delete
   has_one :own_fleet, dependent: :delete

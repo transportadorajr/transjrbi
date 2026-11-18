@@ -1,0 +1,23 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('customer_countries.form.country_data') %></p>
+    <p class="form-card-subtitle"><%= t('customer_countries.form.country_data_text') %></p>
+  </div>
+  <%= simple_form_for(customer_country_form, url: customer_country_path(customer_country_form.customer), method: :patch) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-4">
+          <%= f.input :country_type, collection: customer_country_options, required: false,
+                                     include_blank: t('customer_countries.form.automatic'),
+                                     hint: customer_country_hint(customer_country_form.customer),
+                                     input_html: { class: 'form-select' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.customer_country.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), customer_path(customer_country_form.customer), class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

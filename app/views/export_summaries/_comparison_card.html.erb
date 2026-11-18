@@ -1,0 +1,14 @@
+<%# locals: (title:, comparison:) %>
+
+<div class="counter-card col-12 col-md-6">
+  <div class="card h-100">
+    <div class="counter-card-body">
+      <div class="counter-card-info">
+        <p class="counter-label"><%= title %></p>
+        <strong class="counter-value value-primary d-block"><%= export_summary_tons(comparison.current_tons) %></strong>
+        <p class="small mb-1 text-body-secondary"><%= export_summary_comparison_loadings(comparison) %></p>
+        <%= export_summary_comparison_variation(comparison) %>
+      </div>
+    </div>
+  </div>
+</div>

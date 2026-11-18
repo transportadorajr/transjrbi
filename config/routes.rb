@@ -91,7 +91,9 @@ Rails.application.routes.draw do
       get :customer_options, on: :collection
       get :product_options, on: :collection
     end
-    resources :customers, only: %i[index show]
+    resources :customers, only: %i[index show] do
+      resource :country, only: %i[edit update], controller: 'customer_countries'
+    end
     resources :customer_groups, concerns: :activatable do
       patch :regroup, on: :member
     end
@@ -99,6 +101,7 @@ Rails.application.routes.draw do
     resources :drivers, only: %i[index show edit update destroy]
     resources :expenses, only: %i[index show]
     resources :commission_rules, concerns: :activatable
+    resources :export_plants, concerns: :activatable
     resources :macro_regions, concerns: :activatable
     resources :cities, concerns: :activatable
     resources :truck_groups, concerns: :activatable
@@ -130,6 +133,9 @@ Rails.application.routes.draw do
     resources :trips, only: :index do
       get :detail, on: :collection
       get :product_options, on: :collection
+    end
+    resource :export_summary, only: :show do
+      get :documents
     end
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection

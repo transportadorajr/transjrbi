@@ -79,5 +79,47 @@ RSpec.describe Atua::Customer do
         expect(described_class.removed_from_atua).to eq([removed])
       end
     end
+
+    context 'with foreign and domestic customers' do
+      let!(:foreign) { create(:atua_customer, tenant:, state: 'EX', country_edited_at: nil) }
+      let!(:edited_foreign) { create(:atua_customer, tenant:, state: 'EX', country_edited_at: Time.current) }
+      let!(:domestic) { create(:atua_customer, tenant:, state: 'MG', country_edited_at: nil) }
+
+      it 'keeps only the customers of the foreign state' do
+        expect(described_class.foreign).to contain_exactly(foreign, edited_foreign)
+        expect(described_class.count).to eq(3)
+      end
+
+      it 'keeps only the customers whose country was not edited by hand' do
+        expect(described_class.country_not_edited).to contain_exactly(foreign, domestic)
+      end
+    end
+  end
+
+  describe '#foreign?' do
+    it 'recognizes the foreign state ignoring case and spaces' do
+      expect(build(:atua_customer, state: 'EX')).to be_foreign
+      expect(build(:atua_customer, state: 'ex')).to be_foreign
+      expect(build(:atua_customer, state: ' EX ')).to be_foreign
+    end
+
+    it 'rejects a domestic or blank state' do
+      expect(build(:atua_customer, state: 'MG')).not_to be_foreign
+      expect(build(:atua_customer, state: nil)).not_to be_foreign
+    end
+  end
+
+  describe 'country_type' do
+    it 'accepts a known country and a blank one' do
+      expect(build(:atua_customer, tenant:, country_type: 'paraguay')).to be_valid
+      expect(build(:atua_customer, tenant:, country_type: nil)).to be_valid
+    end
+
+    it 'rejects an unknown country' do
+      customer = build(:atua_customer, tenant:, country_type: 'narnia')
+
+      expect(customer).not_to be_valid
+      expect(customer.errors[:country_type]).to be_present
+    end
   end
 end
