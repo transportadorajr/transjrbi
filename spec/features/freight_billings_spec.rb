@@ -1802,8 +1802,10 @@ describe 'Freight billing' do
       visit freight_billing_path(november)
 
       expect(Atua::TransportDocument.count).to eq(5)
-      expect(page).to have_css('.chart-card-title', text: 'Frete bruto por Grupo de clientes: mês atual x mês passado')
-      expect(page).to have_css('.chart-card-subtitle', text: 'Os 15 maiores pelo frete bruto de 01/11/2026 a 30/11/2026, comparados com 01/10/2026 a 31/10/2026')
+      within('#freight_billing_comparison') do
+        expect(page).to have_css('.chart-card-title', text: 'Frete bruto por Grupo de clientes: mês atual x mês passado')
+        expect(page).to have_css('.chart-card-subtitle', text: 'Os 15 maiores pelo frete bruto de 01/11/2026 a 30/11/2026, comparados com 01/10/2026 a 31/10/2026')
+      end
       expect(html_table_to_rows).to eq(
         [
           ['Grupo de clientes', 'Frete bruto', 'Bruto mês passado', 'Variação', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
@@ -1826,13 +1828,14 @@ describe 'Freight billing' do
         visit freight_billing_path(november)
       end
 
-      expect(page).to have_css('.chart-card-subtitle', text: 'Mês em andamento: CT-es até 18/11/2026.')
+      expect(page).to have_css('#freight_billing_comparison .chart-card-subtitle', text: 'Mês em andamento: CT-es até 18/11/2026.')
     end
 
     scenario 'keeps the gross and net freight when grouped by another dimension' do
       visit freight_billing_path(november.merge(dimension: 'vehicle'))
 
       expect(page).to have_css('.chart-card-title', text: 'Frete por Veículo')
+      expect(page).to have_no_css('#freight_billing_comparison')
       expect(page).to have_no_css('th', text: 'Bruto mês passado')
     end
 
@@ -1843,15 +1846,32 @@ describe 'Freight billing' do
       expect(text).to include('Bruto mês passado', 'Variação', 'R$ 25.100,00', '+29,0%', '-100,0%')
     end
 
-    scenario 'plots the current month in blue and the previous month in green with the variation in each label', :js do
+    def chart_datasets(container)
+      page.evaluate_script(
+        "Object.values(Chartkick.charts).find((chart) => document.querySelector('#{container}').contains(chart.element)).getChartObject().data" \
+        '.datasets.map((dataset) => [dataset.label, dataset.backgroundColor, dataset.data])',
+      )
+    end
+
+    def chart_labels(container)
+      page.evaluate_script(
+        "Object.values(Chartkick.charts).find((chart) => document.querySelector('#{container}').contains(chart.element)).getChartObject().data.labels",
+      )
+    end
+
+    scenario 'plots the month comparison in a separate chart below the gross and net freight chart', :js do
       visit freight_billing_path(november)
 
-      expect(page).to have_css('.chart-card canvas', minimum: 2)
-      datasets = page.evaluate_script(
-        'Object.values(Chartkick.charts)[0].getChartObject().data.datasets.map((dataset) => [dataset.label, dataset.backgroundColor, dataset.data])',
+      expect(page).to have_css('#freight_billing_comparison canvas')
+      expect(page).to have_css('.chart-card-title', text: 'Frete por Grupo de clientes')
+      expect(chart_datasets('.chart-card')).to eq([['Frete bruto', '#2563eb', [32_370.8, 10_044.9]], ['Frete líquido', '#dc3545', [32_370.8, 10_044.9]]])
+      expect(chart_datasets('#freight_billing_comparison')).to eq(
+        [['Mês atual', '#2563eb', [32_370.8, 10_044.9]], ['Mês passado', '#198754', [25_100, 15_800]]],
       )
-      expect(datasets).to eq([['Mês atual', '#2563eb', [32_370.8, 10_044.9]], ['Mês passado', '#198754', [25_100, 15_800]]])
-      expect(page.evaluate_script('Object.values(Chartkick.charts)[0].getChartObject().data.labels')).to eq(['ARCELOR (+29,0%)', 'PANORAMA (-36,4%)'])
+      expect(chart_labels('#freight_billing_comparison')).to eq(['ARCELOR (+29,0%)', 'PANORAMA (-36,4%)'])
+      ranking_bottom = page.evaluate_script("document.querySelector('.chart-card').getBoundingClientRect().bottom")
+      comparison_top = page.evaluate_script("document.querySelector('#freight_billing_comparison').getBoundingClientRect().top")
+      expect(ranking_bottom).to be <= comparison_top
     end
 
     scenario 'keeps the variation on a phone without scrolling sideways', :js do

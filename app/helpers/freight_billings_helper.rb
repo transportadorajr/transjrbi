@@ -86,14 +86,14 @@ module FreightBillingsHelper
   end
 
   def freight_billing_ranking_title(dashboard)
-    key = dashboard.comparison? ? 'comparison_ranking_title' : 'ranking_title'
-
-    t(key, scope: 'freight_billings.show', dimension: freight_billing_dimension_label(dashboard.dimension))
+    t('freight_billings.show.ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
   end
 
-  def freight_billing_ranking_subtitle(dashboard)
-    return t('freight_billings.show.ranking_subtitle') unless dashboard.comparison?
+  def freight_billing_comparison_ranking_title(dashboard)
+    t('freight_billings.show.comparison_ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
+  end
 
+  def freight_billing_comparison_ranking_subtitle(dashboard)
     period = dashboard.period
     previous = dashboard.previous_period
     subtitle = t('freight_billings.show.comparison_ranking_subtitle', from: l(period.first), to: l(period.last),
@@ -233,11 +233,23 @@ module FreightBillingsHelper
 
   def freight_billing_ranking_chart(dashboard)
     tag.div(data: freight_billing_ranking_chart_data(dashboard)) do
-      bar_chart(freight_billing_ranking_series(dashboard),
+      bar_chart(freight_billing_series(dashboard.ranking_data),
                 height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
                 legend: 'bottom',
                 **chart_money_options,
                 library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
+    end
+  end
+
+  def freight_billing_comparison_ranking_card(dashboard)
+    return unless dashboard.comparison?
+
+    tag.div(class: 'row g-3 mb-4', id: 'freight_billing_comparison') do
+      tag.div(class: 'col-12 col-xl-7') do
+        render('freight_billings/chart_card', title: freight_billing_comparison_ranking_title(dashboard),
+                                              subtitle: freight_billing_comparison_ranking_subtitle(dashboard),
+                                              chart: freight_billing_comparison_ranking_chart(dashboard))
+      end
     end
   end
 
@@ -371,14 +383,15 @@ module FreightBillingsHelper
     end
   end
 
-  def freight_billing_ranking_series(dashboard)
-    return freight_billing_series(dashboard.ranking_data) unless dashboard.comparison?
-
-    freight_billing_series(dashboard.comparison_ranking_data, COMPARISON_SERIES_COLORS)
+  def freight_billing_comparison_ranking_chart(dashboard)
+    bar_chart(freight_billing_series(dashboard.comparison_ranking_data, COMPARISON_SERIES_COLORS),
+              height: "#{[dashboard.ranking_rows.size * RANKING_BAR_HEIGHT, RANKING_MIN_HEIGHT].max}px",
+              legend: 'bottom',
+              **chart_money_options,
+              library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
   end
 
   def freight_billing_ranking_chart_data(dashboard)
-    return {} if dashboard.comparison?
     return {} unless dashboard.ranking_rows.all? { |row| dashboard.lists_freights?(row.key) }
 
     { controller: 'ranking-chart', ranking_chart_urls_value: dashboard.ranking_rows.map { |row| freight_billing_freights_path(row) },

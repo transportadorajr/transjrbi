@@ -2,7 +2,7 @@
 
 <div class="row g-3 mb-4">
   <div class="col-12 col-xl-7">
-    <%= render 'chart_card', title: freight_billing_ranking_title(dashboard), subtitle: freight_billing_ranking_subtitle(dashboard),
+    <%= render 'chart_card', title: freight_billing_ranking_title(dashboard), subtitle: t('freight_billings.show.ranking_subtitle'),
                              chart: freight_billing_ranking_chart(dashboard) %>
   </div>
 
@@ -14,6 +14,8 @@
     </div>
   </div>
 </div>
+
+<%= freight_billing_comparison_ranking_card(dashboard) %>
 
 <%= freight_billing_per_km_ranking_card(dashboard) %>
 
