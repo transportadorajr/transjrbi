@@ -76,13 +76,29 @@ RSpec.describe Atua::ImportReportJob do
       end
     end
 
-    it 'gives up after three attempts' do
+    it 'gives up after three attempts raising the import failure and notifying Discord' do
+      allow(Discord).to receive(:enabled?).and_return(true)
+      allow(Discord::NotifyErrorCommand).to receive(:call)
       allow(Atua::ImportReportCommand).to receive(:call).and_raise(Atua::DownloadError.new('HTTP 502', status: 502))
       job = described_class.new(tenant.id, 'manifests', start_date, end_date)
       job.exception_executions = { '[Atua::RetryableError]' => 2 }
 
-      expect { job.perform_now }.to raise_error(Atua::RetryableError, 'HTTP 502')
+      expect { job.perform_now }.to raise_error(Atua::ImportFailedError, /falhou 3 vezes seguidas.*HTTP 502/)
       expect(described_class).not_to have_been_enqueued
+      expect(Discord::NotifyErrorCommand).to have_received(:call)
+        .with(Atua::ImportFailedError, handled: false, context: { tenant_id: tenant.id }, source: 'atua.import_report').once
+    end
+
+    it 'does not notify Discord while there are attempts left' do
+      allow(Discord).to receive(:enabled?).and_return(true)
+      allow(Discord::NotifyErrorCommand).to receive(:call)
+      allow(Atua::ImportReportCommand).to receive(:call).and_raise(Atua::DownloadError.new('HTTP 502', status: 502))
+      job = described_class.new(tenant.id, 'manifests', start_date, end_date)
+      job.exception_executions = { '[Atua::RetryableError]' => 1 }
+
+      expect { job.perform_now }.not_to raise_error
+      expect(described_class).to have_been_enqueued
+      expect(Discord::NotifyErrorCommand).not_to have_received(:call)
     end
 
     it 'schedules a new attempt when the attached file cannot be processed' do

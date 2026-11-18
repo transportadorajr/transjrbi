@@ -1,3 +1,3 @@
 Rails.application.config.after_initialize do
-  Rails.error.subscribe(Discord::ErrorSubscriber.new) if Rails.env.production? && Discord.configured?
+  Rails.error.subscribe(Discord::ErrorSubscriber.new) if Discord.enabled?
 end

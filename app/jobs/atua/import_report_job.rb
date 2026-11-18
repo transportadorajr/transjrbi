@@ -17,7 +17,9 @@ module Atua
     good_job_concurrency_rule(label: SESSION_LABEL, perform_limit: 1)
 
     discard_on(*ACTION_REQUIRED_ERRORS)
-    retry_on RetryableError, wait: RETRY_WAIT, attempts: RETRY_ATTEMPTS
+    retry_on RetryableError, wait: RETRY_WAIT, attempts: RETRY_ATTEMPTS do |job, error|
+      raise NotifyImportFailureCommand.call(*job.arguments.first(4), error:, attempts: RETRY_ATTEMPTS)
+    end
 
     class << self
       def report_label(tenant_id = nil, report_type = nil)
