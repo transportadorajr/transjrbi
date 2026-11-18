@@ -17,7 +17,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_171800) do
   # Custom types defined in this database.
   # Note that some types may not work with other database engines. Be careful if changing database.
   create_enum "admin_http_request_integration_type", ["atua", "tomtom"]
-  create_enum "atua_customer_country_type", ["argentina", "paraguay", "uruguay", "chile", "bolivia", "other"]
+  create_enum "atua_customer_country_type", ["argentina", "paraguay", "uruguay", "chile", "bolivia", "other", "united_states", "italy"]
   create_enum "atua_device_registration_status_type", ["code_sent", "confirmed", "failed"]
   create_enum "atua_import_error_type", ["configuration", "authentication", "device_verification", "session", "download", "spreadsheet", "layout", "conversion", "unexpected"]
   create_enum "atua_import_report_type", ["transport_documents", "manifests", "expenses", "customers", "vehicles", "toll_vouchers"]

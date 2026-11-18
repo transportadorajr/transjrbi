@@ -5,7 +5,7 @@ module Atua
 
     include Importable
 
-    COUNTRIES = %i[argentina paraguay uruguay chile bolivia other].freeze
+    COUNTRIES = %i[argentina paraguay uruguay chile bolivia united_states italy other].freeze
     FOREIGN_STATE = 'EX'.freeze
 
     export_field(:customer_group) { |customer| customer.customer_group&.name }
