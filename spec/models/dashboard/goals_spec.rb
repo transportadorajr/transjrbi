@@ -52,6 +52,35 @@ RSpec.describe Dashboard::Goals do
     expect(dashboard.vehicle_goals_cents).to eq(3_000_000)
   end
 
+  context 'with trailers in the own fleet' do
+    let(:own_fleet) { create(:own_fleet, tenant:, plates: %w[AJR4391 RHJ5A50 QWE1A23 RHJ5A51 QWE1A24]) }
+
+    before do
+      create(:atua_vehicle, tenant:, plate: 'RHJ5A51', category: 'Carreta')
+      create(:atua_vehicle, tenant:, plate: 'QWE1A24', category: 'Carreta')
+      create(:revenue_goal, :trailer, tenant:, month:, plate: 'RHJ5A51', amount_cents: 500_000)
+      freight('AJR4391', 450_000, trailer_plate: 'RHJ5A51')
+      freight('RHJ5A50', 120_000, trailer_plate: 'TRC9X99')
+    end
+
+    it 'ranks the trailers by the billing of the trailer plate with the third party trailers apart' do
+      rows = dashboard.sorted_vehicle_rows(nil, nil, section: :trailers)
+
+      expect(rows.map { [it.key, it.goal_cents, it.realized_cents, it.cut, it.status] }).to eq(
+        [
+          ['RHJ5A51', 500_000, 450_000, { plate: 'RHJ5A51' }, :on_track],
+          ['QWE1A24', nil, 0, { plate: 'QWE1A24' }, nil],
+        ],
+      )
+      expect(dashboard.third_party_row(:trailers).realized_cents).to eq(120_000)
+    end
+
+    it 'keeps the trailers out of the truck ranking' do
+      expect(dashboard.sorted_vehicle_rows(nil, nil).map(&:key)).to eq(%w[AJR4391 RHJ5A50 QWE1A23])
+      expect(dashboard.company.realized_cents).to eq(2_120_000)
+    end
+  end
+
   it 'sorts the ranking by the goal achievement' do
     expect(dashboard.sorted_vehicle_rows('ratio', 'desc').map(&:key)).to eq(%w[AJR4391 RHJ5A50 QWE1A23])
     expect(dashboard.sorted_vehicle_rows('label', 'asc').map(&:key)).to eq(%w[AJR4391 QWE1A23 RHJ5A50])

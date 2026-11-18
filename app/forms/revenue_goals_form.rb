@@ -98,7 +98,7 @@ class RevenueGoalsForm < BaseForm
 
   def posted_line(section, line)
     key = line[:key].to_s.strip
-    key = key.upcase if section == :vehicles
+    key = key.upcase if Dashboard::Goals.vehicle_section?(section)
     name = targets.options(section)[key] if month_value
 
     Line.new(key:, name: name || key, amount: line[:amount])
