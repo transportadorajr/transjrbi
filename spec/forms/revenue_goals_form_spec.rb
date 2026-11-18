@@ -53,7 +53,7 @@ RSpec.describe RevenueGoalsForm do
       loaded = described_class.for_month(tenant, month)
 
       expect(loaded.regions.map { [it.name, it.reference_cents] }).to eq([['BAHIA', 0], ['VALE DO AÇO/MG', 800_000]])
-      expect(loaded.lines.keys).to eq(%i[vehicles customer_groups regions])
+      expect(loaded.lines.keys).to eq(%i[vehicles trailers customer_groups regions])
     end
   end
 
@@ -99,6 +99,28 @@ RSpec.describe RevenueGoalsForm do
       expect { invalid.save }.not_to change(RevenueGoal, :count)
       expect(invalid.errors.full_messages).to contain_exactly("A macro região #{other_region.id} não está cadastrada.",
                                                               'A meta da macro região VALE DO AÇO/MG deve ser maior que 0.')
+    end
+
+    context 'with a trailer in the own fleet' do
+      before do
+        tenant.own_fleet.update!(plates: %w[RHJ5A50 AJR4391 QWE1A24])
+        create(:atua_vehicle, tenant:, plate: 'QWE1A24', category: 'Carreta')
+      end
+
+      it 'saves the trailer goals' do
+        saved = form(trailers_attributes: { '0' => { key: 'qwe1a24', amount: '15.000,00' } })
+
+        expect { expect(saved.save).to be(true) }.to change(RevenueGoal, :count).by(1)
+        expect(tenant.revenue_goals.trailer.sole).to have_attributes(plate: 'QWE1A24', month:, amount_cents: 1_500_000)
+      end
+
+      it 'rejects a truck as a trailer and a trailer as a truck' do
+        invalid = form(trailers_attributes: { '0' => { key: 'AJR4391', amount: '10,00' } }, vehicles_attributes: { '0' => { key: 'QWE1A24', amount: '10,00' } })
+
+        expect { invalid.save }.not_to change(RevenueGoal, :count)
+        expect(invalid.errors.full_messages).to contain_exactly('A carreta AJR4391 não está na frota própria.',
+                                                                'O veículo QWE1A24 não está na frota própria.')
+      end
     end
 
     it 'rejects an invalid month' do

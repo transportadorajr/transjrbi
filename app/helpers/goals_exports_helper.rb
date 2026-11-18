@@ -20,12 +20,12 @@ module GoalsExportsHelper
     [xlsx_field(t(section, scope: 'goals.sections'), &:label),
      *goals_xlsx_month_columns,
      xlsx_field(t('goals.show.columns.projected'), :money, &:projected_cents),
-     *(goals_xlsx_week_columns if dashboard.week? && section != :vehicles),
+     *(goals_xlsx_week_columns if dashboard.week? && !Dashboard::Goals.vehicle_section?(section)),
      goals_xlsx_status_column]
   end
 
   def goals_xlsx_rows(dashboard, section, rows)
-    extra_row = section == :vehicles ? dashboard.third_party_row : dashboard.breakdown_extra_row(section)
+    extra_row = Dashboard::Goals.vehicle_section?(section) ? dashboard.third_party_row(section) : dashboard.breakdown_extra_row(section)
 
     [*rows, extra_row].compact
   end

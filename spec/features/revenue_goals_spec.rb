@@ -65,7 +65,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
         expect(RevenueGoal.where(tenant:).count).to eq(3)
         expect(CustomerGroup.where(tenant:).count).to eq(2)
         expect(summary_cards).to eq(
-          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
+          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma das carretas R$ 0,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
         )
         expect(page).to have_css('#revenue_goals_tabs .nav-link.active', text: 'Veículos 1')
         expect(html_table_to_rows(table: find_by_id('revenue_goals_vehicles'))).to eq(
@@ -124,7 +124,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
         expect(page).to have_text('3 metas copiadas do mês anterior.')
         expect(summary_cards).to eq(
-          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
+          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma das carretas R$ 0,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
         )
         expect(tenant.revenue_goals.for_month(month.next_month).count).to eq(3)
       end
@@ -160,6 +160,50 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
       expect(goal.plate).to eq('AJR4391')
       expect(goal.amount_cents).to eq(5_000_000)
       expect(tenant.revenue_goals.company.sole.amount_cents).to eq(20_000_000)
+    end
+
+    context 'with a trailer in the own fleet' do
+      before do
+        tenant.own_fleet.update!(plates: %w[RHJ5A50 AJR4391 QWE1A24])
+        create(:atua_vehicle, tenant:, plate: 'QWE1A24', category: 'Carreta')
+        create(:atua_transport_document, tenant:, plate: 'AJR4391', trailer_plate: 'QWE1A24', freight_cents: 1_200_000,
+                                         issued_at: Time.zone.local(2026, 10, 15, 10))
+      end
+
+      scenario 'creates the goal of a trailer' do
+        visit edit_revenue_goals_path(month: '2026-11')
+
+        within('#revenue_goals_vehicles_fields') { expect(page).to have_no_field('QWE1A24') }
+        within('#revenue_goals_trailers_fields') do
+          expect(page).to have_text('Faturado em Outubro de 2026: R$ 12.000,00')
+          fill_in 'QWE1A24', with: '30.000,00'
+        end
+
+        expect { click_on 'Salvar Metas' }.to change(RevenueGoal, :count).by(1)
+
+        goal = tenant.revenue_goals.trailer.sole
+        expect(goal).to have_attributes(month:, plate: 'QWE1A24', amount_cents: 3_000_000)
+        expect(summary_cards).to include('Soma dos veículos R$ 0,00', 'Soma das carretas R$ 30.000,00')
+
+        click_on 'Carretas'
+
+        expect(html_table_to_rows(table: find_by_id('revenue_goals_trailers'))).to eq(
+          [
+            ['Placa da carreta', 'Meta', 'Participação na meta da transportadora', 'Faturado em Outubro de 2026'],
+            ['QWE1A24', 'R$ 30.000,00', '-', 'R$ 12.000,00'],
+          ],
+        )
+      end
+
+      scenario 'rejects a truck as a trailer' do
+        expect do
+          page.driver.submit :patch, revenue_goals_path,
+                             { revenue_goals: { month: '2026-11', trailers_attributes: { '0' => { key: 'AJR4391', amount: '100,00' } } } }
+        end.not_to change(RevenueGoal, :count)
+
+        expect(page.status_code).to eq(422)
+        expect(page).to have_text('A carreta AJR4391 não está na frota própria.')
+      end
     end
 
     scenario 'rejects a plate outside the own fleet' do
@@ -198,7 +242,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
         visit edit_revenue_goals_path(month: '2026-11')
 
-        expect(page).to have_text('Metas por veículo, grupo de clientes e região')
+        expect(page).to have_text('Metas por veículo, carreta, grupo de clientes e região')
         expect(page).to have_no_field('JOSE DA SILVA')
       end
     end

@@ -5,6 +5,7 @@
     <div class="table-card-heading">
       <p class="table-card-title"><%= t(section, scope: 'goals.show.dimension_titles') %></p>
       <p class="table-card-subtitle"><%= t(section, scope: 'goals.show.dimension_subtitles') %></p>
+      <%= goal_vehicle_type_nav(section) %>
     </div>
     <%= goal_dimension_sort_menu(section) %>
   </div>

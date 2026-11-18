@@ -34,6 +34,27 @@ RSpec.describe RevenueGoal::Targets do
     expect(targets.reference_cents(:regions)).to eq(region.id.to_s => 500_000, '' => 200_000)
   end
 
+  context 'with trailers in the own fleet' do
+    before do
+      tenant.own_fleet.update!(plates: %w[AJR4391 RHJ5A51 QWE1A24])
+      create(:atua_vehicle, tenant:, plate: 'RHJ5A51', category: 'Carreta')
+      create(:atua_vehicle, tenant:, plate: 'ZZZ1A99', category: 'Carreta')
+      create(:atua_vehicle, tenant:, plate: 'AJR4391')
+      create(:atua_transport_document, tenant:, plate: 'AJR4391', trailer_plate: 'RHJ5A51', freight_cents: 300_000, issued_at: Time.zone.local(2026, 10, 8, 10))
+      create(:revenue_goal, :trailer, tenant:, month:, plate: 'ZZZ1A99', amount_cents: 1_000_000)
+    end
+
+    it 'lists the trailers apart from the trucks' do
+      expect(targets.options(:vehicles)).to eq('AJR4391' => 'AJR4391', 'QWE1A24' => 'QWE1A24')
+      expect(targets.options(:trailers)).to eq('RHJ5A51' => 'RHJ5A51', 'ZZZ1A99' => 'ZZZ1A99')
+    end
+
+    it 'sums the billing of the previous month by the trailer plate' do
+      expect(targets.reference_cents(:trailers)).to eq('RHJ5A51' => 300_000, '' => 700_000)
+      expect(targets.goal_amounts(:trailers)).to eq('ZZZ1A99' => 1_000_000)
+    end
+  end
+
   it 'reads the goal amounts of the month by target' do
     create(:revenue_goal, :region, tenant:, month:, macro_region: region, amount_cents: 3_000_000)
     create(:revenue_goal, :customer_group, tenant:, month: month.prev_month, customer_group: usiminas)

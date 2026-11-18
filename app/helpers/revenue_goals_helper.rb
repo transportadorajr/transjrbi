@@ -85,7 +85,7 @@ module RevenueGoalsHelper
   end
 
   def revenue_goals_target_label(section, line)
-    return goal_plate_tag(line.name) if section == :vehicles
+    return goal_plate_tag(line.name) if Dashboard::Goals.vehicle_section?(section)
 
     line.name
   end

@@ -1079,6 +1079,8 @@ pt-BR:
             base:
               invalid_vehicles_amount: A meta do veículo %{name} deve ser maior que 0.
               unknown_vehicles: O veículo %{name} não está na frota própria.
+              invalid_trailers_amount: A meta da carreta %{name} deve ser maior que 0.
+              unknown_trailers: A carreta %{name} não está na frota própria.
               invalid_customer_groups_amount: A meta do grupo de clientes %{name} deve ser maior que 0.
               unknown_customer_groups: O grupo de clientes %{name} não está ativo.
               invalid_regions_amount: A meta da macro região %{name} deve ser maior que 0.
@@ -1329,6 +1331,7 @@ pt-BR:
       target_type:
         company: Transportadora
         vehicle: Veículo
+        trailer: Carreta
         customer_group: Grupo de clientes
         region: Macro região
     workshop_employee:
@@ -3287,12 +3290,17 @@ pt-BR:
       macro_region: Região
     tabs:
       vehicles: Veículos
+      trailers: Carretas
       customer_groups: Grupos de clientes
       regions: Regiões
     sections:
       vehicles: Placa
+      trailers: Placa da carreta
       customer_groups: Grupo de clientes
       regions: Macro região
+    vehicle_types:
+      truck: Cavalos
+      trailer: Carretas
     month_nav:
       label: Mês
       previous: Mês anterior
@@ -3313,9 +3321,11 @@ pt-BR:
       missing_goal: A meta da transportadora deste mês ainda não foi cadastrada.
       register_goals: Cadastrar metas
       group_by: Agrupar por
+      vehicle_type: Tipo de veículo
       dimension_titles:
         customer_groups: Metas por grupo de clientes
         vehicles: Ranking dos veículos
+        trailers: Ranking das carretas
         regions: Metas por macro região
       dimension_subtitles:
         customer_groups: >-
@@ -3323,6 +3333,9 @@ pt-BR:
           são somados na linha Sem grupo de clientes.
         vehicles: >-
           Faturamento bruto de cada placa da frota própria no mês. As placas fora da frota própria são somadas na linha Terceiro.
+        trailers: >-
+          Faturamento bruto de cada carreta da frota própria no mês, pela placa da carreta do CT-e. As carretas fora da frota
+          própria são somadas na linha Terceiro.
         regions: >-
           Faturamento bruto de cada macro região de origem do CT-e no mês e na semana. As regiões aparecem quando têm meta ou
           faturamento no mês, e os CT-es sem macro região são somados na linha Sem macro região.
@@ -3360,22 +3373,26 @@ pt-BR:
     share: '%{ratio} da meta da transportadora'
     search:
       vehicles: Buscar placa
+      trailers: Buscar carreta
       customer_groups: Buscar grupo de clientes
       regions: Buscar macro região
     show:
       title: Metas de faturamento
       subtitle: >-
-        Metas mensais de faturamento bruto da transportadora, de cada veículo da frota própria, dos grupos de clientes e das
-        macro regiões.
+        Metas mensais de faturamento bruto da transportadora, de cada veículo e carreta da frota própria, dos grupos de clientes
+        e das macro regiões.
       targets_title: Metas de %{month}
       targets_subtitle: Compare cada meta com a meta da transportadora e com o faturamento do mês anterior.
       totals:
         company: Transportadora
         vehicles: Soma dos veículos
+        trailers: Soma das carretas
         customer_groups: Soma dos grupos
         regions: Soma das regiões
       section_texts:
         vehicles: Placas da frota própria. Placas sem meta não entram no atingimento.
+        trailers: >-
+          Carretas da frota própria (veículos da categoria Carreta). O faturamento é atribuído pela placa da carreta do CT-e.
         customer_groups: Grupos de clientes ativos e os que já têm meta no mês. O faturamento é atribuído pelo tomador do CT-e.
         regions: Macro regiões cadastradas. O faturamento é atribuído pela macro região da cidade de origem do CT-e.
       columns:
@@ -3400,7 +3417,7 @@ pt-BR:
       title: Meta da transportadora
       text: Informe o faturamento bruto esperado. Deixe em branco para ficar sem meta.
       company_hint: Meta total de faturamento da transportadora no mês.
-      targets_title: Metas por veículo, grupo de clientes e região
+      targets_title: Metas por veículo, carreta, grupo de clientes e região
       targets_text: >-
         Deixe em branco para ficar sem meta. O faturamento de %{month} aparece em cada linha como referência.
       section_total: Soma das metas

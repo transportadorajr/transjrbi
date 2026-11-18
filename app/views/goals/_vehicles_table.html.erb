@@ -1,15 +1,15 @@
-<%# locals: (rows:, third_party_row:, month:) %>
+<%# locals: (section:, rows:, third_party_row:, month:) %>
 
 <div class="table-responsive">
-  <table class="table app-table align-middle mb-0" id="goal_vehicles_table">
+  <table class="table app-table align-middle mb-0" id="goal_<%= section %>_table">
     <thead>
       <tr>
         <th class="text-end"><%= t('goals.show.columns.position') %></th>
-        <%= sortable_header(t('goals.show.columns.plate'), :label, anchor: 'goal_vehicles') %>
+        <%= sortable_header(t(section, scope: 'goals.sections'), :label, anchor: "goal_#{section}") %>
         <th class="text-end d-none d-md-table-cell"><%= t('goals.show.columns.goal') %></th>
-        <%= sortable_header(t('goals.show.columns.realized'), :realized, first_direction: :desc, anchor: 'goal_vehicles', class: 'text-end d-none d-md-table-cell') %>
+        <%= sortable_header(t('goals.show.columns.realized'), :realized, first_direction: :desc, anchor: "goal_#{section}", class: 'text-end d-none d-md-table-cell') %>
         <th class="text-end d-none d-lg-table-cell"><%= t('goals.show.columns.missing') %></th>
-        <%= sortable_header(t('goals.show.columns.ratio'), :ratio, first_direction: :desc, anchor: 'goal_vehicles', class: 'text-end') %>
+        <%= sortable_header(t('goals.show.columns.ratio'), :ratio, first_direction: :desc, anchor: "goal_#{section}", class: 'text-end') %>
         <th class="text-end d-none d-lg-table-cell"><%= t('goals.show.columns.projected') %></th>
         <th class="text-end"><%= t('goals.show.columns.status') %></th>
         <th class="text-end"><%= t('goals.show.columns.projections') %></th>
