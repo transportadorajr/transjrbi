@@ -116,6 +116,48 @@ module ExportSummariesHelper
     end
   end
 
+  def export_summary_shortcuts(summaries)
+    return if summaries.empty?
+
+    render 'export_summaries/shortcuts', summaries:
+  end
+
+  def export_summary_shortcut_line(period, comparison)
+    parts = [content_tag(:span, t(period, scope: 'export_summaries.shortcuts'), class: 'text-body-secondary'),
+             content_tag(:strong, export_summary_tons(comparison.current_tons)),
+             content_tag(:span, export_summary_comparison_loadings(comparison), class: 'text-body-secondary'),
+             export_summary_shortcut_variation(comparison)]
+
+    content_tag(:p, safe_join(parts, ' · '), class: 'small mb-0')
+  end
+
+  def export_summary_shortcut_variation(comparison)
+    return content_tag(:span, t('export_summaries.shortcuts.no_previous'), class: 'text-body-secondary') if comparison.variation.nil?
+
+    variation = number_to_percentage(comparison.variation, precision: 1, format: comparison.variation.positive? ? '+%n%' : '%n%')
+    content_tag(:span, variation, class: export_summary_variation_class(comparison))
+  end
+
+  def export_summary_shortcut_path(shortcut)
+    query = request.query_parameters.symbolize_keys.except(:page, :detail, :documents_page, :customer_group_id, :plant, :country)
+
+    export_summary_path(**query, shortcut_id: shortcut.id)
+  end
+
+  def export_summary_shortcut_filter(shortcut)
+    return unless shortcut
+
+    render 'export_summaries/shortcut_filter', shortcut:
+  end
+
+  def export_summary_without_shortcut_path
+    export_summary_path(**request.query_parameters.symbolize_keys.except(:page, :detail, :documents_page, :shortcut_id))
+  end
+
+  def export_summary_shortcut_hidden_field(form, filter_form)
+    form.hidden_field(:shortcut_id, value: filter_form.shortcut_id) if filter_form.shortcut_id.present?
+  end
+
   def export_summary_customer_group_options(dashboard)
     dashboard.customer_group_options.map { |name, id| [name, id.to_s] }
   end

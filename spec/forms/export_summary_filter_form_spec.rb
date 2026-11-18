@@ -27,10 +27,17 @@ RSpec.describe ExportSummaryFilterForm do
     )
   end
 
-  it 'rejects an end date before the start date and a customer group that is not an id' do
-    form = described_class.new(start_date: '2026-11-10', end_date: '2026-11-01', customer_group_id: 'abc')
+  it 'rejects an end date before the start date and a customer group or shortcut that is not an id' do
+    form = described_class.new(start_date: '2026-11-10', end_date: '2026-11-01', customer_group_id: 'abc', shortcut_id: 'x')
 
     expect(form).not_to be_valid
-    expect(form.errors.full_messages).to eq(['Cliente não é válido', 'Carregamentos até não pode ser anterior à data inicial'])
+    expect(form.errors.full_messages).to eq(['Cliente não é válido', 'Atalho não é válido', 'Carregamentos até não pode ser anterior à data inicial'])
+  end
+
+  it 'tells it is filtered by a shortcut' do
+    form = described_class.new(shortcut_id: '3')
+
+    expect(form).to be_filtered
+    expect(form.dashboard_filters).to eq({})
   end
 end

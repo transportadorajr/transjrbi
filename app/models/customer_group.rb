@@ -10,6 +10,7 @@ class CustomerGroup < ApplicationRecord
   has_many :commission_rules, inverse_of: :customer_group, dependent: :restrict_with_error
   has_many :tonnage_rates, inverse_of: :customer_group, dependent: :restrict_with_error
   has_many :export_plants, inverse_of: :customer_group, dependent: :restrict_with_error
+  has_many :export_shortcuts, inverse_of: :customer_group, dependent: :restrict_with_error
   has_many :revenue_goals, inverse_of: :customer_group, dependent: :delete_all
 
   time_based_flag :activated

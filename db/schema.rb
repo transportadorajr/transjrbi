@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_143357) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_153652) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -729,6 +729,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_143357) do
     t.index ["tenant_id"], name: "index_export_plants_on_tenant_id"
   end
 
+  create_table "export_shortcuts", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "customer_group_id"
+    t.string "name", null: false
+    t.bigint "export_plant_ids", default: [], null: false, array: true
+    t.string "countries", default: [], null: false, array: true
+    t.integer "position", default: 0, null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_group_id"], name: "index_export_shortcuts_on_customer_group_id"
+    t.index ["tenant_id", "name"], name: "index_export_shortcuts_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_export_shortcuts_on_tenant_id"
+  end
+
   create_table "flipper_features", force: :cascade do |t|
     t.string "key", null: false
     t.datetime "created_at", null: false
@@ -1427,6 +1442,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_143357) do
   add_foreign_key "excluded_issuers", "tenants"
   add_foreign_key "export_plants", "customer_groups"
   add_foreign_key "export_plants", "tenants"
+  add_foreign_key "export_shortcuts", "customer_groups"
+  add_foreign_key "export_shortcuts", "tenants"
   add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
   add_foreign_key "freight_expenses", "commission_rules"
   add_foreign_key "freight_expenses", "insurance_rates"

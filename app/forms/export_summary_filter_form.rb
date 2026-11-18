@@ -8,9 +8,10 @@ class ExportSummaryFilterForm < BaseForm
   attribute :customer_group_id, :string
   attribute :plant, :string
   attribute :country, :string
+  attribute :shortcut_id, :string
 
   validates :start_date, :end_date, presence: true
-  validates :customer_group_id, format: { with: ID_FORMAT }, allow_blank: true
+  validates :customer_group_id, :shortcut_id, format: { with: ID_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 
   class << self
@@ -43,7 +44,7 @@ class ExportSummaryFilterForm < BaseForm
   end
 
   def filtered?
-    period != preset_period(DEFAULT_PRESET) || dashboard_filters.any?
+    period != preset_period(DEFAULT_PRESET) || dashboard_filters.any? || shortcut_id.present?
   end
 
   private

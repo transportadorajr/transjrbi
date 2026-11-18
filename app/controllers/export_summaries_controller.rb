@@ -35,10 +35,18 @@ class ExportSummariesController < BaseController
     @filter_form = ExportSummaryFilterForm.new(filter_params)
     return redirect_to(export_summary_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
+    @shortcut = current_tenant.export_shortcuts.find_by(id: @filter_form.shortcut_id) if @filter_form.shortcut_id.present?
+    return redirect_to(export_summary_path, alert: t('export_summaries.shortcut_not_found')) if @filter_form.shortcut_id.present? && @shortcut.nil?
+
     @dashboard = Dashboard::Export.new(documents: current_tenant.atua_transport_documents, manifests: current_tenant.atua_manifests,
                                        customers: current_tenant.atua_customers, plants: current_tenant.export_plants.activated,
-                                       period: @filter_form.period, filters: @filter_form.dashboard_filters)
+                                       period: @filter_form.period, filters: dashboard_filters,
+                                       shortcuts: current_tenant.export_shortcuts.activated.ordered.to_a)
     @last_synced_at = current_tenant.last_synced_at
+  end
+
+  def dashboard_filters
+    @shortcut ? @filter_form.dashboard_filters.merge(shortcut: @shortcut) : @filter_form.dashboard_filters
   end
 
   def opened_detail_row
@@ -52,6 +60,6 @@ class ExportSummariesController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :customer_group_id, :plant, :country)
+    params.permit(:start_date, :end_date, :customer_group_id, :plant, :country, :shortcut_id)
   end
 end

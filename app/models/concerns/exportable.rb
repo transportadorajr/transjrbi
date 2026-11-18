@@ -5,7 +5,7 @@ module Exportable
   SENSITIVE_COLUMNS = %w[
     encrypted_password reset_password_token confirmation_token current_sign_in_ip last_sign_in_ip atua_device_token atua_device_hash
   ].freeze
-  EXCLUDED_SUFFIXES = %w[_id _digits].freeze
+  EXCLUDED_SUFFIXES = %w[_id _ids _digits].freeze
   FOREIGN_KEY_SUFFIX = '_id'.freeze
 
   included do

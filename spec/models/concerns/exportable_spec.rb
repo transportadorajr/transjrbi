@@ -44,7 +44,7 @@ RSpec.describe Exportable do
 
     it 'has a translated header for every exported column of every listing' do
       models = [Atua::TransportDocument, Atua::Manifest, Atua::Expense, Atua::Customer, Atua::Vehicle, FreightExpense, User, CustomerGroup,
-                ProductGroup, CommissionRule, ExportPlant, TonnageRate, RouteDistance, TruckGroup, MacroRegion, City, ExcludedIssuer, Holiday]
+                ProductGroup, CommissionRule, ExportPlant, ExportShortcut, TonnageRate, RouteDistance, TruckGroup, MacroRegion, City, ExcludedIssuer, Holiday]
 
       expect(models.flat_map { |model| model.export_columns.reject(&:translated?).map { |column| "#{model.name}##{column.name}" } }).to be_empty
     end

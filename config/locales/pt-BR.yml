@@ -64,6 +64,9 @@ pt-BR:
       export_plant:
         one: Planta de exportação
         other: Plantas de exportação
+      export_shortcut:
+        one: Atalho da exportação
+        other: Atalhos da exportação
       freight_expense:
         one: Despesa de frete
         other: Despesas de frete
@@ -282,6 +285,14 @@ pt-BR:
         cities: Cidades de origem
         status: Status
         activated_at: Ativada em
+      export_shortcut:
+        name: Nome
+        customer_group: Cliente
+        export_plants: Plantas de origem
+        countries: Países de destino
+        position: Ordem
+        status: Status
+        activated_at: Ativado em
       freight_expense:
         transport_document: CT-e
         commission_rule: Regra
@@ -742,7 +753,7 @@ pt-BR:
             has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
         customer_group:
           restrict_dependent_destroy:
-            has_many: Não é possível excluir um grupo com clientes, regras de comissão, custos por tonelada ou plantas de exportação vinculados. Desative o grupo para deixar de usá-lo.
+            has_many: Não é possível excluir um grupo com clientes, regras de comissão, custos por tonelada, plantas ou atalhos de exportação vinculados. Desative o grupo para deixar de usá-lo.
         product_group:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um grupo com subgrupos. Exclua os subgrupos ou desative o grupo para deixar de usá-lo.
@@ -795,6 +806,7 @@ pt-BR:
         customer_group_id: Cliente
         plant: Planta de origem
         country: País de destino
+        shortcut_id: Atalho
       trip_filter_form:
         start_date: Viagens a partir de
         end_date: Viagens até
@@ -888,6 +900,13 @@ pt-BR:
         name: Nome
         cities: Cidades de origem
         active: Ativa
+      export_shortcut_form:
+        name: Nome
+        customer_group_id: Cliente
+        export_plant_ids: Plantas de origem
+        countries: Países de destino
+        position: Ordem
+        active: Ativo
       tonnage_rate_form:
         customer_group_id: Grupo de clientes
         name: Nome
@@ -1100,6 +1119,14 @@ pt-BR:
               invalid: não pertence a esta empresa
             cities:
               taken: '%{cities} já estão em outra planta ativa deste grupo'
+        export_shortcut_form:
+          attributes:
+            customer_group_id:
+              invalid: não pertence a esta empresa
+            export_plant_ids:
+              invalid: devem ser plantas ativas desta empresa e do cliente escolhido
+            countries:
+              invalid: não são válidos
         tonnage_rate_form:
           attributes:
             customer_group_id:
@@ -1520,6 +1547,9 @@ pt-BR:
       export_plant:
         create: Cadastrar Planta
         update: Salvar Alterações
+      export_shortcut:
+        create: Cadastrar Atalho
+        update: Salvar Alterações
       macro_region:
         create: Cadastrar Macro Região
         update: Salvar Alterações
@@ -1623,6 +1653,12 @@ pt-BR:
         deactivate: Inativar
         destroy: Excluir
       export_plant:
+        show: Visualizar
+        edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
+        destroy: Excluir
+      export_shortcut:
         show: Visualizar
         edit: Alterar
         activate: Ativar
@@ -1889,6 +1925,7 @@ pt-BR:
     expenses: Despesas
     commission_rules: Regras de comissão
     export_plants: Plantas de exportação
+    export_shortcuts: Atalhos da exportação
     tonnage_rates: Custos por tonelada
     insurance_rates: Alíquota de seguro
     own_fleet: Frota própria
@@ -2244,6 +2281,55 @@ pt-BR:
         Só para destino no exterior: um termo por linha com o nome do destinatário. Usado quando a cidade do CT-e e a
         do destinatário (ex.: "Exterior") não estão nas cidades das regras.
       active_hint: Desmarque para deixar de calcular a comissão desta regra. Toda alteração recalcula as comissões de todos os CT-es.
+  export_shortcuts:
+    index:
+      title: Atalhos da exportação
+      pdf:
+        header: Relatório de Atalhos da exportação
+        filename: atalhos_da_exportacao_%{time}.pdf
+      subtitle: Consultas fixas da diretoria no resumo da exportação, com a tonelagem da semana e do mês.
+      new_export_shortcut: Novo Atalho
+      total: Total de atalhos
+      active_shortcuts: Atalhos ativos
+      deactivated_shortcuts: Atalhos inativos
+      active: Ativo
+      deactivated: Inativo
+      confirm_destroy: Tem certeza que deseja excluir este atalho?
+    filters:
+      name: Nome do atalho
+      status: Status
+    show:
+      back: Voltar para atalhos da exportação
+      export_shortcut_data: Dados do atalho
+      edit: Alterar
+      open_summary: Ver no resumo
+      any_customer_group: Todos os clientes
+      any_plant: Todas as plantas
+      any_country: Todos os países
+    new:
+      title: Novo Atalho
+      back: Voltar para atalhos da exportação
+    create:
+      success: Atalho cadastrado com sucesso.
+    edit:
+      title: Alterar Atalho
+      back: Voltar para atalhos da exportação
+    update:
+      success: Atalho atualizado com sucesso.
+    destroy:
+      success: Atalho excluído com sucesso.
+    form:
+      export_shortcut_data: Dados do Atalho
+      export_shortcut_data_text: >-
+        O atalho aparece no topo do resumo da exportação com as toneladas da semana e do mês até hoje, sem depender dos filtros
+        da tela. Deixe o cliente, as plantas ou os países em branco para considerar todos.
+      name_hint: 'Ex.: Usiminas Ipatinga → Argentina, Arcelor Juiz de Fora → Paraguai e Argentina.'
+      position_hint: Os atalhos aparecem do menor para o maior número.
+      any_customer_group: Todos os clientes
+      customer_group_hint: Ao escolher um cliente, só as plantas dele podem ser marcadas.
+      export_plants_hint: Plantas de exportação cadastradas. Sem nenhuma marcada, considera todas as origens.
+      countries_hint: Sem nenhum marcado, considera todos os países de destino.
+      active_hint: Desmarque para tirar o atalho do resumo da exportação.
   export_plants:
     index:
       title: Plantas de exportação
@@ -3527,6 +3613,15 @@ pt-BR:
       table_title: Detalhamento por %{dimension}
   export_summaries:
     tons: '%{value} t'
+    shortcut_not_found: Este atalho não existe mais.
+    shortcuts:
+      title: Consultas fixas
+      week: Semana
+      month: Mês
+      no_previous: sem base anterior
+      open: Ver detalhamento
+      filtered: 'Mostrando somente o atalho "%{name}".'
+      clear: Ver toda a exportação
     tons_unit: t
     period_presets:
       week: Sem. atual
@@ -3924,6 +4019,7 @@ pt-BR:
     expenses: Despesas
     commission_rules: Regras de comissão
     export_plants: Plantas de exportação
+    export_shortcuts: Atalhos da exportação
     tonnage_rates: Custos por tonelada
     insurance_rates: Alíquota de seguro
     freight_expenses: Despesas de frete

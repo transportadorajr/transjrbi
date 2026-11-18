@@ -27,10 +27,13 @@ module Dashboard
       end
     end
 
+    ShortcutSummary = Data.define(:shortcut, :week, :month)
+
     attr_reader :period, :today
 
-    def initialize(documents:, manifests:, customers:, plants:, period:, filters: {}, today: Date.current)
+    def initialize(documents:, manifests:, customers:, plants:, period:, filters: {}, shortcuts: [], today: Date.current)
       @facts_source = ExportFacts.new(documents:, manifests:, customers:, plants:)
+      @shortcuts = shortcuts
       @customers = customers
       @plants = plants
       @period = period
@@ -69,6 +72,15 @@ module Dashboard
 
     def month_comparison
       @month_comparison ||= comparison(today.beginning_of_month..today, 1.month)
+    end
+
+    def shortcut_summaries
+      @shortcut_summaries ||= shortcuts.map do |shortcut|
+        shortcut_facts = all_facts.select { |fact| shortcut.matches?(fact) }
+
+        ShortcutSummary.new(shortcut:, week: comparison(today.beginning_of_week(WEEK_START)..today, 1.week, shortcut_facts),
+                            month: comparison(today.beginning_of_month..today, 1.month, shortcut_facts))
+      end
     end
 
     def months
@@ -124,10 +136,14 @@ module Dashboard
 
     private
 
-    attr_reader :facts_source, :customers, :plants, :filters
+    attr_reader :facts_source, :customers, :plants, :filters, :shortcuts
+
+    def all_facts
+      @all_facts ||= facts_source.call(facts_range)
+    end
 
     def facts
-      @facts ||= filtered(facts_source.call(facts_range))
+      @facts ||= filtered(all_facts)
     end
 
     def period_facts
@@ -146,7 +162,8 @@ module Dashboard
 
     def filtered(all_facts)
       all_facts.select do |fact|
-        matches?(:customer_group_id, fact.customer_group_id) && matches?(:plant, fact.plant_key) && matches?(:country, fact.country)
+        matches?(:customer_group_id, fact.customer_group_id) && matches?(:plant, fact.plant_key) && matches?(:country, fact.country) &&
+          (!filters.key?(:shortcut) || filters[:shortcut].matches?(fact))
       end
     end
 
@@ -154,10 +171,10 @@ module Dashboard
       !filters.key?(filter) || filters[filter].to_s == value.to_s
     end
 
-    def comparison(current_period, length)
+    def comparison(current_period, length, source = facts)
       previous_period = (current_period.first - length)..(current_period.last - length)
-      current = facts.select { |fact| current_period.cover?(fact.trip_on) }
-      previous = facts.select { |fact| previous_period.cover?(fact.trip_on) }
+      current = source.select { |fact| current_period.cover?(fact.trip_on) }
+      previous = source.select { |fact| previous_period.cover?(fact.trip_on) }
 
       Comparison.new(current_period:, previous_period:, current_tons: tons_of(current), previous_tons: tons_of(previous),
                      current_loadings: loadings_of(current), previous_loadings: loadings_of(previous))

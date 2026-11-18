@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(ExportShortcut.human_attribute_name(:name), :name) %>
+        <th class="d-none d-md-table-cell"><%= ExportShortcut.human_attribute_name(:customer_group) %></th>
+        <th class="d-none d-lg-table-cell"><%= ExportShortcut.human_attribute_name(:export_plants) %></th>
+        <th class="d-none d-lg-table-cell"><%= ExportShortcut.human_attribute_name(:countries) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= ExportShortcut.human_attribute_name(:position) %></th>
+        <th><%= ExportShortcut.human_attribute_name(:status) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>
