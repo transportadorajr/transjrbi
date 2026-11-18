@@ -1,6 +1,7 @@
 class RevenueGoal < ApplicationRecord
-  TARGET_TYPES = %w[company vehicle customer_group region].freeze
-  TARGET_COLUMNS = { 'vehicle' => :plate, 'customer_group' => :customer_group_id, 'region' => :macro_region_id }.freeze
+  TARGET_TYPES = %w[company vehicle trailer customer_group region].freeze
+  PLATE_TARGET_TYPES = %w[vehicle trailer].freeze
+  TARGET_COLUMNS = { 'vehicle' => :plate, 'trailer' => :plate, 'customer_group' => :customer_group_id, 'region' => :macro_region_id }.freeze
   CUT_TARGETS = { plate: 'vehicle', customer_group_id: 'customer_group', macro_region_id: 'region' }.freeze
   MONTH_FORMAT = '%Y-%m'.freeze
 
@@ -16,8 +17,8 @@ class RevenueGoal < ApplicationRecord
 
   validates :month, presence: true
   validates :amount_cents, numericality: { greater_than: 0 }
-  validates :plate, presence: true, if: :vehicle?
-  validates :plate, absence: true, unless: :vehicle?
+  validates :plate, presence: true, if: :plate_target?
+  validates :plate, absence: true, unless: :plate_target?
   validates :customer_group, presence: true, if: :customer_group?
   validates :customer_group_id, absence: true, unless: :customer_group?
   validates :macro_region, presence: true, if: :region?
@@ -63,6 +64,10 @@ class RevenueGoal < ApplicationRecord
 
   def target_key
     [target_type, *TARGET_COLUMNS.values.map { |column| self[column] }]
+  end
+
+  def plate_target?
+    PLATE_TARGET_TYPES.include?(target_type)
   end
 
   def target_value

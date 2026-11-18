@@ -13,6 +13,7 @@ module Atua
       'COUNT(*) AS vehicles_count',
       "STRING_AGG(atua_vehicles.plate, ', ' ORDER BY atua_vehicles.plate) AS plates",
     ].freeze
+    TRAILER_CATEGORY = 'Carreta'.freeze
     DRIVER_JOIN = 'LEFT JOIN drivers ON drivers.tenant_id = atua_vehicles.tenant_id AND drivers.code = atua_vehicles.driver_code'.freeze
 
     sortable :plate
@@ -31,6 +32,7 @@ module Atua
 
     scope :by_plate, ->(plate) { where(plate: normalize_plate(plate)) }
     scope :by_category, ->(category) { where(category:) }
+    scope :trailers, -> { where(category: TRAILER_CATEGORY) }
     scope :by_ownership, ->(ownership) { where(ownership:) }
     scope :by_driver_name, ->(name) { where(arel_table[:driver_name].matches("%#{sanitize_sql_like(name.to_s.strip)}%")) }
     scope :by_driver_document, ->(document) { where(driver_document_digits: document.to_s.gsub(/\D/, '')) }

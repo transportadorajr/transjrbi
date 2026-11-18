@@ -8,6 +8,8 @@ module Dashboard
     DEFAULT_SORT = 'realized'.freeze
     DIMENSIONS = { 'customer_group' => :customer_groups, 'vehicle' => :vehicles, 'macro_region' => :regions }.freeze
     DEFAULT_DIMENSION = 'customer_group'.freeze
+    VEHICLE_SECTIONS = { 'truck' => :vehicles, 'trailer' => :trailers }.freeze
+    DEFAULT_VEHICLE_TYPE = 'truck'.freeze
     BREAKDOWNS = {
       customer_groups: { list_all: true, cut: :customer_group_id, extra_label: 'dashboards.goals.ungrouped' },
       regions: { list_all: false, cut: :macro_region_id, extra_label: 'dashboards.goals.no_region', extra_cut: MacroRegion::OTHERS },
@@ -70,6 +72,10 @@ module Dashboard
       def enabled?(tenant)
         Flipper.enabled?(FEATURE, tenant)
       end
+
+      def vehicle_section?(section)
+        VEHICLE_SECTIONS.value?(section)
+      end
     end
 
     def initialize(documents, targets:, pace:, own_fleet: nil, week: nil)
@@ -93,9 +99,10 @@ module Dashboard
       !week.nil?
     end
 
-    def vehicle_rows
-      @vehicle_rows ||= vehicle_plates.map do |plate|
-        build_row(plate, plate, vehicle_goals[plate], realized_by_plate.fetch(plate, 0), cut: { plate: })
+    def vehicle_rows(section = :vehicles)
+      @vehicle_rows ||= {}
+      @vehicle_rows[section] ||= targets.options(section).keys.map do |plate|
+        build_row(plate, plate, targets.goal_amounts(section)[plate], breakdown_realized(section).fetch(plate, 0), cut: { plate: })
       end
     end
 
@@ -120,23 +127,23 @@ module Dashboard
       series
     end
 
-    def sorted_vehicle_rows(column, direction)
+    def sorted_vehicle_rows(column, direction, section: :vehicles)
       column = SORT_VALUES.key?(column.to_s) ? column.to_s : DEFAULT_SORT
-      sorted = vehicle_rows.sort_by { |row| [SORT_VALUES.fetch(column).call(row), row.key] }
+      sorted = vehicle_rows(section).sort_by { |row| [SORT_VALUES.fetch(column).call(row), row.key] }
       direction = column == DEFAULT_SORT && direction.blank? ? 'desc' : direction.to_s
 
       direction == 'desc' ? sorted.reverse : sorted
     end
 
-    def third_party_row
+    def third_party_row(section = :vehicles)
       return unless own_fleet&.plates&.any?
 
-      realized = realized_by_plate.select { |plate, _| own_fleet.third_party?(plate) }.values.sum
+      realized = breakdown_realized(section).select { |plate, _| own_fleet.third_party?(plate) }.values.sum
       build_row(THIRD_PARTY_KEY, I18n.t('own_fleets.third_party'), nil, realized)
     end
 
     def vehicle_goals_cents
-      vehicle_goals.values.sum
+      targets.goal_amounts(:vehicles).values.sum
     end
 
     def required_daily_cents
@@ -217,14 +224,6 @@ module Dashboard
 
     def company_goal
       goals.find(&:company?)
-    end
-
-    def vehicle_goals
-      @vehicle_goals ||= targets.goal_amounts(:vehicles)
-    end
-
-    def vehicle_plates
-      (own_fleet&.plates.to_a | vehicle_goals.keys).sort
     end
 
     def realized_by_plate

@@ -10,6 +10,11 @@ FactoryBot.define do
       plate { 'AJR4391' }
     end
 
+    trait :trailer do
+      target_type { 'trailer' }
+      plate { 'RHJ5A51' }
+    end
+
     trait :customer_group do
       target_type { 'customer_group' }
       customer_group { association :customer_group, tenant: }

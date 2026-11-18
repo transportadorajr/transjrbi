@@ -1,9 +1,11 @@
 class GoalFilterForm < BaseForm
   attribute :month, :string
   attribute :dimension, :string
+  attribute :vehicle_type, :string
 
   validate :month_must_be_a_month
   validates :dimension, inclusion: { in: Dashboard::Goals::DIMENSIONS.keys }, allow_blank: true
+  validates :vehicle_type, inclusion: { in: Dashboard::Goals::VEHICLE_SECTIONS.keys }, allow_blank: true
 
   def month_value
     return Date.current.beginning_of_month if month.blank?
@@ -15,8 +17,19 @@ class GoalFilterForm < BaseForm
     dimension.presence || Dashboard::Goals::DEFAULT_DIMENSION
   end
 
+  def vehicle_type_value
+    vehicle_type.presence || Dashboard::Goals::DEFAULT_VEHICLE_TYPE
+  end
+
   def section
-    Dashboard::Goals::DIMENSIONS.fetch(dimension_value)
+    section = Dashboard::Goals::DIMENSIONS.fetch(dimension_value)
+    return Dashboard::Goals::VEHICLE_SECTIONS.fetch(vehicle_type_value) if Dashboard::Goals.vehicle_section?(section)
+
+    section
+  end
+
+  def vehicle_section?
+    Dashboard::Goals.vehicle_section?(section)
   end
 
   def current_month?

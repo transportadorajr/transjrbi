@@ -23,6 +23,17 @@ RSpec.describe RevenueGoal do
       expect(build(:revenue_goal, tenant:, plate: 'AJR4391')).not_to be_valid
     end
 
+    it 'requires the plate for a trailer goal' do
+      expect(build(:revenue_goal, tenant:, target_type: 'trailer', plate: nil)).not_to be_valid
+      expect(create(:revenue_goal, :trailer, tenant:, plate: 'rhj-5a51').plate).to eq('RHJ5A51')
+    end
+
+    it 'keeps a vehicle and a trailer goal for the same plate apart' do
+      create(:revenue_goal, :vehicle, tenant:, plate: 'RHJ5A51')
+
+      expect(build(:revenue_goal, :trailer, tenant:, plate: 'RHJ5A51')).to be_valid
+    end
+
     it 'requires the customer group only for a customer group goal' do
       expect(build(:revenue_goal, tenant:, target_type: 'customer_group')).not_to be_valid
       expect(build(:revenue_goal, :customer_group, tenant:)).to be_valid

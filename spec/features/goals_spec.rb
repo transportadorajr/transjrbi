@@ -7,8 +7,8 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
   let!(:goals_resource) { create(:resource, name: 'Metas de faturamento', slug: 'revenue_goals') }
   let(:month) { Date.new(2026, 11, 1) }
 
-  def freight(tenant, plate, freight_cents, issued_at: Time.zone.local(2026, 11, 5, 10), taker: nil, macro_region: nil)
-    create(:atua_transport_document, tenant:, plate:, freight_cents:, issued_at:, taker_code: taker&.code, origin_macro_region: macro_region)
+  def freight(tenant, plate, freight_cents, issued_at: Time.zone.local(2026, 11, 5, 10), taker: nil, macro_region: nil, **)
+    create(:atua_transport_document, tenant:, plate:, freight_cents:, issued_at:, taker_code: taker&.code, origin_macro_region: macro_region, **)
   end
 
   def taker(tenant, customer_group)
@@ -162,6 +162,63 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         within('#goal_vehicles_table thead') { click_on 'Atingimento' }
 
         expect(html_table_to_rows.drop(1).map { it[1] }).to eq(%w[QWE1A23 RHJ5A50 AJR4391 Terceiro])
+      end
+
+      context 'with trailers in the own fleet' do
+        before do
+          tenant.own_fleet.update!(plates: %w[AJR4391 RHJ5A50 QWE1A23 RHJ5A51 QWE1A24])
+          create(:atua_vehicle, tenant:, plate: 'RHJ5A51', category: 'Carreta')
+          create(:atua_vehicle, tenant:, plate: 'QWE1A24', category: 'Carreta')
+          create(:revenue_goal, :trailer, tenant:, month:, plate: 'RHJ5A51', amount_cents: 500_000)
+          freight(tenant, 'AJR4391', 300_000, trailer_plate: 'RHJ5A51')
+          freight(tenant, 'RHJ5A50', 100_000, trailer_plate: 'TRC9X99')
+          freight(other_tenant, 'AJR4391', 5_000_000, trailer_plate: 'RHJ5A51')
+        end
+
+        scenario 'shows the ranking of the trailers inside the vehicles grouping' do
+          visit goals_path(dimension: 'vehicle')
+
+          expect(page).to have_css('#goal_vehicle_type_nav .btn-primary', text: 'Cavalos')
+          expect(html_table_to_rows.drop(1).map { it[1] }).to eq(%w[AJR4391 RHJ5A50 QWE1A23 Terceiro])
+
+          within('#goal_vehicle_type_nav') { click_on 'Carretas' }
+
+          expect(page).to have_current_path(goals_path(dimension: 'vehicle', vehicle_type: 'trailer'))
+          expect(page).to have_css('#goal_vehicle_type_nav .btn-primary', text: 'Carretas')
+          expect(page).to have_css('#goal_dimension_bar .btn-primary', text: 'Veículo')
+          expect(page).to have_css('#goal_trailers .table-card-title', text: 'Ranking das carretas')
+          expect(page).to have_no_css('#goal_vehicles_table')
+          expect(html_table_to_rows).to eq(
+            [
+              ['#', 'Placa da carreta', 'Meta', 'Faturado', 'Falta', 'Atingimento', 'Projeção', 'Situação', 'Projeções'],
+              ['1', 'RHJ5A51', 'R$ 5.000,00', 'R$ 3.000,00', 'R$ 2.000,00', '60,0%', 'R$ 9.375,00', 'No ritmo', ''],
+              ['2', 'QWE1A24', 'Sem meta', 'R$ 0,00', 'Sem meta', 'Sem meta', 'R$ 0,00', 'Sem meta', ''],
+              ['', 'Terceiro', 'Sem meta', 'R$ 1.000,00', 'Sem meta', 'Sem meta', 'R$ 3.125,00', 'Sem meta', ''],
+            ],
+          )
+          expect(page).to have_css('#goal_trailers_table .goal-plate', text: 'RHJ5A51')
+          expect(RevenueGoal.where(tenant:, target_type: 'trailer').count).to eq(1)
+
+          click_on 'Mês anterior'
+
+          expect(page).to have_current_path(goals_path(dimension: 'vehicle', vehicle_type: 'trailer', month: '2026-10'))
+          expect(page).to have_css('#goal_trailers .table-card-title', text: 'Ranking das carretas')
+        end
+
+        scenario 'ranks the trailers by the goal achievement' do
+          visit goals_path(dimension: 'vehicle', vehicle_type: 'trailer')
+          within('#goal_trailers_table thead') { click_on 'Placa da carreta' }
+
+          expect(page).to have_current_path(goals_path(dimension: 'vehicle', vehicle_type: 'trailer', sort: 'label', direction: 'asc'))
+          expect(html_table_to_rows.drop(1).map { it[1] }).to eq(%w[QWE1A24 RHJ5A51 Terceiro])
+        end
+
+        scenario 'redirects an unknown vehicle type back to the panel' do
+          visit goals_path(dimension: 'vehicle', vehicle_type: 'boat')
+
+          expect(page).to have_current_path(goals_path)
+          expect(page).to have_text('não está incluído na lista')
+        end
       end
 
       context 'with the revenue projection enabled', flipper: { revenue_goals: :tenant, revenue_projection: :tenant } do

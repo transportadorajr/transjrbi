@@ -1,6 +1,6 @@
 class RevenueGoal
   class Targets
-    SECTIONS = { vehicles: 'vehicle', customer_groups: 'customer_group', regions: 'region' }.freeze
+    SECTIONS = { vehicles: 'vehicle', trailers: 'trailer', customer_groups: 'customer_group', regions: 'region' }.freeze
 
     def initialize(tenant, month)
       @tenant = tenant
@@ -44,7 +44,19 @@ class RevenueGoal
     end
 
     def vehicles_options
-      (tenant.own_fleet&.plates.to_a | goal_values(:vehicles)).sort.index_with(&:itself)
+      ((fleet_plates - fleet_trailer_plates) | goal_values(:vehicles)).sort.index_with(&:itself)
+    end
+
+    def trailers_options
+      (fleet_trailer_plates | goal_values(:trailers)).sort.index_with(&:itself)
+    end
+
+    def fleet_plates
+      @fleet_plates ||= tenant.own_fleet&.plates.to_a
+    end
+
+    def fleet_trailer_plates
+      @fleet_trailer_plates ||= tenant.atua_vehicles.trailers.where(plate: fleet_plates).distinct.pluck(:plate)
     end
 
     def customer_groups_options
@@ -58,6 +70,10 @@ class RevenueGoal
 
     def vehicles_billing(relation)
       relation.group(:plate).sum(:freight_cents)
+    end
+
+    def trailers_billing(relation)
+      relation.group(:trailer_plate).sum(:freight_cents)
     end
 
     def customer_groups_billing(relation)

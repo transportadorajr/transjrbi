@@ -6,7 +6,7 @@ class GoalsController < BaseController
   def show
     authorize!(:read, :goals)
 
-    @filter_form = GoalFilterForm.new(month: params[:month], dimension: params[:dimension])
+    @filter_form = GoalFilterForm.new(month: params[:month], dimension: params[:dimension], vehicle_type: params[:vehicle_type])
     return redirect_to(goals_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
     @last_synced_at = current_tenant.last_synced_at
@@ -19,7 +19,7 @@ class GoalsController < BaseController
   private
 
   def dimension_rows
-    return @dashboard.sorted_vehicle_rows(params[:sort], params[:direction]) if @filter_form.section == :vehicles
+    return @dashboard.sorted_vehicle_rows(params[:sort], params[:direction], section: @filter_form.section) if @filter_form.vehicle_section?
 
     @dashboard.breakdown_rows(@filter_form.section)
   end
