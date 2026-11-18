@@ -18,9 +18,9 @@
       </div>
 
       <div class="col-12">
-        <%= f.label :plate, FreightBillingFilterForm.human_attribute_name(:plate), class: 'form-label fw-medium' %>
-        <%= f.text_field :plate, value: @filter_form.plate, class: 'form-control bg-light text-uppercase', autocomplete: :off,
-                                 placeholder: FreightBillingFilterForm.human_attribute_name(:plate) %>
+        <%= f.label :plates, FreightBillingFilterForm.human_attribute_name(:plates), for: nil, id: 'plates_select_label', class: 'form-label fw-medium' %>
+        <%= render 'components/select2', id: 'plates_select', name: 'plates[]', multiple: true, options: freight_billing_plate_options(@horse_plates),
+                                         selected: @filter_form.plates, placeholder: t('shared.all') %>
       </div>
 
       <div class="col-12">

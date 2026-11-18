@@ -1076,13 +1076,48 @@ describe 'Freight billing' do
         end
       end
 
-      scenario 'filters by plate and customer group' do
-        visit freight_billing_path(october_by_truck.merge(customer_group_id: usiminas.id))
-        fill_in 'Placa', with: 'rvr-8j90'
-        click_on 'Aplicar Filtros'
+      context 'when the tenant has horses and trailers registered' do
+        let!(:first_horse) { create(:atua_vehicle, tenant:, plate: 'RVR2C34') }
+        let!(:second_horse) { create(:atua_vehicle, tenant:, plate: 'RVR8J90') }
+        let!(:trailer) { create(:atua_vehicle, tenant:, plate: 'RVR9C02', category: 'Carreta') }
+        let!(:removed_horse) { create(:atua_vehicle, tenant:, plate: 'RVR0A00', removed_from_atua_at: Time.current) }
+        let!(:stranger_horse) { create(:atua_vehicle, tenant: other_tenant, plate: 'OUT1A11') }
 
-        expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR8J90 Total])
-        expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 5.000,00')
+        scenario 'filters by horses chosen in the multiple select and customer group', :js do
+          visit freight_billing_path(october_by_truck.merge(customer_group_id: usiminas.id))
+          click_link(href: '#filtersModal')
+
+          within('#plates_select') do
+            find('.select2-trigger').click
+            expect(all('.select2-option').map(&:text)).to eq(%w[RVR2C34 RVR8J90])
+
+            find('.select2-search').fill_in(with: '8j')
+            find('.select2-option', text: 'RVR8J90').click
+
+            expect(all('.select2-tag__label').map(&:text)).to eq(['RVR8J90'])
+          end
+          click_on 'Aplicar Filtros'
+
+          expect(page).to have_current_path(/plates%5B%5D=RVR8J90/)
+          expect(Atua::Vehicle.count).to eq(5)
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR8J90 Total])
+          expect(first('.counter-card').text.squish).to eq('FRETE BRUTO R$ 5.000,00')
+        end
+
+        scenario 'filters by more than one horse keeping them selected' do
+          visit freight_billing_path(october_by_truck.merge(plates: %w[rvr-2c34 RVR8J90]))
+
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 RVR8J90 Total])
+          expect(all('input[name="plates[]"]', visible: :all).map(&:value)).to eq(%w[RVR2C34 RVR8J90])
+          expect(all('#plates_select [role="option"]', visible: :all).map { |option| option.text(:all) }).to eq(%w[RVR2C34 RVR8J90])
+        end
+
+        scenario 'filters by one horse' do
+          visit freight_billing_path(october_by_truck.merge(plates: ['RVR2C34']))
+
+          expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
+          expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+        end
       end
 
       context 'when there are documents linked to no trip' do

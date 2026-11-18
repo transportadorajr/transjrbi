@@ -3,11 +3,14 @@ class FreightBillingsController < BaseController
 
   DETAIL_PARAM = 'detail'.freeze
 
+  has_scope :by_plates, as: :plates, type: :array
+
   before_action :load_dashboard, except: :product_options
 
   def show
     @detail_row = opened_detail_row
     load_freight_filter_options
+    @horse_plates = current_tenant.atua_vehicles.active.horses.where.not(plate: [nil, '']).distinct.order(:plate).pluck(:plate)
     @last_synced_at = current_tenant.last_synced_at
     @rows = listing_page(@dashboard.sorted_rows(params[:sort], params[:direction]))
 
@@ -76,6 +79,6 @@ class FreightBillingsController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :dimension, *FreightDocumentFilters::FILTER_PARAMS)
+    params.permit(:start_date, :end_date, :dimension, *FreightDocumentFilters::FILTER_PARAMS, plates: [])
   end
 end

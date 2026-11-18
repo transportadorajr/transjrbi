@@ -7,6 +7,7 @@ class FreightBillingFilterForm < BaseForm
   attribute :end_date, :date
   attribute :dimension, :string
   attribute :plate, :string
+  attribute :plates, default: -> { [] }
   attribute :driver_code, :integer
   attribute :customer_group_id, :integer
   attribute :product_group_id, :integer
@@ -45,12 +46,13 @@ class FreightBillingFilterForm < BaseForm
 
   def filtered?
     dimension != Dashboard::Freight::DEFAULT_DIMENSION || period != self.class.preset_period(:week) ||
-      [plate, driver_code, customer_group_id, product_group_id, product_id, macro_region_id, truck_group_id].any?(&:present?)
+      [plate, plates, driver_code, customer_group_id, product_group_id, product_id, macro_region_id, truck_group_id].any?(&:present?)
   end
 
   private
 
   def apply_defaults
+    self.plates = Array(plates).compact_blank.map { |plate| Atua::TransportDocument.normalize_plate(plate) }.uniq
     self.dimension = Dashboard::Freight::DEFAULT_DIMENSION if dimension.blank?
     return if start_date || end_date
 

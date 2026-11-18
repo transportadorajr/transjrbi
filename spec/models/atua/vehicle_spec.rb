@@ -86,6 +86,12 @@ RSpec.describe Atua::Vehicle do
         expect(described_class.by_ownership('Próprio')).to eq([own_truck])
         expect(described_class.count).to eq(2)
       end
+
+      it 'keeps out the trailers from the horses' do
+        without_category = create(:atua_vehicle, tenant:, category: nil)
+
+        expect(described_class.horses).to contain_exactly(own_truck, without_category)
+      end
     end
 
     context 'with transport documents issued in different years' do

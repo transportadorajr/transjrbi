@@ -96,6 +96,14 @@ RSpec.describe FreightBillingFilterForm do
     end
   end
 
+  context 'with plates of horses' do
+    it 'keeps the normalized plates without blanks and duplicates' do
+      form = described_class.new(plates: ['', 'rvr-8j90', 'RVR8J90', 'rvr2c34'])
+
+      expect(form.plates).to eq(%w[RVR8J90 RVR2C34])
+    end
+  end
+
   context 'with a truck group' do
     it 'keeps the group' do
       expect(described_class.new(truck_group_id: '12')).to have_attributes(valid?: true, truck_group_id: '12')
@@ -138,6 +146,14 @@ RSpec.describe FreightBillingFilterForm do
 
     it 'is true with a plate' do
       expect(described_class.new(plate: 'ABC1D23')).to be_filtered
+    end
+
+    it 'is true with the plates of horses' do
+      expect(described_class.new(plates: ['ABC1D23'])).to be_filtered
+    end
+
+    it 'is false with an empty list of plates' do
+      expect(described_class.new(plates: [''])).not_to be_filtered
     end
 
     it 'is true with a product group' do

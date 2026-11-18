@@ -80,6 +80,10 @@ module Atua
       plate = normalize_plate(plate)
       where(plate:).or(where(trailer_plate: plate))
     }
+    scope :by_plates, ->(plates) {
+      plates = Array(plates).compact_blank.map { |plate| normalize_plate(plate) }
+      plates.empty? ? all : where(plate: plates)
+    }
     scope :by_vehicle, ->(vehicle) {
       where(tenant_id: vehicle.tenant_id).and(where(vehicle_code: vehicle.code).or(where(trailer_plate: vehicle.plate)))
     }

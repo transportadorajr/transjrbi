@@ -33,6 +33,7 @@ module Atua
     scope :by_plate, ->(plate) { where(plate: normalize_plate(plate)) }
     scope :by_category, ->(category) { where(category:) }
     scope :trailers, -> { where(category: TRAILER_CATEGORY) }
+    scope :horses, -> { where(arel_table[:category].is_distinct_from(TRAILER_CATEGORY)) }
     scope :by_ownership, ->(ownership) { where(ownership:) }
     scope :by_driver_name, ->(name) { where(arel_table[:driver_name].matches("%#{sanitize_sql_like(name.to_s.strip)}%")) }
     scope :by_driver_document, ->(document) { where(driver_document_digits: document.to_s.gsub(/\D/, '')) }

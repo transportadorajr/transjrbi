@@ -221,6 +221,15 @@ RSpec.describe Atua::TransportDocument do
         expect(described_class.by_plate('bev-4g50')).to contain_exactly(first, outside)
       end
 
+      it 'filters by any of the truck plates ignoring the trailer plate' do
+        expect(described_class.by_plates(%w[exu-0f72 RHJ4E07])).to contain_exactly(first, last)
+        expect(described_class.by_plates(['BEV4G50'])).to eq([outside])
+      end
+
+      it 'does not filter by an empty list of plates' do
+        expect(described_class.by_plates([''])).to contain_exactly(first, last, outside, canceled, removed)
+      end
+
       it 'filters by the customer in any role' do
         expect(described_class.by_customer(7752)).to contain_exactly(first, last, outside)
         expect(described_class.by_payer(7752)).to eq([first])
