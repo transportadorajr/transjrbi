@@ -31,6 +31,28 @@ RSpec.describe Atua::SaveCustomersCommand do
     end
   end
 
+  context 'when a foreign customer had its country identified before' do
+    let!(:record) { create(:atua_customer, tenant:, code:, city: 'ASUNCION', state: 'EX', country_type: 'argentina', country_edited_at: Time.current) }
+
+    it 'keeps the country changed by hand' do
+      described_class.call(import, spreadsheet)
+
+      expect(record.reload).to have_attributes(country_type: 'argentina', country_edited_at: be_present)
+    end
+  end
+
+  context 'when the customers are saved again' do
+    before do
+      allow(Customers::AssignCountryCommand).to receive(:call).and_call_original
+    end
+
+    it 'identifies the country of the customers' do
+      described_class.call(import, spreadsheet)
+
+      expect(Customers::AssignCountryCommand).to have_received(:call).with(tenant)
+    end
+  end
+
   context 'when the report brings back a customer without recent transport documents' do
     before do
       create(:atua_transport_document, tenant:, taker_code: code, sender_code: nil, recipient_code: nil, payer_code: nil, consignee_code: nil, issued_at: 1.month.ago)

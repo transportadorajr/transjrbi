@@ -533,6 +533,8 @@ pt-BR:
         whatsapp_at: WhatsApp confirmado em
         exporter_at: Exportador desde
         simples_optant_at: Optante pelo Simples desde
+        country_type: País
+        country_edited_at: País alterado em
       atua/vehicle:
         code: Código
         plate: Placa
@@ -1003,6 +1005,8 @@ pt-BR:
         file: Planilha
       transport_document_distance_form:
         distance_km: KM considerado
+      customer_country_form:
+        country_type: País
       driver_form:
         display_name: Nome de exibição
       truck_group_form:
@@ -1403,6 +1407,14 @@ pt-BR:
       integration_type:
         atua: Atua
         tomtom: TomTom
+    atua/customer:
+      country_type:
+        argentina: Argentina
+        paraguay: Paraguai
+        uruguay: Uruguai
+        chile: Chile
+        bolivia: Bolívia
+        other: Outro país
     atua/transport_document:
       cargo_destination_type:
         national: Nacional
@@ -1514,6 +1526,8 @@ pt-BR:
         update: Salvar Alterações
       transport_document_distance:
         update: Salvar KM
+      customer_country:
+        update: Salvar País
       tonnage_rate:
         create: Cadastrar Custo
         update: Salvar Alterações
@@ -2000,6 +2014,24 @@ pt-BR:
       back: Voltar para clientes
       customer_data: Dados do cliente
       contact_data: Endereço e contato
+      edit_country: Alterar País
+      automatic_country: Identificado pela cidade e pelo endereço
+      edited_country: Alterado manualmente
+  customer_countries:
+    edit:
+      title: Alterar país de %{name}
+      breadcrumb: Alterar país
+      back: Voltar para o cliente
+    form:
+      country_data: País do cliente
+      country_data_text: >-
+        País do destinatário usado para separar as cargas de exportação por país de destino.
+        O país alterado é mantido nas próximas importações do Atua.
+      automatic: Identificar automaticamente
+      automatic_hint: 'País identificado automaticamente: %{country}.'
+      edited_hint: País alterado manualmente. Escolha "Identificar automaticamente" para voltar a usar a cidade e o endereço do cliente.
+    update:
+      success: País do cliente atualizado.
   customer_groups:
     unnamed: 'Cliente %{code}'
     index:

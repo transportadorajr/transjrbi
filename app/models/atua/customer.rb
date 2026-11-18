@@ -5,6 +5,9 @@ module Atua
 
     include Importable
 
+    COUNTRIES = %i[argentina paraguay uruguay chile bolivia other].freeze
+    FOREIGN_STATE = 'EX'.freeze
+
     export_field(:customer_group) { |customer| customer.customer_group&.name }
 
     sortable :name
@@ -21,6 +24,8 @@ module Atua
     has_many :expenses, class_name: 'Atua::Expense', foreign_key: %i[tenant_id payee_code], primary_key: %i[tenant_id code],
                         inverse_of: :payee
 
+    enum :country_type, COUNTRIES.index_with(&:to_s), prefix: :country, validate: { allow_nil: true }
+
     validates :code, presence: true, uniqueness: { scope: :tenant_id }
 
     scope :by_name, ->(name) {
@@ -31,6 +36,12 @@ module Atua
     scope :by_city, ->(city) { where(arel_table[:city].matches("%#{sanitize_sql_like(city.to_s.strip)}%")) }
     scope :by_customer_group, ->(customer_group_id) { where(customer_group_id:) }
     scope :without_customer_group, -> { where(customer_group_id: nil) }
+    scope :foreign, -> { where(state: FOREIGN_STATE) }
+    scope :country_not_edited, -> { where(country_edited_at: nil) }
+
+    def foreign?
+      state.to_s.strip.upcase == FOREIGN_STATE
+    end
   end
 end
 
@@ -44,6 +55,8 @@ end
 #  city_code            :bigint
 #  code                 :bigint           not null
 #  complement           :string
+#  country_edited_at    :datetime
+#  country_type         :enum
 #  district             :string
 #  document             :string
 #  document_digits      :string

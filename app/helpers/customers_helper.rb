@@ -19,6 +19,32 @@ module CustomersHelper
     tax_value(customer.customer_group&.name)
   end
 
+  def customer_country(customer)
+    country = tax_value(customer.country_type && customer.country_type_name)
+    origin = t(customer.country_edited_at ? 'edited_country' : 'automatic_country', scope: 'customers.show')
+
+    safe_join([country, content_tag(:small, origin, class: 'd-block text-muted')], ' ')
+  end
+
+  def customer_country_options
+    Atua::Customer.enum_options_for_select(:country_type)
+  end
+
+  def customer_country_hint(customer)
+    return t('customer_countries.form.edited_hint') if customer.country_edited_at
+
+    t('customer_countries.form.automatic_hint', country: tax_value(customer.country_type && customer.country_type_name))
+  end
+
+  def customer_edit_country_button(customer)
+    return unless can?(:update, :customers)
+
+    link_to edit_customer_country_path(customer), class: 'btn btn-outline-secondary btn-round' do
+      concat icon(:pencil, class: 'me-2')
+      concat t('customers.show.edit_country')
+    end
+  end
+
   def customers_pdf_report(customers)
     PdfReport.new(
       title: t('customers.index.pdf.header'),

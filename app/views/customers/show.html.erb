@@ -8,7 +8,9 @@
         <li class="breadcrumb-item active" aria-current="page"><%= tax_value(@customer.name) %></li>
       </ol>
     </nav>
-    <%= page_header_tag tax_value(@customer.name), back_path: customers_path, back_title: t('.back'), wrapper_class: 'mb-0' %>
+    <%= page_header_tag tax_value(@customer.name), back_path: customers_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= customer_edit_country_button(@customer) %>
+    <% end %>
   </div>
 
   <div class="row g-4">
@@ -71,6 +73,9 @@
 
             <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:city) %></dt>
             <dd class="col-12 col-md-7"><%= tax_city(@customer.city, @customer.state) %></dd>
+
+            <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:country_type) %></dt>
+            <dd class="col-12 col-md-7"><%= customer_country(@customer) %></dd>
 
             <dt class="col-12 col-md-5"><%= Atua::Customer.human_attribute_name(:phone) %></dt>
             <dd class="col-12 col-md-7"><%= tax_value(@customer.phone) %></dd>

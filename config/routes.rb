@@ -91,7 +91,9 @@ Rails.application.routes.draw do
       get :customer_options, on: :collection
       get :product_options, on: :collection
     end
-    resources :customers, only: %i[index show]
+    resources :customers, only: %i[index show] do
+      resource :country, only: %i[edit update], controller: 'customer_countries'
+    end
     resources :customer_groups, concerns: :activatable do
       patch :regroup, on: :member
     end
