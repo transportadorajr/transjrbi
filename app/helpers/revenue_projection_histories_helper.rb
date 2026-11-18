@@ -90,7 +90,7 @@ module RevenueProjectionHistoriesHelper
                              col_class: HISTORY_CARD_COLUMNS),
                 counter_card(:warning, revenue_projection_history_latest_label(history), tax_money(Money.from_cents(history.current_projected_cents)),
                              col_class: HISTORY_CARD_COLUMNS),
-                counter_card(:primary, revenue_projection_history_billed_label(history), tax_money(Money.from_cents(history.billed_cents)),
+                counter_card(:primary, revenue_projection_history_billed_label(history), tax_money(Money.from_cents(history.current_billed_cents)),
                              col_class: HISTORY_CARD_COLUMNS),
                 counter_card(revenue_projection_history_difference_kind(history.difference_cents), revenue_projection_history_difference_label(history),
                              revenue_projection_history_difference_card(history.difference_cents, history.difference_ratio),
@@ -304,6 +304,7 @@ module RevenueProjectionHistoriesHelper
 
   def revenue_projection_history_billed_label(history)
     return t(history.period_type, scope: 'revenue_projection_histories.show.billed_period') if history.closed?
+    return t('revenue_projection_histories.show.billed_now') if history.live_billing?
 
     t('revenue_projection_histories.show.billed_until', date: l(history.last_closed_date, format: :chart_week))
   end

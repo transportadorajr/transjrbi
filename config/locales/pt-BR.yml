@@ -2472,6 +2472,7 @@ pt-BR:
         week: Faturado na semana
         range: Faturado no período
       billed_until: Faturado até %{date}
+      billed_now: Faturado até agora
       difference_open: Variação da projeção desde a abertura
       difference_closed: Faturado x projeção na abertura
       difference_value: '%{value} (%{ratio})'

@@ -65,7 +65,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Mês atual')
         expect(page).to have_select('Mês', selected: 'Novembro de 2026', options: ['Novembro de 2026', 'Outubro de 2026'])
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
-          ['Projeção no início do mês R$ 23.000,00', 'Projeção atual (04/11) R$ 23.300,00', 'Faturado até 03/11 R$ 1.600,00',
+          ['Projeção no início do mês R$ 23.000,00', 'Projeção atual (04/11) R$ 23.300,00', 'Faturado até agora R$ 1.600,00',
            'Variação da projeção desde a abertura +R$ 300,00 (+1,3%)'],
         )
         expect(page).to have_text('O mês ainda está em andamento; o faturado considera só os dias já encerrados.')
@@ -95,7 +95,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           visit revenue_projection_history_path
 
           expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
-            ['Projeção no início do mês R$ 23.000,00', 'Projeção atual (04/11 09:40) R$ 24.000,00', 'Faturado até 03/11 R$ 1.600,00',
+            ['Projeção no início do mês R$ 23.000,00', 'Projeção atual (04/11 09:40) R$ 24.000,00', 'Faturado até agora R$ 1.600,00',
              'Variação da projeção desde a abertura +R$ 1.000,00 (+4,3%)'],
           )
           expect(page).to have_text('A projeção atual é recalculada a cada 30 minutos (última às 09:40)')
@@ -112,6 +112,24 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
             expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Projeção do mês hoje R$ 24.000,00')
             expect(page).to have_css('#today_refresh_note', text: 'recalculadas a cada 30 minutos com o faturado até a última sincronização (última às 09:40)')
           end
+        end
+      end
+
+      context 'with freights issued today' do
+        before do
+          create(:atua_transport_document, tenant:, freight_cents: 50_000, issued_at: Time.zone.local(2026, 11, 4, 8))
+          create(:atua_transport_document, tenant:, freight_cents: 70_000, issued_at: Time.zone.local(2026, 11, 4, 9), canceled_at: Time.zone.local(2026, 11, 4, 9, 30))
+          create(:atua_transport_document, tenant: other_tenant, freight_cents: 90_000, issued_at: Time.zone.local(2026, 11, 4, 8))
+        end
+
+        scenario 'adds the billing of today to the billed card, like the chart' do
+          visit revenue_projection_history_path
+
+          expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Faturado até agora R$ 2.100,00')
+
+          visit revenue_projection_history_path(period: 'month', start: '2026-10-01')
+
+          expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Faturado no mês R$ 0,00')
         end
       end
 
@@ -138,7 +156,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Sem. atual')
         expect(page).to have_select('Semana', selected: '01/11 a 07/11/2026', options: ['01/11 a 07/11/2026'])
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
-          ['Projeção no início da semana R$ 0,00', 'Projeção atual (01/11) R$ 0,00', 'Faturado até 03/11 R$ 1.600,00',
+          ['Projeção no início da semana R$ 0,00', 'Projeção atual (01/11) R$ 0,00', 'Faturado até agora R$ 1.600,00',
            'Variação da projeção desde a abertura +R$ 0,00'],
         )
         expect(page).to have_text('A semana ainda está em andamento; o faturado considera só os dias já encerrados.')
@@ -320,7 +338,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
         expect(page).to have_text('A projeção de cada manhã foi recalculada só com os CT-es deste recorte')
         expect(page).to have_no_text('foram reconstruídas a partir do histórico')
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
-          ['Projeção no início do mês R$ 11.500,00', 'Projeção atual (04/11 10:00) R$ 11.500,00', 'Faturado até 03/11 R$ 1.000,00',
+          ['Projeção no início do mês R$ 11.500,00', 'Projeção atual (04/11 10:00) R$ 11.500,00', 'Faturado até agora R$ 1.000,00',
            'Variação da projeção desde a abertura +R$ 0,00 (+0,0%)'],
         )
         expect(html_table_to_rows(table: find_by_id('history_days')).drop(1).map { it.values_at(0, 1, 2) }).to eq(
