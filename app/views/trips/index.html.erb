@@ -36,16 +36,6 @@
     <% end %>
   </div>
 
-  <div class="dashboard-filter-bar mb-4">
-    <span class="dashboard-filter-label"><%= t('.evolution_label') %></span>
-
-    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.evolution_label') } do %>
-      <% chart_evolutions.each do |evolution| %>
-        <%= chart_evolution_button(evolution) %>
-      <% end %>
-    <% end %>
-  </div>
-
   <p class="net-freight-discounts small fst-italic fw-bold text-success mb-2"><%= t('.net_discounts') %></p>
 
   <div class="row g-2 g-md-3 mb-4 counter-grid-compact">

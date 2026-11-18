@@ -53,7 +53,7 @@ RSpec.describe RevenueGoalsForm do
       loaded = described_class.for_month(tenant, month)
 
       expect(loaded.regions.map { [it.name, it.reference_cents] }).to eq([['BAHIA', 0], ['VALE DO AÇO/MG', 800_000]])
-      expect(loaded.lines.keys).to eq(%i[vehicles customer_groups drivers regions])
+      expect(loaded.lines.keys).to eq(%i[vehicles customer_groups regions])
     end
   end
 
@@ -89,19 +89,6 @@ RSpec.describe RevenueGoalsForm do
         expect(invalid.errors.full_messages).to contain_exactly("O grupo de clientes #{other.id} não está ativo.",
                                                                 'A meta do grupo de clientes USIMINAS deve ser maior que 0.')
       end
-    end
-
-    it 'saves the goal of a driver billed in the last months and rejects the others' do
-      create(:atua_transport_document, tenant:, plate: 'AJR4391', driver_code: 11, driver_name: 'JOSE DA SILVA', issued_at: Time.zone.local(2026, 9, 3, 10))
-
-      saved = form(drivers_attributes: { '0' => { key: '11', amount: '30.000,00' } })
-      invalid = form(drivers_attributes: { '0' => { key: '12', amount: '10,00' }, '1' => { key: '11', amount: '0' } })
-
-      expect { expect(saved.save).to be(true) }.to change(RevenueGoal, :count).by(1)
-      expect(tenant.revenue_goals.driver.sole).to have_attributes(driver_code: 11, amount_cents: 3_000_000)
-      expect(invalid.save).to be_falsey
-      expect(invalid.errors.full_messages).to contain_exactly('O motorista 12 não teve CT-e nos últimos 3 meses.',
-                                                              'A meta do motorista JOSE DA SILVA deve ser maior que 0.')
     end
 
     it 'rejects a macro region of another tenant' do

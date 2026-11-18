@@ -109,18 +109,6 @@ RSpec.describe Dashboard::Goals do
         .to have_attributes(label: 'Sem macro região', realized_cents: 1_650_000, cut: { macro_region_id: MacroRegion::OTHERS })
     end
 
-    it 'compares the billing of each driver with its goal' do
-      create(:revenue_goal, :driver, tenant:, month:, driver_code: 11, amount_cents: 1_000_000)
-      freight('RHJ5A50', 200_000, driver_code: 11, driver_name: 'JOSE DA SILVA')
-
-      rows = dashboard_with_breakdowns.breakdown_rows(:drivers)
-
-      expect(rows.map { [it.label, it.goal_cents, it.realized_cents, it.week_goal_cents, it.cut] }).to eq(
-        [['JOSE DA SILVA', 1_000_000, 200_000, 240_000, { driver_code: 11 }]],
-      )
-      expect(dashboard_with_breakdowns.breakdown_extra_row(:drivers)).to be_nil
-    end
-
     it 'sums the company billing of the week against the week goal' do
       company = dashboard_with_breakdowns.company
 

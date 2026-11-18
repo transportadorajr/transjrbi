@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1140,7 +1140,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_17_194553) do
     t.bigint "driver_code"
     t.index ["customer_group_id"], name: "index_revenue_goals_on_customer_group_id"
     t.index ["macro_region_id"], name: "index_revenue_goals_on_macro_region_id"
-    t.index ["tenant_id", "month", "target_type", "plate", "customer_group_id", "macro_region_id", "driver_code"], name: "index_revenue_goals_on_target", unique: true, nulls_not_distinct: true
+    t.index ["tenant_id", "month", "target_type", "plate", "customer_group_id", "macro_region_id"], name: "index_revenue_goals_on_target", unique: true, nulls_not_distinct: true
     t.index ["tenant_id"], name: "index_revenue_goals_on_tenant_id"
   end
 

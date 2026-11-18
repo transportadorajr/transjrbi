@@ -1,0 +1,11 @@
+<%# locals: (label:) %>
+
+<div class="dashboard-filter-bar mb-3">
+  <span class="dashboard-filter-label"><%= label %></span>
+
+  <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: } do %>
+    <% chart_evolutions.each do |evolution| %>
+      <%= chart_evolution_button(evolution) %>
+    <% end %>
+  <% end %>
+</div>

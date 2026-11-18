@@ -6,8 +6,12 @@
                                               chart: trips_ranking_chart(dashboard.ranking_data) %>
   </div>
 
-  <div class="col-12 col-xl-5">
-    <%= trips_evolution_cards(dashboard, :gross) %>
+  <div class="col-12 col-xl-5 d-flex flex-column" id="trips_gross_evolution">
+    <%= render 'shared/evolution_filter', label: t('trips.index.evolution_label') %>
+
+    <div class="flex-grow-1">
+      <%= trips_evolution_cards(dashboard, :gross) %>
+    </div>
   </div>
 </div>
 
@@ -17,8 +21,12 @@
                                               chart: trips_ranking_chart(dashboard.per_km_ranking_data) %>
   </div>
 
-  <div class="col-12 col-xl-5">
-    <%= trips_evolution_cards(dashboard, :per_km) %>
+  <div class="col-12 col-xl-5 d-flex flex-column" id="trips_per_km_evolution">
+    <%= render 'shared/evolution_filter', label: t('trips.index.evolution_label') %>
+
+    <div class="flex-grow-1">
+      <%= trips_evolution_cards(dashboard, :per_km) %>
+    </div>
   </div>
 </div>
 

@@ -131,22 +131,15 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         expect(html_table_to_rows.drop(1)).to eq([['Sem macro região', 'Sem meta', 'R$ 9.999,99', 'Sem meta', '-', '-', '-', 'Sem meta', '']])
       end
 
-      scenario 'shows the drivers when they are selected' do
-        create(:revenue_goal, :driver, tenant:, month:, driver_code: 11, amount_cents: 3_000_000)
-        create(:atua_transport_document, tenant:, plate: 'AJR4391', driver_code: 11, driver_name: 'JOSE DA SILVA', freight_cents: 600_000,
-                                         issued_at: Time.zone.local(2026, 11, 6, 10))
-
+      scenario 'does not offer the drivers as a grouping' do
         visit goals_path
-        within('#goal_dimension_bar') { click_on 'Motorista' }
 
-        expect(page).to have_current_path(goals_path(dimension: 'driver'))
-        expect(page).to have_css('#goal_drivers .table-card-title', text: 'Metas por motorista')
-        expect(html_table_to_rows).to eq(
-          [
-            ['Motorista', 'Meta', 'Faturado', 'Atingimento', 'Meta da semana', 'Faturado na semana', 'Atingimento na semana', 'Situação', 'Projeções'],
-            ['JOSE DA SILVA', 'R$ 30.000,00', 'R$ 6.000,00', '20,0%', 'R$ 7.200,00', 'R$ 0,00', '0,0%', 'Abaixo da meta', ''],
-          ],
-        )
+        within('#goal_dimension_bar') { expect(page).to have_no_link('Motorista') }
+
+        visit goals_path(dimension: 'driver')
+
+        expect(page).to have_current_path(goals_path)
+        expect(page).to have_text('Agrupar por não está incluído na lista')
       end
 
       scenario 'redirects an unknown grouping back to the panel' do

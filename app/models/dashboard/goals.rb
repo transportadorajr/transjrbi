@@ -6,11 +6,10 @@ module Dashboard
     COMPANY_KEY = 'company'.freeze
     THIRD_PARTY_KEY = 'third_party'.freeze
     DEFAULT_SORT = 'realized'.freeze
-    DIMENSIONS = { 'customer_group' => :customer_groups, 'vehicle' => :vehicles, 'driver' => :drivers, 'macro_region' => :regions }.freeze
+    DIMENSIONS = { 'customer_group' => :customer_groups, 'vehicle' => :vehicles, 'macro_region' => :regions }.freeze
     DEFAULT_DIMENSION = 'customer_group'.freeze
     BREAKDOWNS = {
       customer_groups: { list_all: true, cut: :customer_group_id, extra_label: 'dashboards.goals.ungrouped' },
-      drivers: { list_all: false, cut: :driver_code },
       regions: { list_all: false, cut: :macro_region_id, extra_label: 'dashboards.goals.no_region', extra_cut: MacroRegion::OTHERS },
     }.freeze
 

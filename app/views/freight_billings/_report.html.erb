@@ -6,8 +6,12 @@
                              chart: freight_billing_ranking_chart(dashboard) %>
   </div>
 
-  <div class="col-12 col-xl-5">
-    <%= freight_billing_evolution_cards(dashboard) %>
+  <div class="col-12 col-xl-5 d-flex flex-column" id="freight_billing_evolution">
+    <%= render 'shared/evolution_filter', label: t('freight_billings.show.evolution_label') %>
+
+    <div class="flex-grow-1">
+      <%= freight_billing_evolution_cards(dashboard) %>
+    </div>
   </div>
 </div>
 

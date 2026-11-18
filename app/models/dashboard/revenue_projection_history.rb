@@ -93,6 +93,14 @@ module Dashboard
       closed_days.sum { totals[it]&.billed_cents.to_i }
     end
 
+    def live_billing?
+      period.cover?(today)
+    end
+
+    def current_billed_cents
+      live_billing? ? billed_cents + today_billed_cents : billed_cents
+    end
+
     def forecast_cents
       forecasts.values_at(*closed_days).compact.sum(&:forecast_cents)
     end
@@ -221,12 +229,12 @@ module Dashboard
     def accumulated_billed
       sum = 0
       accumulated = closed_days.index_with { |date| sum += totals[date]&.billed_cents.to_i }
-      accumulated[today] = sum + today_billed_cents if period.cover?(today)
+      accumulated[today] = sum + today_billed_cents if live_billing?
       accumulated
     end
 
     def today_billed_cents
-      documents.active.not_canceled.where(issued_at: today.all_day).sum(:freight_cents)
+      @today_billed_cents ||= documents.active.not_canceled.where(issued_at: today.all_day).sum(:freight_cents)
     end
 
     def range_chart_data

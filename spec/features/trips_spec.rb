@@ -510,10 +510,12 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
                '.map((chart) => chart.getChartObject().options.plugins.datalabels.display)',
              )).to eq([true, true, true, true])
 
-      click_on 'Semanal'
+      within('#trips_per_km_evolution') { click_on 'Semanal' }
 
-      expect(page).to have_button('Semanal', class: 'btn-primary')
-      expect(page).to have_button('Mensal', class: 'btn-outline-secondary')
+      within('#trips_gross_evolution') do
+        expect(page).to have_button('Semanal', class: 'btn-primary')
+        expect(page).to have_button('Mensal', class: 'btn-outline-secondary')
+      end
       expect(visible_chart_titles).to eq(['Faturamento por Motorista', 'Evolução Semanal do Faturamento', 'R$/km por Motorista',
                                           'Evolução Semanal do R$/km'])
       expect(page).to have_current_path(trips_path(october))
@@ -529,6 +531,30 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
                "[...document.querySelectorAll('.chart-card canvas')].filter((canvas) => canvas.checkVisibility())" \
                '.every((canvas) => canvas.getBoundingClientRect().width > 0)',
              )).to be(true)
+    end
+
+    scenario 'shows the evolution filter right above each evolution chart' do
+      visit trips_path(october)
+
+      expect(page).to have_css('.dashboard-filter-label', text: 'EVOLUÇÃO', count: 2)
+      expect(evolution_filters_sit_right_above_the_charts?).to be(true)
+
+      use_mobile_screen(width: 360)
+      visit trips_path(october)
+
+      expect(page).to have_css('#trips_per_km_evolution .chart-card-title', text: 'Evolução Mensal do R$/km')
+      expect(evolution_filters_sit_right_above_the_charts?).to be(true)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    def evolution_filters_sit_right_above_the_charts?
+      page.evaluate_script(<<~JS)
+        ['#trips_gross_evolution', '#trips_per_km_evolution'].every((column) => {
+          const filter = document.querySelector(`${column} .dashboard-filter-bar`).getBoundingClientRect();
+          const chart = [...document.querySelectorAll(`${column} .chart-card`)].find((card) => card.checkVisibility()).getBoundingClientRect();
+          return filter.bottom <= chart.top && chart.top - filter.bottom < 40 && Math.abs(filter.left - chart.left) < 1;
+        })
+      JS
     end
   end
 
