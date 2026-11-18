@@ -34,12 +34,6 @@ RSpec.describe RevenueGoal do
       expect(build(:revenue_goal, tenant:, macro_region: create(:macro_region, tenant:))).not_to be_valid
     end
 
-    it 'requires the driver code only for a driver goal' do
-      expect(build(:revenue_goal, tenant:, target_type: 'driver')).not_to be_valid
-      expect(build(:revenue_goal, :driver, tenant:)).to be_valid
-      expect(build(:revenue_goal, tenant:, driver_code: 501)).not_to be_valid
-    end
-
     it 'removes the region goals with the macro region' do
       goal = create(:revenue_goal, :region, tenant:)
 
@@ -81,20 +75,19 @@ RSpec.describe RevenueGoal do
     let!(:company_goal) { create(:revenue_goal, tenant:, month:) }
     let!(:vehicle_goal) { create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391') }
     let!(:region_goal) { create(:revenue_goal, :region, tenant:, month:) }
-    let!(:driver_goal) { create(:revenue_goal, :driver, tenant:, month:, driver_code: 11) }
 
     it 'finds the goal of the target of the cut' do
       expect(goals.for_cut({})).to eq(company_goal)
       expect(goals.for_cut({ plate: 'ajr-4391' })).to eq(vehicle_goal)
       expect(goals.for_cut({ macro_region_id: region_goal.macro_region_id.to_s })).to eq(region_goal)
-      expect(goals.for_cut({ driver_code: 11 })).to eq(driver_goal)
     end
 
     it 'finds no goal for a cut without one' do
       expect(goals.for_cut({ plate: 'RHJ5A50' })).to be_nil
       expect(goals.for_cut({ macro_region_id: MacroRegion::OTHERS })).to be_nil
       expect(goals.for_cut({ product_group_id: 1 })).to be_nil
-      expect(goals.for_cut({ plate: 'AJR4391', driver_code: 11 })).to be_nil
+      expect(goals.for_cut({ plate: 'AJR4391', macro_region_id: region_goal.macro_region_id })).to be_nil
+      expect(goals.for_cut({ driver_code: 11 })).to be_nil
       expect(tenant.revenue_goals.for_month(month.next_month).for_cut({})).to be_nil
     end
   end

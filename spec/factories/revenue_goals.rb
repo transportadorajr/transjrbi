@@ -15,11 +15,6 @@ FactoryBot.define do
       customer_group { association :customer_group, tenant: }
     end
 
-    trait :driver do
-      target_type { 'driver' }
-      driver_code { 501 }
-    end
-
     trait :region do
       target_type { 'region' }
       macro_region { association :macro_region, tenant: }

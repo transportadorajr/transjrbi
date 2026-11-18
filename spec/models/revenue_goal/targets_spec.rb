@@ -34,24 +34,6 @@ RSpec.describe RevenueGoal::Targets do
     expect(targets.reference_cents(:regions)).to eq(region.id.to_s => 500_000, '' => 200_000)
   end
 
-  context 'with drivers' do
-    before do
-      create(:atua_transport_document, tenant:, plate: 'AJR4391', driver_code: 11, driver_name: 'JOSE DA SILVA', freight_cents: 300_000,
-                                       issued_at: Time.zone.local(2026, 10, 3, 10))
-      create(:atua_transport_document, tenant:, plate: 'AJR4391', driver_code: 12, driver_name: 'ANTONIO PEREIRA', freight_cents: 100_000,
-                                       issued_at: Time.zone.local(2026, 8, 1, 10))
-      create(:atua_transport_document, tenant:, plate: 'AJR4391', driver_code: 13, driver_name: 'SEM FRETE RECENTE', freight_cents: 100_000,
-                                       issued_at: Time.zone.local(2026, 7, 31, 10))
-      create(:driver, tenant:, code: 12, display_name: 'TONHO')
-      create(:revenue_goal, :driver, tenant:, month:, driver_code: 99, amount_cents: 1_000_000)
-    end
-
-    it 'lists the drivers of the last months and the ones with a goal, by their display name' do
-      expect(targets.options(:drivers)).to eq('99' => '99', '11' => 'JOSE DA SILVA', '12' => 'TONHO')
-      expect(targets.reference_cents(:drivers)).to eq('11' => 300_000, '' => 700_000)
-    end
-  end
-
   it 'reads the goal amounts of the month by target' do
     create(:revenue_goal, :region, tenant:, month:, macro_region: region, amount_cents: 3_000_000)
     create(:revenue_goal, :customer_group, tenant:, month: month.prev_month, customer_group: usiminas)
