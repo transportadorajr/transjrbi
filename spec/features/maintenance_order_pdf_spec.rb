@@ -7,18 +7,19 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
   let!(:maintenance_resource) { create(:resource, name: 'Módulo de manutenção', slug: 'maintenance', writable: false) }
   let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
   let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
-  let!(:responsible_employee) { create(:workshop_employee, tenant:, name: 'JOAO MENDES') }
+  let!(:assigned_mechanic) { create(:workshop_employee, tenant:, name: 'JOAO MENDES') }
+  let!(:helper) { create(:workshop_employee, tenant:, name: 'ANDRE ROCHA') }
   let!(:supplier) { create(:supplier, tenant:, name: 'RETÍFICA IPATINGA') }
   let!(:maintenance_order) do
     create(:maintenance_order, tenant:, number: 7, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 11, 8), odometer_km: 452_300,
-                               driver_name: 'JOSE DA SILVA', supervisor:, responsible_employee:, priority_type: 'high', vehicle_stopped: true,
+                               driver_name: 'JOSE DA SILVA', supervisor:, priority_type: 'high', vehicle_stopped: true,
                                diagnosis: 'Lonas gastas', performed_service: 'Troca das lonas', status_type: 'finished',
                                finished_at: Time.zone.local(2026, 11, 11, 17, 30), release_test_type: 'road_test',
                                next_preventive_km: 482_300)
   end
   let!(:part) do
     create(:maintenance_order_part, maintenance_order:, code: 'LF-123', description: 'LONA DE FREIO', quantity: 4, unit: 'UN',
-                                    unit_price_cents: 8_500, total_cents: 34_000)
+                                    unit_price_cents: 8_500, total_cents: 34_000, notes: 'Lado esquerdo')
   end
   let!(:labor) do
     create(:maintenance_order_labor, maintenance_order:, workshop_employee: mechanic, worked_on: Date.new(2026, 11, 11),
@@ -26,11 +27,12 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
   end
   let!(:service) do
     create(:maintenance_order_service, maintenance_order:, supplier:, description: 'Retífica do tambor', quoted_cents: 45_000,
-                                       approved_cents: 42_000, approved_by_name: 'MARCOS')
+                                       approved_cents: 42_000, approved_by_name: 'MARCOS', notes: 'Prazo de 2 dias')
   end
   let!(:stranger_order) { create(:maintenance_order, tenant: other_tenant, number: 7) }
 
   before do
+    [assigned_mechanic, helper].each { |employee| create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: employee) }
     travel_to(Time.zone.local(2026, 11, 12, 9))
     MaintenanceOrders::RecalculateTotalsCommand.call(maintenance_order)
   end
@@ -54,15 +56,15 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('Ficha da Ordem de Serviço nº 7 - Transportadora JR')
       expect(text).to include('Manutenção da frota · Placa EXU1A23 · Concluída')
       expect(text).to include('EXU1A23', '452.300 km', 'JOSE DA SILVA', 'PAULO LIMA', 'Cavalo mecânico')
-      expect(text).to include('FUNCIONÁRIO RESPONSÁVEL', 'JOAO MENDES')
+      expect(text).to include('MECÂNICOS', 'ANDRE ROCHA, JOAO MENDES')
       expect(text).to include('Corretiva', 'Alta', 'Oficina interna', 'Freios')
       expect(text).to include('Freio puxando para a direita', 'Lonas gastas', 'Troca das lonas')
-      expect(text).to include('LF-123', 'LONA DE FREIO', '4 UN', 'R$ 85,00', 'R$ 340,00')
+      expect(text).to include('LF-123', 'LONA DE FREIO · Obs.: Lado esquerdo', '4 UN', 'R$ 85,00', 'R$ 340,00')
       expect(text).to include('CARLOS SOUZA', '08:00 às 10:30', '2,5 h')
-      expect(text).to include('RETÍFICA IPATINGA', 'Retífica do tambor', 'R$ 450,00', 'R$ 420,00', 'MARCOS')
+      expect(text).to include('RETÍFICA IPATINGA', 'Retífica do tambor · Obs.: Prazo de 2 dias', 'R$ 450,00', 'R$ 420,00', 'MARCOS')
       expect(text).to include('R$ 760,00')
       expect(text).to include('11/11/2026 17:30', 'Rodagem', '482.300 km')
-      expect(text).to include('PAULO LIMAEncarregado responsável', 'JOAO MENDESFuncionário responsável')
+      expect(text).to include('PAULO LIMAEncarregado responsável', 'ANDRE ROCHAMecânico', 'JOAO MENDESMecânico')
       expect(text).not_to include('Mecânico responsável', 'Motorista (veículo liberado)', 'Compras (aprovação)')
       expect(text).to include('Gerado em 12/11/2026 09:00.')
     end
@@ -85,7 +87,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
         expect(text).to include('PAULO LIMAEncarregado · assinada em 11/11/2026 17:30')
         expect(text).to include('CARLOS SOUZAMecânico · assinada em 11/11/2026 17:31')
         expect(text).to include("Código de verificação: #{supervisor_signature.content_digest}")
-        expect(text).not_to include('Funcionário responsável')
+        expect(text).not_to include('ANDRE ROCHAMecânico')
       end
     end
 
@@ -98,7 +100,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('Nenhuma peça lançada nesta OS.', 'Nenhuma mão de obra lançada nesta OS.',
                               'Nenhum serviço terceirizado lançado nesta OS.')
       expect(text).to include('R$ 0,00')
-      expect(text).to include('Encarregado responsável', 'Funcionário responsável')
+      expect(text).to include('Encarregado responsável', 'Mecânico')
     end
 
     scenario 'does not print an order of another tenant' do

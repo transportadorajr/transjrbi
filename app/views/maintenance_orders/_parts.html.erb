@@ -23,7 +23,7 @@
             <% parts.each do |part| %>
               <tr id="<%= dom_id(part) %>">
                 <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(part.code) %></td>
-                <td class="fw-semibold text-break"><%= part.description %></td>
+                <td class="fw-semibold text-break"><%= maintenance_order_item_description(part.description, part.notes) %></td>
                 <td class="d-none d-md-table-cell text-end text-nowrap"><%= maintenance_order_part_quantity(part) %></td>
                 <td class="d-none d-lg-table-cell"><%= part.source_type_name %></td>
                 <td class="d-none d-lg-table-cell"><%= tax_value(part.document_number) %></td>

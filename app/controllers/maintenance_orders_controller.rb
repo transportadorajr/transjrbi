@@ -28,6 +28,7 @@ class MaintenanceOrdersController < BaseController
     authorize!(:read, :maintenance_orders)
 
     @parts = @maintenance_order.parts.order(:id)
+    @mechanics = @maintenance_order.mechanics
     @labors = @maintenance_order.labors.preload(:workshop_employee).order(:worked_on, :start_time, :id)
     @services = @maintenance_order.services.preload(:supplier).order(:id)
     @labor_hours = @labors.sum(:hours)
@@ -147,12 +148,13 @@ class MaintenanceOrdersController < BaseController
     @plates = current_tenant.atua_vehicles.active.where.not(plate: [nil, '']).distinct.order(:plate).pluck(:plate)
     @drivers = current_tenant.atua_vehicles.drivers.order(:driver_name)
     @supervisors = current_tenant.workshop_employees.supervisor.active.order(:name)
-    @workshop_employees = responsible_employee_options
+    @workshop_employees = mechanic_options
   end
 
-  def responsible_employee_options
+  def mechanic_options
     employees = current_tenant.workshop_employees
-    employees.active.or(employees.where(id: @maintenance_order&.responsible_employee_id)).order(:name)
+    assigned_ids = @maintenance_order ? @maintenance_order.mechanic_assignments.select(:workshop_employee_id) : []
+    employees.active.or(employees.where(id: assigned_ids)).order(:name)
   end
 
   def maintenance_order_params
@@ -160,8 +162,8 @@ class MaintenanceOrdersController < BaseController
   end
 
   def new_maintenance_order_params
-    params.expect(maintenance_order: [*MaintenanceOrderForm::PERMITTED_ATTRIBUTES,
-                                      { parts_attributes: [MaintenanceOrderPartForm::PERMITTED_ATTRIBUTES],
+    params.expect(maintenance_order: [*MaintenanceOrderForm::ORDER_ATTRIBUTES,
+                                      { mechanic_ids: [], parts_attributes: [MaintenanceOrderPartForm::PERMITTED_ATTRIBUTES],
                                         services_attributes: [MaintenanceOrderServiceForm::PERMITTED_ATTRIBUTES] }])
   end
 end

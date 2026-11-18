@@ -1,5 +1,5 @@
 class MaintenanceOrderPartForm < MaintenanceOrderItemForm
-  PERMITTED_ATTRIBUTES = %i[maintenance_part_id code description quantity unit source_type document_number unit_price].freeze
+  PERMITTED_ATTRIBUTES = %i[maintenance_part_id code description quantity unit source_type document_number unit_price notes].freeze
 
   attribute :maintenance_part_id, :integer
   attribute :code, :string
@@ -9,6 +9,7 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
   attribute :source_type, :string, default: 'stock'
   attribute :document_number, :string
   attribute :unit_price, :string
+  attribute :notes, :string
 
   enum :source_type, MaintenanceOrderPart::SOURCES
 
@@ -23,7 +24,7 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
   class << self
     def attributes_of(part)
       { maintenance_part_id: part.maintenance_part_id, code: part.code, description: part.description, quantity: format_decimal(part.quantity), unit: part.unit,
-        source_type: part.source_type, document_number: part.document_number, unit_price: format_cents(part.unit_price_cents) }
+        source_type: part.source_type, document_number: part.document_number, unit_price: format_cents(part.unit_price_cents), notes: part.notes }
     end
   end
 
@@ -50,7 +51,8 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
   end
 
   def item_attributes
-    { maintenance_part_id:, code:, description:, quantity: quantity_value, unit:, source_type:, document_number:, unit_price_cents:, total_cents: }
+    { maintenance_part_id:, code:, description:, quantity: quantity_value, unit:, source_type:, document_number:, unit_price_cents:, total_cents:,
+      notes: }
   end
 
   def normalize_fields
@@ -59,6 +61,7 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
     self.description = description.to_s.squish.upcase
     self.unit = unit.to_s.squish.upcase.presence
     self.document_number = document_number.to_s.squish.presence
+    self.notes = notes.to_s.strip.presence
   end
 
   def catalog_part

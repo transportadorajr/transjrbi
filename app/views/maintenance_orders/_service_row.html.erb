@@ -30,5 +30,8 @@
                                                      data: { catalog_fill_target: 'field', catalog_fill_key: 'price', catalog_fill_only_blank: true,
                                                              order_items_role: 'price' } } %>
     </div>
+    <div class="col-12">
+      <%= f.input :notes, as: :text, input_html: { class: 'form-control bg-light', rows: 2 } %>
+    </div>
   </div>
 <% end %>

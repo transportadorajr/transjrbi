@@ -38,6 +38,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
           fill_in 'Valor unitário', with: '8500'
           select 'Compra direta', from: 'Origem'
           fill_in 'Nº requisição / NF', with: 'NF 4512'
+          fill_in 'Observação', with: " Lado esquerdo do eixo traseiro \n"
           click_on 'Adicionar'
         end
 
@@ -45,11 +46,12 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         expect(MaintenanceOrderPart.count).to eq(1)
         expect(MaintenanceOrderPart.last).to have_attributes(tenant:, maintenance_order:, code: 'LF-123', description: 'LONA DE FREIO',
                                                              quantity: 4, unit: 'UN', source_type: 'purchase',
-                                                             document_number: 'NF 4512', unit_price_cents: 8_500, total_cents: 34_000)
+                                                             document_number: 'NF 4512', unit_price_cents: 8_500, total_cents: 34_000,
+                                                             notes: 'Lado esquerdo do eixo traseiro')
         expect(html_table_to_rows(table: find('#parts table'))).to eq(
           [
             ['CÓDIGO', 'DESCRIÇÃO', 'QUANTIDADE', 'ORIGEM', 'Nº REQUISIÇÃO / NF', 'VALOR UNITÁRIO', 'TOTAL', 'AÇÕES'],
-            ['LF-123', 'LONA DE FREIO', '4 UN', 'Compra direta', 'NF 4512', 'R$ 85,00', 'R$ 340,00', ''],
+            ['LF-123', 'LONA DE FREIO Lado esquerdo do eixo traseiro', '4 UN', 'Compra direta', 'NF 4512', 'R$ 85,00', 'R$ 340,00', ''],
           ],
         )
         expect(maintenance_order.reload.total_cents).to eq(34_000)
@@ -115,13 +117,15 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
           fill_in 'Serviço', with: 'Retífica do tambor'
           fill_in 'Nº do orçamento', with: '77'
           fill_in 'Valor orçado', with: '45000'
+          fill_in 'Observação', with: 'Entrega em 2 dias'
           click_on 'Adicionar'
         end
 
         expect(page).to have_text('Serviço terceirizado adicionado à OS.')
         expect(MaintenanceOrderService.count).to eq(1)
         expect(MaintenanceOrderService.last).to have_attributes(maintenance_order:, supplier:, description: 'Retífica do tambor',
-                                                                quote_number: '77', quoted_cents: 45_000, approved_cents: nil)
+                                                                quote_number: '77', quoted_cents: 45_000, approved_cents: nil,
+                                                                notes: 'Entrega em 2 dias')
         expect(dl_to_hash('#totals')).to include('TOTAL DE SERVIÇOS TERCEIRIZADOS' => 'R$ 450,00', 'TOTAL DA OS' => 'R$ 450,00')
       end
     end
@@ -204,7 +208,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
       let!(:service) do
         create(:maintenance_order_service, maintenance_order:, supplier:, description: 'Retífica do tambor', quote_number: '77',
                                            quoted_cents: 45_000, approved_cents: 42_000, approved_by_name: 'MARCOS',
-                                           invoice_number: '9981')
+                                           invoice_number: '9981', notes: 'Tambor dianteiro')
       end
       let!(:stranger_order) { create(:maintenance_order, tenant: other_tenant) }
       let!(:stranger_part) { create(:maintenance_order_part, maintenance_order: stranger_order) }
@@ -229,7 +233,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         expect(html_table_to_rows(table: find('#services table'))).to eq(
           [
             ['Fornecedor', 'Serviço', 'Nº do orçamento', 'Valor orçado', 'Valor aprovado', 'Aprovado por', 'Nº da NF', 'Ações'],
-            ['RETÍFICA IPATINGA', 'Retífica do tambor', '77', 'R$ 450,00', 'R$ 420,00', 'MARCOS', '9981', 'Opções Alterar Excluir'],
+            ['RETÍFICA IPATINGA', 'Retífica do tambor Tambor dianteiro', '77', 'R$ 450,00', 'R$ 420,00', 'MARCOS', '9981', 'Opções Alterar Excluir'],
           ],
         )
         expect(dl_to_hash('#totals')).to eq('Total de peças' => 'R$ 340,00', 'Total de serviços terceirizados' => 'R$ 420,00',
@@ -251,11 +255,12 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         within('#maintenance_order_item_modal') do
           expect(page).to have_field('Quantidade', with: '4')
           fill_in 'Quantidade', with: '6'
+          fill_in 'Observação', with: 'Trocar também a mola'
           click_on 'Salvar Alterações'
         end
 
         expect(page).to have_text('Peça atualizada.')
-        expect(part.reload).to have_attributes(quantity: 6, total_cents: 51_000)
+        expect(part.reload).to have_attributes(quantity: 6, total_cents: 51_000, notes: 'Trocar também a mola')
         expect(maintenance_order.reload.total_cents).to eq(93_000)
       end
 

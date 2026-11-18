@@ -33,12 +33,12 @@
                                       input_html: { class: 'form-select' } %>
         </div>
         <div class="col-12 col-lg-4">
-          <%= f.label :responsible_employee_id, for: nil, id: 'responsible_employee_select_label', class: 'form-label' %>
-          <%= render 'components/select2', id: 'responsible_employee_select', name: "#{f.object_name}[responsible_employee_id]",
-                                           options: maintenance_order_responsible_employee_options(@workshop_employees),
-                                           selected: maintenance_order_form.responsible_employee_id,
-                                           placeholder: t('maintenance_orders.form.responsible_employee_placeholder') %>
-          <%= tag.div t('maintenance_orders.form.responsible_employee_hint'), class: 'form-text' %>
+          <%= f.label :mechanic_ids, for: nil, id: 'mechanics_select_label', class: 'form-label' %>
+          <%= render 'components/select2', id: 'mechanics_select', name: "#{f.object_name}[mechanic_ids][]", multiple: true,
+                                           options: maintenance_order_mechanic_options(@workshop_employees),
+                                           selected: maintenance_order_form.mechanic_ids,
+                                           placeholder: t('maintenance_orders.form.mechanics_placeholder') %>
+          <%= tag.div t('maintenance_orders.form.mechanics_hint'), class: 'form-text' %>
         </div>
         <div class="col-12 col-lg-6">
           <%= f.input :equipment_type, collection: MaintenanceOrderForm.enum_options_for_select(:equipment_type), required: true,

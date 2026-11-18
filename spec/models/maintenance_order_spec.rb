@@ -161,18 +161,19 @@ RSpec.describe MaintenanceOrder do
       create(:maintenance_order_labor, maintenance_order:, workshop_employee: carlos, worked_on: Date.new(2026, 11, 11))
       create(:maintenance_order_labor, maintenance_order:, workshop_employee: carlos, worked_on: Date.new(2026, 11, 12))
       create(:maintenance_order_labor, maintenance_order:, workshop_employee: ana)
-      maintenance_order.update!(responsible_employee: joao)
+      create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: joao)
 
       expect(maintenance_order.signing_mechanics.map(&:name)).to eq(['ANA COSTA', 'CARLOS SOUZA'])
     end
 
-    it 'falls back to the responsible employee when no labor was registered' do
-      maintenance_order.update!(responsible_employee: joao)
+    it 'falls back to every mechanic of the order when no labor was registered' do
+      create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: joao)
+      create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: ana)
 
-      expect(maintenance_order.signing_mechanics.map(&:name)).to eq(['JOAO MENDES'])
+      expect(maintenance_order.signing_mechanics.map(&:name)).to eq(['ANA COSTA', 'JOAO MENDES'])
     end
 
-    it 'is empty without labor nor responsible employee' do
+    it 'is empty without labor nor mechanics' do
       expect(maintenance_order.signing_mechanics).to be_empty
     end
   end

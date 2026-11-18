@@ -1,5 +1,5 @@
 class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
-  PERMITTED_ATTRIBUTES = %i[maintenance_service_id supplier_id description quote_number quoted approved approved_by_name invoice_number].freeze
+  PERMITTED_ATTRIBUTES = %i[maintenance_service_id supplier_id description quote_number quoted approved approved_by_name invoice_number notes].freeze
 
   attribute :maintenance_service_id, :integer
   attribute :supplier_id, :integer
@@ -9,6 +9,7 @@ class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
   attribute :approved, :string
   attribute :approved_by_name, :string
   attribute :invoice_number, :string
+  attribute :notes, :string
 
   before_validation :normalize_fields
 
@@ -21,7 +22,7 @@ class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
     def attributes_of(service)
       { maintenance_service_id: service.maintenance_service_id, supplier_id: service.supplier_id, description: service.description, quote_number: service.quote_number,
         quoted: format_cents(service.quoted_cents), approved: format_cents(service.approved_cents),
-        approved_by_name: service.approved_by_name, invoice_number: service.invoice_number }
+        approved_by_name: service.approved_by_name, invoice_number: service.invoice_number, notes: service.notes }
     end
   end
 
@@ -41,7 +42,7 @@ class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
 
   def item_attributes
     { maintenance_service_id:, supplier_id:, description:, quote_number:, quoted_cents: self.class.parse_cents(quoted),
-      approved_cents: self.class.parse_cents(approved), approved_by_name:, invoice_number: }
+      approved_cents: self.class.parse_cents(approved), approved_by_name:, invoice_number:, notes: }
   end
 
   def normalize_fields
@@ -50,6 +51,7 @@ class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
     self.quote_number = quote_number.to_s.squish.presence
     self.approved_by_name = approved_by_name.to_s.squish.upcase.presence
     self.invoice_number = invoice_number.to_s.squish.presence
+    self.notes = notes.to_s.strip.presence
   end
 
   def catalog_service

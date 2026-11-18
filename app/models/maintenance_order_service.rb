@@ -18,6 +18,7 @@ end
 #  approved_cents         :bigint
 #  description            :string           not null
 #  invoice_number         :string
+#  notes                  :text
 #  quote_number           :string
 #  quoted_cents           :bigint
 #  created_at             :datetime         not null

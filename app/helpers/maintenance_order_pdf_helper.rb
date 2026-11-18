@@ -1,6 +1,4 @@
 module MaintenanceOrderPdfHelper
-  SIGNATURES = %i[supervisor responsible_employee].freeze
-
   def maintenance_order_pdf_title(maintenance_order)
     t('maintenance_orders.show.pdf.header', number: maintenance_order.number, company: maintenance_order.tenant.trade_name)
   end
@@ -9,7 +7,7 @@ module MaintenanceOrderPdfHelper
     t('maintenance_orders.show.pdf.subtitle', plate: maintenance_order.plate, status: maintenance_order.status_type_name)
   end
 
-  def maintenance_order_pdf_vehicle_fields(maintenance_order)
+  def maintenance_order_pdf_vehicle_fields(maintenance_order, mechanics)
     [
       [MaintenanceOrder.human_attribute_name(:number), maintenance_order.number],
       [MaintenanceOrder.human_attribute_name(:opened_at), maintenance_order_opened_at(maintenance_order)],
@@ -19,7 +17,7 @@ module MaintenanceOrderPdfHelper
       [MaintenanceOrder.human_attribute_name(:hour_meter), maintenance_order_hour_meter(maintenance_order)],
       [MaintenanceOrder.human_attribute_name(:driver_name), tax_value(maintenance_order.driver_name)],
       [MaintenanceOrder.human_attribute_name(:supervisor), tax_value(maintenance_order.supervisor&.name)],
-      [MaintenanceOrder.human_attribute_name(:responsible_employee), tax_value(maintenance_order.responsible_employee&.name)],
+      [MaintenanceOrder.human_attribute_name(:mechanics), maintenance_order_mechanic_names(mechanics)],
     ]
   end
 
@@ -65,7 +63,7 @@ module MaintenanceOrderPdfHelper
                 pdf_column(MaintenanceOrderPart.human_attribute_name(:unit_price), align: :right),
                 pdf_column(MaintenanceOrderPart.human_attribute_name(:total), align: :right)],
       rows: parts.map do |part|
-        [tax_value(part.code), part.description, maintenance_order_part_quantity(part), part.source_type_name,
+        [tax_value(part.code), maintenance_order_pdf_item_description(part), maintenance_order_part_quantity(part), part.source_type_name,
          tax_value(part.document_number), tax_money(part.unit_price), tax_money(part.total)]
       end,
     )
@@ -96,8 +94,8 @@ module MaintenanceOrderPdfHelper
                 pdf_column(MaintenanceOrderService.human_attribute_name(:approved_by_name)),
                 pdf_column(MaintenanceOrderService.human_attribute_name(:invoice_number))],
       rows: services.map do |service|
-        [tax_value(service.supplier&.name), service.description, tax_value(service.quote_number), tax_money(service.quoted),
-         tax_money(service.approved), tax_value(service.approved_by_name), tax_value(service.invoice_number)]
+        [tax_value(service.supplier&.name), maintenance_order_pdf_item_description(service), tax_value(service.quote_number),
+         tax_money(service.quoted), tax_money(service.approved), tax_value(service.approved_by_name), tax_value(service.invoice_number)]
       end,
     )
   end
@@ -108,12 +106,14 @@ module MaintenanceOrderPdfHelper
     render 'shared/pdf_table', report:, plain_header: true
   end
 
-  def maintenance_order_pdf_signatures(maintenance_order, signatures)
+  def maintenance_order_pdf_signatures(maintenance_order, mechanics, signatures)
     return maintenance_order_pdf_signed(signatures) if signatures.any?
 
-    SIGNATURES.map do |signature|
-      [t(signature, scope: 'maintenance_orders.show.pdf.signatures'), maintenance_order.public_send(signature)&.name]
-    end
+    supervisor = [t('maintenance_orders.show.pdf.signatures.supervisor'), maintenance_order.supervisor&.name]
+    mechanic_label = t('maintenance_orders.show.pdf.signatures.mechanic')
+    return [supervisor, [mechanic_label, nil]] if mechanics.empty?
+
+    [supervisor, *mechanics.map { |mechanic| [mechanic_label, mechanic.name] }]
   end
 
   def maintenance_order_pdf_digest(signatures)
@@ -124,6 +124,12 @@ module MaintenanceOrderPdfHelper
   end
 
   private
+
+  def maintenance_order_pdf_item_description(item)
+    return item.description if item.notes.blank?
+
+    t('maintenance_orders.show.pdf.item_notes', description: item.description, notes: item.notes)
+  end
 
   def maintenance_order_pdf_signed(signatures)
     signatures.map do |signature|

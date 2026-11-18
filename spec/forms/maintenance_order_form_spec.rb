@@ -127,19 +127,21 @@ RSpec.describe MaintenanceOrderForm do
       expect(form.errors.full_messages).to eq(['Encarregado responsável não está cadastrado como encarregado'])
     end
 
-    context 'with a responsible workshop employee' do
-      it 'saves any active workshop employee as the responsible one' do
-        form = described_class.new(tenant:, opened_by: user, **attributes, responsible_employee_id: mechanic.id.to_s)
+    context 'with mechanics' do
+      let!(:helper) { create(:workshop_employee, tenant:, name: 'ANDRE ROCHA') }
 
-        expect { expect(form.save).to be(true) }.to change(MaintenanceOrder, :count).by(1)
-        expect(MaintenanceOrder.last.responsible_employee).to eq(mechanic)
+      it 'saves every chosen active workshop employee as a mechanic of the order' do
+        form = described_class.new(tenant:, opened_by: user, **attributes, mechanic_ids: ['', mechanic.id.to_s, helper.id.to_s])
+
+        expect { expect(form.save).to be(true) }.to change(MaintenanceOrder, :count).by(1).and change(MaintenanceOrderMechanic, :count).by(2)
+        expect(MaintenanceOrder.last.mechanics).to eq([helper, mechanic])
       end
 
-      it 'opens the order without a responsible employee' do
-        form = described_class.new(tenant:, opened_by: user, **attributes, responsible_employee_id: '')
+      it 'opens the order without mechanics' do
+        form = described_class.new(tenant:, opened_by: user, **attributes, mechanic_ids: [''])
 
         expect(form.save).to be(true)
-        expect(form.maintenance_order.responsible_employee).to be_nil
+        expect(form.maintenance_order.mechanics).to be_empty
       end
 
       it 'rejects an inactive employee or one of another tenant' do
@@ -147,26 +149,42 @@ RSpec.describe MaintenanceOrderForm do
         stranger = create(:workshop_employee, name: 'OUTRO TENANT')
 
         [inactive, stranger].each do |employee|
-          form = described_class.new(tenant:, **attributes, responsible_employee_id: employee.id.to_s)
+          form = described_class.new(tenant:, **attributes, mechanic_ids: [mechanic.id.to_s, employee.id.to_s])
 
           expect(form.save).to be_falsey
-          expect(form.errors.full_messages).to eq(['Funcionário responsável não está cadastrado como funcionário ativo da oficina'])
+          expect(form.errors.full_messages).to eq(['Mecânicos contém funcionário que não está ativo na oficina'])
         end
         expect(MaintenanceOrder.count).to eq(0)
+        expect(MaintenanceOrderMechanic.count).to eq(0)
       end
     end
 
     context 'when the order already exists' do
       let!(:maintenance_order) { create(:maintenance_order, tenant:, number: 3, opened_by: user) }
 
-      it 'keeps the responsible employee after the employee is deactivated' do
-        maintenance_order.update!(responsible_employee: mechanic)
+      it 'keeps a mechanic after the employee is deactivated' do
+        create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: mechanic)
         mechanic.update!(active: false)
         form = described_class.for_maintenance_order(maintenance_order)
         form.assign_attributes(diagnosis: 'Lonas gastas')
 
         expect(form.save).to be(true)
-        expect(maintenance_order.reload).to have_attributes(responsible_employee: mechanic, diagnosis: 'Lonas gastas')
+        expect(maintenance_order.reload).to have_attributes(mechanics: [mechanic], diagnosis: 'Lonas gastas')
+      end
+
+      it 'adds and removes mechanics of the order' do
+        helper = create(:workshop_employee, tenant:, name: 'ANDRE ROCHA')
+        electrician = create(:workshop_employee, tenant:, name: 'BRUNO DIAS')
+        create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: mechanic)
+        create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: helper)
+        form = described_class.for_maintenance_order(maintenance_order)
+
+        expect(form.mechanic_ids).to contain_exactly(mechanic.id, helper.id)
+
+        form.assign_attributes(mechanic_ids: [helper.id.to_s, electrician.id.to_s])
+
+        expect { expect(form.save).to be(true) }.not_to change(MaintenanceOrderMechanic, :count)
+        expect(maintenance_order.reload.mechanics).to eq([helper, electrician])
       end
 
       it 'keeps the plate of the order after its vehicle is removed from Atua' do
