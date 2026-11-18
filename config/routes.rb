@@ -99,6 +99,7 @@ Rails.application.routes.draw do
     resources :drivers, only: %i[index show edit update destroy]
     resources :expenses, only: %i[index show]
     resources :commission_rules, concerns: :activatable
+    resources :export_plants, concerns: :activatable
     resources :macro_regions, concerns: :activatable
     resources :cities, concerns: :activatable
     resources :truck_groups, concerns: :activatable

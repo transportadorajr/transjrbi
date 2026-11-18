@@ -1,0 +1,36 @@
+<% content_for :title, @export_plant.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('export_plants.index.title'), export_plants_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @export_plant.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @export_plant.name, back_path: export_plants_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= export_plant_edit_button(@export_plant) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.export_plant_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="export_plant_data">
+        <dt class="col-12 col-md-3"><%= ExportPlant.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @export_plant.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportPlant.human_attribute_name(:customer_group) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @export_plant.customer_group.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportPlant.human_attribute_name(:cities) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= export_plant_cities(@export_plant) %></dd>
+
+        <dt class="col-12 col-md-3"><%= ExportPlant.human_attribute_name(:status) %></dt>
+        <dd class="col-12 col-md-9"><%= export_plant_status_badge(@export_plant) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

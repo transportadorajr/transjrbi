@@ -1,0 +1,11 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <%= link_to item.name, export_plant_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+  </td>
+  <td class="d-none d-md-table-cell text-break"><%= item.customer_group.name %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= export_plant_cities(item) %></td>
+  <td><%= export_plant_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(export_plants_menu(item)) %>
+  </td>
+</tr>

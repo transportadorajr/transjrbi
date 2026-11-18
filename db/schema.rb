@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_143357) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -713,6 +713,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
     t.index ["tenant_id"], name: "index_excluded_issuers_on_tenant_id"
   end
 
+  create_table "export_plants", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "customer_group_id", null: false
+    t.string "name", null: false
+    t.string "cities", default: [], null: false, array: true
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_group_id"], name: "index_export_plants_on_customer_group_id"
+    t.index ["tenant_id", "customer_group_id", "name"], name: "idx_on_tenant_id_customer_group_id_name_f57016730f", unique: true
+    t.index ["tenant_id"], name: "index_export_plants_on_tenant_id"
+  end
+
   create_table "flipper_features", force: :cascade do |t|
     t.string "key", null: false
     t.datetime "created_at", null: false
@@ -1403,6 +1416,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_124908) do
   add_foreign_key "empty_legs", "tenants"
   add_foreign_key "excluded_drivers", "tenants"
   add_foreign_key "excluded_issuers", "tenants"
+  add_foreign_key "export_plants", "customer_groups"
+  add_foreign_key "export_plants", "tenants"
   add_foreign_key "freight_expenses", "atua_transport_documents", column: "transport_document_id"
   add_foreign_key "freight_expenses", "commission_rules"
   add_foreign_key "freight_expenses", "insurance_rates"

@@ -61,6 +61,9 @@ pt-BR:
       commission_rule:
         one: Regra de comissão
         other: Regras de comissão
+      export_plant:
+        one: Planta de exportação
+        other: Plantas de exportação
       freight_expense:
         one: Despesa de frete
         other: Despesas de frete
@@ -273,6 +276,12 @@ pt-BR:
         status: Status
         activated_at: Ativada em
         freight_expenses: CT-es com comissão
+      export_plant:
+        name: Nome
+        customer_group: Grupo de clientes
+        cities: Cidades de origem
+        status: Status
+        activated_at: Ativada em
       freight_expense:
         transport_document: CT-e
         commission_rule: Regra
@@ -731,7 +740,7 @@ pt-BR:
             has_many: Não é possível excluir um recurso com permissões vinculadas a usuários.
         customer_group:
           restrict_dependent_destroy:
-            has_many: Não é possível excluir um grupo com clientes, regras de comissão ou custos por tonelada vinculados. Desative o grupo para deixar de usá-lo.
+            has_many: Não é possível excluir um grupo com clientes, regras de comissão, custos por tonelada ou plantas de exportação vinculados. Desative o grupo para deixar de usá-lo.
         product_group:
           restrict_dependent_destroy:
             has_many: Não é possível excluir um grupo com subgrupos. Exclua os subgrupos ou desative o grupo para deixar de usá-lo.
@@ -865,6 +874,11 @@ pt-BR:
         percentage: Comissão (%)
         cities: Cidades de destino
         recipient_terms: Clientes de destino
+        active: Ativa
+      export_plant_form:
+        customer_group_id: Grupo de clientes
+        name: Nome
+        cities: Cidades de origem
         active: Ativa
       tonnage_rate_form:
         customer_group_id: Grupo de clientes
@@ -1066,6 +1080,12 @@ pt-BR:
               taken: '%{cities} já estão em outra regra ativa deste grupo'
             recipient_terms:
               taken: '%{terms} já estão em outra regra ativa deste grupo'
+        export_plant_form:
+          attributes:
+            customer_group_id:
+              invalid: não pertence a esta empresa
+            cities:
+              taken: '%{cities} já estão em outra planta ativa deste grupo'
         tonnage_rate_form:
           attributes:
             customer_group_id:
@@ -1475,6 +1495,9 @@ pt-BR:
       commission_rule:
         create: Cadastrar Regra
         update: Salvar Alterações
+      export_plant:
+        create: Cadastrar Planta
+        update: Salvar Alterações
       macro_region:
         create: Cadastrar Macro Região
         update: Salvar Alterações
@@ -1568,6 +1591,12 @@ pt-BR:
         deactivate: Inativar
         destroy: Excluir
       commission_rule:
+        show: Visualizar
+        edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
+        destroy: Excluir
+      export_plant:
         show: Visualizar
         edit: Alterar
         activate: Ativar
@@ -1833,6 +1862,7 @@ pt-BR:
     vehicles: Veículos
     expenses: Despesas
     commission_rules: Regras de comissão
+    export_plants: Plantas de exportação
     tonnage_rates: Custos por tonelada
     insurance_rates: Alíquota de seguro
     own_fleet: Frota própria
@@ -2169,6 +2199,50 @@ pt-BR:
         Só para destino no exterior: um termo por linha com o nome do destinatário. Usado quando a cidade do CT-e e a
         do destinatário (ex.: "Exterior") não estão nas cidades das regras.
       active_hint: Desmarque para deixar de calcular a comissão desta regra. Toda alteração recalcula as comissões de todos os CT-es.
+  export_plants:
+    index:
+      title: Plantas de exportação
+      pdf:
+        header: Relatório de Plantas de exportação
+        filename: plantas_de_exportacao_%{time}.pdf
+      subtitle: Plantas e CDs de origem das cargas de exportação de cada grupo de clientes.
+      new_export_plant: Nova Planta
+      total: Total de plantas
+      active_plants: Plantas ativas
+      deactivated_plants: Plantas inativas
+      active: Ativa
+      deactivated: Inativa
+      confirm_destroy: Tem certeza que deseja excluir esta planta?
+    filters:
+      name: Nome da planta
+      customer_group: Grupo de clientes
+      status: Status
+    show:
+      back: Voltar para plantas de exportação
+      export_plant_data: Dados da planta
+      edit: Alterar
+    new:
+      title: Nova Planta
+      back: Voltar para plantas de exportação
+    create:
+      success: Planta cadastrada com sucesso.
+    edit:
+      title: Alterar Planta
+      back: Voltar para plantas de exportação
+    update:
+      success: Planta atualizada com sucesso.
+    destroy:
+      success: Planta excluída com sucesso.
+    form:
+      export_plant_data: Dados da Planta
+      export_plant_data_text: >-
+        Os CT-es de exportação do grupo que saem destas cidades são somados nesta planta no resumo da exportação.
+        Uma cidade de origem sem planta cadastrada aparece separada, com o nome da própria cidade.
+      name_hint: 'Ex.: Ipatinga, CD Santo André, Sul Fluminense.'
+      cities_hint: >-
+        Uma cidade de origem por linha, como aparece no CT-e (acentos, espaços e hífen são ignorados). Uma planta pode reunir
+        várias cidades, como Resende e Barra Mansa no Sul Fluminense.
+      active_hint: Desmarque para deixar de separar esta planta no resumo da exportação.
   macro_regions:
     remaining_state_names:
       AC: RESTO DO ACRE
@@ -3738,6 +3812,7 @@ pt-BR:
     vehicles: Veículos
     expenses: Despesas
     commission_rules: Regras de comissão
+    export_plants: Plantas de exportação
     tonnage_rates: Custos por tonelada
     insurance_rates: Alíquota de seguro
     freight_expenses: Despesas de frete

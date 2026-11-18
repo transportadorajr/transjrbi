@@ -116,6 +116,12 @@ shared:
           url: /commission_rules
           controllers:
             - commission_rules
+        - name: export_plants
+          resource: export_plants
+          url: /export_plants
+          feature: export_summary
+          controllers:
+            - export_plants
         - name: tonnage_rates
           resource: tonnage_rates
           url: /tonnage_rates
