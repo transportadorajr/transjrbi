@@ -1,4 +1,4 @@
-class MaintenanceOrderPartForm < MaintenanceOrderItemForm
+class MaintenanceOrderPartForm < MaintenanceOrderItemizableForm
   PERMITTED_ATTRIBUTES = %i[maintenance_part_id code description quantity unit source_type document_number unit_price notes].freeze
 
   attribute :maintenance_part_id, :integer
@@ -23,13 +23,13 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
 
   class << self
     def attributes_of(part)
-      { maintenance_part_id: part.maintenance_part_id, code: part.code, description: part.description, quantity: format_decimal(part.quantity), unit: part.unit,
-        source_type: part.source_type, document_number: part.document_number, unit_price: format_cents(part.unit_price_cents), notes: part.notes }
+      { maintenance_part_id: part.maintenance_part_id, code: part.code, quantity: format_decimal(part.quantity), unit: part.unit,
+        source_type: part.source_type, document_number: part.document_number, unit_price: format_cents(part.unit_price_cents) }
     end
   end
 
   def maintenance_parts
-    tenant.maintenance_parts.active.or(tenant.maintenance_parts.where(id: item.maintenance_part_id)).order(:description)
+    tenant.maintenance_parts.active.or(tenant.maintenance_parts.where(id: itemizable.maintenance_part_id)).order(:description)
   end
 
   def quantity_value
@@ -46,13 +46,12 @@ class MaintenanceOrderPartForm < MaintenanceOrderItemForm
 
   private
 
-  def items
-    maintenance_order.parts
+  def itemizable_class
+    MaintenanceOrderPart
   end
 
-  def item_attributes
-    { maintenance_part_id:, code:, description:, quantity: quantity_value, unit:, source_type:, document_number:, unit_price_cents:, total_cents:,
-      notes: }
+  def itemizable_attributes
+    { maintenance_part_id:, code:, quantity: quantity_value, unit:, source_type:, document_number:, unit_price_cents: }
   end
 
   def normalize_fields

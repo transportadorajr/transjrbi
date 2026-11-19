@@ -62,9 +62,10 @@ module MaintenanceOrderPdfHelper
                 pdf_column(MaintenanceOrderPart.human_attribute_name(:document_number)),
                 pdf_column(MaintenanceOrderPart.human_attribute_name(:unit_price), align: :right),
                 pdf_column(MaintenanceOrderPart.human_attribute_name(:total), align: :right)],
-      rows: parts.map do |part|
-        [tax_value(part.code), maintenance_order_pdf_item_description(part), maintenance_order_part_quantity(part), part.source_type_name,
-         tax_value(part.document_number), tax_money(part.unit_price), tax_money(part.total)]
+      rows: parts.map do |item|
+        part = item.itemizable
+        [tax_value(part.code), maintenance_order_pdf_item_description(item), maintenance_order_part_quantity(part), part.source_type_name,
+         tax_value(part.document_number), tax_money(part.unit_price), tax_money(item.total)]
       end,
     )
   end
@@ -93,8 +94,9 @@ module MaintenanceOrderPdfHelper
                 pdf_column(MaintenanceOrderService.human_attribute_name(:approved), align: :right),
                 pdf_column(MaintenanceOrderService.human_attribute_name(:approved_by_name)),
                 pdf_column(MaintenanceOrderService.human_attribute_name(:invoice_number))],
-      rows: services.map do |service|
-        [tax_value(service.supplier&.name), maintenance_order_pdf_item_description(service), tax_value(service.quote_number),
+      rows: services.map do |item|
+        service = item.itemizable
+        [tax_value(service.supplier&.name), maintenance_order_pdf_item_description(item), tax_value(service.quote_number),
          tax_money(service.quoted), tax_money(service.approved), tax_value(service.approved_by_name), tax_value(service.invoice_number)]
       end,
     )

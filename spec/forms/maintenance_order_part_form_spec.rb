@@ -9,11 +9,15 @@ RSpec.describe MaintenanceOrderPartForm do
       form = described_class.new(maintenance_order:, code: ' lf-123 ', description: ' lona  de freio ', quantity: '2,5',
                                  unit: 'kg', source_type: 'purchase', document_number: ' NF 4512 ', unit_price: '1.234,56')
 
-      expect { expect(form.save).to be(true) }.to change(MaintenanceOrderPart, :count).by(1)
+      expect { expect(form.save).to be(true) }.to change(MaintenanceOrderPart, :count).by(1).and change(MaintenanceOrderItem, :count).by(1)
 
       expect(MaintenanceOrderPart.last).to have_attributes(
         tenant:, maintenance_order:, code: 'LF-123', description: 'LONA DE FREIO', quantity: BigDecimal('2.5'), unit: 'KG',
         source_type: 'purchase', document_number: 'NF 4512', unit_price_cents: 123_456, total_cents: 308_640
+      )
+      expect(MaintenanceOrderItem.last).to have_attributes(
+        tenant:, maintenance_order:, itemizable: MaintenanceOrderPart.last, description: 'LONA DE FREIO', notes: nil, total_cents: 308_640,
+        position: 1
       )
       expect(maintenance_order.reload).to have_attributes(parts_total_cents: 308_640, total_cents: 308_640)
     end
@@ -64,7 +68,7 @@ RSpec.describe MaintenanceOrderPartForm do
       it 'keeps offering an inactive part already used on the item' do
         part = create(:maintenance_order_part, maintenance_order:, maintenance_part: inactive, description: 'LONA ANTIGA')
 
-        expect(described_class.for_item(part).maintenance_parts).to contain_exactly(lining, inactive)
+        expect(described_class.for_item(part.item).maintenance_parts).to contain_exactly(lining, inactive)
       end
     end
 
@@ -72,7 +76,7 @@ RSpec.describe MaintenanceOrderPartForm do
       let!(:part) { create(:maintenance_order_part, maintenance_order:, quantity: 4, unit_price_cents: 8_500, total_cents: 34_000) }
 
       it 'loads the values in the Brazilian format and updates the part' do
-        form = described_class.for_item(part)
+        form = described_class.for_item(part.item)
 
         expect(form).to have_attributes(quantity: '4', unit_price: '85,00', source_type: 'stock')
 
@@ -80,6 +84,7 @@ RSpec.describe MaintenanceOrderPartForm do
 
         expect { expect(form.save).to be(true) }.not_to change(MaintenanceOrderPart, :count)
         expect(part.reload).to have_attributes(quantity: 6, total_cents: 51_000)
+        expect(part.item.reload).to have_attributes(total_cents: 51_000, description: 'LONA DE FREIO')
         expect(maintenance_order.reload.total_cents).to eq(51_000)
       end
     end

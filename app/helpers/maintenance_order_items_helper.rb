@@ -20,7 +20,7 @@ module MaintenanceOrderItemsHelper
     order = item_form.maintenance_order
 
     if item_form.persisted?
-      public_send(:"maintenance_order_#{kind}_path", order, item_form.item)
+      public_send(:"maintenance_order_#{kind}_path", order, item_form.id)
     else
       public_send(:"maintenance_order_#{kind.pluralize}_path", order)
     end
@@ -46,8 +46,10 @@ module MaintenanceOrderItemsHelper
   def maintenance_order_items_menu(item)
     return [] unless can?(:update, :maintenance_orders) && item.maintenance_order.editable?
 
-    kind = item.model_name.element.delete_prefix('maintenance_order_')
-    [maintenance_order_item_edit_menu(item, kind), maintenance_order_item_destroy_menu(item, kind)]
+    order = item.maintenance_order
+    record = maintenance_order_item_record(item)
+    kind = record.model_name.element.delete_prefix('maintenance_order_')
+    [maintenance_order_item_edit_menu(order, record, kind), maintenance_order_item_destroy_menu(order, record, kind)]
   end
 
   def maintenance_order_part_quantity(part)
@@ -68,20 +70,24 @@ module MaintenanceOrderItemsHelper
 
   private
 
+  def maintenance_order_item_record(item)
+    item.is_a?(MaintenanceOrderItem) ? item.itemizable : item
+  end
+
   def maintenance_order_item_kind(item_form)
     item_form.class.model_name.param_key.delete_prefix('maintenance_order_')
   end
 
-  def maintenance_order_item_edit_menu(item, kind)
-    Menu.new(name: :edit, record: item, url: public_send(:"edit_maintenance_order_#{kind}_path", item.maintenance_order, item),
+  def maintenance_order_item_edit_menu(order, item, kind)
+    Menu.new(name: :edit, record: item, url: public_send(:"edit_maintenance_order_#{kind}_path", order, item),
              icon: :pencil, data: { turbo_stream: true })
   end
 
-  def maintenance_order_item_destroy_menu(item, kind)
+  def maintenance_order_item_destroy_menu(order, item, kind)
     Menu.new(
       name: :destroy,
       record: item,
-      url: public_send(:"maintenance_order_#{kind}_path", item.maintenance_order, item),
+      url: public_send(:"maintenance_order_#{kind}_path", order, item),
       icon: :'x-circle',
       data: {
         turbo_confirm: t("maintenance_order_items.#{kind}.confirm_destroy"),

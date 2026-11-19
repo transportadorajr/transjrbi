@@ -8,6 +8,10 @@ class MaintenanceOrderServicesController < BaseController
   end
 
   def item_scope
-    @maintenance_order.services
+    @maintenance_order.items.maintenance_order_services
+  end
+
+  def find_item(id)
+    item_scope.find_by!(itemizable_id: id)
   end
 end

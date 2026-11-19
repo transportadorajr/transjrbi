@@ -20,17 +20,15 @@ module MaintenanceOrders
     attr_reader :maintenance_order
 
     def parts_total_cents
-      @parts_total_cents ||= maintenance_order.parts.sum(:total_cents)
+      totals_by_type.fetch('MaintenanceOrderPart', 0)
     end
 
     def services_total_cents
-      @services_total_cents ||= maintenance_order.services.sum(service_value)
+      totals_by_type.fetch('MaintenanceOrderService', 0)
     end
 
-    def service_value
-      service = MaintenanceOrderService.arel_table
-
-      Arel::Nodes::NamedFunction.new('COALESCE', [service[:approved_cents], service[:quoted_cents], Arel::Nodes.build_quoted(0)])
+    def totals_by_type
+      @totals_by_type ||= maintenance_order.items.group(:itemizable_type).sum(:total_cents)
     end
   end
 end

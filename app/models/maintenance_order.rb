@@ -25,9 +25,10 @@ class MaintenanceOrder < ApplicationRecord
   belongs_to :tenant
   belongs_to :supervisor, class_name: 'WorkshopEmployee', optional: true
   belongs_to :opened_by, class_name: 'User', optional: true
-  has_many :parts, class_name: 'MaintenanceOrderPart', dependent: :delete_all
+  has_many :items, class_name: 'MaintenanceOrderItem', dependent: :destroy
+  has_many :parts, through: :items, source: :itemizable, source_type: 'MaintenanceOrderPart'
+  has_many :services, through: :items, source: :itemizable, source_type: 'MaintenanceOrderService'
   has_many :labors, class_name: 'MaintenanceOrderLabor', dependent: :delete_all
-  has_many :services, class_name: 'MaintenanceOrderService', dependent: :delete_all
   has_many :part_movements, class_name: 'MaintenancePartMovement', dependent: :restrict_with_error
   has_many :signatures, class_name: 'MaintenanceOrderSignature', dependent: :delete_all
   has_many :mechanic_assignments, class_name: 'MaintenanceOrderMechanic', dependent: :delete_all
@@ -140,9 +141,9 @@ class MaintenanceOrder < ApplicationRecord
     {
       number:, plate:, odometer_km:, opened_at: opened_at&.iso8601, finished_at: finished_at&.iso8601, release_test_type:,
       next_preventive_km:, reported_defect:, diagnosis:, performed_service:, total_cents:,
-      parts: parts.order(:id).map { |part| [part.description, part.quantity.to_s, part.total_cents] },
+      parts: parts.preload(:item).order(:id).map { |part| [part.item.description, part.quantity.to_s, part.item.total_cents] },
       labors: labors.order(:id).map { |labor| [labor.workshop_employee_id, labor.worked_on.iso8601, labor.hours.to_s, labor.activity] },
-      services: services.order(:id).map { |service| [service.description, service.approved_cents] }
+      services: services.preload(:item).order(:id).map { |service| [service.item.description, service.approved_cents] }
     }
   end
 
