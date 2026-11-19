@@ -270,15 +270,22 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         expect(maintenance_order.reload.total_cents).to eq(93_000)
       end
 
-      scenario 'lists the parts in the order they were placed on the work order' do
-        brake_shoe = create(:maintenance_order_part, maintenance_order:, code: 'SP-9', description: 'SAPATA', quantity: 2, unit: 'UN',
-                                                     unit_price_cents: 1_000, total_cents: 2_000)
-        brake_shoe.item.update!(position: 0)
-        part.item.update!(position: 5)
+      context 'when a second part is placed before the first one' do
+        let!(:brake_shoe) do
+          create(:maintenance_order_part, maintenance_order:, code: 'SP-9', description: 'SAPATA', quantity: 2, unit: 'UN',
+                                          unit_price_cents: 1_000, total_cents: 2_000)
+        end
 
-        visit maintenance_order_path(maintenance_order)
+        before do
+          brake_shoe.item.update!(position: 0)
+          part.item.update!(position: 5)
+        end
 
-        expect(html_table_to_rows(table: find('#parts table')).drop(1).map(&:first)).to eq(%w[SP-9 LF-123])
+        scenario 'lists the parts in the order they were placed on the work order' do
+          visit maintenance_order_path(maintenance_order)
+
+          expect(html_table_to_rows(table: find('#parts table')).drop(1).map(&:first)).to eq(%w[SP-9 LF-123])
+        end
       end
 
       scenario 'removes a part and recalculates the totals' do
