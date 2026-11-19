@@ -70,7 +70,11 @@ module MaintenanceOrderItems
   end
 
   def set_item
-    @item = item_scope.find(params.expect(:id))
+    @item = find_item(params.expect(:id))
+  end
+
+  def find_item(id)
+    item_scope.find(id)
   end
 
   def item_params

@@ -23,6 +23,8 @@ docker rollout web \
   --wait-after-healthy 60 \
   --pre-stop-hook "touch /rails/tmp/drain && sleep 20"
 
+docker compose run --rm --no-deps --label traefik.enable=false web ./bin/rails runner 'MaintenanceOrders::SyncItemsCommand.call'
+
 docker compose up -d --remove-orphans traefik
 docker compose up -d --no-deps jobs
 

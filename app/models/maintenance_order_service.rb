@@ -1,4 +1,6 @@
 class MaintenanceOrderService < ApplicationRecord
+  include MaintenanceOrderItemable
+
   belongs_to :tenant
   belongs_to :maintenance_order
   belongs_to :supplier, optional: true
@@ -6,7 +8,9 @@ class MaintenanceOrderService < ApplicationRecord
 
   monetize :quoted_cents, :approved_cents, allow_nil: true
 
-  validates :description, presence: true
+  def value_cents
+    approved_cents || quoted_cents || 0
+  end
 end
 
 # == Schema Information

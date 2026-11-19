@@ -48,6 +48,10 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
                                                              quantity: 4, unit: 'UN', source_type: 'purchase',
                                                              document_number: 'NF 4512', unit_price_cents: 8_500, total_cents: 34_000,
                                                              notes: 'Lado esquerdo do eixo traseiro')
+        expect(MaintenanceOrderItem.count).to eq(1)
+        expect(MaintenanceOrderItem.last).to have_attributes(tenant:, maintenance_order:, itemizable: MaintenanceOrderPart.last,
+                                                             description: 'LONA DE FREIO', notes: 'Lado esquerdo do eixo traseiro',
+                                                             total_cents: 34_000, position: 1)
         expect(html_table_to_rows(table: find('#parts table'))).to eq(
           [
             ['CÓDIGO', 'DESCRIÇÃO', 'QUANTIDADE', 'ORIGEM', 'Nº REQUISIÇÃO / NF', 'VALOR UNITÁRIO', 'TOTAL', 'AÇÕES'],
@@ -184,6 +188,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         expect(MaintenanceOrderService.count).to eq(1)
         expect(MaintenanceOrderService.last).to have_attributes(maintenance_service: grinding, supplier:,
                                                                 description: 'RETÍFICA DO TAMBOR', quoted_cents: 45_000)
+        expect(MaintenanceOrderService.last.item).to have_attributes(maintenance_order:, description: 'RETÍFICA DO TAMBOR', total_cents: 45_000)
       end
 
       scenario 'does not add a part registered by another tenant' do
@@ -261,7 +266,19 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
 
         expect(page).to have_text('Peça atualizada.')
         expect(part.reload).to have_attributes(quantity: 6, total_cents: 51_000, notes: 'Trocar também a mola')
+        expect(part.item.reload).to have_attributes(description: 'LONA DE FREIO', notes: 'Trocar também a mola', total_cents: 51_000)
         expect(maintenance_order.reload.total_cents).to eq(93_000)
+      end
+
+      scenario 'lists the parts in the order they were placed on the work order' do
+        brake_shoe = create(:maintenance_order_part, maintenance_order:, code: 'SP-9', description: 'SAPATA', quantity: 2, unit: 'UN',
+                                                     unit_price_cents: 1_000, total_cents: 2_000)
+        brake_shoe.item.update!(position: 0)
+        part.item.update!(position: 5)
+
+        visit maintenance_order_path(maintenance_order)
+
+        expect(html_table_to_rows(table: find('#parts table')).drop(1).map(&:first)).to eq(%w[SP-9 LF-123])
       end
 
       scenario 'removes a part and recalculates the totals' do
@@ -269,11 +286,23 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
 
         expect do
           page.driver.submit :delete, maintenance_order_part_path(maintenance_order, part), {}
-        end.to change(MaintenanceOrderPart, :count).by(-1)
+        end.to change(MaintenanceOrderPart, :count).by(-1).and change(MaintenanceOrderItem, :count).by(-1)
 
         expect(page).to have_current_path(maintenance_order_path(maintenance_order))
         expect(page).to have_text('Peça excluída da OS.')
         expect(maintenance_order.reload).to have_attributes(parts_total_cents: 0, total_cents: 42_000)
+      end
+
+      scenario 'counts a service by its newly approved value' do
+        visit maintenance_order_path(maintenance_order)
+
+        page.driver.submit :patch, maintenance_order_service_path(maintenance_order, service),
+                           { maintenance_order_service: { description: 'Retífica do tambor', quoted: '450,00', approved: '400,00' } }
+
+        expect(page).to have_text('Serviço terceirizado atualizado.')
+        expect(service.reload.approved_cents).to eq(40_000)
+        expect(service.item.reload.total_cents).to eq(40_000)
+        expect(maintenance_order.reload).to have_attributes(services_total_cents: 40_000, total_cents: 74_000)
       end
 
       scenario 'removes a labor and a service' do
@@ -287,7 +316,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
 
         expect do
           page.driver.submit :delete, maintenance_order_service_path(maintenance_order, service), {}
-        end.to change(MaintenanceOrderService, :count).by(-1)
+        end.to change(MaintenanceOrderService, :count).by(-1).and change(MaintenanceOrderItem, :count).by(-1)
 
         expect(page).to have_text('Serviço terceirizado excluído da OS.')
         expect(maintenance_order.reload).to have_attributes(services_total_cents: 0, total_cents: 34_000)

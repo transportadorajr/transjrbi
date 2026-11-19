@@ -18,12 +18,16 @@ class MaintenanceOrderItemForm < BaseForm
 
   def submit
     transaction do
-      item.update!(item_attributes)
+      save_item
       MaintenanceOrders::RecalculateTotalsCommand.call(maintenance_order)
     end
   end
 
   private
+
+  def save_item
+    item.update!(item_attributes)
+  end
 
   def tenant
     maintenance_order.tenant

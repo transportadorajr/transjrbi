@@ -1,4 +1,6 @@
 class MaintenanceOrderPart < ApplicationRecord
+  include MaintenanceOrderItemable
+
   SOURCES = %i[stock purchase].freeze
 
   belongs_to :tenant
@@ -8,9 +10,8 @@ class MaintenanceOrderPart < ApplicationRecord
 
   enum :source_type, SOURCES.index_with(&:to_s), validate: true
 
-  monetize :unit_price_cents, :total_cents
+  monetize :unit_price_cents
 
-  validates :description, presence: true
   validates :quantity, numericality: { greater_than: 0 }
 end
 

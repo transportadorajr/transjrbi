@@ -16,6 +16,8 @@ RSpec.describe MaintenanceOrderServiceForm do
         expect(form.save).to be(true)
         expect(MaintenanceOrderService.last).to have_attributes(maintenance_service: grinding, description: 'RETÍFICA DO TAMBOR',
                                                                 quoted_cents: 45_000)
+        expect(MaintenanceOrderService.last.item).to have_attributes(maintenance_order:, description: 'RETÍFICA DO TAMBOR', total_cents: 45_000,
+                                                                     position: 2)
       end
 
       it 'keeps the quoted value of the supplier' do
@@ -83,7 +85,7 @@ RSpec.describe MaintenanceOrderServiceForm do
       let!(:service) { create(:maintenance_order_service, maintenance_order:, supplier:, quoted_cents: 45_000, approved_cents: nil) }
 
       it 'loads the values in the Brazilian format and records the approval' do
-        form = described_class.for_item(service)
+        form = described_class.for_item(service.item)
 
         expect(form).to have_attributes(quoted: '450,00', approved: nil)
 
@@ -91,6 +93,7 @@ RSpec.describe MaintenanceOrderServiceForm do
 
         expect(form.save).to be(true)
         expect(service.reload).to have_attributes(approved_cents: 40_000, approved_by_name: 'MARCOS')
+        expect(service.item.reload.total_cents).to eq(40_000)
         expect(maintenance_order.reload.total_cents).to eq(50_000)
       end
     end

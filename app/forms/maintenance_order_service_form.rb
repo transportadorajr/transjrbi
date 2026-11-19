@@ -1,4 +1,4 @@
-class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
+class MaintenanceOrderServiceForm < MaintenanceOrderItemizableForm
   PERMITTED_ATTRIBUTES = %i[maintenance_service_id supplier_id description quote_number quoted approved approved_by_name invoice_number notes].freeze
 
   attribute :maintenance_service_id, :integer
@@ -20,29 +20,33 @@ class MaintenanceOrderServiceForm < MaintenanceOrderItemForm
 
   class << self
     def attributes_of(service)
-      { maintenance_service_id: service.maintenance_service_id, supplier_id: service.supplier_id, description: service.description, quote_number: service.quote_number,
+      { maintenance_service_id: service.maintenance_service_id, supplier_id: service.supplier_id, quote_number: service.quote_number,
         quoted: format_cents(service.quoted_cents), approved: format_cents(service.approved_cents),
-        approved_by_name: service.approved_by_name, invoice_number: service.invoice_number, notes: service.notes }
+        approved_by_name: service.approved_by_name, invoice_number: service.invoice_number }
     end
   end
 
   def suppliers
-    tenant.suppliers.where(active: true).or(tenant.suppliers.where(id: item.supplier_id)).order(:name)
+    tenant.suppliers.where(active: true).or(tenant.suppliers.where(id: itemizable.supplier_id)).order(:name)
   end
 
   def maintenance_services
-    tenant.maintenance_services.active.or(tenant.maintenance_services.where(id: item.maintenance_service_id)).order(:description)
+    tenant.maintenance_services.active.or(tenant.maintenance_services.where(id: itemizable.maintenance_service_id)).order(:description)
+  end
+
+  def total_cents
+    self.class.parse_cents(approved) || self.class.parse_cents(quoted) || 0
   end
 
   private
 
-  def items
-    maintenance_order.services
+  def itemizable_class
+    MaintenanceOrderService
   end
 
-  def item_attributes
-    { maintenance_service_id:, supplier_id:, description:, quote_number:, quoted_cents: self.class.parse_cents(quoted),
-      approved_cents: self.class.parse_cents(approved), approved_by_name:, invoice_number:, notes: }
+  def itemizable_attributes
+    { maintenance_service_id:, supplier_id:, quote_number:, quoted_cents: self.class.parse_cents(quoted),
+      approved_cents: self.class.parse_cents(approved), approved_by_name:, invoice_number: }
   end
 
   def normalize_fields

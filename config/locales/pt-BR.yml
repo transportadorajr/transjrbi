@@ -182,6 +182,11 @@ pt-BR:
         services_total: Total de serviços terceirizados
         labor_hours: Horas de mão de obra
         total: Total da OS
+      maintenance_order_item:
+        description: Descrição
+        notes: Observação
+        total: Total
+        position: Posição
       maintenance_order_part:
         code: Código
         description: Descrição

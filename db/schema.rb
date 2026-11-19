@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_192527) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_125158) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -958,6 +958,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_192527) do
     t.index ["tenant_id"], name: "index_macro_regions_on_tenant_id"
   end
 
+  create_table "maintenance_order_items", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "maintenance_order_id", null: false
+    t.string "itemizable_type", null: false
+    t.bigint "itemizable_id", null: false
+    t.string "description", null: false
+    t.text "notes"
+    t.bigint "total_cents", default: 0, null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["itemizable_type", "itemizable_id"], name: "index_maintenance_order_items_on_itemizable", unique: true
+    t.index ["maintenance_order_id", "position"], name: "index_maintenance_order_items_on_order_and_position"
+    t.index ["tenant_id"], name: "index_maintenance_order_items_on_tenant_id"
+  end
+
   create_table "maintenance_order_labors", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "maintenance_order_id", null: false
@@ -1467,6 +1483,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_192527) do
   add_foreign_key "holidays", "tenants"
   add_foreign_key "insurance_rates", "tenants"
   add_foreign_key "macro_regions", "tenants"
+  add_foreign_key "maintenance_order_items", "maintenance_orders"
+  add_foreign_key "maintenance_order_items", "tenants"
   add_foreign_key "maintenance_order_labors", "maintenance_orders"
   add_foreign_key "maintenance_order_labors", "tenants"
   add_foreign_key "maintenance_order_labors", "workshop_employees"

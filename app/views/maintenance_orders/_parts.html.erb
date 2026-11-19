@@ -20,16 +20,16 @@
             </tr>
           </thead>
           <tbody>
-            <% parts.each do |part| %>
-              <tr id="<%= dom_id(part) %>">
-                <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(part.code) %></td>
-                <td class="fw-semibold text-break"><%= maintenance_order_item_description(part.description, part.notes) %></td>
-                <td class="d-none d-md-table-cell text-end text-nowrap"><%= maintenance_order_part_quantity(part) %></td>
-                <td class="d-none d-lg-table-cell"><%= part.source_type_name %></td>
-                <td class="d-none d-lg-table-cell"><%= tax_value(part.document_number) %></td>
-                <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(part.unit_price) %></td>
-                <td class="text-end text-nowrap"><%= tax_money(part.total) %></td>
-                <td class="text-end text-nowrap"><%= responsive_actions_menu(maintenance_order_items_menu(part)) %></td>
+            <% parts.each do |item| %>
+              <tr id="<%= dom_id(item.itemizable) %>">
+                <td class="d-none d-md-table-cell text-nowrap"><%= tax_value(item.itemizable.code) %></td>
+                <td class="fw-semibold text-break"><%= maintenance_order_item_description(item.description, item.notes) %></td>
+                <td class="d-none d-md-table-cell text-end text-nowrap"><%= maintenance_order_part_quantity(item.itemizable) %></td>
+                <td class="d-none d-lg-table-cell"><%= item.itemizable.source_type_name %></td>
+                <td class="d-none d-lg-table-cell"><%= tax_value(item.itemizable.document_number) %></td>
+                <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(item.itemizable.unit_price) %></td>
+                <td class="text-end text-nowrap"><%= tax_money(item.total) %></td>
+                <td class="text-end text-nowrap"><%= responsive_actions_menu(maintenance_order_items_menu(item)) %></td>
               </tr>
             <% end %>
           </tbody>
