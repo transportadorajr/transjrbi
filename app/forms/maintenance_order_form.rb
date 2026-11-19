@@ -1,5 +1,5 @@
 class MaintenanceOrderForm < BaseForm
-  ORDER_ATTRIBUTES = %i[plate opened_at odometer_km hour_meter driver_code supervisor_id
+  ORDER_ATTRIBUTES = %i[plate opened_at estimated_completion_at odometer_km hour_meter driver_code supervisor_id
                         equipment_type equipment_other maintenance_type priority_type vehicle_stopped
                         execution_place_type affected_system_type
                         reported_defect diagnosis performed_service].freeze
@@ -8,6 +8,7 @@ class MaintenanceOrderForm < BaseForm
 
   attribute :plate, :string
   attribute :opened_at, Types::ZonedDateTimeType.new
+  attribute :estimated_completion_at, Types::ZonedDateTimeType.new
   attribute :odometer_km, :integer
   attribute :hour_meter, :decimal
   attribute :driver_code, :integer
@@ -42,6 +43,7 @@ class MaintenanceOrderForm < BaseForm
   validates :equipment_other, presence: true, if: :equipment_type_other?
   validates :odometer_km, numericality: { only_integer: true, greater_than_or_equal_to: 0 }, allow_nil: true
   validates :hour_meter, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validate :estimated_completion_after_opening
   validate :plate_must_be_registered
   validate :driver_must_exist
   validate :supervisor_must_exist
@@ -163,6 +165,12 @@ class MaintenanceOrderForm < BaseForm
 
   def driver_name
     driver&.driver_name
+  end
+
+  def estimated_completion_after_opening
+    return if estimated_completion_at.blank? || opened_at.blank?
+
+    errors.add(:estimated_completion_at, :before_opening) if estimated_completion_at < opened_at
   end
 
   def plate_must_be_registered

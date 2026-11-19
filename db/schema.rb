@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_125158) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_19_183311) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1098,6 +1098,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_125158) do
     t.bigint "posted_by_id"
     t.boolean "posting_verified", default: false, null: false
     t.bigint "responsible_employee_id"
+    t.datetime "estimated_completion_at"
     t.index ["opened_by_id"], name: "index_maintenance_orders_on_opened_by_id"
     t.index ["posted_by_id"], name: "index_maintenance_orders_on_posted_by_id"
     t.index ["responsible_employee_id"], name: "index_maintenance_orders_on_responsible_employee_id"

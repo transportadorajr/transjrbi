@@ -31,6 +31,9 @@
         <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:opened_at) %></dt>
         <dd class="col-12 col-md-9"><%= maintenance_order_opened_at(@maintenance_order) %></dd>
 
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:estimated_completion_at) %></dt>
+        <dd class="col-12 col-md-9"><%= maintenance_order_estimated_completion(@maintenance_order) %></dd>
+
         <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:plate) %></dt>
         <dd class="col-12 col-md-9"><%= @maintenance_order.plate %></dd>
 

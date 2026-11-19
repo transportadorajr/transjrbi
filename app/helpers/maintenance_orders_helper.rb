@@ -20,6 +20,19 @@ module MaintenanceOrdersHelper
     l(maintenance_order.opened_at, format: :date_time)
   end
 
+  def maintenance_order_estimated_completion_at(maintenance_order)
+    return tax_value(nil) if maintenance_order.estimated_completion_at.nil?
+
+    l(maintenance_order.estimated_completion_at, format: :date_time)
+  end
+
+  def maintenance_order_estimated_completion(maintenance_order)
+    estimate = maintenance_order_estimated_completion_at(maintenance_order)
+    return estimate unless maintenance_order.overdue?
+
+    safe_join([estimate, status_badge(t('maintenance_orders.overdue'), kind: :danger)], ' ')
+  end
+
   def maintenance_order_vehicle_stopped(maintenance_order)
     t(maintenance_order.vehicle_stopped? ? 'maintenance_orders.vehicle_stopped.stopped' : 'maintenance_orders.vehicle_stopped.running')
   end

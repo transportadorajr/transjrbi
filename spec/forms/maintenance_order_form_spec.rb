@@ -58,6 +58,20 @@ RSpec.describe MaintenanceOrderForm do
       )
     end
 
+    it 'keeps the estimated completion of the order' do
+      form = described_class.new(tenant:, **attributes, estimated_completion_at: '2026-11-12T17:00')
+
+      expect(form.save).to be(true)
+      expect(form.maintenance_order.estimated_completion_at).to eq(Time.zone.local(2026, 11, 12, 17))
+    end
+
+    it 'rejects an estimated completion before the opening' do
+      form = described_class.new(tenant:, **attributes, estimated_completion_at: '2026-11-11T08:00')
+
+      expect { expect(form.save).to be_falsey }.not_to change(MaintenanceOrder, :count)
+      expect(form.errors.full_messages).to eq(['Previsão de término não pode ser antes da abertura da OS'])
+    end
+
     it 'starts the numbering at one' do
       form = described_class.new(tenant:, opened_by: user, **attributes)
 

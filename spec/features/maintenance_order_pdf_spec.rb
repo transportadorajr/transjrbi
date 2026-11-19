@@ -15,7 +15,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
                                driver_name: 'JOSE DA SILVA', supervisor:, priority_type: 'high', vehicle_stopped: true,
                                diagnosis: 'Lonas gastas', performed_service: 'Troca das lonas', status_type: 'finished',
                                finished_at: Time.zone.local(2026, 11, 11, 17, 30), release_test_type: 'road_test',
-                               next_preventive_km: 482_300)
+                               next_preventive_km: 482_300, estimated_completion_at: Time.zone.local(2026, 11, 11, 18))
   end
   let!(:part) do
     create(:maintenance_order_part, maintenance_order:, code: 'LF-123', description: 'LONA DE FREIO', quantity: 4, unit: 'UN',
@@ -57,6 +57,7 @@ describe 'Maintenance order PDF', :maintenance, flipper: :maintenance do
       expect(text).to include('Manutenção da frota · Placa EXU1A23 · Concluída')
       expect(text).to include('EXU1A23', '452.300 km', 'JOSE DA SILVA', 'PAULO LIMA', 'Cavalo mecânico')
       expect(text).to include('MECÂNICOS', 'ANDRE ROCHA, JOAO MENDES')
+      expect(text).to include('PREVISÃO DE TÉRMINO', '11/11/2026 18:00')
       expect(text).to include('Corretiva', 'Alta', 'Oficina interna', 'Freios')
       expect(text).to include('Freio puxando para a direita', 'Lonas gastas', 'Troca das lonas')
       expect(text).to include('LF-123', 'LONA DE FREIO · Obs.: Lado esquerdo', '4 UN', 'R$ 85,00', 'R$ 340,00')

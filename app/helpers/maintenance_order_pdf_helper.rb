@@ -11,6 +11,7 @@ module MaintenanceOrderPdfHelper
     [
       [MaintenanceOrder.human_attribute_name(:number), maintenance_order.number],
       [MaintenanceOrder.human_attribute_name(:opened_at), maintenance_order_opened_at(maintenance_order)],
+      [MaintenanceOrder.human_attribute_name(:estimated_completion_at), maintenance_order_estimated_completion_at(maintenance_order)],
       [MaintenanceOrder.human_attribute_name(:plate), maintenance_order.plate],
       [MaintenanceOrder.human_attribute_name(:equipment_type), maintenance_order_equipment(maintenance_order)],
       [MaintenanceOrder.human_attribute_name(:odometer_km), maintenance_order_odometer(maintenance_order)],
