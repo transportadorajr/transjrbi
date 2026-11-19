@@ -49,7 +49,7 @@ module VehicleAvailabilitiesHelper
   private
 
   def vehicle_availability_vehicle_menu(vehicle)
-    Menu.new(name: :show_vehicle, record: vehicle, url: vehicle_path(vehicle), icon: :truck)
+    Menu.new(name: :show_vehicle, record: vehicle, url: vehicle_return_path(vehicle), icon: :truck)
   end
 
   def vehicle_availability_order_menu(maintenance_order)

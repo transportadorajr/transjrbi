@@ -3960,7 +3960,7 @@ pt-BR:
       ownership: Propriedade
     show:
       title: Veículo %{plate}
-      back: Voltar para veículos
+      back: Voltar
       vehicle_data: Dados do veículo
       ownership_data: Propriedade e motorista
       empty_legs: Trechos rodados vazios

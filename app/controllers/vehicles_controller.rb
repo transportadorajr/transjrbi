@@ -1,4 +1,6 @@
 class VehiclesController < BaseController
+  include ReturnPath
+
   has_scope :by_plate, as: :plate
   has_scope :by_category, as: :category
   has_scope :by_ownership, as: :ownership
@@ -20,6 +22,8 @@ class VehiclesController < BaseController
     authorize!(:read, :vehicles)
 
     @vehicle = current_tenant.atua_vehicles.active.find(params.expect(:id))
+    return redirect_to(vehicle_path(@vehicle, request.query_parameters.merge(return_to: referer_return_path))) if return_to_from_referer?
+
     empty_legs = current_tenant.empty_legs.where(plate: @vehicle.plate)
     @empty_legs = empty_legs.joins(:next_manifest).preload(:origin, :destination, :next_manifest)
       .order(Atua::Manifest.trip_at.desc, id: :desc).page(params[:page])
@@ -28,6 +32,10 @@ class VehiclesController < BaseController
   end
 
   private
+
+  def return_to_from_referer?
+    params[:return_to].blank? && referer_return_path.present?
+  end
 
   def load_expenses
     expenses = @vehicle.expenses.active

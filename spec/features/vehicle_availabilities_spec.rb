@@ -103,9 +103,17 @@ describe 'Vehicle availability' do
         visit vehicle_availability_path
 
         within("#atua_vehicle_#{tractor_in_shop.id} .inline-actions") do
-          expect(page).to have_link('Ver veículo', href: vehicle_path(tractor_in_shop))
+          expect(page).to have_link('Ver veículo', href: vehicle_path(tractor_in_shop, return_to: vehicle_availability_path))
           expect(page).to have_link('Ver OS', href: vehicle_availability_maintenance_order_path(MaintenanceOrder.find_by(number: 5)))
         end
+      end
+
+      scenario 'goes back to the fleet availability from the vehicle' do
+        visit vehicle_availability_path(availability: 'in_maintenance')
+        within("#atua_vehicle_#{tractor_in_shop.id} .inline-actions") { click_on 'Ver veículo' }
+        find('.btn-back').click
+
+        expect(page).to have_current_path(vehicle_availability_path(availability: 'in_maintenance'))
       end
 
       scenario 'shows the maintenance order without any control to change it' do

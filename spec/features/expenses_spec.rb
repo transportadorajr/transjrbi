@@ -276,7 +276,7 @@ describe 'Expenses' do
         visit expense_path(expense)
 
         expect(page).to have_link('POSTO TREVO LTDA', href: customer_path(payee))
-        expect(page).to have_link('EXU0F72', href: vehicle_path(vehicle))
+        expect(page).to have_link('EXU0F72', href: vehicle_path(vehicle, return_to: expense_path(expense)))
         expect(page).to have_link('JOSE DA SILVA', href: driver_path(760))
         expect(page).to have_link('74512', href: transport_document_path(transport_document))
       end

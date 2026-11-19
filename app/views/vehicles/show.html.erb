@@ -10,7 +10,7 @@
     </nav>
     <%= page_header_tag t('.title', plate: tax_value(@vehicle.plate)),
                         subtitle: vehicle_description(@vehicle),
-                        back_path: vehicles_path,
+                        back_path: return_path(vehicles_path),
                         back_title: t('.back'),
                         wrapper_class: 'mb-0' %>
   </div>
