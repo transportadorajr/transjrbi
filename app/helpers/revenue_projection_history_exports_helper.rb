@@ -1,5 +1,5 @@
 module RevenueProjectionHistoryExportsHelper
-  def revenue_projection_history_xlsx_sheets(history, cut_items: [])
+  def revenue_projection_history_xlsx_sheets(history, cut_items: [], breakdown: nil, breakdown_rows: [])
     cut = revenue_projection_history_xlsx_cut(cut_items)
     return [revenue_projection_history_xlsx_today(history, cut)] if history.period_type == 'today'
 
@@ -9,6 +9,7 @@ module RevenueProjectionHistoryExportsHelper
 
     [Export::Sheet.new(name: t('revenue_projection_histories.xlsx.summary'), columns: summary_columns, rows: [history]),
      revenue_projection_history_xlsx_evolution(history),
+     revenue_projection_history_xlsx_breakdown(breakdown, breakdown_rows),
      revenue_projection_history_xlsx_weeks(history),
      Export::Sheet.new(name: t('revenue_projection_histories.show.days_title'), columns: revenue_projection_history_xlsx_day_columns(history),
                        rows: history.day_rows)].compact
@@ -44,6 +45,21 @@ module RevenueProjectionHistoryExportsHelper
 
     Export::Sheet.new(name: t('revenue_projection_histories.xlsx.evolution'), columns: revenue_projection_history_xlsx_evolution_columns(history),
                       rows: history.snapshots)
+  end
+
+  def revenue_projection_history_xlsx_breakdown(breakdown, rows)
+    return unless breakdown
+
+    Export::Sheet.new(name: t(breakdown.dimension, scope: 'revenue_projection_histories.show.breakdown_title'),
+                      columns: revenue_projection_history_xlsx_breakdown_columns(breakdown), rows: [*rows, breakdown.total])
+  end
+
+  def revenue_projection_history_xlsx_breakdown_columns(breakdown)
+    [xlsx_field(t(breakdown.dimension, scope: 'revenue_projection_histories.show.breakdown_columns'), &:label),
+     xlsx_field(t('revenue_projection_histories.show.billed'), :money, &:billed_cents),
+     xlsx_field(t('revenue_projection_histories.show.breakdown_projected'), :money, &:projected_cents),
+     xlsx_field(t('revenue_projection_histories.show.breakdown_remaining'), :money, &:remaining_cents),
+     xlsx_field(t('revenue_projection_histories.show.breakdown_share'), :percentage, &:share)]
   end
 
   def revenue_projection_history_xlsx_weeks(history)

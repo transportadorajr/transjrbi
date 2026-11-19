@@ -10,5 +10,5 @@
   <%= render 'period_filters', history: @history, filter_form: @filter_form %>
   <%= revenue_projection_history_cut(@cut_items) %>
 
-  <%= revenue_projection_history_body(@history, today_goal: @today_goal) %>
+  <%= revenue_projection_history_body(@history, today_goal: @today_goal, breakdown: @breakdown, breakdown_rows: @breakdown_rows) %>
 </div>

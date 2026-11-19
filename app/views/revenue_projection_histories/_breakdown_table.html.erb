@@ -1,0 +1,26 @@
+<%# locals: (breakdown:, rows:) %>
+
+<div class="table-responsive">
+  <table class="table table-sm app-table align-middle mb-0" id="history_breakdown_table">
+    <thead>
+      <tr>
+        <%= sortable_header(t(breakdown.dimension, scope: 'revenue_projection_histories.show.breakdown_columns'), :label, anchor: 'history_breakdown') %>
+        <%= sortable_header(t('revenue_projection_histories.show.billed'), :billed, first_direction: :desc, anchor: 'history_breakdown', class: 'text-end') %>
+        <%= sortable_header(t('revenue_projection_histories.show.breakdown_projected'), :projected, first_direction: :desc, anchor: 'history_breakdown',
+                                                                                                    class: 'text-end') %>
+        <th class="text-end d-none d-md-table-cell"><%= t('revenue_projection_histories.show.breakdown_remaining') %></th>
+        <th class="text-end d-none d-sm-table-cell"><%= t('revenue_projection_histories.show.breakdown_share') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'breakdown_row', collection: rows, as: :row %>
+    </tbody>
+    <tfoot>
+      <%= render 'breakdown_row', row: breakdown.total %>
+    </tfoot>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate rows, params: { anchor: 'history_breakdown' } %>
+</div>

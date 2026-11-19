@@ -21,11 +21,33 @@ module RevenueProjectionHistoriesHelper
     "btn btn-sm #{period_type == selected ? 'btn-primary' : 'btn-outline-secondary'}"
   end
 
-  def revenue_projection_history_body(history, today_goal: nil)
+  def revenue_projection_history_body(history, today_goal: nil, breakdown: nil, breakdown_rows: nil)
     return render('shared/no_content') unless history.any?
     return render('revenue_projection_histories/today', today: history, goal: today_goal) if history.period_type == 'today'
 
-    render 'revenue_projection_histories/content', history:
+    render 'revenue_projection_histories/content', history:, breakdown:, breakdown_rows:
+  end
+
+  def revenue_projection_history_breakdown(breakdown, rows)
+    return unless breakdown
+
+    render 'revenue_projection_histories/breakdown', breakdown:, rows:
+  end
+
+  def revenue_projection_history_breakdown_subtitle(breakdown)
+    t(breakdown.projected? ? 'open' : 'closed', scope: 'revenue_projection_histories.show.breakdown_subtitle')
+  end
+
+  def revenue_projection_history_dimensions
+    Dashboard::RevenueProjectionBreakdown::DIMENSIONS
+  end
+
+  def revenue_projection_history_dimension_path(dimension)
+    revenue_projection_history_path(**request.query_parameters.symbolize_keys.except(:page), dimension:)
+  end
+
+  def revenue_projection_history_view_params
+    request.query_parameters.slice('dimension').compact_blank.symbolize_keys
   end
 
   def revenue_projection_history_period_presets
@@ -35,7 +57,8 @@ module RevenueProjectionHistoriesHelper
   def revenue_projection_history_preset_path(preset)
     period = RevenueProjectionHistoryFilterForm.preset_period(preset)
 
-    revenue_projection_history_path(start_date: period.first, end_date: period.last, **revenue_projection_history_cut_params)
+    revenue_projection_history_path(start_date: period.first, end_date: period.last, **revenue_projection_history_cut_params,
+                                    **revenue_projection_history_view_params)
   end
 
   def revenue_projection_history_cut_params

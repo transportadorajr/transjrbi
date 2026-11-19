@@ -4,6 +4,9 @@
            locals: { id: 'filtersModal', title: t('shared.filters'), title_icon: :filter,
                      dialog_class: 'modal-fullscreen-sm-down', show_footer: false } do %>
   <%= form_with url: revenue_projection_history_path, method: :get, data: { controller: 'date-range' } do |f| %>
+    <% revenue_projection_history_view_params.each do |name, value| %>
+      <%= hidden_field_tag name, value, id: nil %>
+    <% end %>
     <div class="row g-3">
       <div class="col-12 col-lg-6">
         <%= f.label :start_date, RevenueProjectionHistoryFilterForm.human_attribute_name(:start_date), class: 'form-label fw-medium' %>

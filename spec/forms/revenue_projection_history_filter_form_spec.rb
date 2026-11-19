@@ -43,6 +43,14 @@ RSpec.describe RevenueProjectionHistoryFilterForm do
     expect(described_class.new(truck_group_id: 'except-3')).to be_valid
   end
 
+  it 'groups the projection by vehicle by default and accepts only the vehicle and the customer group' do
+    expect(described_class.new.dimension).to eq('vehicle')
+    expect(described_class.new(dimension: 'customer_group')).to be_valid
+    expect(described_class.new(dimension: 'customer_group')).not_to be_filtered
+    expect(described_class.new(dimension: 'customer_group').query_params).to eq(start_date: Date.new(2026, 11, 1), end_date: Date.new(2026, 11, 30))
+    expect(described_class.new(dimension: 'driver')).not_to be_valid
+  end
+
   it 'does not accept an end date before the start date' do
     form = described_class.new(start_date: '2026-11-10', end_date: '2026-11-02')
 

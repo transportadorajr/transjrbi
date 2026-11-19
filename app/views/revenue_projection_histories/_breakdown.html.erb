@@ -1,0 +1,24 @@
+<%# locals: (breakdown:, rows:) %>
+
+<div class="dashboard-filter-bar mb-3">
+  <span class="dashboard-filter-label"><%= t('revenue_projection_histories.show.group_by') %></span>
+
+  <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('revenue_projection_histories.show.group_by') } do %>
+    <% revenue_projection_history_dimensions.each do |dimension| %>
+      <%= link_to t(dimension, scope: 'revenue_projection_histories.show.dimensions'), revenue_projection_history_dimension_path(dimension),
+                  class: revenue_projection_period_link_class(dimension, breakdown.dimension) %>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="card table-card mb-4" id="history_breakdown">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t(breakdown.dimension, scope: 'revenue_projection_histories.show.breakdown_title') %></p>
+      <p class="table-card-subtitle"><%= revenue_projection_history_breakdown_subtitle(breakdown) %></p>
+    </div>
+  </div>
+  <div class="table-card-body">
+    <%= render 'breakdown_table', breakdown:, rows: %>
+  </div>
+</div>

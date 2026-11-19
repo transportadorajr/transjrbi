@@ -15,8 +15,10 @@ class RevenueProjectionHistoryFilterForm < BaseForm
   attribute :product_id, :integer
   attribute :macro_region_id, :string
   attribute :truck_group_id, :string
+  attribute :dimension, :string, default: Dashboard::RevenueProjectionBreakdown::DEFAULT_DIMENSION
 
   validates :start_date, :end_date, presence: true
+  validates :dimension, inclusion: { in: Dashboard::RevenueProjectionBreakdown::DIMENSIONS }
   validates :truck_group_id, format: { with: TruckGroupFilter::VALUE_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 

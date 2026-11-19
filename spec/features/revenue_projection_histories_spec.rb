@@ -76,6 +76,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
            ['01/11 a 07/11', 'R$ 1.800,00', 'R$ 1.300,00', 'R$ 1.600,00', '-', 'Em andamento']],
         )
         expect(page).to have_css('#weeks_explanation', text: 'A projeção na abertura foi feita na manhã do domingo')
+        expect(page).to have_no_css('#history_breakdown')
         expect(html_table_to_rows(table: find_by_id('history_days'))).to eq(
           [['Dia', 'Previsto', 'Faturado', 'Diferença', 'CT-es', 'Projeção do mês na manhã', 'Ações'],
            ['01/11 dom', 'R$ 0,00', 'R$ 0,00', '+R$ 0,00', '0', 'R$ 23.000,00', 'Opções Ver o cálculo da previsão de 01/11/2026 Anotar o dia 01/11/2026'],
@@ -350,6 +351,74 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
 
         expect(page).to have_current_path(/plate=bbb2b22/)
         expect(all('#history_cards .counter-card').map { it.text.squish }.first).to eq('Projeção no início da semana R$ 2.750,00')
+      end
+
+      scenario 'shares the projection of the month by vehicle and by customer group like the freight billing' do
+        visit revenue_projection_history_path
+
+        expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Veículo')
+        expect(page).to have_css('#history_breakdown', text: 'Projeção por veículo')
+        expect(html_table_to_rows(table: find_by_id('history_breakdown_table'))).to eq(
+          [['Veículo', 'Faturado', 'Projeção', 'A faturar', 'Participação'],
+           ['AAA1A11', 'R$ 2.000,00', 'R$ 23.000,00', 'R$ 21.000,00', '66,7%'],
+           ['BBB2B22', 'R$ 1.000,00', 'R$ 11.500,00', 'R$ 10.500,00', '33,3%'],
+           ['Total', 'R$ 3.000,00', 'R$ 34.500,00', 'R$ 31.500,00', '100,0%']],
+        )
+
+        click_on 'Clientes'
+
+        expect(page).to have_current_path(/dimension=customer_group/)
+        expect(page).to have_css('#history_breakdown', text: 'Projeção por cliente')
+        expect(html_table_to_rows(table: find_by_id('history_breakdown_table'))).to eq(
+          [['Grupo de clientes', 'Faturado', 'Projeção', 'A faturar', 'Participação'],
+           ['GERDAU', 'R$ 2.000,00', 'R$ 23.000,00', 'R$ 21.000,00', '66,7%'],
+           ['USIMINAS', 'R$ 1.000,00', 'R$ 11.500,00', 'R$ 10.500,00', '33,3%'],
+           ['Total', 'R$ 3.000,00', 'R$ 34.500,00', 'R$ 31.500,00', '100,0%']],
+        )
+
+        within('#filtersModal') do
+          fill_in 'Placa', with: 'aaa1a11'
+          click_on 'Aplicar Filtros'
+        end
+
+        expect(page).to have_current_path(/dimension=customer_group/)
+        expect(html_table_to_rows(table: find_by_id('history_breakdown_table')).drop(1).map(&:first)).to eq(%w[GERDAU Total])
+
+        click_on 'Mês passado'
+
+        expect(page).to have_current_path(/dimension=customer_group/)
+        expect(page).to have_text('O período já terminou; a projeção de cada um é o próprio faturado.')
+        expect(html_table_to_rows(table: find_by_id('history_breakdown_table'))).to eq(
+          [['Grupo de clientes', 'Faturado', 'Projeção', 'A faturar', 'Participação'],
+           ['GERDAU', 'R$ 24.500,00', 'R$ 24.500,00', 'R$ 0,00', '100,0%'],
+           ['Total', 'R$ 24.500,00', 'R$ 24.500,00', 'R$ 0,00', '100,0%']],
+        )
+      end
+
+      scenario 'sorts the projection by vehicle keeping the period' do
+        visit revenue_projection_history_path(period: 'week', start: '2026-11-01')
+        within('#history_breakdown_table') { click_on 'Faturado' }
+        within('#history_breakdown_table') { click_on 'Faturado' }
+
+        expect(page).to have_current_path(/sort=billed&direction=asc|direction=asc.*sort=billed/)
+        expect(page).to have_current_path(/period=week/)
+        expect(html_table_to_rows(table: find_by_id('history_breakdown_table')).drop(1).map(&:first)).to eq(%w[BBB2B22 AAA1A11 Total])
+      end
+
+      scenario 'answers with the filters for an unknown grouping' do
+        visit revenue_projection_history_path(dimension: 'driver')
+
+        expect(page).to have_current_path(revenue_projection_history_path)
+        expect(page).to have_text('Agrupar por não está incluído na lista')
+      end
+
+      scenario 'keeps the projection by vehicle without scrolling sideways on a phone', :js do
+        use_mobile_screen(width: 360)
+        visit revenue_projection_history_path
+
+        expect(page).to have_css('#history_breakdown_table th', text: 'PROJEÇÃO', visible: :visible)
+        expect(page).to have_no_css('#history_breakdown_table th', text: 'A FATURAR', visible: :visible)
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
       end
 
       scenario 'chooses the customer group and the product in the filters on a phone', :js do

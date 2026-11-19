@@ -795,6 +795,7 @@ pt-BR:
         product_id: Produto
         macro_region_id: Macro região de origem
         truck_group_id: Tipo de conjunto
+        dimension: Agrupar por
       freight_billing_filter_form:
         start_date: Emitidos a partir de
         end_date: Emitidos até
@@ -2745,6 +2746,24 @@ pt-BR:
       status: Situação
       closed: Encerrada
       in_progress: Em andamento
+      group_by: Agrupar por
+      dimensions:
+        vehicle: Veículo
+        customer_group: Clientes
+      breakdown_title:
+        vehicle: Projeção por veículo
+        customer_group: Projeção por cliente
+      breakdown_subtitle:
+        open: >-
+          A projeção atual do período repartida pelo que cada um já faturou nele: quem faturou mais fica com a maior parte
+          da projeção.
+        closed: O período já terminou; a projeção de cada um é o próprio faturado.
+      breakdown_columns:
+        vehicle: Veículo
+        customer_group: Grupo de clientes
+      breakdown_projected: Projeção
+      breakdown_remaining: A faturar
+      breakdown_share: Participação
       missing: '-'
       actions: Ações
       note_author: — %{name}
