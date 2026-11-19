@@ -30,10 +30,6 @@ module FreightDocumentFilters
   end
 
   def filtered_freights(truck_group_id)
-    documents = apply_scopes(current_tenant.billable_freights)
-    return documents if truck_group_id.blank?
-
-    truck_group = freight_truck_groups.find_by(id: truck_group_id)
-    truck_group ? documents.by_truck_group(truck_group, freight_truck_groups.flat_map(&:plates)) : documents.none
+    TruckGroupFilter.new(freight_truck_groups, truck_group_id).apply(apply_scopes(current_tenant.billable_freights))
   end
 end

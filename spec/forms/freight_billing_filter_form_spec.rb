@@ -100,6 +100,10 @@ RSpec.describe FreightBillingFilterForm do
     it 'keeps the group' do
       expect(described_class.new(truck_group_id: '12')).to have_attributes(valid?: true, truck_group_id: '12')
     end
+
+    it 'keeps every group except one' do
+      expect(described_class.new(truck_group_id: 'except-12')).to have_attributes(valid?: true, truck_group_id: 'except-12')
+    end
   end
 
   context 'with an unknown truck group' do
@@ -112,6 +116,11 @@ RSpec.describe FreightBillingFilterForm do
 
     it 'does not accept the documents without group' do
       expect(described_class.new(truck_group_id: 'none')).not_to be_valid
+    end
+
+    it 'does not accept an exception without a group' do
+      expect(described_class.new(truck_group_id: 'except-')).not_to be_valid
+      expect(described_class.new(truck_group_id: 'except-rodotrem')).not_to be_valid
     end
   end
 

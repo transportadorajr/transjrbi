@@ -167,6 +167,10 @@ RSpec.describe Atua::Manifest do
       expect(described_class.where(tenant:).by_truck_group(rodotrem, [])).to eq([jose_trip])
     end
 
+    it 'keeps only the manifests with a valid transport document outside the truck group' do
+      expect(described_class.where(tenant:).without_truck_group(rodotrem, [])).to eq([maria_trip])
+    end
+
     it 'does not match a manifest of another tenant with the same code' do
       expect(described_class.where(tenant: other_tenant).by_driver(20)).to be_empty
     end

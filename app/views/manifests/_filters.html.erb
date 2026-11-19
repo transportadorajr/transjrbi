@@ -26,7 +26,7 @@
       <div class="col-12">
         <%= f.label :truck_group_id, t('manifests.filters.truck_group_id'), class: 'form-label fw-medium' %>
         <%= f.select :truck_group_id,
-                     freight_billing_truck_group_options(@truck_groups, params[:truck_group_id]),
+                     truck_group_filter_options(@truck_groups, params[:truck_group_id]),
                      { include_blank: t('shared.all') },
                      { class: 'form-select bg-light', aria: { describedby: 'truck_group_hint' } } %>
         <%= tag.div t('manifests.filters.truck_group_hint'), id: 'truck_group_hint', class: 'form-text' %>

@@ -1,7 +1,6 @@
 class FreightBillingFilterForm < BaseForm
   WEEK_START = :sunday
   PERIOD_PRESETS = %i[week last_week month last_month today].freeze
-  TRUCK_GROUP_ID_FORMAT = /\A\d+\z/
 
   attribute :start_date, :date
   attribute :end_date, :date
@@ -16,7 +15,7 @@ class FreightBillingFilterForm < BaseForm
 
   validates :start_date, :end_date, presence: true
   validates :dimension, inclusion: { in: Dashboard::Freight::DIMENSIONS }
-  validates :truck_group_id, format: { with: TRUCK_GROUP_ID_FORMAT }, allow_blank: true
+  validates :truck_group_id, format: { with: TruckGroupFilter::VALUE_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 
   class << self

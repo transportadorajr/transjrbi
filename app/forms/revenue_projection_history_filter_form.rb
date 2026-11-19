@@ -17,7 +17,7 @@ class RevenueProjectionHistoryFilterForm < BaseForm
   attribute :truck_group_id, :string
 
   validates :start_date, :end_date, presence: true
-  validates :truck_group_id, format: { with: FreightBillingFilterForm::TRUCK_GROUP_ID_FORMAT }, allow_blank: true
+  validates :truck_group_id, format: { with: TruckGroupFilter::VALUE_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 
   class << self

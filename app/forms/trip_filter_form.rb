@@ -13,7 +13,8 @@ class TripFilterForm < BaseForm
 
   validates :start_date, :end_date, presence: true
   validates :dimension, inclusion: { in: Dashboard::Trip::DIMENSIONS }
-  validates :truck_group_id, :product_group_id, :product_id, format: { with: ID_FORMAT }, allow_blank: true
+  validates :truck_group_id, format: { with: TruckGroupFilter::VALUE_FORMAT }, allow_blank: true
+  validates :product_group_id, :product_id, format: { with: ID_FORMAT }, allow_blank: true
   validate :end_date_must_not_precede_start_date
 
   class << self

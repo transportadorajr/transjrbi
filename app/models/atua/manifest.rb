@@ -76,6 +76,9 @@ module Atua
     scope :by_truck_group, ->(truck_group, grouped_plates) {
       by_transport_documents(TransportDocument.by_truck_group(truck_group, grouped_plates))
     }
+    scope :without_truck_group, ->(truck_group, grouped_plates) {
+      by_transport_documents(TransportDocument.without_truck_group(truck_group, grouped_plates))
+    }
 
     scope :with_freight_totals, -> {
       select(

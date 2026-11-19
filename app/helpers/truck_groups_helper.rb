@@ -40,6 +40,15 @@ module TruckGroupsHelper
     end
   end
 
+  def truck_group_filter_options(truck_groups, selected)
+    options = truck_groups.map { |truck_group| [truck_group.name, truck_group.id.to_s] }
+    except_options = truck_groups.select(&:utinga?).map do |truck_group|
+      [TruckGroupFilter.except_name(truck_group), TruckGroupFilter.except_value(truck_group)]
+    end
+
+    options_for_select(options + except_options, selected.to_s)
+  end
+
   def truck_group_axle_options
     TruckGroup::AXLE_OPTIONS.map { |axles| [t('truck_groups.axles', count: axles, axles:), axles] }
   end

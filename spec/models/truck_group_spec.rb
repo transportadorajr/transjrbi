@@ -113,6 +113,13 @@ RSpec.describe TruckGroup do
     end
   end
 
+  describe '#utinga?' do
+    it 'tells the Utinga group apart from the others' do
+      expect(build(:truck_group, :utinga)).to be_utinga
+      expect(build(:truck_group, :ls)).not_to be_utinga
+    end
+  end
+
   describe '#fuel_cents' do
     it 'applies the fuel percentage to the freight rounding half up' do
       truck_group = build(:truck_group, fuel_percentage: BigDecimal('32.5'))

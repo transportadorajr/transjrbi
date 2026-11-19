@@ -138,6 +138,9 @@ module Atua
 
       where(arel_table[:plate].in(truck_group.plates).or(arel_table[:axles].in(truck_group.axles).and(outside_plates)))
     }
+    scope :without_truck_group, ->(truck_group, grouped_plates) {
+      where.not(id: TransportDocument.unscoped.by_truck_group(truck_group, grouped_plates).select(:id))
+    }
 
     scope :with_freight_totals, -> { select(arel_table[Arel.star], net_freight.as('net_cents')) }
     scope :billing_only, -> {

@@ -71,10 +71,6 @@ module FreightBillingsHelper
     options_for_select(options + [[t('dashboards.freight.none.macro_region'), MacroRegion::OTHERS]], selected)
   end
 
-  def freight_billing_truck_group_options(truck_groups, selected)
-    options_for_select(truck_groups.map { |truck_group| [truck_group.name, truck_group.id.to_s] }, selected)
-  end
-
   def freight_billing_period_label(filter_form)
     t('freight_billings.show.period', from: l(filter_form.start_date), to: l(filter_form.end_date))
   end

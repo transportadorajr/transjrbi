@@ -40,6 +40,7 @@ RSpec.describe RevenueProjectionHistoryFilterForm do
                                     truck_group_id: '3')
     expect(described_class.new).not_to be_cut
     expect(described_class.new(truck_group_id: 'abc')).not_to be_valid
+    expect(described_class.new(truck_group_id: 'except-3')).to be_valid
   end
 
   it 'does not accept an end date before the start date' do
