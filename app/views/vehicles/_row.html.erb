@@ -1,7 +1,7 @@
 <tr id="<%= dom_id(item) %>">
   <td>
     <div class="table-identity">
-      <%= link_to tax_value(item.plate), vehicle_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
+      <%= link_to tax_value(item.plate), vehicle_return_path(item), class: 'fw-semibold text-decoration-none text-body text-break' %>
       <span class="text-muted text-small d-block text-break"><%= vehicle_description(item) %></span>
     </div>
   </td>

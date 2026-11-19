@@ -2,6 +2,13 @@ class Ability
   include CanCan::Ability
 
   MAINTENANCE_RESOURCES = %i[maintenance maintenance_orders workshop_employees suppliers maintenance_parts maintenance_services vehicles].freeze
+  MAINTENANCE_MODULE_RESOURCES = (MAINTENANCE_RESOURCES - %i[vehicles]).freeze
+
+  class << self
+    def resources_outside_maintenance
+      Resource.activated.pluck(:slug).map(&:to_sym) - MAINTENANCE_MODULE_RESOURCES
+    end
+  end
 
   def initialize(user, resources: nil)
     return unless user

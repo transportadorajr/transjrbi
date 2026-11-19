@@ -51,6 +51,7 @@ end
   'suppliers' => { name: 'Fornecedores', writable: true },
   'maintenance_parts' => { name: 'Peças da manutenção', writable: true },
   'maintenance_services' => { name: 'Serviços da manutenção', writable: true },
+  'vehicle_availability' => { name: 'Disponibilidade da frota', writable: false },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)

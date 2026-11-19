@@ -263,7 +263,7 @@ describe 'Drivers' do
         visit driver_path(760)
         click_on 'BEV4G50'
 
-        expect(page).to have_current_path(vehicle_path(trailer))
+        expect(page).to have_current_path(vehicle_path(trailer, return_to: driver_path(760)))
       end
 
       scenario 'opens a transport document of the driver' do

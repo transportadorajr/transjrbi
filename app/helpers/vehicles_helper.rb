@@ -7,6 +7,10 @@ module VehiclesHelper
     menus
   end
 
+  def vehicle_return_path(vehicle)
+    vehicle_path(vehicle, return_to: request.fullpath)
+  end
+
   def vehicle_description(vehicle)
     tax_value([vehicle.brand, vehicle.model].compact_blank.join(' '))
   end
@@ -76,6 +80,6 @@ module VehiclesHelper
   private
 
   def vehicle_show_menu(vehicle)
-    Menu.new(name: :show, record: vehicle, url: vehicle_path(vehicle), icon: :eye)
+    Menu.new(name: :show, record: vehicle, url: vehicle_return_path(vehicle), icon: :eye)
   end
 end

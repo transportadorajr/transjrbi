@@ -204,6 +204,30 @@ RSpec.describe Ability do
     end
   end
 
+  context 'when the ability is restricted to the resources outside maintenance' do
+    subject(:ability) { described_class.new(user, resources: described_class.resources_outside_maintenance) }
+
+    let(:user) { create(:user, tenant:, user_type: :owner) }
+
+    before do
+      create(:resource, slug: 'maintenance', writable: false)
+      create(:resource, slug: 'maintenance_orders')
+      create(:resource, slug: 'vehicles')
+      create(:resource, slug: 'vehicle_availability', writable: false)
+    end
+
+    it 'keeps the app resources and the vehicles' do
+      expect(ability).to be_able_to(:read, :vehicle_availability)
+      expect(ability).to be_able_to(:read, :vehicles)
+    end
+
+    it 'cannot reach the maintenance module' do
+      expect(ability).not_to be_able_to(:read, :maintenance)
+      expect(ability).not_to be_able_to(:read, :maintenance_orders)
+      expect(ability).not_to be_able_to(:update, :maintenance_orders)
+    end
+  end
+
   context 'when an admin has accesses out of the restricted resources' do
     subject(:ability) { described_class.new(user, resources: Ability::MAINTENANCE_RESOURCES) }
 

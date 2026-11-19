@@ -77,7 +77,7 @@ describe 'Vehicles' do
           ],
         )
         expect(page).to have_text('2 registros')
-        expect(page).to have_link(href: vehicle_path(truck), title: 'Visualizar')
+        expect(page).to have_link(href: vehicle_path(truck, return_to: vehicles_path), title: 'Visualizar')
         expect(page).to have_no_text('AGL9451')
         expect(page).to have_no_text('ZIZ7D35')
         expect(page).to have_no_text('QQI0395')
@@ -231,7 +231,7 @@ describe 'Vehicles' do
         visit vehicles_path
         click_on 'EXU0F72'
 
-        expect(page).to have_current_path(vehicle_path(vehicle))
+        expect(page).to have_current_path(vehicle_path(vehicle), ignore_query: true)
         expect(page).to have_css('h1.page-title', text: 'Veículo EXU0F72')
         expect(dl_to_hash('#vehicle_data')).to eq(
           'Código' => '812',
@@ -266,6 +266,46 @@ describe 'Vehicles' do
         click_on 'JOSE DA SILVA'
 
         expect(page).to have_current_path(driver_path(760))
+      end
+
+      scenario 'goes back to the filtered listing it came from' do
+        visit vehicles_path(plate: 'exu0f72', sort: 'plate', direction: 'desc')
+        click_on 'EXU0F72'
+        find('.btn-back').click
+
+        expect(page).to have_current_path(vehicles_path(plate: 'exu0f72', sort: 'plate', direction: 'desc'))
+      end
+
+      scenario 'goes back to the driver it came from' do
+        visit vehicle_path(vehicle)
+        click_on 'JOSE DA SILVA'
+        click_on 'EXU0F72'
+        find('.btn-back').click
+
+        expect(page).to have_current_path(driver_path(760))
+      end
+
+      scenario 'goes back to the screen of a link that does not carry the origin' do
+        page.driver.header('Referer', "#{Capybara.app_host}#{driver_path(760)}")
+        visit vehicle_path(vehicle)
+
+        expect(page).to have_current_path(vehicle_path(vehicle, return_to: driver_path(760)))
+
+        find('.btn-back').click
+
+        expect(page).to have_current_path(driver_path(760))
+      end
+
+      scenario 'goes back to the listing when opened directly' do
+        visit vehicle_path(vehicle)
+
+        expect(page).to have_link(href: vehicles_path, class: 'btn-back')
+      end
+
+      scenario 'ignores an origin outside the app' do
+        visit vehicle_path(vehicle, return_to: '//evil.example.com/vehicles')
+
+        expect(page).to have_link(href: vehicles_path, class: 'btn-back')
       end
 
       scenario 'tells that the plate has no empty legs' do
@@ -410,7 +450,7 @@ describe 'Vehicles' do
 
         click_on 'EXU0F72'
 
-        expect(page).to have_current_path(vehicle_path(vehicle))
+        expect(page).to have_current_path(vehicle_path(vehicle, return_to: vehicles_path))
       end
 
       scenario 'does not link the driver without access to the drivers' do

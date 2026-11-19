@@ -20,7 +20,7 @@ module ExpensesHelper
   def expense_plate(expense)
     return tax_value(expense.plate) unless expense.vehicle&.active? && can?(:read, :vehicles)
 
-    link_to expense.plate, vehicle_path(expense.vehicle), class: 'fw-semibold text-decoration-none'
+    link_to expense.plate, vehicle_return_path(expense.vehicle), class: 'fw-semibold text-decoration-none'
   end
 
   def expense_driver(expense)

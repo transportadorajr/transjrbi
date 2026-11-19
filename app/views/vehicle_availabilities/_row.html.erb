@@ -1,0 +1,16 @@
+<tr id="<%= dom_id(item) %>">
+  <td>
+    <div class="table-identity">
+      <span class="fw-semibold text-break"><%= item.plate %></span>
+      <span class="text-muted text-small d-block text-break"><%= vehicle_availability_kind(item) %></span>
+    </div>
+  </td>
+  <td><%= vehicle_availability_badge(maintenance_order) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= vehicle_availability_order_number(maintenance_order) %></td>
+  <td class="d-none d-lg-table-cell"><%= vehicle_availability_order_status(maintenance_order) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= vehicle_availability_estimated_completion(maintenance_order) %></td>
+  <td class="d-none d-lg-table-cell"><%= vehicle_availability_stopped(maintenance_order) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(vehicle_availability_menu(item, maintenance_order)) %>
+  </td>
+</tr>

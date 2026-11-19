@@ -31,7 +31,7 @@ module DriversHelper
   def driver_vehicle_plate(vehicle)
     return tax_value(vehicle.plate) unless can?(:read, :vehicles)
 
-    link_to tax_value(vehicle.plate), vehicle_path(vehicle), class: 'fw-semibold text-decoration-none'
+    link_to tax_value(vehicle.plate), vehicle_return_path(vehicle), class: 'fw-semibold text-decoration-none'
   end
 
   def driver_transport_documents_table(transport_documents)

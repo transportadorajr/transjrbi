@@ -1,0 +1,21 @@
+<% content_for :title, maintenance_order_title(@maintenance_order) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('vehicle_availabilities.index.title'), vehicle_availabilities_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= maintenance_order_title(@maintenance_order) %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag maintenance_order_title(@maintenance_order), subtitle: t('.subtitle'),
+                                                                     back_path: vehicle_availabilities_path, back_title: t('.back'),
+                                                                     wrapper_class: 'mb-0' %>
+  </div>
+
+  <%= render 'maintenance_orders/details', maintenance_order: @maintenance_order, mechanics: @mechanics %>
+  <%= render 'maintenance_orders/parts', maintenance_order: @maintenance_order, parts: @parts %>
+  <%= render 'maintenance_orders/labors', maintenance_order: @maintenance_order, labors: @labors %>
+  <%= render 'maintenance_orders/services', maintenance_order: @maintenance_order, services: @services %>
+  <%= render 'maintenance_orders/totals', maintenance_order: @maintenance_order, labor_hours: @labor_hours %>
+</div>

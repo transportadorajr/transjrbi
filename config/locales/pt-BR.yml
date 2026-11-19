@@ -1722,6 +1722,7 @@ pt-BR:
       maintenance_order:
         show: Visualizar
         edit: Alterar
+        show_maintenance_order: Ver OS
       supplier:
         edit: Alterar
         activate: Ativar
@@ -1753,6 +1754,7 @@ pt-BR:
         show: Visualizar
         edit: Alterar
         destroy: Excluir
+        show_vehicle: Ver veículo
       atua/expense:
         show: Visualizar
       atua/import:
@@ -3917,6 +3919,34 @@ pt-BR:
       driver_data: Dados do motorista
       vehicles: Veículos do motorista
       transport_documents: Últimos CT-es do motorista
+  vehicle_availability_orders:
+    show:
+      subtitle: Consulta da ordem de serviço do veículo em manutenção. Somente leitura.
+      back: Voltar para a disponibilidade da frota
+  vehicle_availabilities:
+    index:
+      title: Disponibilidade da frota
+      subtitle: Cavalos e carretas da frota própria e as ordens de serviço em aberto na oficina.
+      total: Cavalos e carretas
+      available: Disponíveis
+      in_maintenance: Em manutenção
+      vehicles: Veículos da frota
+    table:
+      availability: Disponibilidade
+      order_status: Situação da OS
+    filters:
+      plate: Placa
+      kind: Tipo de veículo
+      availability: Disponibilidade
+    availabilities:
+      available: Disponível
+      in_maintenance: Em manutenção
+    fleet_kinds:
+      tractor: Cavalos
+      trailer: Carretas
+    fleet_kind_names:
+      tractor: Cavalo
+      trailer: Carreta
   vehicles:
     index:
       title: Veículos
@@ -3930,7 +3960,7 @@ pt-BR:
       ownership: Propriedade
     show:
       title: Veículo %{plate}
-      back: Voltar para veículos
+      back: Voltar
       vehicle_data: Dados do veículo
       ownership_data: Propriedade e motorista
       empty_legs: Trechos rodados vazios
@@ -4064,6 +4094,7 @@ pt-BR:
     manifests: Manifestos
     route_distances: Trechos de km
     intelligence: Inteligência
+    vehicle_availability: Disponibilidade da frota
     freight_billing: Faturamento
     trips: Viagens
     export_summary: Resumo da exportação
@@ -4093,6 +4124,8 @@ pt-BR:
     users: Usuários
     show: Visualizar
     edit: Alterar
+    show_vehicle: Ver veículo
+    show_maintenance_order: Ver OS
     admin_imports: Importações da Atua
     admin_http_requests: Requisições HTTP
     admin_resources: Recursos
