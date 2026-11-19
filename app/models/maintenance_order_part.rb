@@ -22,6 +22,7 @@ end
 #  code                 :string
 #  description          :string           not null
 #  document_number      :string
+#  notes                :text
 #  quantity             :decimal(12, 3)   not null
 #  source_type          :enum             default("stock"), not null
 #  total_cents          :bigint           default(0), not null

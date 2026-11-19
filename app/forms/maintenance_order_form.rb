@@ -1,8 +1,9 @@
 class MaintenanceOrderForm < BaseForm
-  PERMITTED_ATTRIBUTES = %i[plate opened_at odometer_km hour_meter driver_code supervisor_id responsible_employee_id
-                            equipment_type equipment_other maintenance_type priority_type vehicle_stopped
-                            execution_place_type affected_system_type
-                            reported_defect diagnosis performed_service].freeze
+  ORDER_ATTRIBUTES = %i[plate opened_at odometer_km hour_meter driver_code supervisor_id
+                        equipment_type equipment_other maintenance_type priority_type vehicle_stopped
+                        execution_place_type affected_system_type
+                        reported_defect diagnosis performed_service].freeze
+  PERMITTED_ATTRIBUTES = [*ORDER_ATTRIBUTES, { mechanic_ids: [] }].freeze
   ITEM_FORMS = { parts: MaintenanceOrderPartForm, services: MaintenanceOrderServiceForm }.freeze
 
   attribute :plate, :string
@@ -11,7 +12,7 @@ class MaintenanceOrderForm < BaseForm
   attribute :hour_meter, :decimal
   attribute :driver_code, :integer
   attribute :supervisor_id, :integer
-  attribute :responsible_employee_id, :integer
+  attribute :mechanic_ids, default: -> { [] }
   attribute :equipment_type, :string
   attribute :equipment_other, :string
   attribute :maintenance_type, :string
@@ -44,7 +45,7 @@ class MaintenanceOrderForm < BaseForm
   validate :plate_must_be_registered
   validate :driver_must_exist
   validate :supervisor_must_exist
-  validate :responsible_employee_must_exist
+  validate :mechanics_must_exist
   validate :items_must_be_valid, unless: :persisted?
 
   attr_accessor :tenant, :opened_by
@@ -54,7 +55,8 @@ class MaintenanceOrderForm < BaseForm
 
   class << self
     def for_maintenance_order(maintenance_order)
-      form = new(tenant: maintenance_order.tenant, **maintenance_order.slice(*PERMITTED_ATTRIBUTES).symbolize_keys)
+      form = new(tenant: maintenance_order.tenant, mechanic_ids: maintenance_order.mechanic_assignments.pluck(:workshop_employee_id),
+                 **maintenance_order.slice(*ORDER_ATTRIBUTES).symbolize_keys)
       form.maintenance_order = maintenance_order
       form
     end
@@ -88,7 +90,8 @@ class MaintenanceOrderForm < BaseForm
     transaction do
       maintenance_order.number ||= MaintenanceOrder.next_number(tenant)
       maintenance_order.opened_by ||= opened_by
-      maintenance_order.update!(attributes.merge('driver_name' => driver_name, 'equipment_other' => equipment_other_value))
+      maintenance_order.update!(attributes.except('mechanic_ids').merge('driver_name' => driver_name, 'equipment_other' => equipment_other_value))
+      save_mechanics
       save_items
     end
   end
@@ -125,6 +128,13 @@ class MaintenanceOrderForm < BaseForm
     end
   end
 
+  def save_mechanics
+    maintenance_order.mechanic_assignments.where.not(workshop_employee_id: mechanic_ids).delete_all
+    (mechanic_ids - maintenance_order.mechanic_assignments.pluck(:workshop_employee_id)).each do |workshop_employee_id|
+      maintenance_order.mechanic_assignments.create!(tenant:, workshop_employee_id:)
+    end
+  end
+
   def save_items
     ITEM_FORMS.each do |kind, form_class|
       items_attributes.fetch(kind, []).each { |row| form_class.new(maintenance_order:, **row).save }
@@ -137,6 +147,7 @@ class MaintenanceOrderForm < BaseForm
     self.reported_defect = reported_defect.to_s.strip
     self.diagnosis = diagnosis.to_s.strip.presence
     self.performed_service = performed_service.to_s.strip.presence
+    self.mechanic_ids = Array(mechanic_ids).compact_blank.map(&:to_i).uniq
   end
 
   def equipment_other_value
@@ -170,9 +181,10 @@ class MaintenanceOrderForm < BaseForm
     errors.add(:supervisor_id, :inclusion) unless tenant.workshop_employees.supervisor.exists?(id: supervisor_id)
   end
 
-  def responsible_employee_must_exist
-    return if responsible_employee_id.blank? || responsible_employee_id == maintenance_order.responsible_employee_id
+  def mechanics_must_exist
+    assigned_ids = maintenance_order.persisted? ? maintenance_order.mechanic_assignments.pluck(:workshop_employee_id) : []
+    available_ids = tenant.workshop_employees.active.where(id: mechanic_ids).pluck(:id) + assigned_ids
 
-    errors.add(:responsible_employee_id, :inclusion) unless tenant.workshop_employees.active.exists?(id: responsible_employee_id)
+    errors.add(:mechanic_ids, :inclusion) if (mechanic_ids - available_ids).any?
   end
 end

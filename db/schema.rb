@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_18_171800) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_18_192527) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -974,6 +974,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_171800) do
     t.index ["workshop_employee_id"], name: "index_maintenance_order_labors_on_workshop_employee_id"
   end
 
+  create_table "maintenance_order_mechanics", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "maintenance_order_id", null: false
+    t.bigint "workshop_employee_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["maintenance_order_id", "workshop_employee_id"], name: "index_maintenance_order_mechanics_uniqueness", unique: true
+    t.index ["maintenance_order_id"], name: "index_maintenance_order_mechanics_on_maintenance_order_id"
+    t.index ["tenant_id"], name: "index_maintenance_order_mechanics_on_tenant_id"
+    t.index ["workshop_employee_id"], name: "index_maintenance_order_mechanics_on_workshop_employee_id"
+  end
+
   create_table "maintenance_order_parts", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "maintenance_order_id", null: false
@@ -988,6 +1000,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_171800) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "maintenance_part_id"
+    t.text "notes"
     t.index ["maintenance_order_id"], name: "index_maintenance_order_parts_on_maintenance_order_id"
     t.index ["maintenance_part_id"], name: "index_maintenance_order_parts_on_maintenance_part_id"
     t.index ["tenant_id"], name: "index_maintenance_order_parts_on_tenant_id"
@@ -1006,6 +1019,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_171800) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "maintenance_service_id"
+    t.text "notes"
     t.index ["maintenance_order_id"], name: "index_maintenance_order_services_on_maintenance_order_id"
     t.index ["maintenance_service_id"], name: "index_maintenance_order_services_on_maintenance_service_id"
     t.index ["supplier_id"], name: "index_maintenance_order_services_on_supplier_id"
@@ -1456,6 +1470,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_18_171800) do
   add_foreign_key "maintenance_order_labors", "maintenance_orders"
   add_foreign_key "maintenance_order_labors", "tenants"
   add_foreign_key "maintenance_order_labors", "workshop_employees"
+  add_foreign_key "maintenance_order_mechanics", "maintenance_orders"
+  add_foreign_key "maintenance_order_mechanics", "tenants"
+  add_foreign_key "maintenance_order_mechanics", "workshop_employees"
   add_foreign_key "maintenance_order_parts", "maintenance_orders"
   add_foreign_key "maintenance_order_parts", "maintenance_parts"
   add_foreign_key "maintenance_order_parts", "tenants"

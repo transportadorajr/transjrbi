@@ -148,21 +148,22 @@ RSpec.describe MaintenanceOrderFinishForm do
     context 'when the order has no labor' do
       before { MaintenanceOrderLabor.delete_all }
 
-      it 'asks the responsible employee to sign' do
+      it 'asks every mechanic of the order to sign' do
         joao = create(:workshop_employee, tenant:, name: 'JOAO MENDES')
-        maintenance_order.update!(responsible_employee: joao)
+        andre = create(:workshop_employee, tenant:, name: 'ANDRE ROCHA')
+        [joao, andre].each { |employee| create(:maintenance_order_mechanic, maintenance_order:, workshop_employee: employee) }
         form = finish_form(supervisor_id: supervisor.id.to_s, supervisor_signature: signature_strokes,
-                           mechanic_signatures: { joao.id.to_s => signature_strokes })
+                           mechanic_signatures: { joao.id.to_s => signature_strokes, andre.id.to_s => signature_strokes })
 
         expect(form.save).to be(true)
-        expect(maintenance_order.signatures.mechanic.pluck(:signer_name)).to eq(['JOAO MENDES'])
+        expect(maintenance_order.signatures.mechanic.pluck(:signer_name)).to contain_exactly('ANDRE ROCHA', 'JOAO MENDES')
       end
 
       it 'does not finish an order without anyone to sign as mechanic' do
         form = finish_form(supervisor_id: supervisor.id.to_s, supervisor_signature: signature_strokes)
 
         expect(form.save).to be_falsey
-        expect(form.errors.full_messages).to eq(['Lance a mão de obra ou indique o funcionário responsável antes de encerrar a OS.'])
+        expect(form.errors.full_messages).to eq(['Lance a mão de obra ou indique os mecânicos antes de encerrar a OS.'])
       end
     end
   end

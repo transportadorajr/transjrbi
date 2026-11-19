@@ -47,9 +47,10 @@ describe 'Maintenance orders', :maintenance do
     context 'when there are maintenance orders' do
       let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
       let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
+      let!(:helper) { create(:workshop_employee, tenant:, name: 'ANDRE ROCHA') }
       let!(:brakes_order) do
         create(:maintenance_order, tenant:, number: 1, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 3, 7, 15),
-                                   supervisor:, responsible_employee: mechanic, opened_by: owner, odometer_km: 452_300, hour_meter: BigDecimal('1250.5'),
+                                   supervisor:, opened_by: owner, odometer_km: 452_300, hour_meter: BigDecimal('1250.5'),
                                    driver_code: 501, driver_name: 'JOSE DA SILVA', vehicle_stopped: true, priority_type: 'high',
                                    diagnosis: 'Lonas gastas', performed_service: "Troca das lonas\nRegulagem do freio")
       end
@@ -65,6 +66,10 @@ describe 'Maintenance orders', :maintenance do
                                    execution_place_type: 'on_route', reported_defect: 'Motor falhando')
       end
       let!(:stranger_order) { create(:maintenance_order, tenant: other_tenant, number: 4, plate: 'ZZZ9Z99') }
+
+      before do
+        [mechanic, helper].each { |employee| create(:maintenance_order_mechanic, maintenance_order: brakes_order, workshop_employee: employee) }
+      end
 
       scenario 'lists the orders from the maintenance menu, newest first' do
         visit root_path
@@ -153,7 +158,7 @@ describe 'Maintenance orders', :maintenance do
         expect(dl_to_hash('#vehicle_data')).to eq(
           'Nº da OS' => '1', 'Situação' => 'Aberta', 'Abertura' => '03/11/2026 07:15', 'Placa' => 'EXU1A23',
           'KM' => '452.300 km', 'Horímetro' => '1.250,5 h', 'Motorista' => 'JOSE DA SILVA',
-          'Encarregado responsável' => 'PAULO LIMA', 'Funcionário responsável' => 'CARLOS SOUZA',
+          'Encarregado responsável' => 'PAULO LIMA', 'Mecânicos' => 'ANDRE ROCHA, CARLOS SOUZA',
           'Tipo de equipamento' => 'Cavalo mecânico', 'Aberta por' => 'Bruna Dona'
         )
         expect(dl_to_hash('#classification')).to eq(
@@ -170,7 +175,7 @@ describe 'Maintenance orders', :maintenance do
         visit maintenance_order_path(tire_order)
 
         expect(dl_to_hash('#vehicle_data')).to include('KM' => '-', 'Horímetro' => '-', 'Motorista' => '-',
-                                                       'Encarregado responsável' => '-', 'Funcionário responsável' => '-',
+                                                       'Encarregado responsável' => '-', 'Mecânicos' => '-',
                                                        'Tipo de equipamento' => 'Outro: GUINDASTE',
                                                        'Aberta por' => '-')
         expect(dl_to_hash('#classification')).to include('Veículo parado' => 'Não')
@@ -195,25 +200,38 @@ describe 'Maintenance orders', :maintenance do
                                                        supervisor:, reported_defect: 'Motor falhando')
       end
 
-      context 'when the responsible employee was deactivated' do
+      context 'when a mechanic of the order was deactivated' do
         let!(:inactive_mechanic) { create(:workshop_employee, tenant:, name: 'ANTONIO RAMOS', active: false) }
 
-        before { engine_order.update!(responsible_employee: inactive_mechanic) }
+        before { create(:maintenance_order_mechanic, maintenance_order: engine_order, workshop_employee: inactive_mechanic) }
 
-        scenario 'keeps the inactive employee on the list and changes the responsible one', :js do
+        scenario 'keeps the inactive mechanic on the list and adds another one', :js do
           visit edit_maintenance_order_path(engine_order)
-          within('#responsible_employee_select') do
-            expect(page).to have_css('.select2-selected', text: 'ANTONIO RAMOS (Mecânico)')
+          within('#mechanics_select') do
+            expect(all('.select2-tag__label').map(&:text)).to eq(['ANTONIO RAMOS (Mecânico)'])
             find('.select2-trigger').click
-            expect(page).to have_css('.select2-option', count: 3)
+            expect(page).to have_css('.select2-option', count: 4)
             find('.select2-option', text: 'PAULO LIMA (Encarregado)').click
           end
+          first('.form-card-title').click
 
-          expect { click_on 'Salvar Alterações' }.not_to change(MaintenanceOrder, :count)
+          expect { click_on 'Salvar Alterações' }.to change(MaintenanceOrderMechanic, :count).by(1)
 
           expect(page).to have_text('Ordem de serviço atualizada com sucesso.')
-          expect(page).to have_css('#vehicle_data dd', exact_text: 'PAULO LIMA')
-          expect(engine_order.reload.responsible_employee).to eq(supervisor)
+          expect(page).to have_css('#vehicle_data dd', exact_text: 'ANTONIO RAMOS, PAULO LIMA')
+          expect(engine_order.reload.mechanics).to eq([inactive_mechanic, supervisor])
+        end
+
+        scenario 'removes a mechanic from the order', :js do
+          visit edit_maintenance_order_path(engine_order)
+          within('#mechanics_select') do
+            find('.select2-tag', text: 'ANTONIO RAMOS').find('.select2-tag__remove').click
+          end
+
+          expect { click_on 'Salvar Alterações' }.to change(MaintenanceOrderMechanic, :count).by(-1)
+
+          expect(page).to have_text('Ordem de serviço atualizada com sucesso.')
+          expect(engine_order.reload.mechanics).to be_empty
         end
       end
 
@@ -243,6 +261,7 @@ describe 'Maintenance orders', :maintenance do
       let!(:supervisor) { create(:workshop_employee, tenant:, name: 'PAULO LIMA', role_type: 'supervisor') }
       let!(:inactive_supervisor) { create(:workshop_employee, tenant:, name: 'ANTIGO ENCARREGADO', role_type: 'supervisor', active: false) }
       let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS SOUZA') }
+      let!(:helper) { create(:workshop_employee, tenant:, name: 'ANDRE ROCHA') }
       let!(:last_order) { create(:maintenance_order, tenant:, number: 41, plate: 'GKT4567') }
 
       scenario 'opens an order with the next number', :js do
@@ -261,12 +280,15 @@ describe 'Maintenance orders', :maintenance do
         fill_in 'KM', with: '452300'
         expect(page).to have_no_select('Encarregado responsável', with_options: ['ANTIGO ENCARREGADO', 'CARLOS SOUZA'])
         expect(page).to have_select('Encarregado responsável', selected: 'PAULO LIMA')
-        within('#responsible_employee_select') do
+        within('#mechanics_select') do
           find('.select2-trigger').click
           expect(page).to have_no_css('.select2-option', text: 'ANTIGO ENCARREGADO')
           find('.select2-search').fill_in(with: 'carl')
           find('.select2-option', text: 'CARLOS SOUZA (Mecânico)').click
+          find('.select2-search').fill_in(with: 'andre')
+          find('.select2-option', text: 'ANDRE ROCHA (Mecânico)').click
         end
+        first('.form-card-title').click
         select 'Cavalo mecânico', from: 'Tipo de equipamento'
         select 'Corretiva', from: 'Tipo de manutenção'
         select 'Alta', from: 'Prioridade'
@@ -281,11 +303,12 @@ describe 'Maintenance orders', :maintenance do
         expect(MaintenanceOrder.count).to eq(2)
         expect(maintenance_order).to have_attributes(
           tenant:, number: 42, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 11, 10), odometer_km: 452_300,
-          driver_code: 501, driver_name: 'JOSE DA SILVA', supervisor:, responsible_employee: mechanic, opened_by: owner,
+          driver_code: 501, driver_name: 'JOSE DA SILVA', supervisor:, opened_by: owner,
           equipment_type: 'truck_tractor', maintenance_type: 'corrective', priority_type: 'high', vehicle_stopped: true,
           execution_place_type: 'internal_workshop', affected_system_type: 'brakes',
           reported_defect: 'Freio puxando para a direita', status_type: 'open'
         )
+        expect(maintenance_order.mechanics).to eq([helper, mechanic])
       end
 
       scenario 'opens an order for a foreign plate registered in Atua', :js do
@@ -343,6 +366,7 @@ describe 'Maintenance orders', :maintenance do
               fill_in 'Unidade', with: 'un'
               fill_in 'Valor unitário', with: '250'
               select 'Compra direta', from: 'Origem'
+              fill_in 'Observação', with: 'Roda dianteira esquerda'
             end
           end
           within('#maintenance_order_services_fields') do
@@ -350,6 +374,7 @@ describe 'Maintenance orders', :maintenance do
             find('.select2-trigger').click
             find('.select2-option', text: 'RETÍFICA DO TAMBOR').click
             select 'RETÍFICA IPATINGA', from: 'Fornecedor'
+            fill_in 'Observação', with: 'Buscar na sexta-feira'
           end
 
           expect(page).to have_css('#maintenance_order_items_total', text: 'R$ 805,00')
@@ -358,13 +383,14 @@ describe 'Maintenance orders', :maintenance do
 
           expect(page).to have_text('OS 42 aberta com sucesso.')
           maintenance_order = MaintenanceOrder.last
-          expect(maintenance_order.parts.order(:id).map { |part| part.slice(:maintenance_part_id, :description, :quantity, :unit, :source_type, :total_cents) })
+          expect(maintenance_order.parts.order(:id).map { |part| part.slice(:maintenance_part_id, :description, :quantity, :unit, :source_type, :total_cents, :notes) })
             .to eq([{ 'maintenance_part_id' => lining.id, 'description' => 'LONA DE FREIO', 'quantity' => 4, 'unit' => 'UN',
-                      'source_type' => 'stock', 'total_cents' => 34_000 },
+                      'source_type' => 'stock', 'total_cents' => 34_000, 'notes' => nil },
                     { 'maintenance_part_id' => nil, 'description' => 'PARAFUSO DA RODA', 'quantity' => 6, 'unit' => 'UN',
-                      'source_type' => 'purchase', 'total_cents' => 1_500 }])
+                      'source_type' => 'purchase', 'total_cents' => 1_500, 'notes' => 'Roda dianteira esquerda' }])
           expect(maintenance_order.services.sole).to have_attributes(maintenance_service: grinding, supplier:,
-                                                                     description: 'RETÍFICA DO TAMBOR', quoted_cents: 45_000)
+                                                                     description: 'RETÍFICA DO TAMBOR', quoted_cents: 45_000,
+                                                                     notes: 'Buscar na sexta-feira')
           expect(maintenance_order).to have_attributes(parts_total_cents: 35_500, services_total_cents: 45_000, total_cents: 80_500)
         end
 

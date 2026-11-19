@@ -46,8 +46,8 @@
         <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:supervisor) %></dt>
         <dd class="col-12 col-md-9 text-break"><%= tax_value(@maintenance_order.supervisor&.name) %></dd>
 
-        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:responsible_employee) %></dt>
-        <dd class="col-12 col-md-9 text-break"><%= tax_value(@maintenance_order.responsible_employee&.name) %></dd>
+        <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:mechanics) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= maintenance_order_mechanic_names(@mechanics) %></dd>
 
         <dt class="col-12 col-md-3"><%= MaintenanceOrder.human_attribute_name(:equipment_type) %></dt>
         <dd class="col-12 col-md-9"><%= maintenance_order_equipment(@maintenance_order) %></dd>

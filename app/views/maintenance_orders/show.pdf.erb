@@ -11,7 +11,7 @@
 #v(0.2em)
 
 <%= typst_section_title(t('maintenance_orders.form.vehicle_data')) %>
-<%= typst_field_grid(maintenance_order_pdf_vehicle_fields(@maintenance_order), columns: 4) %>
+<%= typst_field_grid(maintenance_order_pdf_vehicle_fields(@maintenance_order, @mechanics), columns: 4) %>
 
 #v(0.15em)
 
@@ -59,7 +59,7 @@
 
 #v(1.5em)
 
-<%= typst_signatures(maintenance_order_pdf_signatures(@maintenance_order, @signatures)) %>
+<%= typst_signatures(maintenance_order_pdf_signatures(@maintenance_order, @mechanics, @signatures)) %>
 <%= maintenance_order_pdf_digest(@signatures) %>
 
 #v(0.1em)

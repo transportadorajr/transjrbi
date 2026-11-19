@@ -162,8 +162,7 @@ pt-BR:
         driver_name: Motorista
         supervisor: Encarregado responsável
         supervisor_id: Encarregado responsável
-        responsible_employee: Funcionário responsável
-        responsible_employee_id: Funcionário responsável
+        mechanics: Mecânicos
         opened_by: Aberta por
         equipment_type: Tipo de equipamento
         equipment_other: Outro equipamento
@@ -192,6 +191,7 @@ pt-BR:
         document_number: Nº requisição / NF
         unit_price: Valor unitário
         total: Total
+        notes: Observação
       maintenance_order_labor:
         workshop_employee: Mecânico
         worked_on: Data
@@ -207,6 +207,7 @@ pt-BR:
         approved: Valor aprovado
         approved_by_name: Aprovado por
         invoice_number: Nº da NF
+        notes: Observação
       supplier:
         name: Nome
         document: CNPJ / CPF
@@ -991,6 +992,7 @@ pt-BR:
         source_type: Origem
         document_number: Nº requisição / NF
         unit_price: Valor unitário
+        notes: Observação
       maintenance_order_labor_form:
         workshop_employee_id: Mecânico
         worked_on: Data
@@ -1007,6 +1009,7 @@ pt-BR:
         approved: Valor aprovado
         approved_by_name: Aprovado por
         invoice_number: Nº da NF
+        notes: Observação
       maintenance_order_finish_form:
         finished_at: Data e hora de conclusão
         release_test_type: Teste de liberação
@@ -1021,7 +1024,7 @@ pt-BR:
         hour_meter: Horímetro
         driver_code: Motorista
         supervisor_id: Encarregado responsável
-        responsible_employee_id: Funcionário responsável
+        mechanic_ids: Mecânicos
         equipment_type: Tipo de equipamento
         equipment_other: Outro equipamento
         maintenance_type: Tipo de manutenção
@@ -1188,13 +1191,13 @@ pt-BR:
               inclusion: não foi encontrado no Atua
             supervisor_id:
               inclusion: não está cadastrado como encarregado
-            responsible_employee_id:
-              inclusion: não está cadastrado como funcionário ativo da oficina
+            mechanic_ids:
+              inclusion: contém funcionário que não está ativo na oficina
         maintenance_order_finish_form:
           attributes:
             base:
               not_pending: A OS não pode ser encerrada porque está %{status}.
-              no_mechanic: Lance a mão de obra ou indique o funcionário responsável antes de encerrar a OS.
+              no_mechanic: Lance a mão de obra ou indique os mecânicos antes de encerrar a OS.
               mechanic_signature_missing: Falta a assinatura de %{name}.
             finished_at:
               before_opening: não pode ser antes da abertura da OS
@@ -2926,9 +2929,10 @@ pt-BR:
         header: Ficha da Ordem de Serviço nº %{number} - %{company}
         subtitle: Manutenção da frota · Placa %{plate} · %{status}
         filename: os_%{number}.pdf
+        item_notes: "%{description} · Obs.: %{notes}"
         signatures:
           supervisor: Encarregado responsável
-          responsible_employee: Funcionário responsável
+          mechanic: Mecânico
           signed: "%{role} · assinada em %{time}"
     new:
       title: Nova Ordem de Serviço
@@ -2946,9 +2950,9 @@ pt-BR:
       plate_placeholder: Escolha a placa
       driver_placeholder: Escolha o motorista
       supervisor_hint: Só aparecem os encarregados ativos cadastrados em funcionários da oficina.
-      responsible_employee_placeholder: Escolha o funcionário
-      responsible_employee_hint: Funcionário da oficina que responde por esta OS.
-      responsible_employee_option: "%{name} (%{role})"
+      mechanics_placeholder: Escolha os mecânicos
+      mechanics_hint: Funcionários da oficina que trabalham nesta OS. Escolha um ou mais.
+      mechanic_option: "%{name} (%{role})"
       equipment_other_hint: Preencha só quando o tipo de equipamento for Outro.
       classification: Classificação da Manutenção
       affected_system_hint: Marque o sistema principal.

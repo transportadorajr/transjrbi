@@ -16,19 +16,22 @@ class MaintenanceOrder < ApplicationRecord
   STATUS_BADGES = { open: :primary, in_progress: :warning, waiting_parts: :secondary, finished: :success,
                     cancelled: :danger }.freeze
 
+  self.ignored_columns += %w[responsible_employee_id]
+
   sortable :number, -> { arel_table[:number] }
   sortable :plate
   sortable :opened_at, -> { arel_table[:opened_at] }
 
   belongs_to :tenant
   belongs_to :supervisor, class_name: 'WorkshopEmployee', optional: true
-  belongs_to :responsible_employee, class_name: 'WorkshopEmployee', optional: true
   belongs_to :opened_by, class_name: 'User', optional: true
   has_many :parts, class_name: 'MaintenanceOrderPart', dependent: :delete_all
   has_many :labors, class_name: 'MaintenanceOrderLabor', dependent: :delete_all
   has_many :services, class_name: 'MaintenanceOrderService', dependent: :delete_all
   has_many :part_movements, class_name: 'MaintenancePartMovement', dependent: :restrict_with_error
   has_many :signatures, class_name: 'MaintenanceOrderSignature', dependent: :delete_all
+  has_many :mechanic_assignments, class_name: 'MaintenanceOrderMechanic', dependent: :delete_all
+  has_many :mechanics, -> { order(:name) }, through: :mechanic_assignments, source: :workshop_employee
 
   enum :equipment_type, EQUIPMENTS.index_with(&:to_s), validate: true, prefix: true
   enum :maintenance_type, MAINTENANCES.index_with(&:to_s), validate: true, prefix: true
@@ -103,10 +106,10 @@ class MaintenanceOrder < ApplicationRecord
 
   def signing_mechanics
     employee_ids = labors.select(:workshop_employee_id)
-    mechanics = WorkshopEmployee.where(id: employee_ids).order(:name)
-    return mechanics if mechanics.exists? || responsible_employee_id.nil?
+    labor_mechanics = WorkshopEmployee.where(id: employee_ids).order(:name)
+    return labor_mechanics if labor_mechanics.exists?
 
-    WorkshopEmployee.where(id: responsible_employee_id)
+    mechanics
   end
 
   def content_digest
@@ -153,41 +156,40 @@ end
 #
 # Table name: maintenance_orders
 #
-#  id                      :bigint           not null, primary key
-#  affected_system_type    :enum             not null
-#  atua_order_number       :string
-#  diagnosis               :text
-#  driver_code             :bigint
-#  driver_name             :string
-#  equipment_other         :string
-#  equipment_type          :enum             not null
-#  execution_place_type    :enum             default("internal_workshop"), not null
-#  finished_at             :datetime
-#  hour_meter              :decimal(10, 1)
-#  maintenance_type        :enum             not null
-#  next_preventive_km      :integer
-#  number                  :bigint           not null
-#  odometer_km             :integer
-#  opened_at               :datetime         not null
-#  parts_total_cents       :bigint           default(0), not null
-#  performed_service       :text
-#  plate                   :string           not null
-#  posted_on               :date
-#  posting_verified        :boolean          default(FALSE), not null
-#  priority_type           :enum             default("medium"), not null
-#  release_test_type       :enum
-#  reported_defect         :text             not null
-#  services_total_cents    :bigint           default(0), not null
-#  status_type             :enum             default("open"), not null
-#  total_cents             :bigint           default(0), not null
-#  vehicle_stopped         :boolean          default(FALSE), not null
-#  created_at              :datetime         not null
-#  updated_at              :datetime         not null
-#  opened_by_id            :bigint
-#  posted_by_id            :bigint
-#  responsible_employee_id :bigint
-#  supervisor_id           :bigint
-#  tenant_id               :bigint           not null
+#  id                   :bigint           not null, primary key
+#  affected_system_type :enum             not null
+#  atua_order_number    :string
+#  diagnosis            :text
+#  driver_code          :bigint
+#  driver_name          :string
+#  equipment_other      :string
+#  equipment_type       :enum             not null
+#  execution_place_type :enum             default("internal_workshop"), not null
+#  finished_at          :datetime
+#  hour_meter           :decimal(10, 1)
+#  maintenance_type     :enum             not null
+#  next_preventive_km   :integer
+#  number               :bigint           not null
+#  odometer_km          :integer
+#  opened_at            :datetime         not null
+#  parts_total_cents    :bigint           default(0), not null
+#  performed_service    :text
+#  plate                :string           not null
+#  posted_on            :date
+#  posting_verified     :boolean          default(FALSE), not null
+#  priority_type        :enum             default("medium"), not null
+#  release_test_type    :enum
+#  reported_defect      :text             not null
+#  services_total_cents :bigint           default(0), not null
+#  status_type          :enum             default("open"), not null
+#  total_cents          :bigint           default(0), not null
+#  vehicle_stopped      :boolean          default(FALSE), not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  opened_by_id         :bigint
+#  posted_by_id         :bigint
+#  supervisor_id        :bigint
+#  tenant_id            :bigint           not null
 #
 # Indexes
 #

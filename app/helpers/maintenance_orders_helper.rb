@@ -60,10 +60,20 @@ module MaintenanceOrdersHelper
     drivers.map { |driver| [driver.driver_name.presence || driver.driver_code.to_s, driver.driver_code.to_s] }
   end
 
-  def maintenance_order_responsible_employee_options(employees)
+  def maintenance_order_mechanic_options(employees)
     employees.map do |employee|
-      [t('maintenance_orders.form.responsible_employee_option', name: employee.name, role: employee.role_type_name), employee.id.to_s]
+      [t('maintenance_orders.form.mechanic_option', name: employee.name, role: employee.role_type_name), employee.id.to_s]
     end
+  end
+
+  def maintenance_order_mechanic_names(mechanics)
+    tax_value(mechanics.map(&:name).join(', ').presence)
+  end
+
+  def maintenance_order_item_description(description, notes)
+    return description if notes.blank?
+
+    safe_join([description, content_tag(:div, notes, class: 'small text-muted fw-normal text-break')])
   end
 
   def maintenance_order_items_fields(form_builder, maintenance_order_form)
