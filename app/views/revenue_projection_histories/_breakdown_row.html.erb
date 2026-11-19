@@ -1,0 +1,9 @@
+<%# locals: (row:) %>
+
+<tr>
+  <td class="fw-semibold"><%= row.label %></td>
+  <td class="text-end text-nowrap"><%= revenue_projection_history_money(row.billed_cents) %></td>
+  <td class="text-end text-nowrap"><%= revenue_projection_history_money(row.projected_cents) %></td>
+  <td class="text-end text-nowrap d-none d-md-table-cell"><%= revenue_projection_history_money(row.remaining_cents) %></td>
+  <td class="text-end text-nowrap d-none d-sm-table-cell"><%= number_to_percentage(row.share, precision: 1) %></td>
+</tr>

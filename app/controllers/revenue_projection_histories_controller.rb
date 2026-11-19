@@ -15,8 +15,12 @@ class RevenueProjectionHistoriesController < BaseController
     @cut_items = cut_items
     @history = history
     @today_goal = @history.goal_row(today_goal) if @filter_form.period_type == 'today'
+    @breakdown = breakdown
+    @breakdown_rows = listing_page(@breakdown.sorted_rows(params[:sort], params[:direction])) if @breakdown
 
-    respond_with_listing(pdf: false, xlsx: -> { helpers.revenue_projection_history_xlsx_sheets(@history, cut_items: @cut_items) })
+    respond_with_listing(pdf: false, xlsx: -> {
+      helpers.revenue_projection_history_xlsx_sheets(@history, cut_items: @cut_items, breakdown: @breakdown, breakdown_rows: @breakdown_rows)
+    })
   end
 
   def freights
@@ -63,6 +67,14 @@ class RevenueProjectionHistoriesController < BaseController
     Dashboard::RevenueProjectionHistory.new(current_tenant, @filter_form.period_type, @filter_form.date_range, memory:, documents: cut_freights)
   end
 
+  def breakdown
+    return unless @history.try(:snapshot_period?) && @history.any?
+
+    freight = Dashboard::Freight.new(cut_freights, manifests: current_tenant.atua_manifests, dimension: @filter_form.dimension, period: @history.period,
+                                                   own_fleet: current_tenant.own_fleet)
+    Dashboard::RevenueProjectionBreakdown.new(freight, projected_cents: (@history.current_projected_cents unless @history.closed?)).then { it if it.any? }
+  end
+
   def cut_freights
     @cut_freights ||= filtered_freights(@filter_form.truck_group_id)
   end
@@ -107,6 +119,6 @@ class RevenueProjectionHistoriesController < BaseController
   end
 
   def filter_params
-    params.permit(:start_date, :end_date, :period, :start, *FreightDocumentFilters::FILTER_PARAMS)
+    params.permit(:start_date, :end_date, :period, :start, :dimension, *FreightDocumentFilters::FILTER_PARAMS)
   end
 end

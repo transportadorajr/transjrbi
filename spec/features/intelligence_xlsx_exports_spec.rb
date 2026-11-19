@@ -182,6 +182,10 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       expect(downloaded_xlsx_records('Dia a dia').map { it.slice('Dia', 'Previsto', 'Faturado') }.last).to eq(
         'Dia' => Date.new(2026, 11, 3), 'Previsto' => 500, 'Faturado' => 500,
       )
+      expect(downloaded_xlsx_records('Projeção por veículo').map { it.slice('Veículo', 'Faturado', 'Projeção', 'A faturar', 'Participação') }).to eq(
+        [{ 'Veículo' => 'BBB2B22', 'Faturado' => 1_000, 'Projeção' => 11_500, 'A faturar' => 10_500, 'Participação' => 1 },
+         { 'Veículo' => 'Total', 'Faturado' => 1_000, 'Projeção' => 11_500, 'A faturar' => 10_500, 'Participação' => 1 }],
+      )
     end
 
     scenario 'exports the forecast of today of a cut' do

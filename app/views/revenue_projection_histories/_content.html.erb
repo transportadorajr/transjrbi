@@ -1,4 +1,4 @@
-<%# locals: (history:) %>
+<%# locals: (history:, breakdown: nil, breakdown_rows: nil) %>
 
 <div class="row g-2 g-md-3 mb-2 counter-grid-compact" id="history_cards">
   <%= revenue_projection_history_cards(history) %>
@@ -14,5 +14,6 @@
                                             chart: revenue_projection_history_chart(history) %>
 </div>
 
+<%= revenue_projection_history_breakdown(breakdown, breakdown_rows) %>
 <%= revenue_projection_history_weeks(history) %>
 <%= render 'days_table', history: %>
