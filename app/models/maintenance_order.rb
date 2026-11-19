@@ -21,6 +21,7 @@ class MaintenanceOrder < ApplicationRecord
   sortable :number, -> { arel_table[:number] }
   sortable :plate
   sortable :opened_at, -> { arel_table[:opened_at] }
+  sortable :estimated_completion_at, -> { arel_table[:estimated_completion_at] }
 
   belongs_to :tenant
   belongs_to :supervisor, class_name: 'WorkshopEmployee', optional: true
@@ -105,6 +106,10 @@ class MaintenanceOrder < ApplicationRecord
     PENDING_STATUSES.include?(status_type.to_sym)
   end
 
+  def overdue?(now = Time.current)
+    editable? && estimated_completion_at.present? && estimated_completion_at < now
+  end
+
   def signing_mechanics
     employee_ids = labors.select(:workshop_employee_id)
     labor_mechanics = WorkshopEmployee.where(id: employee_ids).order(:name)
@@ -157,40 +162,41 @@ end
 #
 # Table name: maintenance_orders
 #
-#  id                   :bigint           not null, primary key
-#  affected_system_type :enum             not null
-#  atua_order_number    :string
-#  diagnosis            :text
-#  driver_code          :bigint
-#  driver_name          :string
-#  equipment_other      :string
-#  equipment_type       :enum             not null
-#  execution_place_type :enum             default("internal_workshop"), not null
-#  finished_at          :datetime
-#  hour_meter           :decimal(10, 1)
-#  maintenance_type     :enum             not null
-#  next_preventive_km   :integer
-#  number               :bigint           not null
-#  odometer_km          :integer
-#  opened_at            :datetime         not null
-#  parts_total_cents    :bigint           default(0), not null
-#  performed_service    :text
-#  plate                :string           not null
-#  posted_on            :date
-#  posting_verified     :boolean          default(FALSE), not null
-#  priority_type        :enum             default("medium"), not null
-#  release_test_type    :enum
-#  reported_defect      :text             not null
-#  services_total_cents :bigint           default(0), not null
-#  status_type          :enum             default("open"), not null
-#  total_cents          :bigint           default(0), not null
-#  vehicle_stopped      :boolean          default(FALSE), not null
-#  created_at           :datetime         not null
-#  updated_at           :datetime         not null
-#  opened_by_id         :bigint
-#  posted_by_id         :bigint
-#  supervisor_id        :bigint
-#  tenant_id            :bigint           not null
+#  id                      :bigint           not null, primary key
+#  affected_system_type    :enum             not null
+#  atua_order_number       :string
+#  diagnosis               :text
+#  driver_code             :bigint
+#  driver_name             :string
+#  equipment_other         :string
+#  equipment_type          :enum             not null
+#  estimated_completion_at :datetime
+#  execution_place_type    :enum             default("internal_workshop"), not null
+#  finished_at             :datetime
+#  hour_meter              :decimal(10, 1)
+#  maintenance_type        :enum             not null
+#  next_preventive_km      :integer
+#  number                  :bigint           not null
+#  odometer_km             :integer
+#  opened_at               :datetime         not null
+#  parts_total_cents       :bigint           default(0), not null
+#  performed_service       :text
+#  plate                   :string           not null
+#  posted_on               :date
+#  posting_verified        :boolean          default(FALSE), not null
+#  priority_type           :enum             default("medium"), not null
+#  release_test_type       :enum
+#  reported_defect         :text             not null
+#  services_total_cents    :bigint           default(0), not null
+#  status_type             :enum             default("open"), not null
+#  total_cents             :bigint           default(0), not null
+#  vehicle_stopped         :boolean          default(FALSE), not null
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  opened_by_id            :bigint
+#  posted_by_id            :bigint
+#  supervisor_id           :bigint
+#  tenant_id               :bigint           not null
 #
 # Indexes
 #

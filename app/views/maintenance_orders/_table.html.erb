@@ -6,6 +6,8 @@
         <%= sortable_header(MaintenanceOrder.human_attribute_name(:plate), :plate) %>
         <%= sortable_header(MaintenanceOrder.human_attribute_name(:opened_at), :opened_at,
                             first_direction: :desc, class: 'd-none d-md-table-cell') %>
+        <%= sortable_header(MaintenanceOrder.human_attribute_name(:estimated_completion_at), :estimated_completion_at,
+                            class: 'd-none d-md-table-cell') %>
         <th class="d-none d-lg-table-cell"><%= MaintenanceOrder.human_attribute_name(:maintenance_type) %></th>
         <th class="d-none d-lg-table-cell"><%= MaintenanceOrder.human_attribute_name(:priority_type) %></th>
         <th class="d-none d-lg-table-cell"><%= MaintenanceOrder.human_attribute_name(:affected_system_type) %></th>

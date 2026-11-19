@@ -90,6 +90,22 @@ RSpec.describe MaintenanceOrder do
     end
   end
 
+  describe '#overdue?' do
+    let(:now) { Time.zone.local(2026, 11, 11, 10) }
+
+    it 'is overdue when a pending order passed its estimated completion' do
+      expect(build(:maintenance_order, estimated_completion_at: now - 1.minute).overdue?(now)).to be(true)
+      expect(build(:maintenance_order, status_type: 'waiting_parts', estimated_completion_at: now - 1.day).overdue?(now)).to be(true)
+    end
+
+    it 'is not overdue before the estimate, without an estimate or once the order is closed' do
+      expect(build(:maintenance_order, estimated_completion_at: now + 1.minute).overdue?(now)).to be(false)
+      expect(build(:maintenance_order, estimated_completion_at: nil).overdue?(now)).to be(false)
+      expect(build(:maintenance_order, status_type: 'finished', estimated_completion_at: now - 1.day).overdue?(now)).to be(false)
+      expect(build(:maintenance_order, status_type: 'cancelled', estimated_completion_at: now - 1.day).overdue?(now)).to be(false)
+    end
+  end
+
   describe '.next_number' do
     it 'starts at one and follows the last number of the tenant' do
       expect(described_class.next_number(tenant)).to eq(1)

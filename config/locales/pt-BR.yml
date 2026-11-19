@@ -156,6 +156,7 @@ pt-BR:
         number: Nº da OS
         plate: Placa
         opened_at: Abertura
+        estimated_completion_at: Previsão de término
         odometer_km: KM
         hour_meter: Horímetro
         driver_code: Motorista
@@ -1026,6 +1027,7 @@ pt-BR:
       maintenance_order_form:
         plate: Placa
         opened_at: Data e hora de abertura
+        estimated_completion_at: Previsão de término
         odometer_km: KM
         hour_meter: Horímetro
         driver_code: Motorista
@@ -1199,6 +1201,8 @@ pt-BR:
               inclusion: não está cadastrado como encarregado
             mechanic_ids:
               inclusion: contém funcionário que não está ativo na oficina
+            estimated_completion_at:
+              before_opening: não pode ser antes da abertura da OS
         maintenance_order_finish_form:
           attributes:
             base:
@@ -2895,6 +2899,7 @@ pt-BR:
       start_date: Abertas a partir de
       end_date: Abertas até
     locked: Esta OS já foi encerrada e não pode mais ser alterada.
+    overdue: Atrasada
     actions:
       start: Iniciar execução
       resume: Retomar execução
@@ -2983,6 +2988,7 @@ pt-BR:
       classification: Classificação da Manutenção
       affected_system_hint: Marque o sistema principal.
       vehicle_stopped_hint: Marque quando o veículo não pode rodar até a manutenção terminar.
+      estimated_completion_hint: Data e hora em que a oficina prevê liberar o veículo. A logística acompanha por aqui.
       description: Defeito, Diagnóstico e Serviço
       description_text: O diagnóstico e o serviço executado podem ser preenchidos depois, ao alterar a OS.
       items: Peças e serviços

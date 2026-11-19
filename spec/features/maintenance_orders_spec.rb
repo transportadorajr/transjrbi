@@ -52,6 +52,7 @@ describe 'Maintenance orders', :maintenance do
         create(:maintenance_order, tenant:, number: 1, plate: 'EXU1A23', opened_at: Time.zone.local(2026, 11, 3, 7, 15),
                                    supervisor:, opened_by: owner, odometer_km: 452_300, hour_meter: BigDecimal('1250.5'),
                                    driver_code: 501, driver_name: 'JOSE DA SILVA', vehicle_stopped: true, priority_type: 'high',
+                                   estimated_completion_at: Time.zone.local(2026, 11, 4, 17),
                                    diagnosis: 'Lonas gastas', performed_service: "Troca das lonas\nRegulagem do freio")
       end
       let!(:tire_order) do
@@ -63,7 +64,8 @@ describe 'Maintenance orders', :maintenance do
       let!(:engine_order) do
         create(:maintenance_order, tenant:, number: 3, plate: 'EXU9B87', opened_at: Time.zone.local(2026, 11, 10, 16, 40),
                                    maintenance_type: 'roadside', affected_system_type: 'engine', status_type: 'waiting_parts',
-                                   execution_place_type: 'on_route', reported_defect: 'Motor falhando')
+                                   execution_place_type: 'on_route', reported_defect: 'Motor falhando',
+                                   estimated_completion_at: Time.zone.local(2026, 11, 12, 18))
       end
       let!(:stranger_order) { create(:maintenance_order, tenant: other_tenant, number: 4, plate: 'ZZZ9Z99') }
 
@@ -81,10 +83,13 @@ describe 'Maintenance orders', :maintenance do
         expect(MaintenanceOrder.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nº da OS', 'Placa', 'Abertura', 'Tipo de manutenção', 'Prioridade', 'Sistema afetado', 'Situação', 'Ações'],
-            ['3', 'EXU9B87', '10/11/2026 16:40', 'Socorro (em rota)', 'Média', 'Motor', 'Aguardando peça', 'Opções Visualizar Alterar'],
-            ['2', 'GKT4567', '05/11/2026 14:00', 'Preventiva', 'Baixa', 'Pneus / Rodas', 'Concluída', ''],
-            ['1', 'EXU1A23', '03/11/2026 07:15', 'Corretiva', 'Alta', 'Freios', 'Aberta', 'Opções Visualizar Alterar'],
+            ['Nº da OS', 'Placa', 'Abertura', 'Previsão de término', 'Tipo de manutenção', 'Prioridade', 'Sistema afetado',
+             'Situação', 'Ações'],
+            ['3', 'EXU9B87', '10/11/2026 16:40', '12/11/2026 18:00', 'Socorro (em rota)', 'Média', 'Motor', 'Aguardando peça',
+             'Opções Visualizar Alterar'],
+            ['2', 'GKT4567', '05/11/2026 14:00', '-', 'Preventiva', 'Baixa', 'Pneus / Rodas', 'Concluída', ''],
+            ['1', 'EXU1A23', '03/11/2026 07:15', '04/11/2026 17:00 Atrasada', 'Corretiva', 'Alta', 'Freios', 'Aberta',
+             'Opções Visualizar Alterar'],
           ],
         )
         expect(page).to have_css('.counter-card', text: "Em aberto\n2")
@@ -149,6 +154,13 @@ describe 'Maintenance orders', :maintenance do
         expect(html_table_to_rows.drop(1).map(&:second)).to eq(%w[EXU9B87 GKT4567 EXU1A23])
       end
 
+      scenario 'sorts the orders by estimated completion' do
+        visit maintenance_orders_path
+        within('thead') { click_on 'Previsão de término' }
+
+        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[1 3 2])
+      end
+
       scenario 'shows every data of an order' do
         visit maintenance_orders_path
         within("#maintenance_order_#{brakes_order.id} .inline-actions") { click_on 'Visualizar' }
@@ -156,7 +168,8 @@ describe 'Maintenance orders', :maintenance do
         expect(page).to have_current_path(maintenance_order_path(brakes_order))
         expect(page).to have_css('h1', text: 'OS 1 · EXU1A23')
         expect(dl_to_hash('#vehicle_data')).to eq(
-          'Nº da OS' => '1', 'Situação' => 'Aberta', 'Abertura' => '03/11/2026 07:15', 'Placa' => 'EXU1A23',
+          'Nº da OS' => '1', 'Situação' => 'Aberta', 'Abertura' => '03/11/2026 07:15',
+          'Previsão de término' => '04/11/2026 17:00 Atrasada', 'Placa' => 'EXU1A23',
           'KM' => '452.300 km', 'Horímetro' => '1.250,5 h', 'Motorista' => 'JOSE DA SILVA',
           'Encarregado responsável' => 'PAULO LIMA', 'Mecânicos' => 'ANDRE ROCHA, CARLOS SOUZA',
           'Tipo de equipamento' => 'Cavalo mecânico', 'Aberta por' => 'Bruna Dona'
@@ -174,7 +187,7 @@ describe 'Maintenance orders', :maintenance do
       scenario 'shows the blank fields and the description of another equipment' do
         visit maintenance_order_path(tire_order)
 
-        expect(dl_to_hash('#vehicle_data')).to include('KM' => '-', 'Horímetro' => '-', 'Motorista' => '-',
+        expect(dl_to_hash('#vehicle_data')).to include('Previsão de término' => '-', 'KM' => '-', 'Horímetro' => '-', 'Motorista' => '-',
                                                        'Encarregado responsável' => '-', 'Mecânicos' => '-',
                                                        'Tipo de equipamento' => 'Outro: GUINDASTE',
                                                        'Aberta por' => '-')
@@ -189,6 +202,7 @@ describe 'Maintenance orders', :maintenance do
         fill_in 'Diagnóstico', with: 'Bico injetor entupido'
         fill_in 'Serviço executado', with: 'Limpeza dos bicos injetores'
         fill_in 'KM', with: '610200'
+        fill_in 'Previsão de término', with: '2026-11-14T16:30'
         select 'PAULO LIMA', from: 'Encarregado responsável'
 
         expect { click_on 'Salvar Alterações' }.not_to change(MaintenanceOrder, :count)
@@ -197,7 +211,9 @@ describe 'Maintenance orders', :maintenance do
         expect(page).to have_text('Ordem de serviço atualizada com sucesso.')
         expect(engine_order.reload).to have_attributes(number: 3, plate: 'EXU9B87', diagnosis: 'Bico injetor entupido',
                                                        performed_service: 'Limpeza dos bicos injetores', odometer_km: 610_200,
+                                                       estimated_completion_at: Time.zone.local(2026, 11, 14, 16, 30),
                                                        supervisor:, reported_defect: 'Motor falhando')
+        expect(dl_to_hash('#vehicle_data')).to include('Previsão de término' => '14/11/2026 16:30')
       end
 
       context 'when a mechanic of the order was deactivated' do
@@ -439,6 +455,15 @@ describe 'Maintenance orders', :maintenance do
         visit new_maintenance_order_path
 
         expect(page).to have_select('Encarregado responsável', selected: 'ANDRÉ COSTA', options: ['Selecione', 'ANDRÉ COSTA', 'PAULO LIMA'])
+      end
+
+      scenario 'does not accept an estimated completion before the opening' do
+        visit new_maintenance_order_path
+        fill_in 'Previsão de término', with: '2026-11-10T08:00'
+
+        expect { click_on 'Abrir OS' }.not_to change(MaintenanceOrder, :count)
+
+        expect(page).to have_text('Previsão de término não pode ser antes da abertura da OS')
       end
 
       scenario 'shows the errors of an incomplete order' do
