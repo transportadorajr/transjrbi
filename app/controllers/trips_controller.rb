@@ -68,12 +68,7 @@ class TripsController < BaseController
   end
 
   def manifests
-    manifests = apply_scopes(current_tenant.atua_manifests)
-    truck_group_id = @filter_form.truck_group_id
-    return manifests if truck_group_id.blank?
-
-    truck_group = @truck_groups.find_by(id: truck_group_id)
-    truck_group ? manifests.by_truck_group(truck_group, @truck_groups.flat_map(&:plates)) : manifests.none
+    TruckGroupFilter.new(@truck_groups, @filter_form.truck_group_id).apply(apply_scopes(current_tenant.atua_manifests))
   end
 
   def filter_params

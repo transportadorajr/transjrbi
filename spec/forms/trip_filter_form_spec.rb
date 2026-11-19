@@ -55,6 +55,11 @@ RSpec.describe TripFilterForm do
 
     it 'rejects a truck group that is not a number' do
       expect(described_class.new(truck_group_id: 'abc')).not_to be_valid
+      expect(described_class.new(truck_group_id: 'except-abc')).not_to be_valid
+    end
+
+    it 'accepts every truck group except one' do
+      expect(described_class.new(truck_group_id: 'except-3')).to have_attributes(valid?: true, truck_group_id: 'except-3')
     end
 
     it 'rejects a product group that is not a number' do

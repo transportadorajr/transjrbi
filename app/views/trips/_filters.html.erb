@@ -32,7 +32,7 @@
       <div class="col-12">
         <%= f.label :truck_group_id, TripFilterForm.human_attribute_name(:truck_group_id), class: 'form-label fw-medium' %>
         <%= f.select :truck_group_id,
-                     trips_truck_group_options(@truck_groups, @filter_form.truck_group_id),
+                     truck_group_filter_options(@truck_groups, @filter_form.truck_group_id),
                      { include_blank: t('shared.all') },
                      { class: 'form-select bg-light' } %>
       </div>

@@ -40,6 +40,10 @@ class TruckGroup < ApplicationRecord
     (freight_cents.to_d * percentage / 100).round(0, BigDecimal::ROUND_HALF_UP).to_i
   end
 
+  def utinga?
+    name == I18n.t('truck_groups.defaults.utinga')
+  end
+
   def fueled?
     fuel_rates.any? { |rate| rate.percentage.positive? }
   end

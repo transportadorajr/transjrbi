@@ -201,6 +201,26 @@ describe 'Manifests' do
         expect(html_table_to_rows).to eq([table_header, jose_row])
       end
 
+      context 'with the Utinga group' do
+        before do
+          create(:truck_group, :utinga, tenant:)
+          Atua::TransportDocument.find_by!(tenant:, number: '1').update!(plate: 'BAV5A04')
+        end
+
+        scenario 'filters the manifests outside Utinga' do
+          visit manifests_path
+
+          expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Rodotrem', 'Utinga', 'Todos, menos Utinga'])
+
+          select 'Todos, menos Utinga', from: 'Tipo de conjunto'
+          click_on 'Aplicar Filtros'
+
+          expect(Atua::Manifest.count).to eq(2)
+          expect(page).to have_select('Tipo de conjunto', selected: 'Todos, menos Utinga')
+          expect(html_table_to_rows).to eq([table_header, maria_row])
+        end
+      end
+
       scenario 'lists no manifest for a truck group of another tenant' do
         visit manifests_path(truck_group_id: create(:truck_group, tenant: other_tenant).id)
 

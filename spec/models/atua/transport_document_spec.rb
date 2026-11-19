@@ -336,6 +336,28 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.by_truck_group and .without_truck_group' do
+    let!(:rodotrem_group) { create(:truck_group, tenant:, name: 'Rodotrem', axles: [9]) }
+    let!(:utinga_group) { create(:truck_group, :utinga, tenant:) }
+    let!(:rodotrem) { create(:atua_transport_document, tenant:, plate: 'RDT9A99', axles: 9) }
+    let!(:utinga_rodotrem) { create(:atua_transport_document, tenant:, plate: 'BAV5A04', axles: 9) }
+    let!(:utinga_ls) { create(:atua_transport_document, tenant:, plate: 'EVO8C24', axles: 6) }
+    let!(:ls) { create(:atua_transport_document, tenant:, plate: 'LSS6C66', axles: 6) }
+    let!(:without_axles) { create(:atua_transport_document, tenant:, plate: nil, axles: nil) }
+    let(:grouped_plates) { utinga_group.plates }
+
+    it 'keeps the transport documents of the plates of the group or of its axle count outside the grouped plates' do
+      expect(described_class.count).to eq(5)
+      expect(described_class.by_truck_group(utinga_group, grouped_plates)).to contain_exactly(utinga_rodotrem, utinga_ls)
+      expect(described_class.by_truck_group(rodotrem_group, grouped_plates)).to eq([rodotrem])
+    end
+
+    it 'keeps every other transport document, even without plate or axle count' do
+      expect(described_class.without_truck_group(utinga_group, grouped_plates)).to contain_exactly(rodotrem, ls, without_axles)
+      expect(described_class.without_truck_group(rodotrem_group, grouped_plates)).to contain_exactly(utinga_rodotrem, utinga_ls, ls, without_axles)
+    end
+  end
+
   describe '#linked_manifests' do
     context 'with manifests linked by the CT-e report and by the MDF-e report' do
       let!(:transport_document) do

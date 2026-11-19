@@ -66,10 +66,6 @@ module TripsHelper
     product_groups.map { |product_group| [product_group.name, product_group.id.to_s] }
   end
 
-  def trips_truck_group_options(truck_groups, selected)
-    options_for_select(truck_groups.map { |truck_group| [truck_group.name, truck_group.id.to_s] }, selected)
-  end
-
   def trips_period_label(filter_form)
     t('trips.index.period', from: l(filter_form.start_date), to: l(filter_form.end_date))
   end

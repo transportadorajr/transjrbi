@@ -102,7 +102,7 @@ class RevenueProjectionHistoriesController < BaseController
     when :product_group_id, :product_id then current_tenant.product_groups.find_by(id: value)&.name
     when :driver_code then @drivers.find { it.driver_code == value }&.driver_name
     when :macro_region_id then helpers.revenue_projection_history_macro_region_name(@macro_regions, value)
-    when :truck_group_id then freight_truck_groups.find_by(id: value)&.name
+    when :truck_group_id then TruckGroupFilter.new(freight_truck_groups, value).name
     end || value.to_s.upcase
   end
 

@@ -2522,6 +2522,8 @@ pt-BR:
       five_axles: 5 eixos
       sider: Sider
     remaining_axles: Demais eixos
+    filter:
+      except: Todos, menos %{name}
     index:
       title: Grupos de caminhões
       pdf:

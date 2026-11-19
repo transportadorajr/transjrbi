@@ -1320,6 +1320,19 @@ describe 'Freight billing' do
             expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
             expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
           end
+
+          scenario 'filters every truck group except Utinga' do
+            visit freight_billing_path(october_by_truck)
+
+            expect(page).to have_select('Tipo de conjunto', options: ['Todos', '6 eixos', 'Quarto eixo', 'Rodotrem', 'Utinga', 'Todos, menos Utinga'])
+
+            select 'Todos, menos Utinga', from: 'Tipo de conjunto'
+            click_on 'Aplicar Filtros'
+
+            expect(page).to have_select('Tipo de conjunto', selected: 'Todos, menos Utinga')
+            expect(html_table_to_rows.map(&:first)).to eq(%w[Veículo RVR2C34 Total])
+            expect(first('.counter-card').text.squish).to eq('Frete bruto R$ 15.000,00')
+          end
         end
 
         scenario 'rejects an unknown truck group' do

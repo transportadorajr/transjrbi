@@ -68,10 +68,7 @@ class ManifestsController < BaseController
   end
 
   def by_truck_group(manifests)
-    return manifests if params[:truck_group_id].blank?
-
-    truck_group = @truck_groups.find_by(id: params[:truck_group_id])
-    truck_group ? manifests.by_truck_group(truck_group, @truck_groups.flat_map(&:plates)) : manifests.none
+    TruckGroupFilter.new(@truck_groups, params[:truck_group_id]).apply(manifests)
   end
 
   def load_trip_expenses
