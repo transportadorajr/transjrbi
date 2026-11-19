@@ -270,7 +270,7 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         expect(maintenance_order.reload.total_cents).to eq(93_000)
       end
 
-      context 'when a second part is placed before the first one' do
+      context 'when a part was placed before another one' do
         let!(:brake_shoe) do
           create(:maintenance_order_part, maintenance_order:, code: 'SP-9', description: 'SAPATA', quantity: 2, unit: 'UN',
                                           unit_price_cents: 1_000, total_cents: 2_000)
@@ -284,7 +284,14 @@ describe 'Maintenance order items', :maintenance, flipper: :maintenance do
         scenario 'lists the parts in the order they were placed on the work order' do
           visit maintenance_order_path(maintenance_order)
 
-          expect(html_table_to_rows(table: find('#parts table')).drop(1).map(&:first)).to eq(%w[SP-9 LF-123])
+          expect(maintenance_order.items.maintenance_order_parts.count).to eq(2)
+          expect(html_table_to_rows(table: find('#parts table'))).to eq(
+            [
+              ['Código', 'Descrição', 'Quantidade', 'Origem', 'Nº requisição / NF', 'Valor unitário', 'Total', 'Ações'],
+              ['SP-9', 'SAPATA', '2 UN', 'Estoque', '-', 'R$ 10,00', 'R$ 20,00', 'Opções Alterar Excluir'],
+              ['LF-123', 'LONA DE FREIO', '4 UN', 'Estoque', '-', 'R$ 85,00', 'R$ 340,00', 'Opções Alterar Excluir'],
+            ],
+          )
         end
       end
 
