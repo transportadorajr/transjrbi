@@ -3919,6 +3919,10 @@ pt-BR:
       driver_data: Dados do motorista
       vehicles: Veículos do motorista
       transport_documents: Últimos CT-es do motorista
+  vehicle_availability_orders:
+    show:
+      subtitle: Consulta da ordem de serviço do veículo em manutenção. Somente leitura.
+      back: Voltar para a disponibilidade da frota
   vehicle_availabilities:
     show:
       title: Disponibilidade da frota

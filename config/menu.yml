@@ -9,6 +9,7 @@ shared:
           feature: maintenance
           controllers:
             - vehicle_availabilities
+            - vehicle_availability_orders
         - name: freight_billing
           resource: freight_billing
           url: /freight_billing

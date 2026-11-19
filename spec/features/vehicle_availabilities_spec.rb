@@ -99,36 +99,54 @@ describe 'Vehicle availability' do
         expect(page).to have_no_text('ZZZ9Z99')
       end
 
-      scenario 'links to the vehicle and to the maintenance order on the maintenance subdomain' do
+      scenario 'links to the vehicle and to the read-only maintenance order on the app' do
         visit vehicle_availability_path
 
         within("#atua_vehicle_#{tractor_in_shop.id} .inline-actions") do
           expect(page).to have_link('Ver veículo', href: vehicle_path(tractor_in_shop))
-          expect(find_link('Ver OS')[:href]).to start_with("http://#{Transjrbi::MAINTENANCE_SUBDOMAIN}.")
-          expect(find_link('Ver OS')[:href]).to end_with(maintenance_order_path(MaintenanceOrder.find_by(number: 5)))
+          expect(page).to have_link('Ver OS', href: vehicle_availability_maintenance_order_path(MaintenanceOrder.find_by(number: 5)))
         end
       end
 
-      scenario 'filters by availability, vehicle type and plate' do
-        visit vehicle_availability_path
-        select 'Em manutenção', from: 'Disponibilidade'
-        click_on 'Aplicar Filtros'
-
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['BEV4G50 Carreta', 'EXU1A23 Cavalo'])
+      scenario 'shows the maintenance order without any control to change it' do
+        order = MaintenanceOrder.find_by(number: 5)
+        create(:maintenance_order_part, maintenance_order: order, description: 'LONA DE FREIO', quantity: 4, unit: 'UN',
+                                        unit_price_cents: 8_500, total_cents: 34_000)
 
         visit vehicle_availability_path
-        select 'Disponível', from: 'Disponibilidade'
-        select 'Cavalos', from: 'Tipo de veículo'
-        click_on 'Aplicar Filtros'
+        within("#atua_vehicle_#{tractor_in_shop.id} .inline-actions") { click_on 'Ver OS' }
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['GKT4567 Cavalo'])
+        expect(page).to have_current_path(vehicle_availability_maintenance_order_path(order))
+        expect(page).to have_css('h1', text: 'OS 5 · EXU1A23')
+        expect(dl_to_hash('#vehicle_data')).to include('Nº da OS' => '5', 'Situação' => 'Em execução',
+                                                       'Previsão de término' => '10/11/2026 18:00 Atrasada', 'Placa' => 'EXU1A23')
+        expect(dl_to_hash('#classification')).to include('Veículo parado' => 'Sim')
+        expect(page).to have_css('#parts', text: 'LONA DE FREIO')
+        within('.page-shell') do
+          expect(page).to have_no_link('Alterar')
+          expect(page).to have_no_link('Adicionar peça')
+          expect(page).to have_no_button('Iniciar')
+          expect(page).to have_no_link('Imprimir OS')
+          expect(page).to have_no_css("#maintenance_order_part_#{order.parts.sole.id} a")
+        end
+      end
 
-        visit vehicle_availability_path
-        fill_in 'Placa', with: 'exu-1a23'
-        click_on 'Aplicar Filtros'
+      scenario 'does not open a closed order of a vehicle' do
+        visit vehicle_availability_maintenance_order_path(MaintenanceOrder.find_by(number: 1))
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['EXU1A23 Cavalo'])
-        expect(page).to have_css('.counter-card', text: "Cavalos e carretas\n4")
+        expect(page.status_code).to eq(404)
+      end
+
+      scenario 'does not open an order of a vehicle outside the own fleet' do
+        visit vehicle_availability_maintenance_order_path(create(:maintenance_order, tenant:, number: 9, plate: 'TER1A11'))
+
+        expect(page.status_code).to eq(404)
+      end
+
+      scenario 'does not open an order of another tenant' do
+        visit vehicle_availability_maintenance_order_path(MaintenanceOrder.find_by(number: 8))
+
+        expect(page.status_code).to eq(404)
       end
 
       scenario 'sorts the vehicles by plate' do
@@ -150,7 +168,7 @@ describe 'Vehicle availability' do
       login_as(user, scope: :user)
     end
 
-    scenario 'sees the order and its estimate without the links it cannot open' do
+    scenario 'sees the order and its estimate and opens the order only to read it' do
       visit vehicle_availability_path
 
       expect(html_table_to_rows).to eq(
@@ -159,6 +177,18 @@ describe 'Vehicle availability' do
           ['EXU1A23 Cavalo', 'Em manutenção', '5', 'Aberta', '12/11/2026 17:00', 'Não', ''],
         ],
       )
+      expect(page).to have_no_link('Ver veículo')
+
+      click_on 'Ver OS'
+
+      expect(page).to have_css('h1', text: 'OS 5 · EXU1A23')
+      expect(dl_to_hash('#vehicle_data')).to include('Previsão de término' => '12/11/2026 17:00')
+    end
+
+    scenario 'still cannot enter the maintenance module', :maintenance do
+      visit maintenance_order_path(MaintenanceOrder.find_by(number: 5))
+
+      expect(page).to have_current_path(new_user_session_path)
     end
   end
 

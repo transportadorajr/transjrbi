@@ -3,7 +3,7 @@ module VehicleAvailabilitiesHelper
     menus = []
 
     menus << vehicle_availability_vehicle_menu(vehicle) if can?(:read, :vehicles)
-    menus << vehicle_availability_order_menu(maintenance_order) if maintenance_order && vehicle_availability_order_access?
+    menus << vehicle_availability_order_menu(maintenance_order) if maintenance_order
 
     menus
   end
@@ -48,16 +48,12 @@ module VehicleAvailabilitiesHelper
 
   private
 
-  def vehicle_availability_order_access?
-    can?(:read, :maintenance) && can?(:read, :maintenance_orders)
-  end
-
   def vehicle_availability_vehicle_menu(vehicle)
     Menu.new(name: :show_vehicle, record: vehicle, url: vehicle_path(vehicle), icon: :truck)
   end
 
   def vehicle_availability_order_menu(maintenance_order)
     Menu.new(name: :show_maintenance_order, record: maintenance_order, icon: :'wrench-adjustable',
-             url: maintenance_order_url(maintenance_order, subdomain: Transjrbi::MAINTENANCE_SUBDOMAIN))
+             url: vehicle_availability_maintenance_order_path(maintenance_order))
   end
 end
