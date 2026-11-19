@@ -5,7 +5,7 @@ class VehicleAvailabilitiesController < BaseController
   has_scope :by_fleet_kind, as: :kind
   has_scope :by_availability, as: :availability
 
-  def show
+  def index
     authorize!(:read, :vehicle_availability)
 
     fleet = current_tenant.atua_vehicles.active.own_fleet
@@ -13,6 +13,7 @@ class VehicleAvailabilitiesController < BaseController
     @pending_orders = pending_orders_by_plate(@vehicles.map(&:plate))
     @total_count = fleet.count
     @in_maintenance_count = fleet.in_maintenance.count
+    @available_count = @total_count - @in_maintenance_count
   end
 
   private

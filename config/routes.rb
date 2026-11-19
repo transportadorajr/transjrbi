@@ -107,9 +107,8 @@ Rails.application.routes.draw do
     resources :cities, concerns: :activatable
     resources :truck_groups, concerns: :activatable
     resource :own_fleet, only: %i[show edit update]
-    resource :vehicle_availability, only: :show do
-      resources :maintenance_orders, only: :show, controller: 'vehicle_availability_orders'
-    end
+    resources :vehicle_availabilities, only: :index
+    resources :vehicle_availability_orders, only: :show, path: 'vehicle_availabilities/maintenance_orders'
     resource :revenue_goals, only: %i[show edit update] do
       post :replicate
     end

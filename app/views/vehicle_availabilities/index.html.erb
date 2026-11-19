@@ -9,7 +9,7 @@
 
   <div class="row g-3 mb-4">
     <%= counter_card(:dark, t('.total'), @total_count) %>
-    <%= counter_card(:success, t('.available'), @total_count - @in_maintenance_count) %>
+    <%= counter_card(:success, t('.available'), @available_count) %>
     <%= counter_card(:danger, t('.in_maintenance'), @in_maintenance_count) %>
   </div>
 

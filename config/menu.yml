@@ -5,7 +5,7 @@ shared:
       menus:
         - name: vehicle_availability
           resource: vehicle_availability
-          url: /vehicle_availability
+          url: /vehicle_availabilities
           feature: maintenance
           controllers:
             - vehicle_availabilities

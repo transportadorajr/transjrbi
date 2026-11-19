@@ -12,7 +12,7 @@ describe 'Vehicle availability' do
 
   context 'without a signed in user' do
     scenario 'redirects to the login screen' do
-      visit vehicle_availability_path
+      visit vehicle_availabilities_path
 
       expect(page).to have_current_path(new_user_session_path)
     end
@@ -29,7 +29,7 @@ describe 'Vehicle availability' do
       expect(page).to have_css('.sidebar-desktop')
       expect(page).to have_no_link('Disponibilidade da frota')
 
-      visit vehicle_availability_path
+      visit vehicle_availabilities_path
 
       expect(page.status_code).to eq(404)
     end
@@ -42,7 +42,7 @@ describe 'Vehicle availability' do
 
     context 'when the fleet has no vehicles' do
       scenario 'shows the empty state message and zeroed counters' do
-        visit vehicle_availability_path
+        visit vehicle_availabilities_path
 
         expect(page).to have_text('Nenhum registro encontrado')
         expect(page).to have_css('.counter-card', text: "Cavalos e carretas\n0")
@@ -79,7 +79,7 @@ describe 'Vehicle availability' do
         visit root_path
         within('.sidebar-desktop') { click_on 'Disponibilidade da frota' }
 
-        expect(page).to have_current_path(vehicle_availability_path)
+        expect(page).to have_current_path(vehicle_availabilities_path)
         expect(Atua::Vehicle.count).to eq(8)
         expect(html_table_to_rows).to eq(
           [
@@ -100,20 +100,20 @@ describe 'Vehicle availability' do
       end
 
       scenario 'links to the vehicle and to the read-only maintenance order on the app' do
-        visit vehicle_availability_path
+        visit vehicle_availabilities_path
 
         within("#atua_vehicle_#{tractor_in_shop.id} .inline-actions") do
-          expect(page).to have_link('Ver veículo', href: vehicle_path(tractor_in_shop, return_to: vehicle_availability_path))
-          expect(page).to have_link('Ver OS', href: vehicle_availability_maintenance_order_path(MaintenanceOrder.find_by(number: 5)))
+          expect(page).to have_link('Ver veículo', href: vehicle_path(tractor_in_shop, return_to: vehicle_availabilities_path))
+          expect(page).to have_link('Ver OS', href: vehicle_availability_order_path(MaintenanceOrder.find_by(number: 5)))
         end
       end
 
       scenario 'goes back to the fleet availability from the vehicle' do
-        visit vehicle_availability_path(availability: 'in_maintenance')
+        visit vehicle_availabilities_path(availability: 'in_maintenance')
         within("#atua_vehicle_#{tractor_in_shop.id} .inline-actions") { click_on 'Ver veículo' }
         find('.btn-back').click
 
-        expect(page).to have_current_path(vehicle_availability_path(availability: 'in_maintenance'))
+        expect(page).to have_current_path(vehicle_availabilities_path(availability: 'in_maintenance'))
       end
 
       scenario 'shows the maintenance order without any control to change it' do
@@ -121,14 +121,24 @@ describe 'Vehicle availability' do
         create(:maintenance_order_part, maintenance_order: order, description: 'LONA DE FREIO', quantity: 4, unit: 'UN',
                                         unit_price_cents: 8_500, total_cents: 34_000)
 
-        visit vehicle_availability_path
+        visit vehicle_availabilities_path
         within("#atua_vehicle_#{tractor_in_shop.id} .inline-actions") { click_on 'Ver OS' }
 
-        expect(page).to have_current_path(vehicle_availability_maintenance_order_path(order))
+        expect(page).to have_current_path(vehicle_availability_order_path(order))
         expect(page).to have_css('h1', text: 'OS 5 · EXU1A23')
-        expect(dl_to_hash('#vehicle_data')).to include('Nº da OS' => '5', 'Situação' => 'Em execução',
-                                                       'Previsão de término' => '10/11/2026 18:00 Atrasada', 'Placa' => 'EXU1A23')
-        expect(dl_to_hash('#classification')).to include('Veículo parado' => 'Sim')
+        expect(dl_to_hash('#vehicle_data')).to eq(
+          'Nº da OS' => '5', 'Situação' => 'Em execução', 'Abertura' => '09/11/2026 08:00',
+          'Previsão de término' => '10/11/2026 18:00 Atrasada', 'Placa' => 'EXU1A23', 'KM' => '-', 'Horímetro' => '-',
+          'Motorista' => '-', 'Encarregado responsável' => '-', 'Mecânicos' => '-', 'Tipo de equipamento' => 'Cavalo mecânico',
+          'Aberta por' => '-'
+        )
+        expect(dl_to_hash('#classification')).to eq(
+          'Tipo de manutenção' => 'Corretiva', 'Prioridade' => 'Média', 'Veículo parado' => 'Sim',
+          'Local de execução' => 'Oficina interna', 'Sistema afetado' => 'Freios'
+        )
+        expect(dl_to_hash('#description')).to eq(
+          'Defeito relatado' => 'Freio puxando para a direita', 'Diagnóstico' => '-', 'Serviço executado' => '-',
+        )
         expect(page).to have_css('#parts', text: 'LONA DE FREIO')
         within('.page-shell') do
           expect(page).to have_no_link('Alterar')
@@ -140,25 +150,25 @@ describe 'Vehicle availability' do
       end
 
       scenario 'does not open a closed order of a vehicle' do
-        visit vehicle_availability_maintenance_order_path(MaintenanceOrder.find_by(number: 1))
+        visit vehicle_availability_order_path(MaintenanceOrder.find_by(number: 1))
 
         expect(page.status_code).to eq(404)
       end
 
       scenario 'does not open an order of a vehicle outside the own fleet' do
-        visit vehicle_availability_maintenance_order_path(create(:maintenance_order, tenant:, number: 9, plate: 'TER1A11'))
+        visit vehicle_availability_order_path(create(:maintenance_order, tenant:, number: 9, plate: 'TER1A11'))
 
         expect(page.status_code).to eq(404)
       end
 
       scenario 'does not open an order of another tenant' do
-        visit vehicle_availability_maintenance_order_path(MaintenanceOrder.find_by(number: 8))
+        visit vehicle_availability_order_path(MaintenanceOrder.find_by(number: 8))
 
         expect(page.status_code).to eq(404)
       end
 
       scenario 'sorts the vehicles by plate' do
-        visit vehicle_availability_path
+        visit vehicle_availabilities_path
         within('thead') { click_on 'Placa' }
 
         expect(html_table_to_rows.drop(1).map(&:first)).to eq(['AAB1C23 Carreta', 'BEV4G50 Carreta', 'EXU1A23 Cavalo', 'GKT4567 Cavalo'])
@@ -177,7 +187,7 @@ describe 'Vehicle availability' do
     end
 
     scenario 'sees the order and its estimate and opens the order only to read it' do
-      visit vehicle_availability_path
+      visit vehicle_availabilities_path
 
       expect(html_table_to_rows).to eq(
         [
@@ -211,7 +221,7 @@ describe 'Vehicle availability' do
       expect(page).to have_css('.sidebar-desktop')
       expect(page).to have_no_link('Disponibilidade da frota')
 
-      visit vehicle_availability_path
+      visit vehicle_availabilities_path
 
       expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
     end
@@ -227,7 +237,7 @@ describe 'Vehicle availability' do
     end
 
     scenario 'keeps the plate and the availability and does not scroll sideways' do
-      visit vehicle_availability_path
+      visit vehicle_availabilities_path
       use_mobile_screen
 
       expect(page).to have_css('th', text: 'PLACA')

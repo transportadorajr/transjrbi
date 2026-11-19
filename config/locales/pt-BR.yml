@@ -3924,7 +3924,7 @@ pt-BR:
       subtitle: Consulta da ordem de serviço do veículo em manutenção. Somente leitura.
       back: Voltar para a disponibilidade da frota
   vehicle_availabilities:
-    show:
+    index:
       title: Disponibilidade da frota
       subtitle: Cavalos e carretas da frota própria e as ordens de serviço em aberto na oficina.
       total: Cavalos e carretas
