@@ -14,6 +14,10 @@ module Atua
       "STRING_AGG(atua_vehicles.plate, ', ' ORDER BY atua_vehicles.plate) AS plates",
     ].freeze
     TRAILER_CATEGORY = 'Carreta'.freeze
+    TRACTOR_CATEGORY = 'Caminhão / Cavalo'.freeze
+    FLEET_KINDS = { tractor: TRACTOR_CATEGORY, trailer: TRAILER_CATEGORY }.freeze
+    OWN_OWNERSHIP = 'Próprio'.freeze
+    AVAILABILITIES = %i[available in_maintenance].freeze
     DRIVER_JOIN = 'LEFT JOIN drivers ON drivers.tenant_id = atua_vehicles.tenant_id AND drivers.code = atua_vehicles.driver_code'.freeze
 
     sortable :plate
@@ -43,11 +47,36 @@ module Atua
       where(TransportDocument.active.not_canceled.where(issued_at: period).where(documents[:tenant_id].eq(arel_table[:tenant_id]))
         .where(ownership).arel.exists)
     }
+    scope :own_fleet, -> { where(ownership: OWN_OWNERSHIP, category: FLEET_KINDS.values).where.not(plate: [nil, '']) }
+    scope :in_maintenance, -> { where(pending_maintenance_orders.arel.exists) }
+    scope :available, -> { where.not(pending_maintenance_orders.arel.exists) }
+    scope :by_fleet_kind, ->(kind) { FLEET_KINDS.key?(kind.to_s.to_sym) ? where(category: FLEET_KINDS[kind.to_s.to_sym]) : all }
+    scope :by_availability, ->(availability) { AVAILABILITIES.include?(availability.to_s.to_sym) ? public_send(availability) : all }
     scope :drivers, -> {
       grouped = active.where.not(driver_code: nil).joins(DRIVER_JOIN).group(:tenant_id, :driver_code).select(:tenant_id, :driver_code, *DRIVER_COLUMNS)
 
       unscope(:where).from(grouped, :atua_vehicles)
     }
+
+    class << self
+      def pending_maintenance_orders
+        orders = MaintenanceOrder.arel_table
+
+        MaintenanceOrder.pending.where(orders[:tenant_id].eq(arel_table[:tenant_id])).where(orders[:plate].eq(arel_table[:plate]))
+      end
+
+      def in_maintenance_first
+        pending_maintenance_orders.arel.exists.desc
+      end
+
+      def availabilities
+        AVAILABILITIES.index_by { |availability| I18n.t(availability, scope: 'vehicle_availabilities.availabilities') }
+      end
+
+      def fleet_kinds
+        FLEET_KINDS.keys.index_by { |kind| I18n.t(kind, scope: 'vehicle_availabilities.fleet_kinds') }
+      end
+    end
 
     def expenses
       Expense.by_vehicle(self)

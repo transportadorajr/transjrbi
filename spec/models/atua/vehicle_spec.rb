@@ -61,6 +61,47 @@ RSpec.describe Atua::Vehicle do
     end
   end
 
+  describe 'fleet availability scopes' do
+    let(:tenant) { create(:tenant) }
+    let!(:tractor) { create(:atua_vehicle, tenant:, plate: 'EXU1A23', category: 'Caminhão / Cavalo', ownership: 'Próprio') }
+    let!(:trailer) { create(:atua_vehicle, tenant:, plate: 'BEV4G50', category: 'Carreta', ownership: 'Próprio') }
+
+    before do
+      create(:atua_vehicle, tenant:, plate: 'TER1A11', category: 'Carreta', ownership: 'Terceiro')
+      create(:atua_vehicle, tenant:, plate: 'CAR2B22', category: 'Outros', ownership: 'Próprio')
+      create(:atua_vehicle, tenant:, plate: nil, category: 'Carreta', ownership: 'Próprio')
+      create(:maintenance_order, tenant:, plate: 'EXU1A23', status_type: 'waiting_parts')
+      create(:maintenance_order, tenant:, plate: 'BEV4G50', status_type: 'finished')
+      create(:maintenance_order, tenant: create(:tenant), plate: 'BEV4G50')
+    end
+
+    it 'keeps only the own tractors and trailers with a plate' do
+      expect(described_class.own_fleet).to contain_exactly(tractor, trailer)
+    end
+
+    it 'splits the fleet by a pending maintenance order of the same tenant' do
+      expect(described_class.own_fleet.in_maintenance).to eq([tractor])
+      expect(described_class.own_fleet.available).to eq([trailer])
+      expect(described_class.own_fleet.by_availability('in_maintenance')).to eq([tractor])
+      expect(described_class.own_fleet.by_availability('anything')).to contain_exactly(tractor, trailer)
+    end
+
+    it 'filters the fleet by kind' do
+      expect(described_class.own_fleet.by_fleet_kind('tractor')).to eq([tractor])
+      expect(described_class.own_fleet.by_fleet_kind('trailer')).to eq([trailer])
+      expect(described_class.own_fleet.by_fleet_kind('bus')).to contain_exactly(tractor, trailer)
+    end
+
+    it 'orders the vehicles in maintenance first' do
+      expect(described_class.own_fleet.order(described_class.in_maintenance_first, :plate)).to eq([tractor, trailer])
+    end
+
+    it 'translates the availability and kind options' do
+      expect(described_class.availabilities).to eq('Disponível' => :available, 'Em manutenção' => :in_maintenance)
+      expect(described_class.fleet_kinds).to eq('Cavalos' => :tractor, 'Carretas' => :trailer)
+    end
+  end
+
   describe 'scopes' do
     context 'with vehicles of different plates' do
       let!(:truck) { create(:atua_vehicle, tenant:, plate: 'EXU0F72') }

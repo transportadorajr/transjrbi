@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(Atua::Vehicle.human_attribute_name(:plate), :plate) %>
+        <th><%= t('vehicle_availabilities.table.availability') %></th>
+        <th class="d-none d-md-table-cell"><%= MaintenanceOrder.human_attribute_name(:number) %></th>
+        <th class="d-none d-lg-table-cell"><%= t('vehicle_availabilities.table.order_status') %></th>
+        <th class="d-none d-md-table-cell"><%= MaintenanceOrder.human_attribute_name(:estimated_completion_at) %></th>
+        <th class="d-none d-lg-table-cell"><%= MaintenanceOrder.human_attribute_name(:vehicle_stopped) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item:, maintenance_order: pending_orders[item.plate] %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

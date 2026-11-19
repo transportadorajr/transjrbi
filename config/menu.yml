@@ -3,6 +3,12 @@ shared:
     - name: intelligence
       icon: graph-up-arrow
       menus:
+        - name: vehicle_availability
+          resource: vehicle_availability
+          url: /vehicle_availability
+          feature: maintenance
+          controllers:
+            - vehicle_availabilities
         - name: freight_billing
           resource: freight_billing
           url: /freight_billing
