@@ -18,7 +18,7 @@ export default class extends Controller {
   refresh() {
     const totals = this.amountTargets.reduce((sums, input) => {
       const section = input.dataset.section;
-      sums[section] = (sums[section] || 0) + this.cents(input.value);
+      sums[section] = (sums[section] || 0) + this.cents(input.value) * this.weight(input);
       return sums;
     }, {});
     const company = this.hasCompanyTarget ? this.cents(this.companyTarget.value) : 0;
@@ -38,6 +38,11 @@ export default class extends Controller {
     this.lineTargets
       .filter(line => line.dataset.section === section)
       .forEach(line => line.classList.toggle('d-none', !normalize(line.dataset.name).includes(query)));
+  }
+
+  weight(input) {
+    const weight = parseInt(input.dataset.weight, 10);
+    return Number.isNaN(weight) ? 1 : weight;
   }
 
   cents(value) {

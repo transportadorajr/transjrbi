@@ -1,6 +1,6 @@
 module RevenueGoals
   class ReplicateMonthCommand
-    COPIED_ATTRIBUTES = %w[target_type plate customer_group_id macro_region_id amount_cents].freeze
+    COPIED_ATTRIBUTES = %w[target_type plate customer_group_id macro_region_id truck_group_id amount_cents].freeze
 
     class << self
       def call(tenant, month)

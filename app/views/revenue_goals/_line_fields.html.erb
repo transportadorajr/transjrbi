@@ -3,11 +3,11 @@
 <div class="goal-line" data-goal-lines-target="line" data-section="<%= section %>" data-name="<%= f.object.name %>">
   <div class="goal-line-target">
     <%= revenue_goals_target_label(section, f.object) %>
-    <span class="goal-line-reference"><%= revenue_goals_reference_text(f.object, month) %></span>
+    <span class="goal-line-reference"><%= revenue_goals_reference_text(section, f.object, month) %></span>
   </div>
   <div class="goal-line-amount">
     <%= f.hidden_field :key %>
     <%= f.input :amount, as: :money, required: false, label: f.object.name, label_html: { class: 'visually-hidden' }, wrapper_html: { class: 'mb-0' },
-                         input_html: { class: 'form-control bg-light', data: { goal_lines_target: 'amount', section: } } %>
+                         input_html: { class: 'form-control bg-light', data: { goal_lines_target: 'amount', section:, weight: f.object.weight } } %>
   </div>
 </div>

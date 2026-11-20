@@ -1,0 +1,24 @@
+<%# locals: (averages:, rows:) %>
+
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="goal_truck_groups_table">
+    <thead>
+      <tr>
+        <th><%= t('goals.sections.truck_groups') %></th>
+        <th class="text-end d-none d-lg-table-cell"><%= t('goals.truck_groups.vehicles') %></th>
+        <% averages.months.each do |month| %>
+          <th class="<%= goal_truck_group_month_class(averages, month) %>"><%= goal_month_name(month) %></th>
+        <% end %>
+        <th class="text-end"><%= t('goals.truck_groups.goal') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'goals/truck_group_row', collection: rows, as: :row, locals: { averages: } %>
+      <%= render 'goals/truck_group_row', row: averages.total_row, averages: %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate rows, param_name: :truck_groups_page %>
+</div>

@@ -7,7 +7,7 @@
         <th><%= t(section, scope: 'goals.sections') %></th>
         <th class="text-end"><%= t('revenue_goals.show.columns.goal') %></th>
         <th class="d-none d-md-table-cell"><%= t('revenue_goals.show.columns.share') %></th>
-        <th class="text-end d-none d-lg-table-cell"><%= revenue_goals_reference_label(month) %></th>
+        <th class="text-end d-none d-lg-table-cell"><%= revenue_goals_reference_label(section, month) %></th>
       </tr>
     </thead>
     <tbody>

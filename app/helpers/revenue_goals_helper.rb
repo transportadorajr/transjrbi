@@ -2,6 +2,7 @@ module RevenueGoalsHelper
   REVENUE_GOALS_CARD_COLUMNS = 'col-6 col-md-4 col-xxl'.freeze
   REVENUE_GOALS_SEARCH_MIN_LINES = 8
   REVENUE_GOALS_RATIO_TOKEN = '{ratio}'.freeze
+  REVENUE_GOALS_SUMMARY_SECTIONS = (RevenueGoalsForm::SECTIONS.keys - %i[truck_groups]).freeze
 
   def revenue_goals_edit_button(month)
     return unless can?(:update, :revenue_goals)
@@ -37,7 +38,7 @@ module RevenueGoalsHelper
 
   def revenue_goals_summary_cards(form)
     cards = [counter_card(:dark, t('revenue_goals.show.totals.company'), goal_money(form.company_cents), col_class: REVENUE_GOALS_CARD_COLUMNS)]
-    cards += RevenueGoalsForm::SECTIONS.keys.map do |section|
+    cards += REVENUE_GOALS_SUMMARY_SECTIONS.map do |section|
       counter_card(:primary, t(section, scope: 'revenue_goals.show.totals'), revenue_goals_total(form, section), col_class: REVENUE_GOALS_CARD_COLUMNS)
     end
     safe_join(cards)
@@ -86,8 +87,11 @@ module RevenueGoalsHelper
 
   def revenue_goals_target_label(section, line)
     return goal_plate_tag(line.name) if Dashboard::Goals.vehicle_section?(section)
+    return line.name unless section == :truck_groups
 
-    line.name
+    counts = t('revenue_goals.group_counts', vehicles: t('revenue_goals.vehicles_count', count: line.vehicles_count.to_i),
+                                             trailers: t('revenue_goals.trailers_count', count: line.trailers_count.to_i))
+    safe_join([line.name, tag.span(counts, class: 'd-block small text-muted fw-normal')])
   end
 
   def revenue_goals_amount(cents)
@@ -113,12 +117,17 @@ module RevenueGoalsHelper
     t('revenue_goals.share', ratio: goal_ratio(cents.to_d / company_cents))
   end
 
-  def revenue_goals_reference_label(month)
-    t('revenue_goals.show.columns.reference', month: goal_month_name(month.prev_month))
+  def revenue_goals_reference_label(section, month)
+    key = section == :truck_groups ? :average_reference : :reference
+    t(key, scope: 'revenue_goals.show.columns', month: goal_month_name(month.prev_month))
   end
 
-  def revenue_goals_reference_text(line, month)
-    t('revenue_goals.form.reference', month: goal_month_name(month.prev_month), amount: goal_money(line.reference_cents))
+  def revenue_goals_reference_text(section, line, month)
+    month_name = goal_month_name(month.prev_month)
+    amount = goal_money(line.reference_cents)
+    return t('revenue_goals.form.reference', month: month_name, amount:) unless section == :truck_groups
+
+    t('revenue_goals.form.average_reference', vehicles: t('revenue_goals.vehicles_count', count: line.vehicles_count.to_i), month: month_name, amount:)
   end
 
   private

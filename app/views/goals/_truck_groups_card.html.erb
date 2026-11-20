@@ -1,0 +1,13 @@
+<%# locals: (averages:, rows:) %>
+
+<div class="card table-card mb-4" id="goal_truck_groups">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('goals.truck_groups.title') %></p>
+      <p class="table-card-subtitle"><%= t('goals.truck_groups.subtitle') %></p>
+    </div>
+  </div>
+  <div class="table-card-body">
+    <%= render 'goals/truck_groups_table', averages:, rows: %>
+  </div>
+</div>

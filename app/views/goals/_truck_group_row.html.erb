@@ -1,0 +1,10 @@
+<%# locals: (row:, averages:) %>
+
+<tr id="goal_truck_group_<%= row.key %>">
+  <td class="fw-semibold"><%= row.label %></td>
+  <td class="text-end d-none d-lg-table-cell"><%= row.vehicles_count %></td>
+  <% averages.months.each do |month| %>
+    <td class="<%= goal_truck_group_month_class(averages, month) %>"><%= goal_truck_group_average(row, month) %></td>
+  <% end %>
+  <td class="text-end text-nowrap fw-semibold"><%= goal_truck_group_goal(row) %></td>
+</tr>

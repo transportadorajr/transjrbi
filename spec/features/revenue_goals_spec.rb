@@ -65,7 +65,8 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
         expect(RevenueGoal.where(tenant:).count).to eq(3)
         expect(CustomerGroup.where(tenant:).count).to eq(2)
         expect(summary_cards).to eq(
-          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma das carretas R$ 0,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
+          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma das carretas R$ 0,00',
+           'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
         )
         expect(page).to have_css('#revenue_goals_tabs .nav-link.active', text: 'Veículos 1')
         expect(html_table_to_rows(table: find_by_id('revenue_goals_vehicles'))).to eq(
@@ -124,7 +125,8 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
         expect(page).to have_text('3 metas copiadas do mês anterior.')
         expect(summary_cards).to eq(
-          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma das carretas R$ 0,00', 'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
+          ['Transportadora R$ 150.000,00', 'Soma dos veículos R$ 40.000,00', 'Soma das carretas R$ 0,00',
+           'Soma dos grupos R$ 0,00', 'Soma das regiões R$ 60.000,00'],
         )
         expect(tenant.revenue_goals.for_month(month.next_month).count).to eq(3)
       end
@@ -160,6 +162,64 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
       expect(goal.plate).to eq('AJR4391')
       expect(goal.amount_cents).to eq(5_000_000)
       expect(tenant.revenue_goals.company.sole.amount_cents).to eq(20_000_000)
+    end
+
+    context 'with truck groups' do
+      let!(:sider) { create(:truck_group, tenant:, name: 'SIDER', axles: [], plates: %w[RHJ5A50 ZXC2B35]) }
+      let!(:nine_axles) { create(:truck_group, tenant:, name: '9 EIXO NACIONAL', axles: [9]) }
+
+      before do
+        tenant.own_fleet.update!(plates: %w[RHJ5A50 AJR4391 BRA2E19 QWE1A24 ZXC2B35])
+        create(:atua_vehicle, tenant:, plate: 'QWE1A24', category: 'Carreta')
+        create(:atua_vehicle, tenant:, plate: 'ZXC2B35', category: 'Carreta')
+        create(:atua_transport_document, tenant:, plate: 'AJR4391', trailer_plate: 'QWE1A24', axles: 9, freight_cents: 12_000_000,
+                                         issued_at: Time.zone.local(2026, 10, 15, 10))
+        create(:atua_transport_document, tenant:, plate: 'BRA2E19', axles: 9, freight_cents: 8_000_000, issued_at: Time.zone.local(2026, 10, 16, 10))
+        create(:revenue_goal, :vehicle, tenant:, month:, plate: 'RHJ5A50', amount_cents: 9_000_000)
+      end
+
+      scenario 'gives the goal of a truck group to every truck and trailer of the group' do
+        visit edit_revenue_goals_path(month: '2026-11')
+
+        within('#revenue_goals_truck_groups_fields') do
+          expect(page).to have_text('2 veículos · Média por veículo em Outubro de 2026: R$ 100.000,00')
+          expect(page).to have_text('1 veículo · Média por veículo em Outubro de 2026: R$ 0,00')
+          fill_in '9 EIXO NACIONAL', with: '160.000,00'
+          fill_in 'SIDER', with: '110.000,00'
+        end
+
+        expect { click_on 'Salvar Metas' }.to change(RevenueGoal, :count).by(6)
+
+        expect(page).to have_text('Metas salvas com sucesso.')
+        expect(tenant.revenue_goals.truck_group.pluck(:truck_group_id, :amount_cents))
+          .to contain_exactly([nine_axles.id, 16_000_000], [sider.id, 11_000_000])
+        expect(tenant.revenue_goals.vehicle.pluck(:plate, :amount_cents))
+          .to contain_exactly(['AJR4391', 16_000_000], ['BRA2E19', 16_000_000], ['RHJ5A50', 11_000_000])
+        expect(tenant.revenue_goals.trailer.pluck(:plate, :amount_cents)).to contain_exactly(['QWE1A24', 16_000_000], ['ZXC2B35', 11_000_000])
+        expect(summary_cards).to include('Soma dos veículos R$ 430.000,00', 'Soma das carretas R$ 270.000,00')
+        expect(summary_cards.join).not_to include('Soma dos grupos de caminhões')
+
+        click_on 'Grupos de caminhões'
+
+        expect(html_table_to_rows(table: find_by_id('revenue_goals_truck_groups'))).to eq(
+          [
+            ['Grupo de caminhões', 'Meta', 'Participação na meta da transportadora', 'Média por veículo em Outubro de 2026'],
+            ['9 EIXO NACIONAL2 veículos · 1 carreta', 'R$ 160.000,00', '-', 'R$ 100.000,00'],
+            ['SIDER1 veículo · 1 carreta', 'R$ 110.000,00', '-', 'R$ 0,00'],
+          ],
+        )
+      end
+
+      scenario 'rejects a truck group of another tenant' do
+        other = create(:truck_group, tenant: other_tenant, name: 'OUTRO')
+
+        expect do
+          page.driver.submit :patch, revenue_goals_path,
+                             { revenue_goals: { month: '2026-11', truck_groups_attributes: { '0' => { key: other.id.to_s, amount: '100,00' } } } }
+        end.not_to change(RevenueGoal, :count)
+
+        expect(page).to have_text("O grupo de caminhões #{other.id} não está ativo.")
+      end
     end
 
     context 'with a trailer in the own fleet' do
@@ -242,7 +302,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
 
         visit edit_revenue_goals_path(month: '2026-11')
 
-        expect(page).to have_text('Metas por veículo, carreta, grupo de clientes e região')
+        expect(page).to have_text('Metas por veículo, grupo de caminhões, carreta, grupo de clientes e região')
         expect(page).to have_no_field('JOSE DA SILVA')
       end
     end
@@ -304,6 +364,16 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
       expect(page).to have_text('Metas salvas com sucesso.')
       expect(tenant.revenue_goals.region.sole.amount_cents).to eq(9_000_000)
       expect(tenant.revenue_goals.vehicle.pluck(:plate, :amount_cents)).to contain_exactly(['AJR4391', 4_000_000], ['RHJ5A50', 1_000_000])
+    end
+
+    scenario 'sums the goal of a truck group once for each of its trucks' do
+      create(:truck_group, tenant:, name: 'SIDER', axles: [], plates: %w[RHJ5A50 AJR4391])
+      visit edit_revenue_goals_path(month: '2026-11')
+      click_on 'Grupos de caminhões'
+      fill_in 'SIDER', with: '5000000'
+
+      expect(page).to have_css('[data-goal-lines-target="total"][data-section="truck_groups"]', text: 'R$ 100.000,00')
+      expect(page).to have_css('[data-goal-lines-target="share"][data-section="truck_groups"]', text: '50,0% da meta da transportadora')
     end
 
     scenario 'keeps the goal lines inside a phone screen' do

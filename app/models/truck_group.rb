@@ -9,6 +9,7 @@ class TruckGroup < ApplicationRecord
   belongs_to :tenant
   has_many :freight_expenses, inverse_of: :truck_group, dependent: :restrict_with_error
   has_many :fuel_rates, class_name: 'TruckGroupFuelRate', inverse_of: :truck_group, dependent: :destroy
+  has_many :revenue_goals, inverse_of: :truck_group, dependent: :delete_all
 
   time_based_flag :activated
 

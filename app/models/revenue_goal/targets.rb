@@ -1,6 +1,6 @@
 class RevenueGoal
   class Targets
-    SECTIONS = { vehicles: 'vehicle', trailers: 'trailer', customer_groups: 'customer_group', regions: 'region' }.freeze
+    SECTIONS = { vehicles: 'vehicle', truck_groups: 'truck_group', trailers: 'trailer', customer_groups: 'customer_group', regions: 'region' }.freeze
 
     def initialize(tenant, month)
       @tenant = tenant
@@ -31,6 +31,14 @@ class RevenueGoal
       goals.select { |goal| goal.target_type == SECTIONS.fetch(section) }.to_h { |goal| [goal.target_value.to_s, goal.amount_cents] }
     end
 
+    def truck_group_plates
+      @truck_group_plates ||= plates_by_truck_group(tractor_plates, :plate)
+    end
+
+    def truck_group_trailer_plates
+      @truck_group_trailer_plates ||= plates_by_truck_group(fleet_trailer_plates, :trailer_plate)
+    end
+
     private
 
     attr_reader :tenant
@@ -44,7 +52,41 @@ class RevenueGoal
     end
 
     def vehicles_options
-      ((fleet_plates - fleet_trailer_plates) | goal_values(:vehicles)).sort.index_with(&:itself)
+      (tractor_plates | goal_values(:vehicles)).sort.index_with(&:itself)
+    end
+
+    def tractor_plates
+      @tractor_plates ||= fleet_plates - fleet_trailer_plates
+    end
+
+    def plates_by_truck_group(plates, column)
+      axles = latest_axles(plates, column)
+
+      plates.group_by { |plate| truck_group_for(active_truck_groups, plate, axles[plate])&.id&.to_s }.except(nil)
+    end
+
+    def active_truck_groups
+      @active_truck_groups ||= tenant.truck_groups.activated.to_a
+    end
+
+    def latest_axles(plates, column)
+      documents = tenant.billable_freights.active.not_canceled.where(column => plates).where.not(axles: nil)
+        .where(issued_at: ..month.end_of_month.end_of_day)
+
+      documents.reorder(column, issued_at: :desc).pluck(column, :axles).each_with_object({}) do |(plate, axles), latest|
+        latest[plate] ||= axles
+      end
+    end
+
+    def truck_group_for(truck_groups, plate, axles)
+      return truck_groups.find { |truck_group| truck_group.plates.include?(plate) } if axles.nil?
+
+      TruckGroup.for_document(truck_groups, plate:, axles:)
+    end
+
+    def truck_groups_options
+      truck_groups = tenant.truck_groups
+      truck_groups.where(id: goal_values(:truck_groups)).or(truck_groups.activated).order(:name, :id).to_h { |group| [group.id.to_s, group.name] }
     end
 
     def trailers_options
@@ -70,6 +112,12 @@ class RevenueGoal
 
     def vehicles_billing(relation)
       relation.group(:plate).sum(:freight_cents)
+    end
+
+    def truck_groups_billing(relation)
+      billed = vehicles_billing(relation.where(plate: truck_group_plates.values.flatten))
+
+      truck_group_plates.transform_values { |plates| (plates.sum { |plate| billed.fetch(plate, 0) }.to_d / plates.size).round.to_i }
     end
 
     def trailers_billing(relation)

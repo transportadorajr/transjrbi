@@ -9,6 +9,8 @@ class RevenueGoalsForm < BaseForm
     attribute :name, :string
     attribute :amount, :string
     attribute :reference_cents, :integer
+    attribute :vehicles_count, :integer
+    attribute :trailers_count, :integer
 
     def persisted?
       false
@@ -16,6 +18,14 @@ class RevenueGoalsForm < BaseForm
 
     def amount_cents
       RevenueGoalsForm.parse_cents(amount)
+    end
+
+    def weight
+      vehicles_count || 1
+    end
+
+    def weighted_cents
+      amount_cents * weight if amount_cents
     end
   end
 
@@ -39,6 +49,14 @@ class RevenueGoalsForm < BaseForm
       form
     end
 
+    def vehicles_count(targets, section, key)
+      targets.truck_group_plates.fetch(key, []).size if section == :truck_groups
+    end
+
+    def trailers_count(targets, section, key)
+      targets.truck_group_trailer_plates.fetch(key, []).size if section == :truck_groups
+    end
+
     private
 
     def listed_lines(targets, section)
@@ -46,7 +64,8 @@ class RevenueGoalsForm < BaseForm
       references = targets.reference_cents(section)
 
       targets.options(section).map do |key, name|
-        Line.new(key:, name:, amount: format_cents(amounts[key]), reference_cents: references.fetch(key, 0))
+        Line.new(key:, name:, amount: format_cents(amounts[key]), reference_cents: references.fetch(key, 0),
+                 vehicles_count: vehicles_count(targets, section, key), trailers_count: trailers_count(targets, section, key))
       end
     end
   end
@@ -68,7 +87,7 @@ class RevenueGoalsForm < BaseForm
   end
 
   def total_cents(section)
-    lines[section].filter_map(&:amount_cents).sum
+    lines[section].filter_map(&:weighted_cents).sum
   end
 
   def month_value
@@ -87,6 +106,7 @@ class RevenueGoalsForm < BaseForm
         column = RevenueGoal::TARGET_COLUMNS.fetch(target_type)
         section_lines.each { |line| save_goal({ target_type:, column => line.key }, line.amount, line.amount_cents) }
       end
+      apply_truck_group_goals
     end
   end
 
@@ -100,8 +120,17 @@ class RevenueGoalsForm < BaseForm
     key = line[:key].to_s.strip
     key = key.upcase if Dashboard::Goals.vehicle_section?(section)
     name = targets.options(section)[key] if month_value
+    vehicles_count = self.class.vehicles_count(targets, section, key) if month_value
+    trailers_count = self.class.trailers_count(targets, section, key) if month_value
 
-    Line.new(key:, name: name || key, amount: line[:amount])
+    Line.new(key:, name: name || key, amount: line[:amount], vehicles_count:, trailers_count:)
+  end
+
+  def apply_truck_group_goals
+    lines[:truck_groups].select(&:amount_cents).each do |line|
+      targets.truck_group_plates.fetch(line.key, []).each { |plate| save_goal({ target_type: 'vehicle', plate: }, line.amount, line.amount_cents) }
+      targets.truck_group_trailer_plates.fetch(line.key, []).each { |plate| save_goal({ target_type: 'trailer', plate: }, line.amount, line.amount_cents) }
+    end
   end
 
   def save_goal(target, amount, cents)
