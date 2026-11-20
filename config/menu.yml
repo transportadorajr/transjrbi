@@ -210,6 +210,7 @@ shared:
       url: /vehicles
       controllers:
         - vehicles
+  hr: []
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

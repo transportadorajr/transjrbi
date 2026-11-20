@@ -40,7 +40,7 @@ Rails.application.routes.draw do
   get 'manifest' => 'rails/pwa#manifest', as: :pwa_manifest
   get 'service-worker' => 'rails/pwa#service_worker', as: :pwa_service_worker
 
-  constraints subdomain: [Transjrbi::APP_SUBDOMAIN, Transjrbi::MAINTENANCE_SUBDOMAIN] do
+  constraints subdomain: [Transjrbi::APP_SUBDOMAIN, Transjrbi::MAINTENANCE_SUBDOMAIN, Transjrbi::HR_SUBDOMAIN] do
     devise_for :users, controllers: { confirmations: 'users/confirmations', sessions: 'users/sessions' }
 
     devise_scope :user do
@@ -49,6 +49,9 @@ Rails.application.routes.draw do
 
     resource :password_change, only: %i[edit update]
     resource :account_password, only: %i[edit update]
+  end
+
+  constraints subdomain: [Transjrbi::APP_SUBDOMAIN, Transjrbi::MAINTENANCE_SUBDOMAIN] do
     resources :vehicles, only: %i[index show]
   end
 
@@ -71,6 +74,10 @@ Rails.application.routes.draw do
     resources :maintenance_services, except: %i[show destroy], concerns: :activatable
     resources :maintenance_part_movements, only: %i[index new create]
     root 'maintenance_home#index', as: :maintenance_root
+  end
+
+  constraints subdomain: Transjrbi::HR_SUBDOMAIN do
+    root 'hr_home#index', as: :hr_root
   end
 
   constraints subdomain: Transjrbi::APP_SUBDOMAIN do

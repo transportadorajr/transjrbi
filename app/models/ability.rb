@@ -3,6 +3,7 @@ class Ability
 
   MAINTENANCE_RESOURCES = %i[maintenance maintenance_orders workshop_employees suppliers maintenance_parts maintenance_services vehicles].freeze
   MAINTENANCE_MODULE_RESOURCES = (MAINTENANCE_RESOURCES - %i[vehicles]).freeze
+  HR_RESOURCES = %i[hr].freeze
 
   class << self
     def resources_outside_maintenance
@@ -40,7 +41,11 @@ class Ability
   end
 
   def resource_privileges
-    Resource.activated.pluck(:slug).map(&:to_sym).select { |slug| resource_allowed?(slug) }.each { |slug| can(:manage, slug) }
+    owner_slugs.select { |slug| resource_allowed?(slug) }.each { |slug| can(:manage, slug) }
+  end
+
+  def owner_slugs
+    Resource.activated.pluck(:slug).map(&:to_sym) | HostModule.all.map(&:key)
   end
 
   def resource_allowed?(slug)

@@ -52,6 +52,7 @@ end
   'maintenance_parts' => { name: 'Peças da manutenção', writable: true },
   'maintenance_services' => { name: 'Serviços da manutenção', writable: true },
   'vehicle_availability' => { name: 'Disponibilidade da frota', writable: false },
+  'hr' => { name: 'Módulo de RH', writable: false },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)
@@ -62,6 +63,7 @@ Flipper.add(Dashboard::Trip::FEATURE)
 Flipper.add(Dashboard::RevenueProjection::FEATURE)
 Flipper.add(Dashboard::Goals::FEATURE)
 Flipper.add(MaintenanceOrder::FEATURE)
+Flipper.add(Hr::FEATURE)
 Flipper.add(ExportPlant::FEATURE)
 
 Tenant.find_each { |tenant| EmptyLegs::CalculateAllCommand.call(tenant) } if Tomtom.configured?
