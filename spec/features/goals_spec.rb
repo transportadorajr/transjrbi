@@ -314,6 +314,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
       scenario 'compares the average billing per truck of each group in the last months with the goal' do
         visit goals_path
 
+        expect(TruckGroup.where(tenant:).count).to eq(2)
         within('#goal_truck_groups') do
           expect(page).to have_text('Média por caminhão dos grupos')
           expect(html_table_to_rows(table: find_by_id('goal_truck_groups_table'))).to eq(

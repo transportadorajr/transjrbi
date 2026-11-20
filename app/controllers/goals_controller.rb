@@ -13,7 +13,7 @@ class GoalsController < BaseController
     @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, targets:, pace:, week:, own_fleet: current_tenant.own_fleet)
     @rows = listing_page(dimension_rows)
     @truck_group_averages = Dashboard::TruckGroupAverages.new(current_tenant, month)
-    @truck_group_rows = Kaminari.paginate_array(@truck_group_averages.rows).page(params[:truck_groups_page])
+    @truck_group_rows = listing_page(@truck_group_averages.rows, param_name: :truck_groups_page)
 
     respond_with_listing(pdf: false, xlsx: -> { helpers.goals_xlsx_sheets(@dashboard, @filter_form.section, @rows) })
   end

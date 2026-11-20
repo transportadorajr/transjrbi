@@ -1,11 +1,11 @@
 module ListingExport
   private
 
-  def listing_page(collection)
+  def listing_page(collection, param_name: :page)
     return collection if request.format.pdf? || request.format.xlsx?
 
     collection = Kaminari.paginate_array(collection) if collection.is_a?(Array)
-    collection.page(params[:page])
+    collection.page(params[param_name])
   end
 
   def respond_with_listing(orientation: :portrait, pdf: true, xlsx: nil)
