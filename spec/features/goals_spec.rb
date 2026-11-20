@@ -298,6 +298,45 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
       expect(page).to have_no_css('#goal_vehicles_table')
     end
 
+    context 'with truck groups and their goals' do
+      before do
+        create(:own_fleet, tenant:, plates: %w[AJR4391 BRA2E19 RHJ5A50])
+        create(:truck_group, tenant:, name: 'SIDER', axles: [], plates: %w[RHJ5A50])
+        nine_axles = create(:truck_group, tenant:, name: '9 EIXO NACIONAL', axles: [9])
+        create(:revenue_goal, :truck_group, tenant:, month:, truck_group: nine_axles, amount_cents: 16_000_000)
+        freight(tenant, 'AJR4391', 18_000_000, axles: 9, issued_at: Time.zone.local(2026, 10, 10, 10))
+        freight(tenant, 'BRA2E19', 12_000_000, axles: 9, issued_at: Time.zone.local(2026, 9, 10, 10))
+        freight(tenant, 'RHJ5A50', 9_000_000, issued_at: Time.zone.local(2026, 10, 14, 10))
+        freight(tenant, 'AJR4391', 4_000_000, axles: 9)
+        freight(other_tenant, 'AJR4391', 99_000_000, axles: 9)
+      end
+
+      scenario 'compares the average billing per truck of each group in the last months with the goal' do
+        visit goals_path
+
+        expect(TruckGroup.where(tenant:).count).to eq(2)
+        within('#goal_truck_groups') do
+          expect(page).to have_text('Média por caminhão dos grupos')
+          expect(html_table_to_rows(table: find_by_id('goal_truck_groups_table'))).to eq(
+            [
+              ['Grupo de caminhões', 'Caminhões', 'Agosto de 2026', 'Setembro de 2026', 'Outubro de 2026', 'Novembro de 2026', 'Meta'],
+              ['9 EIXO NACIONAL', '2', '-', 'R$ 120.000,00', 'R$ 90.000,00', 'R$ 20.000,00', 'R$ 160.000,00'],
+              ['SIDER', '1', 'R$ 0,00', 'R$ 0,00', 'R$ 90.000,00', 'R$ 0,00', 'Sem meta'],
+              ['Total geral', '3', 'R$ 0,00', 'R$ 60.000,00', 'R$ 90.000,00', 'R$ 13.333,33', '-'],
+            ],
+          )
+          expect(page).to have_css("#goal_truck_group_#{TruckGroup.find_by!(name: '9 EIXO NACIONAL').id} .text-danger", text: 'R$ 90.000,00')
+        end
+      end
+    end
+
+    scenario 'does not show the truck groups without any truck group' do
+      visit goals_path
+
+      expect(page).to have_css('#goal_company_cards')
+      expect(page).to have_no_css('#goal_truck_groups')
+    end
+
     scenario 'redirects an invalid month back to the current month' do
       visit goals_path(month: '2026-13')
 
@@ -360,6 +399,17 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
       expect(page).to have_css('#goal_vehicles_table td', text: '90,0%', visible: :visible)
       expect(page).to have_no_css('#goal_vehicles_table th', text: 'FATURADO', visible: :visible)
       expect(page).to have_css('#goal_vehicles .dropdown-toggle', text: 'Ordenar por', visible: :visible)
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+    end
+
+    scenario 'keeps only the month and the goal of the truck groups on a phone' do
+      create(:truck_group, tenant:, name: 'SIDER', axles: [], plates: %w[AJR4391])
+      visit goals_path
+      use_mobile_screen(width: 360)
+
+      expect(page).to have_css('#goal_truck_groups_table th', text: 'NOVEMBRO DE 2026', visible: :visible)
+      expect(page).to have_no_css('#goal_truck_groups_table th', text: 'OUTUBRO DE 2026', visible: :visible)
+      expect(page).to have_css('#goal_truck_groups_table td', text: 'R$ 9.000,00', visible: :visible)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end

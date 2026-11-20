@@ -1,7 +1,13 @@
 class RevenueGoal < ApplicationRecord
-  TARGET_TYPES = %w[company vehicle trailer customer_group region].freeze
+  TARGET_TYPES = %w[company vehicle trailer customer_group region truck_group].freeze
   PLATE_TARGET_TYPES = %w[vehicle trailer].freeze
-  TARGET_COLUMNS = { 'vehicle' => :plate, 'trailer' => :plate, 'customer_group' => :customer_group_id, 'region' => :macro_region_id }.freeze
+  TARGET_COLUMNS = {
+    'vehicle' => :plate,
+    'trailer' => :plate,
+    'customer_group' => :customer_group_id,
+    'region' => :macro_region_id,
+    'truck_group' => :truck_group_id,
+  }.freeze
   CUT_TARGETS = { plate: 'vehicle', customer_group_id: 'customer_group', macro_region_id: 'region' }.freeze
   MONTH_FORMAT = '%Y-%m'.freeze
 
@@ -10,6 +16,7 @@ class RevenueGoal < ApplicationRecord
   belongs_to :tenant
   belongs_to :customer_group, optional: true, inverse_of: :revenue_goals
   belongs_to :macro_region, optional: true, inverse_of: :revenue_goals
+  belongs_to :truck_group, optional: true, inverse_of: :revenue_goals
 
   enum :target_type, TARGET_TYPES.index_with(&:itself), validate: true
 
@@ -23,7 +30,9 @@ class RevenueGoal < ApplicationRecord
   validates :customer_group_id, absence: true, unless: :customer_group?
   validates :macro_region, presence: true, if: :region?
   validates :macro_region_id, absence: true, unless: :region?
-  validates :target_type, uniqueness: { scope: %i[tenant_id month plate customer_group_id macro_region_id] }
+  validates :truck_group, presence: true, if: :truck_group?
+  validates :truck_group_id, absence: true, unless: :truck_group?
+  validates :target_type, uniqueness: { scope: %i[tenant_id month plate customer_group_id macro_region_id truck_group_id] }
 
   before_validation :normalize_month
   before_validation :normalize_plate
@@ -99,17 +108,20 @@ end
 #  customer_group_id :bigint
 #  macro_region_id   :bigint
 #  tenant_id         :bigint           not null
+#  truck_group_id    :bigint
 #
 # Indexes
 #
 #  index_revenue_goals_on_customer_group_id  (customer_group_id)
 #  index_revenue_goals_on_macro_region_id    (macro_region_id)
-#  index_revenue_goals_on_target             (tenant_id,month,target_type,plate,customer_group_id,macro_region_id) UNIQUE NULLS NOT DISTINCT
+#  index_revenue_goals_on_target             (tenant_id,month,target_type,plate,customer_group_id,macro_region_id,truck_group_id) UNIQUE NULLS NOT DISTINCT
 #  index_revenue_goals_on_tenant_id          (tenant_id)
+#  index_revenue_goals_on_truck_group_id     (truck_group_id)
 #
 # Foreign Keys
 #
 #  fk_rails_...  (customer_group_id => customer_groups.id)
 #  fk_rails_...  (macro_region_id => macro_regions.id) ON DELETE => cascade
 #  fk_rails_...  (tenant_id => tenants.id)
+#  fk_rails_...  (truck_group_id => truck_groups.id) ON DELETE => cascade
 #

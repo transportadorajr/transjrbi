@@ -26,4 +26,6 @@
   </div>
 
   <%= render 'goals/dimension_card', dashboard: @dashboard, section: @filter_form.section, rows: @rows %>
+
+  <%= goal_truck_groups(@truck_group_averages, @truck_group_rows) %>
 </div>

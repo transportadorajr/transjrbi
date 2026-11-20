@@ -351,6 +351,7 @@ pt-BR:
         plate: Placa
         customer_group: Grupo de clientes
         macro_region: Macro região
+        truck_group: Grupo de caminhões
         amount: Meta
       customer_group:
         name: Nome
@@ -1092,6 +1093,8 @@ pt-BR:
               unknown_vehicles: O veículo %{name} não está na frota própria.
               invalid_trailers_amount: A meta da carreta %{name} deve ser maior que 0.
               unknown_trailers: A carreta %{name} não está na frota própria.
+              invalid_truck_groups_amount: A meta do grupo de caminhões %{name} deve ser maior que 0.
+              unknown_truck_groups: O grupo de caminhões %{name} não está ativo.
               invalid_customer_groups_amount: A meta do grupo de clientes %{name} deve ser maior que 0.
               unknown_customer_groups: O grupo de clientes %{name} não está ativo.
               invalid_regions_amount: A meta da macro região %{name} deve ser maior que 0.
@@ -1347,6 +1350,7 @@ pt-BR:
         trailer: Carreta
         customer_group: Grupo de clientes
         region: Macro região
+        truck_group: Grupo de caminhões
     workshop_employee:
       role_type:
         mechanic: Mecânico
@@ -3319,6 +3323,15 @@ pt-BR:
       iof_percentage_hint: 'Incide só sobre o seguro internacional. Ex.: 7,38.'
   goals:
     no_goal: Sem meta
+    truck_groups:
+      title: Média por caminhão dos grupos
+      subtitle: >-
+        Faturamento bruto médio de cada caminhão da frota própria do grupo nos últimos meses, comparado com a meta do
+        grupo no mês. O mês atual mostra o faturado até agora.
+      vehicles: Caminhões
+      goal: Meta
+      total: Total geral
+      no_average: '-'
     xlsx:
       summary: Resumo
       month: Mês
@@ -3328,11 +3341,13 @@ pt-BR:
       macro_region: Região
     tabs:
       vehicles: Veículos
+      truck_groups: Grupos de caminhões
       trailers: Carretas
       customer_groups: Grupos de clientes
       regions: Regiões
     sections:
       vehicles: Placa
+      truck_groups: Grupo de caminhões
       trailers: Placa da carreta
       customer_groups: Grupo de clientes
       regions: Macro região
@@ -3408,17 +3423,27 @@ pt-BR:
         not_started: O mês ainda não começou.
   revenue_goals:
     no_share: '-'
+    vehicles_count:
+      zero: Nenhum veículo
+      one: 1 veículo
+      other: '%{count} veículos'
+    trailers_count:
+      zero: Nenhuma carreta
+      one: 1 carreta
+      other: '%{count} carretas'
+    group_counts: '%{vehicles} · %{trailers}'
     share: '%{ratio} da meta da transportadora'
     search:
       vehicles: Buscar placa
+      truck_groups: Buscar grupo de caminhões
       trailers: Buscar carreta
       customer_groups: Buscar grupo de clientes
       regions: Buscar macro região
     show:
       title: Metas de faturamento
       subtitle: >-
-        Metas mensais de faturamento bruto da transportadora, de cada veículo e carreta da frota própria, dos grupos de clientes
-        e das macro regiões.
+        Metas mensais de faturamento bruto da transportadora, de cada veículo e carreta da frota própria, dos grupos de caminhões,
+        dos grupos de clientes e das macro regiões.
       targets_title: Metas de %{month}
       targets_subtitle: Compare cada meta com a meta da transportadora e com o faturamento do mês anterior.
       totals:
@@ -3429,6 +3454,10 @@ pt-BR:
         regions: Soma das regiões
       section_texts:
         vehicles: Placas da frota própria. Placas sem meta não entram no atingimento.
+        truck_groups: >-
+          Meta mensal de cada veículo do grupo. Ao salvar, cada caminhão e cada carreta da frota própria do grupo recebem essa meta,
+          no lugar da meta do veículo ou da carreta. O grupo vem das placas do grupo ou dos eixos do último CT-e da placa no mês.
+          A média por veículo considera só os caminhões.
         trailers: >-
           Carretas da frota própria (veículos da categoria Carreta). O faturamento é atribuído pela placa da carreta do CT-e.
         customer_groups: Grupos de clientes ativos e os que já têm meta no mês. O faturamento é atribuído pelo tomador do CT-e.
@@ -3437,6 +3466,7 @@ pt-BR:
         goal: Meta
         share: Participação na meta da transportadora
         reference: Faturado em %{month}
+        average_reference: Média por veículo em %{month}
       edit: Alterar metas
       replicate: Copiar mês anterior
       confirm_replicate: Copiar as metas de %{month} para este mês? As metas já cadastradas neste mês são mantidas.
@@ -3455,11 +3485,12 @@ pt-BR:
       title: Meta da transportadora
       text: Informe o faturamento bruto esperado. Deixe em branco para ficar sem meta.
       company_hint: Meta total de faturamento da transportadora no mês.
-      targets_title: Metas por veículo, carreta, grupo de clientes e região
+      targets_title: Metas por veículo, grupo de caminhões, carreta, grupo de clientes e região
       targets_text: >-
         Deixe em branco para ficar sem meta. O faturamento de %{month} aparece em cada linha como referência.
       section_total: Soma das metas
       reference: 'Faturado em %{month}: %{amount}'
+      average_reference: '%{vehicles} · Média por veículo em %{month}: %{amount}'
   own_fleets:
     third_party: Terceiro
     show:

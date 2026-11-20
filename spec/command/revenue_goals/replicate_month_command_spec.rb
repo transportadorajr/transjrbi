@@ -27,6 +27,15 @@ RSpec.describe RevenueGoals::ReplicateMonthCommand do
     expect(tenant.revenue_goals.for_month(month).region.sole).to have_attributes(macro_region_id: region_goal.macro_region_id, amount_cents: 4_000_000)
   end
 
+  it 'copies the truck group goals' do
+    truck_group_goal = create(:revenue_goal, :truck_group, tenant:, month: month.prev_month, amount_cents: 11_000_000)
+
+    expect { described_class.call(tenant, month) }.to change(RevenueGoal, :count).by(3)
+
+    expect(tenant.revenue_goals.for_month(month).truck_group.sole)
+      .to have_attributes(truck_group_id: truck_group_goal.truck_group_id, amount_cents: 11_000_000)
+  end
+
   it 'copies nothing when it runs again' do
     described_class.call(tenant, month)
 

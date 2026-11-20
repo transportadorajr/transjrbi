@@ -73,6 +73,30 @@ module GoalsHelper
               ])
   end
 
+  def goal_truck_groups(averages, rows)
+    return if rows.total_count.zero?
+
+    render 'goals/truck_groups_card', averages:, rows:
+  end
+
+  def goal_truck_group_month_class(averages, month)
+    month == averages.months.last ? 'text-end text-nowrap' : 'text-end text-nowrap d-none d-md-table-cell'
+  end
+
+  def goal_truck_group_average(row, month)
+    cents = row.average_cents(month)
+    return tag.span(t('goals.truck_groups.no_average'), class: 'text-muted') if cents.nil?
+    return goal_money(cents) if row.goal_cents.nil?
+
+    tag.span(goal_money(cents), class: row.reached?(month) ? 'text-success fw-semibold' : 'text-danger')
+  end
+
+  def goal_truck_group_goal(row)
+    return tag.span(t('goals.truck_groups.no_average'), class: 'text-muted') if row.key == Dashboard::TruckGroupAverages::TOTAL_KEY
+
+    goal_money(row.goal_cents)
+  end
+
   def goal_week(dashboard)
     return unless dashboard.week?
 

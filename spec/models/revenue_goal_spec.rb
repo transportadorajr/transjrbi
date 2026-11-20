@@ -45,6 +45,18 @@ RSpec.describe RevenueGoal do
       expect(build(:revenue_goal, tenant:, macro_region: create(:macro_region, tenant:))).not_to be_valid
     end
 
+    it 'requires the truck group only for a truck group goal' do
+      expect(build(:revenue_goal, tenant:, target_type: 'truck_group')).not_to be_valid
+      expect(build(:revenue_goal, :truck_group, tenant:)).to be_valid
+      expect(build(:revenue_goal, tenant:, truck_group: create(:truck_group, tenant:))).not_to be_valid
+    end
+
+    it 'removes the truck group goals with the truck group' do
+      goal = create(:revenue_goal, :truck_group, tenant:)
+
+      expect { goal.truck_group.destroy! }.to change(described_class, :count).by(-1)
+    end
+
     it 'removes the region goals with the macro region' do
       goal = create(:revenue_goal, :region, tenant:)
 
