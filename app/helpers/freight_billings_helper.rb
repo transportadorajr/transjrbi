@@ -7,6 +7,8 @@ module FreightBillingsHelper
   FREIGHTS_MODAL_ID = 'freight_billing_freights_modal'.freeze
   FREIGHTS_FRAME_ID = 'freight_billing_freights'.freeze
   FREIGHTS_SORT_SCOPE = 'freights'.freeze
+  PER_KM_ORDERS = %w[desc asc].freeze
+  DEFAULT_PER_KM_ORDER = 'desc'.freeze
   FREIGHTS_SORT_COLUMNS = { issued_at: :asc, gross: :desc, net: :desc, gross_per_km: :desc, net_per_km: :desc }.freeze
   TOLL_PAYER_CLASSES = { toll: 'freight-billing-toll-carrier', undiscounted_toll: 'freight-billing-toll-customer' }.freeze
 
@@ -274,14 +276,11 @@ module FreightBillingsHelper
   def freight_billing_per_km_ranking_card(dashboard)
     return unless dashboard.per_km_ranking?
 
-    data = dashboard.per_km_ranking_data
-    return if data.first[:data].empty?
+    return if dashboard.per_km_ranking_data.first[:data].empty?
 
     tag.div(class: 'row g-3 mb-4') do
-      tag.div(class: 'col-12 col-xl-7') do
-        render('freight_billings/chart_card', title: freight_billing_per_km_ranking_title(dashboard),
-                                              subtitle: t('freight_billings.show.per_km_ranking_subtitle'),
-                                              chart: freight_billing_per_km_ranking_chart(data))
+      tag.div(class: 'col-12 col-xl-7 d-flex flex-column', id: 'freight_billing_per_km', data: freight_billing_per_km_reveal_data) do
+        safe_join([freight_billing_per_km_order_filter, *PER_KM_ORDERS.map { |order| freight_billing_per_km_order_item(dashboard, order) }])
       end
     end
   end
@@ -384,6 +383,38 @@ module FreightBillingsHelper
 
   def freight_billing_freights_path(row)
     freights_freight_billing_path(**request.query_parameters.symbolize_keys, key: row.key)
+  end
+
+  def freight_billing_per_km_reveal_data
+    { controller: 'reveal', reveal_key_value: DEFAULT_PER_KM_ORDER, reveal_active_class: 'btn-primary',
+      reveal_inactive_class: 'btn-outline-secondary', reveal_hidden_class: 'd-none' }
+  end
+
+  def freight_billing_per_km_order_filter
+    label = t('freight_billings.show.per_km_order_label')
+
+    tag.div(class: 'dashboard-filter-bar mb-3') do
+      safe_join([tag.span(label, class: 'dashboard-filter-label'),
+                 tag.div(class: 'dashboard-segmented', role: 'group', aria: { label: }) do
+                   safe_join(PER_KM_ORDERS.map { |order| freight_billing_per_km_order_button(order) })
+                 end])
+    end
+  end
+
+  def freight_billing_per_km_order_button(order)
+    default = order == DEFAULT_PER_KM_ORDER
+
+    button_tag t(order, scope: 'freight_billings.show.per_km_orders'), type: :button, class: ['btn btn-sm', default ? 'btn-primary' : 'btn-outline-secondary'],
+                                                                       aria: { pressed: default },
+                                                                       data: { reveal_target: 'button', reveal_key_param: order, action: 'reveal#show' }
+  end
+
+  def freight_billing_per_km_order_item(dashboard, order)
+    tag.div(class: ['flex-grow-1', ('d-none' unless order == DEFAULT_PER_KM_ORDER)], data: { reveal_target: 'item', reveal_key: order }) do
+      render('freight_billings/chart_card', title: freight_billing_per_km_ranking_title(dashboard),
+                                            subtitle: t('freight_billings.show.per_km_ranking_subtitle'),
+                                            chart: freight_billing_per_km_ranking_chart(dashboard.per_km_ranking_data(order)))
+    end
   end
 
   def freight_billing_per_km_ranking_chart(data)

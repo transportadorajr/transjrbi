@@ -183,7 +183,7 @@ describe 'Freight billing' do
           page.document.synchronize { page.evaluate_script('window.turboLoads').positive? || raise(Capybara::ExpectationNotMet) }
           expect(page).to have_css('.chart-card canvas', count: 3)
           expect(page.evaluate_script('Object.values(Chartkick.charts).filter((chart) => document.body.contains(chart.element)).length'))
-            .to eq(4)
+            .to eq(5)
         end
       end
 
@@ -534,9 +534,32 @@ describe 'Freight billing' do
 
         expect(page).to have_css('.chart-card canvas', count: 3)
         expect(page).to have_text('Frete bruto por km por Grupo de clientes')
-        expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens, do maior para o menor')
+        expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens')
         expect(page.evaluate_script('Object.values(Chartkick.charts)[3].getChartObject().data.labels')).to eq(['Sem grupo', 'USIMINAS'])
         expect(page.evaluate_script('Object.values(Chartkick.charts)[3].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[28.85, 25.61]])
+      end
+
+      scenario 'flips the gross freight per km chart between the highest first and the lowest first without reloading the page', :js do
+        visit freight_billing_path(october.merge(dimension: 'customer_group'))
+        page.execute_script('window.notReloaded = true')
+
+        within('#freight_billing_per_km') do
+          expect(page).to have_css("button[aria-pressed='true']", text: 'Maior para o menor')
+          expect(page).to have_css('.chart-card', count: 1)
+
+          click_button 'Menor para o maior'
+
+          expect(page).to have_css("button[aria-pressed='true']", text: 'Menor para o maior')
+          expect(page).to have_css("button[aria-pressed='false']", text: 'Maior para o menor')
+          expect(page).to have_css('.chart-card', count: 1)
+        end
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[4].getChartObject().data.labels')).to eq(['USIMINAS', 'Sem grupo'])
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[4].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[25.61, 28.85]])
+
+        within('#freight_billing_per_km') { click_button 'Maior para o menor' }
+
+        expect(page).to have_css("button[aria-pressed='true']", text: 'Maior para o menor')
+        expect(page.evaluate_script('window.notReloaded')).to be(true)
       end
 
       scenario 'plots the gross freight per km of the macro regions', :js do
@@ -1747,7 +1770,7 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      expect(all('.dashboard-filter-label').map(&:text)).to eq(['DATA', 'AGRUPAR POR', 'EVOLUÇÃO'])
+      expect(all('.dashboard-filter-label').map(&:text)).to eq(['DATA', 'AGRUPAR POR', 'EVOLUÇÃO', 'ORDEM'])
       expect(page).to have_link('Sem. atual')
       expect(page).to have_link('Sem. passada')
       expect(page).to have_link('Mês', exact: true)

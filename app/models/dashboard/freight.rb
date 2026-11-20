@@ -196,8 +196,9 @@ module Dashboard
       PER_KM_RANKING_DIMENSIONS.include?(dimension)
     end
 
-    def per_km_ranking_data
-      measured = ranking_rows.zip(ranking_labels).select { |row, _| row.gross_per_km }.sort_by { |row, _| -row.gross_per_km.cents }
+    def per_km_ranking_data(direction = 'desc')
+      sign = direction.to_s == 'asc' ? 1 : -1
+      measured = ranking_rows.zip(ranking_labels).select { |row, _| row.gross_per_km }.sort_by { |row, _| sign * row.gross_per_km.cents }
 
       [{ name: I18n.t('dashboards.freight.gross_per_km'), data: measured.to_h { |row, label| [label, row.gross_per_km.to_f] } }]
     end

@@ -80,6 +80,10 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.ranking_rows.map(&:label)).to eq(%w[LONGA CURTA])
       expect(dashboard.per_km_ranking_data.first[:data].to_a).to eq([['CURTA', 50.0], ['LONGA', 10.0]])
     end
+
+    it 'plots the groups from the lowest gross freight per km to the highest' do
+      expect(dashboard.per_km_ranking_data('asc').first[:data].to_a).to eq([['LONGA', 10.0], ['CURTA', 50.0]])
+    end
   end
 
   context 'without documents in the period' do
