@@ -80,6 +80,10 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.ranking_rows.map(&:label)).to eq(%w[LONGA CURTA])
       expect(dashboard.per_km_ranking_data.first[:data].to_a).to eq([['CURTA', 50.0], ['LONGA', 10.0]])
     end
+
+    it 'plots the groups from the lowest gross freight per km to the highest' do
+      expect(dashboard.per_km_ranking_data('asc').first[:data].to_a).to eq([['LONGA', 10.0], ['CURTA', 50.0]])
+    end
   end
 
   context 'without documents in the period' do
@@ -305,8 +309,28 @@ RSpec.describe Dashboard::Freight do
     context 'when grouped by customer group' do
       let(:dimension) { 'customer_group' }
 
-      it 'does not list the freights of its rows' do
-        expect(dashboard.lists_freights?(usiminas.id.to_s)).to be(false)
+      it 'lists the freights of its rows, the documents without a group included' do
+        expect(dashboard.lists_freights?(usiminas.id.to_s)).to be(true)
+        expect(dashboard.lists_freights?('')).to be(true)
+        expect(dashboard.lists_freights?(nil)).to be(false)
+      end
+
+      it 'gives each freight of a shared trip its share of the km by its freight' do
+        lines = dashboard.freight_lines_for(usiminas.id.to_s)
+
+        expect(lines.map { |line| [line.transport_document.number, line.loaded_km&.round(2), line.gross_per_km&.cents, line.net_per_km&.cents] })
+          .to eq([['74001', BigDecimal('346.67'), 2_885, 2_697], ['74003', BigDecimal('200'), 2_000, 2_000], ['3547', nil, nil, nil]])
+        expect(Dashboard::FreightLine.gross_per_km(lines)).to eq(dashboard.row_for(usiminas.id.to_s).gross_per_km)
+        expect(Dashboard::FreightLine.net_per_km(lines)).to eq(dashboard.row_for(usiminas.id.to_s).net_per_km)
+      end
+
+      it 'sorts the freights by the freight per km in both directions, the ones without km last' do
+        numbers = ->(lines) { lines.map { |line| line.transport_document.number } }
+
+        expect(numbers.call(dashboard.freight_lines_for(usiminas.id.to_s, 'gross_per_km', 'desc'))).to eq(%w[74001 74003 3547])
+        expect(numbers.call(dashboard.freight_lines_for(usiminas.id.to_s, 'gross_per_km', 'asc'))).to eq(%w[74003 74001 3547])
+        expect(numbers.call(dashboard.freight_lines_for(usiminas.id.to_s, 'net_per_km', 'asc'))).to eq(%w[74003 74001 3547])
+        expect(numbers.call(dashboard.freight_lines_for(usiminas.id.to_s, 'plate', 'desc'))).to eq(numbers.call(dashboard.freight_lines_for(usiminas.id.to_s)))
       end
 
       it 'splits a shared trip between the groups by their share of its freight' do

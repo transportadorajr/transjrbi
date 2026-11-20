@@ -183,7 +183,7 @@ describe 'Freight billing' do
           page.document.synchronize { page.evaluate_script('window.turboLoads').positive? || raise(Capybara::ExpectationNotMet) }
           expect(page).to have_css('.chart-card canvas', count: 3)
           expect(page.evaluate_script('Object.values(Chartkick.charts).filter((chart) => document.body.contains(chart.element)).length'))
-            .to eq(4)
+            .to eq(5)
         end
       end
 
@@ -534,9 +534,32 @@ describe 'Freight billing' do
 
         expect(page).to have_css('.chart-card canvas', count: 3)
         expect(page).to have_text('Frete bruto por km por Grupo de clientes')
-        expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens, do maior para o menor')
+        expect(page).to have_text('Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens')
         expect(page.evaluate_script('Object.values(Chartkick.charts)[3].getChartObject().data.labels')).to eq(['Sem grupo', 'USIMINAS'])
         expect(page.evaluate_script('Object.values(Chartkick.charts)[3].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[28.85, 25.61]])
+      end
+
+      scenario 'flips the gross freight per km chart between the highest first and the lowest first without reloading the page', :js do
+        visit freight_billing_path(october.merge(dimension: 'customer_group'))
+        page.execute_script('window.notReloaded = true')
+
+        within('#freight_billing_per_km') do
+          expect(page).to have_css("button[aria-pressed='true']", text: 'Maior para o menor')
+          expect(page).to have_css('.chart-card', count: 1)
+
+          click_button 'Menor para o maior'
+
+          expect(page).to have_css("button[aria-pressed='true']", text: 'Menor para o maior')
+          expect(page).to have_css("button[aria-pressed='false']", text: 'Maior para o menor')
+          expect(page).to have_css('.chart-card', count: 1)
+        end
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[4].getChartObject().data.labels')).to eq(['USIMINAS', 'Sem grupo'])
+        expect(page.evaluate_script('Object.values(Chartkick.charts)[4].getChartObject().data.datasets.map((dataset) => dataset.data)')).to eq([[25.61, 28.85]])
+
+        within('#freight_billing_per_km') { click_button 'Maior para o menor' }
+
+        expect(page).to have_css("button[aria-pressed='true']", text: 'Maior para o menor')
+        expect(page.evaluate_script('window.notReloaded')).to be(true)
       end
 
       scenario 'plots the gross freight per km of the macro regions', :js do
@@ -784,7 +807,7 @@ describe 'Freight billing' do
 
           expect(page).to have_css('#remote-container #freight_billing_freights_modal')
           expect(modal_numbers).to contain_exactly('74001', '74002')
-          expect(modal_total).to eq(['Total', '', '', '', '', 'R$ 15.000,00', 'R$ 14.100,00'])
+          expect(modal_total).to eq(['Total', '', '', '', '', 'R$ 15.000,00', 'R$ 14.100,00', 'R$ 28,85', 'R$ 27,12'])
           expect(page).to have_current_path(freight_billing_path(october_by_truck))
         end
 
@@ -793,7 +816,7 @@ describe 'Freight billing' do
           open_freights('MARIA SOUZA')
 
           expect(modal_numbers).to contain_exactly('74003', '3547')
-          expect(modal_total).to eq(['Total', '', '', '', '', 'R$ 5.000,00', 'R$ 5.000,00'])
+          expect(modal_total).to eq(['Total', '', '', '', '', 'R$ 5.000,00', 'R$ 5.000,00', 'R$ 20,00', 'R$ 20,00'])
         end
 
         context 'when the freights were issued on different days' do
@@ -849,6 +872,110 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when opening the freights of a customer group', :js do
+        def open_freights(label)
+          within('.freight-billing-table tbody') { click_link label }
+          expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: label)
+        end
+
+        def modal_rows
+          within('#freight_billing_freights_modal') do
+            html_table_to_rows.map { |row| [row.first.split.first, *row.last(2)] }
+          end
+        end
+
+        def sort_freights_by(label)
+          within('#freight_billing_freights_modal thead') { click_link label }
+        end
+
+        scenario 'lists the freights of the customer group with the gross and net freight per km of each one' do
+          visit freight_billing_path(october)
+          open_freights('USIMINAS')
+
+          expect(Atua::TransportDocument.where(tenant:).count).to eq(4)
+          expect(modal_rows).to eq(
+            [
+              ['NÚMERO', 'BRUTO/KM', 'LÍQUIDO/KM'],
+              ['74001', 'R$ 28,85', 'R$ 26,25'],
+              ['74003', 'R$ 20,00', 'R$ 20,00'],
+              ['3547', '-', '-'],
+              ['Total', 'R$ 25,61', 'R$ 23,96'],
+            ],
+          )
+        end
+
+        scenario 'sorts the freights from the best gross freight per km to the worst and back, the ones without km last' do
+          visit freight_billing_path(october)
+          open_freights('USIMINAS')
+
+          sort_freights_by('Bruto/km')
+          expect(page).to have_css('#freight_billing_freights_modal th[aria-sort="descending"]', text: 'BRUTO/KM')
+          expect(modal_rows[1..-2].map(&:first)).to eq(%w[74001 74003 3547])
+
+          sort_freights_by('Bruto/km')
+          expect(page).to have_css('#freight_billing_freights_modal th[aria-sort="ascending"]', text: 'BRUTO/KM')
+          expect(modal_rows[1..-2].map(&:first)).to eq(%w[74003 74001 3547])
+          expect(page).to have_css('#freight_billing_freights_modal.show', count: 1)
+          expect(page).to have_current_path(freight_billing_path(october))
+        end
+
+        scenario 'sorts the freights by the net freight per km' do
+          visit freight_billing_path(october)
+          open_freights('USIMINAS')
+
+          sort_freights_by('Líquido/km')
+          expect(page).to have_css('#freight_billing_freights_modal th[aria-sort="descending"]', text: 'LÍQUIDO/KM')
+          expect(modal_rows[1..-2].map(&:first)).to eq(%w[74001 74003 3547])
+        end
+
+        scenario 'lists the freights of the documents without a customer group' do
+          visit freight_billing_path(october)
+          open_freights('Sem grupo')
+
+          expect(modal_rows).to eq([['NÚMERO', 'BRUTO/KM', 'LÍQUIDO/KM'], ['74002', 'R$ 28,85', 'R$ 28,85'], ['Total', 'R$ 28,85', 'R$ 28,85']])
+        end
+
+        scenario 'keeps the sort of the report table apart from the sort of the freights' do
+          visit freight_billing_path(october.merge(sort: 'gross', direction: 'asc'))
+          open_freights('USIMINAS')
+          sort_freights_by('Bruto/km')
+
+          expect(page).to have_css('#freight_billing_freights_modal th[aria-sort="descending"]', text: 'BRUTO/KM')
+          expect(page).to have_no_css('#freight_billing_freights_modal th[aria-sort="ascending"]')
+          expect(page).to have_css('.freight-billing-table th[aria-sort="ascending"]', text: 'FRETE BRUTO')
+        end
+
+        scenario 'sorts the freights from the sort menu on a phone' do
+          use_mobile_screen
+          visit freight_billing_path(october)
+          open_freights('USIMINAS')
+
+          within('#freight_billing_freights_modal') do
+            click_link 'Ordenar por'
+            within('.dropdown-menu') { click_link 'Bruto/km' }
+          end
+
+          expect(page).to have_css('#freight_billing_freights_modal th[aria-sort="descending"]', text: 'BRUTO/KM')
+          expect(modal_rows[1..-2].map(&:first)).to eq(%w[74001 74003 3547])
+          expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+        end
+
+        scenario 'opens the freights of the customer group from the ranking chart' do
+          visit freight_billing_path(october)
+          expect(page).to have_css('.chart-card canvas', minimum: 2)
+
+          page.execute_script(<<~JS)
+            const chart = Object.values(Chartkick.charts)[0].getChartObject();
+            const rect = chart.canvas.getBoundingClientRect();
+            const y = chart.scales.y.getPixelForValue(chart.data.labels.indexOf('USIMINAS'));
+            chart.canvas.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX: rect.left + chart.chartArea.left + 10, clientY: rect.top + y }));
+          JS
+
+          expect(page).to have_css('#freight_billing_freights_modal.show .modal-title', text: 'USIMINAS')
+          expect(modal_rows[1..-2].map(&:first)).to eq(%w[74001 74003 3547])
+        end
+      end
+
       context 'when clicking on the ranking chart', :js do
         def click_ranking(label, on:)
           expect(page).to have_css('.chart-card canvas', count: 2)
@@ -901,21 +1028,28 @@ describe 'Freight billing' do
         expect(page).to have_text('Esta semana não está mais disponível. Confira os dados atualizados.')
       end
 
-      scenario 'makes only the ranking of the trucks and the drivers clickable' do
+      scenario 'makes only the ranking of the trucks, the drivers and the customer groups clickable' do
         visit freight_billing_path(october_by_truck)
         expect(page).to have_css('[data-controller="ranking-chart"]', count: 3)
 
         visit freight_billing_path(october)
+        expect(page).to have_css('[data-controller="ranking-chart"]', count: 3)
+
+        visit freight_billing_path(october.merge(dimension: 'origin'))
         expect(page).to have_css('.chart-card')
         expect(page).to have_css('[data-controller="ranking-chart"]', count: 2)
       end
 
-      scenario 'links only the trucks and the drivers to their freights' do
+      scenario 'links only the trucks, the drivers and the customer groups to their freights' do
         visit freight_billing_path(october_by_truck)
         expect(page).to have_css('.freight-billing-table tbody .freight-billing-label a', text: 'RVR2C34')
         expect(page).to have_no_css('.freight-billing-table tfoot .freight-billing-label a')
 
         visit freight_billing_path(october)
+        expect(page).to have_css('.freight-billing-table tbody .freight-billing-label a', text: 'USIMINAS')
+        expect(page).to have_css('.freight-billing-table tbody .freight-billing-label a', text: 'Sem grupo')
+
+        visit freight_billing_path(october.merge(dimension: 'origin'))
         expect(page).to have_css('.freight-billing-table')
         expect(page).to have_no_css('.freight-billing-table .freight-billing-label a')
       end
@@ -1636,7 +1770,7 @@ describe 'Freight billing' do
       use_mobile_screen(width: 360)
       visit freight_billing_path(october)
 
-      expect(all('.dashboard-filter-label').map(&:text)).to eq(['DATA', 'AGRUPAR POR', 'EVOLUÇÃO'])
+      expect(all('.dashboard-filter-label').map(&:text)).to eq(['DATA', 'AGRUPAR POR', 'EVOLUÇÃO', 'ORDEM'])
       expect(page).to have_link('Sem. atual')
       expect(page).to have_link('Sem. passada')
       expect(page).to have_link('Mês', exact: true)
