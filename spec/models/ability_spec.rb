@@ -27,6 +27,11 @@ RSpec.describe Ability do
       expect(ability).not_to be_able_to(:deactivate, stranger)
     end
 
+    it 'enters every module even without its access resource registered' do
+      expect(ability).to be_able_to(:read, :maintenance)
+      expect(ability).to be_able_to(:read, :hr)
+    end
+
     it 'cannot reach the resources' do
       expect(ability).not_to be_able_to(:read, Resource)
       expect(ability).not_to be_able_to(:create, Resource)
@@ -225,6 +230,30 @@ RSpec.describe Ability do
       expect(ability).not_to be_able_to(:read, :maintenance)
       expect(ability).not_to be_able_to(:read, :maintenance_orders)
       expect(ability).not_to be_able_to(:update, :maintenance_orders)
+    end
+  end
+
+  context 'when the ability of an owner is restricted to the HR resources' do
+    subject(:ability) { described_class.new(user, resources: Ability::HR_RESOURCES) }
+
+    let(:user) { create(:user, tenant:, user_type: :owner) }
+
+    it 'enters the HR module without its access resource registered' do
+      expect(ability).to be_able_to(:read, :hr)
+    end
+
+    it 'cannot reach the maintenance module' do
+      expect(ability).not_to be_able_to(:read, :maintenance)
+    end
+  end
+
+  context 'when an admin has access only to the HR module' do
+    subject(:ability) { described_class.new(user, resources: Ability::HR_RESOURCES) }
+
+    let(:user) { create(:user, tenant:, user_type: :admin) }
+
+    it 'cannot enter the HR module without an access to it' do
+      expect(ability).not_to be_able_to(:read, :hr)
     end
   end
 

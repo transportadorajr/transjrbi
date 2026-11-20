@@ -8,7 +8,7 @@ module MenuHelper
   end
 
   def sidebar_menus
-    Menu.find_and_wrap(maintenance_host? ? :maintenance : :companies)
+    Menu.find_and_wrap(host_module&.key || :companies)
   end
 
   def visible_menus(menus)

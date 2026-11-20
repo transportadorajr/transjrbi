@@ -52,4 +52,13 @@ RSpec.configure do |config|
   ensure
     Capybara.app_host = original_app_host
   end
+
+  config.around(:each, :hr, type: :feature) do |example|
+    original_app_host = Capybara.app_host
+    Capybara.app_host = "http://#{Rails.application.config.x.hr_host}"
+
+    example.run
+  ensure
+    Capybara.app_host = original_app_host
+  end
 end

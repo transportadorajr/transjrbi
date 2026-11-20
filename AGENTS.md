@@ -373,6 +373,7 @@ The application is served from two subdomains, both derived from `config.x.domai
 - `River::ADMIN_SUBDOMAIN` (`admin`) — the internal back office, reachable at `config.x.admin_host`.
 
 - `Transjrbi::MAINTENANCE_SUBDOMAIN` (`manutencao`) — the workshop's maintenance module, reachable at `config.x.maintenance_host`.
+- `Transjrbi::HR_SUBDOMAIN` (`rh`) — the HR module, reachable at `config.x.hr_host`.
 
 Each subdomain gets its own `constraints subdomain: ...` block in `config/routes.rb`, and the admin block wraps a `namespace :admin, path: '/'` so the back office lives at the root of its own subdomain (`admin.<domain>/`, `admin.<domain>/login`, …). Both hosts are whitelisted in `config.hosts` (`config/environments/production.rb`); locally they resolve through `app.localhost` / `admin.localhost` with no extra setup.
 
@@ -386,8 +387,23 @@ The maintenance subdomain serves only the maintenance module (work orders, works
 - The sidebar comes from the `maintenance` key of `config/menu.yml` (`sidebar_menus` in `MenuHelper`). The app's sidebar has no maintenance entry: the module is reached only through its own subdomain.
 - `BaseController#current_ability` builds `Ability` with `resources: Ability::MAINTENANCE_RESOURCES` on the maintenance subdomain, so links to app screens (drivers, CT-es, expenses) are hidden there. Add a resource to that list before exposing a new screen on the subdomain.
 - The whole subdomain answers 404 when the tenant has the `maintenance` Flipper flag off.
-- Entering the subdomain requires read access to the `maintenance` resource (owners have it through every resource). A signed-in user without it is signed out and sent back to the login screen by `require_maintenance_access` (`MaintenanceHost`); the access to each screen is still checked by its own resource.
+- Entering the subdomain requires read access to the `maintenance` resource (owners have it through every resource). A signed-in user without it is signed out and sent back to the login screen by `require_host_module_access` (`ModuleHost`); the access to each screen is still checked by its own resource.
 - Tag a feature spec with the `:maintenance` metadata so it runs against the maintenance host.
+
+### Module Subdomains
+
+The maintenance and HR subdomains are module hosts, declared in `HostModule` (`app/models/host_module.rb`) with their subdomain, the Flipper flag that turns them on, and the resources their screens may use. `ModuleHost` (`app/controllers/concerns/module_host.rb`), included by `BaseController`, finds the module of the request and applies the same rules to every one of them:
+
+- The whole subdomain answers 404 when the tenant has the module's Flipper flag off.
+- Entering it requires read access to the resource named after the module key (`maintenance`, `hr`); a user without it is signed out and sent to the login screen with the `errors.messages.<key>_access_denied` message.
+- `current_ability` is built with the module's resources only, so links to screens of other modules are hidden.
+- The sidebar comes from the `config/menu.yml` key named after the module key.
+
+A new module subdomain needs its constant and host in `config/application.rb`, an entry in `HostModule.all`, its own `constraints subdomain:` block (add it to the shared Devise/password block), a `Host(...)` in the Traefik rule of `deploy/compose.yaml`, its DNS record, the access resource and the Flipper flag in `db/seeds.rb`, and a Capybara metadata tag in `spec/support/capybara.rb`.
+
+### HR Subdomain
+
+The HR subdomain (`rh`) serves only the HR module. It shares the `User` login, the `application` layout and the styles with the app. Its root (`HrHomeController`) redirects to the first HR screen the user can read, or shows a welcome page when there is none. Add a resource to `Ability::HR_RESOURCES` and a menu entry under the `hr` key of `config/menu.yml` before exposing a new screen on it. The module is behind the `hr` Flipper flag and the `hr` resource. Tag a feature spec with the `:hr` metadata so it runs against the HR host.
 
 ### Naming Convention
 

@@ -1,19 +1,19 @@
 class BaseController < ApplicationController
   include Sorting
   include ListingExport
-  include MaintenanceHost
+  include ModuleHost
 
   before_action :require_signed_in_user
   before_action :require_password_change
   before_action :set_error_tracking_context
   before_action :set_current_tenant
-  before_action :require_maintenance_host_feature
-  before_action :require_maintenance_access
+  before_action :require_host_module_feature
+  before_action :require_host_module_access
 
   private
 
   def current_ability
-    @current_ability ||= Ability.new(current_user, resources: (Ability::MAINTENANCE_RESOURCES if maintenance_host?))
+    @current_ability ||= Ability.new(current_user, resources: host_module&.resources)
   end
 
   def current_tenant

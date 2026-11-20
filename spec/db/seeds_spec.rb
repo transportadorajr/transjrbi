@@ -35,7 +35,7 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(36)
+    expect { run_seeds }.to change(Resource, :count).by(37)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
@@ -60,6 +60,14 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'maintenance_parts')).to have_attributes(name: 'Peças da manutenção', writable: true)
     expect(Resource.find_by!(slug: 'vehicle_availability')).to have_attributes(name: 'Disponibilidade da frota', writable: false)
     expect(Resource.find_by!(slug: 'maintenance_services')).to have_attributes(name: 'Serviços da manutenção', writable: true)
+    expect(Resource.find_by!(slug: 'hr')).to have_attributes(name: 'Módulo de RH', writable: false)
+  end
+
+  it 'registers the HR flag turned off' do
+    run_seeds
+
+    expect(Flipper.features.map(&:key)).to include('hr')
+    expect(Flipper.enabled?(:hr, tenant)).to be(false)
   end
 
   it 'registers the trips dashboard and maintenance flags turned off' do
@@ -94,7 +102,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(35)
+      expect { run_seeds }.to change(Resource, :count).by(36)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end
