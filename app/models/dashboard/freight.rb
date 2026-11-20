@@ -2,7 +2,7 @@ module Dashboard
   class Freight
     DIMENSIONS = %w[customer_group product_group product_subgroup vehicle driver origin macro_region].freeze
     DEFAULT_DIMENSION = 'customer_group'.freeze
-    FREIGHT_LIST_DIMENSIONS = %w[vehicle driver].freeze
+    FREIGHT_LIST_DIMENSIONS = %w[vehicle driver customer_group].freeze
     HISTORY_MONTHS = 6
     HISTORY_WEEKS = 5
     WEEK_START = :sunday
@@ -78,6 +78,14 @@ module Dashboard
       'variation' => ->(row) { row.variation || Float::INFINITY },
     }.freeze
 
+    FREIGHT_SORT_VALUES = {
+      'issued_at' => ->(line) { line.issued_at&.to_i },
+      'gross' => ->(line) { line.freight_cents },
+      'net' => ->(line) { line.net_cents },
+      'gross_per_km' => ->(line) { line.gross_per_km&.cents },
+      'net_per_km' => ->(line) { line.net_per_km&.cents },
+    }.freeze
+
     attr_reader :dimension, :period
 
     class << self
@@ -145,13 +153,21 @@ module Dashboard
     end
 
     def lists_freights?(key)
-      FREIGHT_LIST_DIMENSIONS.include?(dimension) && key != TOTAL_KEY
+      !key.nil? && FREIGHT_LIST_DIMENSIONS.include?(dimension) && key != TOTAL_KEY
     end
 
     def freights_for(key)
       documents.where(id: entries.select { |entry| row_key(key_for(entry)) == key.to_s }.flat_map(&:document_ids))
         .with_freight_totals
         .order(table[:issued_at].asc.nulls_last, id: :asc)
+    end
+
+    def freight_lines_for(key, column = nil, direction = nil)
+      freight_lines(freights_for(key), period_facts, column, direction)
+    end
+
+    def history_freight_lines(range, column = nil, direction = nil)
+      freight_lines(history_freights(range), all_facts(range), column, direction)
     end
 
     def ranking_rows
@@ -284,7 +300,40 @@ module Dashboard
     end
 
     def entries
-      @entries ||= entries_of(all_facts(period))
+      @entries ||= entries_of(period_facts)
+    end
+
+    def period_facts
+      @period_facts ||= all_facts(period)
+    end
+
+    def freight_lines(transport_documents, facts, column, direction)
+      distances = document_distances(facts)
+      lines = transport_documents.map { |document| FreightLine.new(transport_document: document, loaded_km: distances[document.id]) }
+
+      sort_freight_lines(lines, column, direction)
+    end
+
+    def document_distances(facts)
+      facts.select(&:trip?).group_by(&:manifest_code).values.each_with_object({}) do |trip_facts, distances|
+        trip_km = trip_facts.first.loaded_km.to_d
+        trip_cents = freight_of(trip_facts)
+
+        trip_facts.each do |fact|
+          weight = trip_cents.zero? ? BigDecimal('1') / trip_facts.size : fact.freight_cents.to_i.to_d / trip_cents
+          distances[fact.id] = trip_km * weight
+        end
+      end
+    end
+
+    def sort_freight_lines(lines, column, direction)
+      value = FREIGHT_SORT_VALUES[column.to_s]
+      return lines unless value
+
+      sign = direction.to_s == 'desc' ? -1 : 1
+      valued, blank = lines.each_with_index.partition { |line, _index| value.call(line) }
+
+      valued.sort_by { |line, index| [sign * value.call(line), index] }.map(&:first) + blank.map(&:first)
     end
 
     def previous_entries

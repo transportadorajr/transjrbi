@@ -1,0 +1,40 @@
+<%# locals: (row:, freight_lines:) %>
+
+<%= turbo_frame_tag FreightBillingsHelper::FREIGHTS_FRAME_ID, target: '_top' do %>
+  <div class="d-flex d-md-none justify-content-end mb-2">
+    <%= freight_billing_freights_sort_menu %>
+  </div>
+  <div class="table-responsive">
+    <table class="table app-table align-middle mb-0">
+      <thead>
+        <tr>
+          <th><%= Atua::TransportDocument.human_attribute_name(:number) %></th>
+          <%= freight_billing_freights_header(:issued_at, class: 'd-none d-md-table-cell') %>
+          <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:route) %></th>
+          <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:plate) %></th>
+          <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:driver_name) %></th>
+          <%= freight_billing_freights_header(:gross, class: 'text-end') %>
+          <%= freight_billing_freights_header(:net, class: 'd-none d-md-table-cell text-end') %>
+          <%= freight_billing_freights_header(:gross_per_km, class: 'text-end') %>
+          <%= freight_billing_freights_header(:net_per_km, class: 'd-none d-md-table-cell text-end') %>
+        </tr>
+      </thead>
+      <tbody>
+        <%= render partial: 'freight_billings/freight_row', collection: freight_lines, as: :freight_line %>
+      </tbody>
+      <tfoot>
+        <tr class="fw-bold">
+          <td><%= t('freight_billings.freights.total') %></td>
+          <td class="d-none d-md-table-cell"></td>
+          <td class="d-none d-lg-table-cell"></td>
+          <td class="d-none d-md-table-cell"></td>
+          <td class="d-none d-lg-table-cell"></td>
+          <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
+          <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.net) %></td>
+          <td class="text-end text-nowrap"><%= freight_billing_freights_gross_per_km(freight_lines) %></td>
+          <td class="d-none d-md-table-cell text-end text-nowrap"><%= freight_billing_freights_net_per_km(freight_lines) %></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+<% end %>

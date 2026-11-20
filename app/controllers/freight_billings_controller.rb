@@ -28,21 +28,24 @@ class FreightBillingsController < BaseController
     @row = @dashboard.row_for(params[:key]) if @dashboard.lists_freights?(params[:key])
     return redirect_to(freight_billing_path(filter_params), alert: t('.row_not_found')) unless @row
 
-    @transport_documents = @dashboard.freights_for(@row.key)
+    @freight_lines = @dashboard.freight_lines_for(@row.key, *freights_sort)
+    respond_with_freights
   end
 
   def month
     @row = @dashboard.month_row(params[:month])
     return redirect_to(freight_billing_path(filter_params), alert: t('.month_not_found')) unless @row
 
-    @transport_documents = @dashboard.history_freights(@row.period)
+    @freight_lines = @dashboard.history_freight_lines(@row.period, *freights_sort)
+    respond_with_freights
   end
 
   def week
     @row = @dashboard.week_row(params[:week])
     return redirect_to(freight_billing_path(filter_params), alert: t('.week_not_found')) unless @row
 
-    @transport_documents = @dashboard.history_freights(@row.period)
+    @freight_lines = @dashboard.history_freight_lines(@row.period, *freights_sort)
+    respond_with_freights
   end
 
   def product_options
@@ -53,6 +56,17 @@ class FreightBillingsController < BaseController
   end
 
   private
+
+  def freights_sort
+    params.values_at(:freights_sort, :freights_direction)
+  end
+
+  def respond_with_freights
+    respond_to do |format|
+      format.turbo_stream
+      format.html { render partial: 'freights_table', locals: { row: @row, freight_lines: @freight_lines } }
+    end
+  end
 
   def opened_detail_row
     key = request.query_parameters.delete(DETAIL_PARAM)
