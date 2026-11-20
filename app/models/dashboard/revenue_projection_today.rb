@@ -64,7 +64,7 @@ module Dashboard
     end
 
     def month_billed_cents
-      @month_billed_cents ||= @documents.active.not_canceled.where(issued_at: today.all_month).sum(:freight_cents)
+      @month_billed_cents ||= @documents.active.not_canceled.where(issued_at: today.in_time_zone.all_month).sum(:freight_cents)
     end
 
     def goal_row(goal)

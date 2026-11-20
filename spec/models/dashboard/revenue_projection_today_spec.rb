@@ -44,6 +44,13 @@ RSpec.describe Dashboard::RevenueProjectionToday do
       expect(history.goal_row(nil)).to be_nil
     end
 
+    it 'bills the month in the local time zone, leaving out the evening of the last day of the previous month' do
+      create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 31, 22), freight_cents: 40_000)
+      create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 11, 30, 22), freight_cents: 30_000)
+
+      expect(history.month_billed_cents).to eq(240_000)
+    end
+
     it 'shows the projections recalculated during the day' do
       history.month_snapshot.update!(current_projected_cents: 2_400_000, current_refreshed_at: today.in_time_zone.change(hour: 14, min: 10))
 
