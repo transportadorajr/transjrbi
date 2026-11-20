@@ -68,7 +68,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           ['Projeção no início do mês R$ 23.000,00', 'Projeção atual (04/11) R$ 23.300,00', 'Faturado até agora R$ 1.600,00',
            'Variação da projeção desde a abertura +R$ 300,00 (+1,3%)'],
         )
-        expect(page).to have_text('O mês ainda está em andamento; o faturado considera só os dias já encerrados.')
+        expect(page).to have_text('O mês ainda está em andamento; o Atua ainda não foi sincronizado.')
         expect(page).to have_text('As projeções de 01/11 a 02/11 foram reconstruídas a partir do histórico')
         expect(page).to have_text('Evolução da projeção do mês')
         expect(html_table_to_rows(table: find_by_id('history_weeks'))).to eq(
@@ -132,6 +132,30 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
 
           expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Faturado no mês R$ 0,00')
         end
+
+        context 'with the last sync with Atua' do
+          before { create(:atua_import, tenant:, status_type: 'succeeded', finished_at: Time.zone.local(2026, 11, 4, 9, 30)) }
+
+          scenario 'tells that the billing of the month includes today until the last sync' do
+            visit revenue_projection_history_path
+
+            expect(all('#history_cards .counter-card').map { it.text.squish }.third).to eq('Faturado até agora R$ 2.100,00')
+            expect(page).to have_text('O mês ainda está em andamento; o faturado inclui hoje até a última sincronização com o Atua (09:30).')
+            expect(page).to have_no_text('considera só os dias já encerrados')
+
+            click_on 'Sem. atual'
+
+            expect(page).to have_text('A semana ainda está em andamento; o faturado inclui hoje até a última sincronização com o Atua (09:30).')
+          end
+        end
+      end
+
+      scenario 'labels the billing of a range in progress with the last closed day' do
+        visit revenue_projection_history_path(start_date: '2026-11-02', end_date: '2026-11-06')
+
+        expect(all('#history_cards .counter-card').map { it.text.squish }.second).to eq('Faturado até 03/11 R$ 1.600,00')
+        expect(page).to have_text('O período ainda está em andamento; o faturado considera só os dias já encerrados.')
+        expect(page).to have_no_text('Faturado até agora')
       end
 
       scenario 'chooses a previous closed month', :js do
@@ -160,7 +184,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           ['Projeção no início da semana R$ 0,00', 'Projeção atual (01/11) R$ 0,00', 'Faturado até agora R$ 1.600,00',
            'Variação da projeção desde a abertura +R$ 0,00'],
         )
-        expect(page).to have_text('A semana ainda está em andamento; o faturado considera só os dias já encerrados.')
+        expect(page).to have_text('A semana ainda está em andamento; o Atua ainda não foi sincronizado.')
         expect(page).to have_text('Evolução da projeção da semana')
         expect(page).to have_no_table('history_weeks')
         expect(html_table_to_rows(table: find_by_id('history_days'))).to eq(
@@ -277,6 +301,25 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
             end
 
             expect(page).to have_current_path(goals_path)
+          end
+
+          context 'with freights issued at the turn of the month in the evening' do
+            before do
+              create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 10, 31, 22), freight_cents: 1_516_834)
+              create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 11, 1, 1), freight_cents: 20_000)
+            end
+
+            scenario 'bills the month on today like the goals panel, in the local time zone' do
+              visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
+
+              within('#today_goal') do
+                expect(page).to have_text('R$ 1.200,00 faturados de R$ 25.000,00 (4,8%)')
+                click_on 'Ver painel de metas'
+              end
+
+              expect(all('#goal_company_cards .counter-card').map { it.text.squish }.second).to eq('Faturado no mês R$ 1.200,00')
+              expect(Atua::TransportDocument.where(tenant:).count).to eq(5)
+            end
           end
 
           scenario 'shows the goal of the vehicle of the cut on today' do
@@ -548,9 +591,19 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
     scenario 'tells that there is no history yet', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
       visit revenue_projection_history_path
 
-      expect(page).to have_text('Nenhum registro encontrado')
+      expect(page).to have_css('#no_history', text: 'Ainda não há histórico disponível para este período.')
+      expect(page).to have_no_text('crie um novo registro')
       expect(page).to have_no_css('#history_cards')
       expect(page).to have_no_link('Exportar Excel')
+    end
+
+    scenario 'tells that a future period has no history instead of suggesting a new record' do
+      visit revenue_projection_history_path(start_date: '2026-11-23', end_date: '2026-11-25')
+
+      expect(page).to have_css('#no_history', text: 'Nenhum histórico encontrado')
+      expect(page).to have_text('Ainda não há histórico disponível para este período.')
+      expect(page).to have_no_text('Tente ajustar os filtros ou crie um novo registro.')
+      expect(page).to have_no_css('#history_cards')
     end
   end
 

@@ -101,6 +101,10 @@ module Dashboard
       live_billing? ? billed_cents + today_billed_cents : billed_cents
     end
 
+    def last_synced_at
+      @last_synced_at ||= tenant.last_synced_at
+    end
+
     def forecast_cents
       forecasts.values_at(*closed_days).compact.sum(&:forecast_cents)
     end

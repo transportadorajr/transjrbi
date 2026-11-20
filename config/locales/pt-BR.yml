@@ -2661,6 +2661,9 @@ pt-BR:
       exceeded: Previsão superada em %{value}
       progress_label: Faturado hoje em relação à previsão do dia
       progress_note: O dia ainda não terminou; o faturado vai até a última sincronização com o Atua.
+    no_history:
+      title: Nenhum histórico encontrado
+      message: Ainda não há histórico disponível para este período.
     today_goal:
       title: 'Meta do mês: %{target}'
       realized: '%{realized} faturados de %{goal} (%{ratio})'
@@ -2708,6 +2711,12 @@ pt-BR:
         month: O mês ainda está em andamento; o faturado considera só os dias já encerrados.
         week: A semana ainda está em andamento; o faturado considera só os dias já encerrados.
         range: O período ainda está em andamento; o faturado considera só os dias já encerrados.
+        live:
+          month: O mês ainda está em andamento; o faturado inclui hoje até a última sincronização com o Atua (%{time}).
+          week: A semana ainda está em andamento; o faturado inclui hoje até a última sincronização com o Atua (%{time}).
+        never_synced:
+          month: O mês ainda está em andamento; o Atua ainda não foi sincronizado.
+          week: A semana ainda está em andamento; o Atua ainda não foi sincronizado.
       hit_since: A projeção ficou a menos de %{tolerance} do faturado a partir de %{date}.
       never_hit: A projeção não chegou a ficar a menos de %{tolerance} do faturado.
       no_data_to_evaluate: Sem dados para avaliar a projeção.

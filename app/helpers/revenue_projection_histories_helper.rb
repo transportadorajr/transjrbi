@@ -22,7 +22,7 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_body(history, today_goal: nil, breakdown: nil, breakdown_rows: nil)
-    return render('shared/no_content') unless history.any?
+    return render('revenue_projection_histories/no_history') unless history.any?
     return render('revenue_projection_histories/today', today: history, goal: today_goal) if history.period_type == 'today'
 
     render 'revenue_projection_histories/content', history:, breakdown:, breakdown_rows:
@@ -327,7 +327,7 @@ module RevenueProjectionHistoriesHelper
 
   def revenue_projection_history_billed_label(history)
     return t(history.period_type, scope: 'revenue_projection_histories.show.billed_period') if history.closed?
-    return t('revenue_projection_histories.show.billed_now') if history.live_billing?
+    return t('revenue_projection_histories.show.billed_now') if history.snapshot_period? && history.live_billing?
 
     t('revenue_projection_histories.show.billed_until', date: l(history.last_closed_date, format: :chart_week))
   end
@@ -337,7 +337,7 @@ module RevenueProjectionHistoriesHelper
   end
 
   def revenue_projection_history_hit_note(history)
-    return t(history.period_type, scope: 'revenue_projection_histories.show.in_progress_note') unless history.closed?
+    return revenue_projection_history_in_progress_note(history) unless history.closed?
     return unless history.snapshot_period?
     return t('revenue_projection_histories.show.no_data_to_evaluate') unless history.evaluable?
 
@@ -345,6 +345,14 @@ module RevenueProjectionHistoriesHelper
     return t('revenue_projection_histories.show.never_hit', tolerance: revenue_projection_history_tolerance) unless hit_since
 
     t('revenue_projection_histories.show.hit_since', date: l(hit_since, format: :chart_week), tolerance: revenue_projection_history_tolerance)
+  end
+
+  def revenue_projection_history_in_progress_note(history)
+    scope = 'revenue_projection_histories.show.in_progress_note'
+    return t(history.period_type, scope:) unless history.snapshot_period? && history.live_billing?
+    return t(history.period_type, scope: "#{scope}.never_synced") unless history.last_synced_at
+
+    t(history.period_type, scope: "#{scope}.live", time: l(history.last_synced_at, format: :hour_minute))
   end
 
   def revenue_projection_history_refresh_note(history)
