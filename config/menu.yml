@@ -3,13 +3,6 @@ shared:
     - name: intelligence
       icon: graph-up-arrow
       menus:
-        - name: vehicle_availability
-          resource: vehicle_availability
-          url: /vehicle_availabilities
-          feature: maintenance
-          controllers:
-            - vehicle_availabilities
-            - vehicle_availability_orders
         - name: freight_billing
           resource: freight_billing
           url: /freight_billing
@@ -61,6 +54,31 @@ shared:
           url: /route_distances
           controllers:
             - route_distances
+    - name: fleet
+      icon: truck
+      menus:
+        - name: vehicles
+          resource: vehicles
+          url: /vehicles
+          controllers:
+            - vehicles
+        - name: truck_groups
+          resource: truck_groups
+          url: /truck_groups
+          controllers:
+            - truck_groups
+        - name: own_fleet
+          resource: own_fleet
+          url: /own_fleet
+          controllers:
+            - own_fleets
+        - name: vehicle_availability
+          resource: vehicle_availability
+          url: /vehicle_availabilities
+          feature: maintenance
+          controllers:
+            - vehicle_availabilities
+            - vehicle_availability_orders
     - name: registrations
       icon: card-list
       menus:
@@ -89,16 +107,6 @@ shared:
           url: /cities
           controllers:
             - cities
-        - name: truck_groups
-          resource: truck_groups
-          url: /truck_groups
-          controllers:
-            - truck_groups
-        - name: own_fleet
-          resource: own_fleet
-          url: /own_fleet
-          controllers:
-            - own_fleets
         - name: excluded_issuers
           resource: excluded_issuers
           url: /excluded_issuers
@@ -114,11 +122,6 @@ shared:
           url: /drivers
           controllers:
             - drivers
-        - name: vehicles
-          resource: vehicles
-          url: /vehicles
-          controllers:
-            - vehicles
         - name: expenses
           resource: expenses
           url: /expenses

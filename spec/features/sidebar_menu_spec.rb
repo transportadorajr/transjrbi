@@ -1,12 +1,12 @@
 require 'rails_helper'
 
-describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection revenue_goals] do
+describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection revenue_goals maintenance] do
   let!(:tenant) { create(:tenant) }
   let!(:resources) do
     %w[
       freight_billing trips revenue_projection goals transport_documents manifests route_distances customers customer_groups product_groups
       macro_regions cities truck_groups revenue_goals excluded_issuers holidays drivers vehicles expenses commission_rules tonnage_rates
-      insurance_rates freight_expenses company users
+      insurance_rates freight_expenses company users vehicle_availability own_fleet
     ].index_with { |slug| create(:resource, slug:) }
   end
 
@@ -26,8 +26,9 @@ describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection revenue_
         [
           'Inteligência', 'Faturamento', 'Viagens', 'Metas e projeções', 'Histórico da projeção', 'Metas',
           'Fiscal', 'CT-es', 'Manifestos', 'Trechos de km',
+          'Frota', 'Veículos', 'Grupos de caminhões', 'Frota própria', 'Disponibilidade da frota',
           'Cadastros', 'Clientes', 'Grupos de clientes', 'Grupos de produtos', 'Macro regiões', 'Cidades',
-          'Grupos de caminhões', 'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Veículos', 'Despesas',
+          'Emissores desconsiderados', 'Feriados', 'Motoristas', 'Despesas',
           'Regras de comissão', 'Custos por tonelada', 'Alíquota de seguro', 'Despesas de frete',
           'Empresa', 'Usuários'
         ],
@@ -84,6 +85,32 @@ describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection revenue_
         expect(page).to have_no_link('Faturamento', visible: :all)
         expect(page).to have_no_link('Usuários', visible: :all)
       end
+    end
+  end
+
+  context 'when an operator with fleet accesses is signed in' do
+    let!(:operator) { create(:user, tenant:, user_type: :operator) }
+
+    before do
+      create(:access, user: operator, resource: resources['vehicles'], reads: true)
+      create(:access, user: operator, resource: resources['vehicle_availability'], reads: true)
+      login_as(operator, scope: :user)
+    end
+
+    scenario 'sees the vehicles and the fleet availability inside the fleet group' do
+      visit root_path
+
+      expect(sidebar_items).to eq(['Frota', 'Veículos', 'Disponibilidade da frota'])
+    end
+
+    scenario 'opens the fleet availability from the fleet group' do
+      visit root_path
+      within('.sidebar-desktop') do
+        click_on 'Frota'
+        click_on 'Disponibilidade da frota'
+      end
+
+      expect(page).to have_current_path(vehicle_availabilities_path)
     end
   end
 

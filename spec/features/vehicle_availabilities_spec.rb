@@ -77,7 +77,10 @@ describe 'Vehicle availability' do
 
       scenario 'lists the own tractors and trailers with the vehicles in maintenance first' do
         visit root_path
-        within('.sidebar-desktop') { click_on 'Disponibilidade da frota' }
+        within('.sidebar-desktop') do
+          click_on 'Frota'
+          click_on 'Disponibilidade da frota'
+        end
 
         expect(page).to have_current_path(vehicle_availabilities_path)
         expect(Atua::Vehicle.count).to eq(8)
