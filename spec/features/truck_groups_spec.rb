@@ -42,10 +42,10 @@ describe 'Truck groups' do
       let!(:ls) { create(:truck_group, :ls, tenant:, activated_at: nil) }
       let!(:stranger_group) { create(:truck_group, tenant: other_tenant, name: 'GRUPO DE OUTRA') }
 
-      scenario 'lists the groups of the tenant from the registrations menu' do
+      scenario 'lists the groups of the tenant from the fleet menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Cadastros'
+          click_on 'Frota'
           click_on 'Grupos de caminhões'
         end
 

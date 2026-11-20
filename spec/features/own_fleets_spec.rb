@@ -29,10 +29,10 @@ describe 'Own fleet' do
     context 'when the tenant has no fleet' do
       before { create(:own_fleet, tenant: other_tenant, plates: %w[INT6R00]) }
 
-      scenario 'shows an empty fleet from the registrations menu' do
+      scenario 'shows an empty fleet from the fleet menu' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Cadastros'
+          click_on 'Frota'
           click_on 'Frota própria'
         end
 

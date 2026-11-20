@@ -62,7 +62,7 @@ describe 'Vehicles' do
       scenario 'lists only the vehicles of the tenant with a transport document issued in the current year' do
         visit root_path
         within('.sidebar-desktop') do
-          click_on 'Cadastros'
+          click_on 'Frota'
           click_on 'Veículos'
         end
 
