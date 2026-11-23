@@ -3026,6 +3026,7 @@ pt-BR:
       title: Lançar folga ou afastamento
       employee_title: Lançar para %{name}
       end_on_hint: Para um único dia, deixe igual à data inicial.
+      city_placeholder: Selecione a cidade da folga
       city_hint: >-
         Obrigatória na folga. Vem sugerida a cidade onde a pessoa mais folgou ou, para motoristas, o destino da última viagem
         encerrada.

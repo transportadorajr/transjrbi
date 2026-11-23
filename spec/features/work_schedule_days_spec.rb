@@ -11,6 +11,14 @@ describe 'Work schedule days', :hr do
 
   around { |example| travel_to(Time.zone.local(2026, 11, 25, 10)) { example.run } }
 
+  def select_day_off_city(search, city)
+    within('#work_schedule_day_city_select') do
+      find('.select2-trigger').click
+      find('.select2-search').fill_in(with: search)
+      find('.select2-option', text: city).click
+    end
+  end
+
   context 'when the owner is signed in', :js, flipper: :hr do
     let!(:owner) { create(:user, tenant:, user_type: :owner) }
 
@@ -28,7 +36,7 @@ describe 'Work schedule days', :hr do
 
         within('#work_schedule_day_modal') do
           expect(page).to have_text('Lançar para JOSE SILVA')
-          expect(page).to have_select('Cidade da folga', selected: 'Ipatinga/MG (base)')
+          expect(page).to have_css('#work_schedule_day_city_select .select2-single-value', text: 'Ipatinga/MG (base)')
           expect(page).to have_field('De', with: '2026-11-25')
 
           expect { click_on 'Lançar' }.to change(WorkScheduleDay, :count).by(1)
@@ -48,6 +56,44 @@ describe 'Work schedule days', :hr do
         create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: transport_document.number)
       end
 
+      scenario 'searches the city of the day off by name' do
+        visit work_schedules_path
+        within("#employee_#{jose.id}") { click_on 'Lançar folga ou afastamento' }
+
+        within('#work_schedule_day_modal') do
+          expect(page).to have_css('#work_schedule_day_city_select_label', text: 'Cidade da folga')
+
+          find('#work_schedule_day_city_select .select2-trigger').click
+          expect(all('.select2-option').map(&:text)).to eq(['Ipatinga/MG (base)', 'Cubatão/SP'])
+
+          find('.select2-search').fill_in(with: 'cubatao')
+          expect(all('.select2-option').map(&:text)).to eq(['Cubatão/SP'])
+
+          find('.select2-option', text: 'Cubatão/SP').click
+          fill_in 'De', with: '2026-11-26'
+          fill_in 'Até', with: '2026-11-26'
+
+          expect { click_on 'Lançar' }.to change(WorkScheduleDay, :count).by(1)
+        end
+
+        expect(WorkScheduleDay.last).to have_attributes(date: Date.new(2026, 11, 26), city: cubatao)
+      end
+
+      scenario 'requires the city of the day off' do
+        visit work_schedules_path
+        within("#employee_#{jose.id}") { click_on 'Lançar folga ou afastamento' }
+
+        within('#work_schedule_day_modal') do
+          fill_in 'De', with: '2026-11-26'
+          fill_in 'Até', with: '2026-11-26'
+
+          expect { click_on 'Lançar' }.not_to change(WorkScheduleDay, :count)
+
+          expect(page).to have_css('.invalid-feedback', text: 'não pode ficar em branco')
+          expect(page).to have_css('#work_schedule_day_city_select')
+        end
+      end
+
       scenario 'blocks a day off on a trip day and keeps the modal open' do
         visit work_schedules_path
         within("#employee_#{jose.id}") { click_on 'Lançar folga ou afastamento' }
@@ -55,7 +101,7 @@ describe 'Work schedule days', :hr do
         within('#work_schedule_day_modal') do
           fill_in 'De', with: '2026-11-24'
           fill_in 'Até', with: '2026-11-24'
-          select 'Cubatão/SP', from: 'Cidade da folga'
+          select_day_off_city('cuba', 'Cubatão/SP')
 
           expect { click_on 'Lançar' }.not_to change(WorkScheduleDay, :count)
 
@@ -117,7 +163,7 @@ describe 'Work schedule days', :hr do
       within("#card_employee_#{jose.id}") { click_on 'Lançar folga ou afastamento' }
 
       within('#work_schedule_day_modal') do
-        select 'Ipatinga/MG (base)', from: 'Cidade da folga'
+        select_day_off_city('ipa', 'Ipatinga/MG (base)')
 
         expect { click_on 'Lançar' }.to change(WorkScheduleDay, :count).by(1)
       end
