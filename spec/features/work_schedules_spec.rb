@@ -90,7 +90,14 @@ describe 'Work schedules', :hr do
 
         expect(page).to have_current_path(work_schedules_path(week: '2026-11-29'))
         expect(page).to have_css('.page-header', text: 'Semana de 29/11/2026 a 05/12/2026')
-        expect(html_table_to_rows.drop(1).map(&:last)).to eq(['0 de 2 folgas', '0 de 2 folgas'])
+        expect(Employee.count).to eq(4)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'dom 29/11', 'seg 30/11', 'ter 01/12', 'qua 02/12', 'qui 03/12', 'sex 04/12', 'sáb 05/12', 'Folgas na semana'],
+            ['ANA PAULA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas'],
+            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas'],
+          ],
+        )
 
         click_on 'Esta semana'
 
@@ -104,6 +111,7 @@ describe 'Work schedules', :hr do
         click_on 'Aplicar Filtros'
 
         expect(page).to have_css('.page-header', text: 'Semana de 15/11/2026 a 21/11/2026')
+        expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'dom 15/11', 'seg 16/11', 'ter 17/11', 'qua 18/11', 'qui 19/11', 'sex 20/11', 'sáb 21/11', 'Folgas na semana'],

@@ -16,7 +16,7 @@
       </div>
     </div>
     <div class="table-card-body">
-      <% if @rows.any? %>
+      <% if @employees.any? %>
         <%= render 'table', collection: @employees, rows: @rows, schedule: @schedule %>
       <% else %>
         <%= render 'shared/no_content' %>
