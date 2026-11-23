@@ -53,6 +53,7 @@ end
   'maintenance_services' => { name: 'Serviços da manutenção', writable: true },
   'vehicle_availability' => { name: 'Disponibilidade da frota', writable: false },
   'hr' => { name: 'Módulo de RH', writable: false },
+  'employees' => { name: 'Funcionários', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)

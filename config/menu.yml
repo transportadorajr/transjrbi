@@ -213,7 +213,13 @@ shared:
       url: /vehicles
       controllers:
         - vehicles
-  hr: []
+  hr:
+    - name: employees
+      resource: employees
+      icon: person-vcard
+      url: /employees
+      controllers:
+        - employees
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

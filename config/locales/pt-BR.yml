@@ -97,6 +97,9 @@ pt-BR:
       holiday:
         one: Feriado
         other: Feriados
+      employee:
+        one: Funcionário
+        other: Funcionários
       workshop_employee:
         one: Funcionário da oficina
         other: Funcionários da oficina
@@ -142,6 +145,23 @@ pt-BR:
         typical: Valor típico do dia da semana
         factor: Ajuste aplicado
         forecast: Previsão do dia
+      employee:
+        name: Nome
+        nickname: Apelido
+        legal_id: CPF
+        company_type: Empresa
+        registration: Matrícula
+        role: Função
+        cost_center: Centro de custo
+        gender_type: Sexo
+        born_on: Data de nascimento
+        admitted_on: Data de admissão
+        work_schedule_type: Escala
+        driver: Motorista no Atua
+        driver_id: Motorista no Atua
+        workshop_employee: Funcionário da oficina
+        workshop_employee_id: Funcionário da oficina
+        activated_at: Situação
       workshop_employee:
         name: Nome
         role_type: Função
@@ -962,6 +982,20 @@ pt-BR:
       revenue_projection_day_note_form:
         date: Dia
         body: Anotação
+      employee_form:
+        name: Nome
+        nickname: Apelido
+        legal_id: CPF
+        company_type: Empresa
+        registration: Matrícula
+        role: Função
+        cost_center: Centro de custo
+        gender_type: Sexo
+        born_on: Data de nascimento
+        admitted_on: Data de admissão
+        work_schedule_type: Escala
+        workshop_employee_id: Funcionário da oficina
+        active: Ativo
       workshop_employee_form:
         name: Nome
         role_type: Função
@@ -1188,6 +1222,12 @@ pt-BR:
           attributes:
             date:
               future: não pode ser um dia que ainda não terminou
+        employee_form:
+          attributes:
+            legal_id:
+              taken: já está cadastrado em outro funcionário
+            admitted_on:
+              before_born_on: deve ser posterior à data de nascimento
         workshop_employee_form:
           attributes:
             name:
@@ -1351,6 +1391,17 @@ pt-BR:
         customer_group: Grupo de clientes
         region: Macro região
         truck_group: Grupo de caminhões
+    employee:
+      company_type:
+        transjr: TransJR
+        mme: MME
+        mm_espinola: MM Espinola
+      gender_type:
+        female: Feminino
+        male: Masculino
+      work_schedule_type:
+        five_two: Escala 5x2
+        not_scheduled: Fora da escala
     workshop_employee:
       role_type:
         mechanic: Mecânico
@@ -1589,6 +1640,9 @@ pt-BR:
       holiday:
         create: Cadastrar Feriado
         update: Salvar Alterações
+      employee:
+        create: Cadastrar Funcionário
+        update: Salvar Alterações
       workshop_employee:
         create: Cadastrar Funcionário
         update: Salvar Alterações
@@ -1718,6 +1772,11 @@ pt-BR:
       holiday:
         edit: Alterar
         destroy: Excluir
+        activate: Ativar
+        deactivate: Inativar
+      employee:
+        show: Visualizar
+        edit: Alterar
         activate: Ativar
         deactivate: Inativar
       workshop_employee:
@@ -1944,6 +2003,7 @@ pt-BR:
     hr: Módulo de RH
     maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
+    employees: Funcionários
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
     maintenance_parts: Peças da manutenção
@@ -2896,6 +2956,37 @@ pt-BR:
         Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
         não funciona (ex.: Carnaval).
       active_hint: Feriados inativos deixam de ser considerados nas metas e na projeção de faturamento, que passam a contar o dia como útil.
+  employees:
+    status:
+      active: Ativo
+      inactive: Inativo
+    index:
+      title: Funcionários
+      subtitle: Cadastro único dos funcionários de todas as empresas do grupo.
+      new_employee: Novo Funcionário
+    show:
+      back: Voltar para funcionários
+      edit: Alterar
+      employee_data: Dados do Funcionário
+      no_driver: Não vinculado
+      no_workshop_employee: Não vinculado
+    new:
+      title: Novo Funcionário
+      back: Voltar para funcionários
+    create:
+      success: Funcionário cadastrado com sucesso.
+    edit:
+      title: Alterar Funcionário
+      back: Voltar para funcionários
+    update:
+      success: Funcionário atualizado com sucesso.
+    form:
+      employee_data: Dados do Funcionário
+      employee_data_text: O CPF identifica o funcionário em todas as empresas do grupo.
+      no_workshop_employee: Não é funcionário da oficina
+      workshop_employee_hint: Liga o funcionário ao cadastro usado nas ordens de serviço.
+      active_hint: Funcionários inativos saem da escala de folgas.
+      driver_hint: O motorista do Atua é vinculado automaticamente pelo CPF informado nos CT-es.
   workshop_employees:
     status:
       active: Ativo
@@ -4135,6 +4226,7 @@ pt-BR:
   menus:
     tax: Fiscal
     maintenance_orders: Ordens de serviço
+    employees: Funcionários
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
     maintenance_parts: Peças e Estoque

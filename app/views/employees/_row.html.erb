@@ -1,0 +1,11 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="fw-semibold text-break"><%= item.name %></td>
+  <td class="d-none d-md-table-cell"><%= item.company_type_name %></td>
+  <td class="d-none d-lg-table-cell"><%= tax_value(item.role) %></td>
+  <td class="d-none d-lg-table-cell"><%= item.work_schedule_type_name %></td>
+  <td class="d-none d-lg-table-cell"><%= employee_driver_code(item) %></td>
+  <td><%= employee_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(employees_menu(item)) %>
+  </td>
+</tr>
