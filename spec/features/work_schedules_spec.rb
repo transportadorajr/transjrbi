@@ -73,11 +73,11 @@ describe 'Work schedules', :hr do
         expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'dom 22/11', 'seg 23/11', 'ter 24/11', 'qua 25/11', 'qui 26/11', 'sex 27/11', 'sáb 28/11', 'Folgas na semana', 'Ações'],
+            ['Nome', 'dom 22/11', 'seg 23/11', 'ter 24/11', 'qua 25/11', 'qui 26/11', 'sex 27/11', 'sáb 28/11', 'Folgas na semana', 'Domingo de folga', 'Ações'],
             ['ANA PAULA', 'Trabalho', 'AfastamentoAtestado médico', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho',
-             '0 de 2 folgas', ''],
+             '0 de 2 folgas', 'Sem domingo registrado', ''],
             ['JOSE SILVA', 'Em viagem', 'Em viagem', 'Em viagem', 'Folga na baseIpatinga/MG', 'Folga fora da baseCubatão/SP',
-             'Trabalho', 'Trabalho', '2 de 2 folgas', ''],
+             'Trabalho', 'Trabalho', '2 de 2 folgas', 'Sem domingo registrado', ''],
           ],
         )
         expect(page).to have_no_text('FORA DA ESCALA')
@@ -93,9 +93,9 @@ describe 'Work schedules', :hr do
         expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'dom 29/11', 'seg 30/11', 'ter 01/12', 'qua 02/12', 'qui 03/12', 'sex 04/12', 'sáb 05/12', 'Folgas na semana', 'Ações'],
-            ['ANA PAULA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', ''],
-            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', ''],
+            ['Nome', 'dom 29/11', 'seg 30/11', 'ter 01/12', 'qua 02/12', 'qui 03/12', 'sex 04/12', 'sáb 05/12', 'Folgas na semana', 'Domingo de folga', 'Ações'],
+            ['ANA PAULA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', 'Sem domingo registrado', ''],
+            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', 'Sem domingo registrado', ''],
           ],
         )
 
@@ -114,11 +114,40 @@ describe 'Work schedules', :hr do
         expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'dom 15/11', 'seg 16/11', 'ter 17/11', 'qua 18/11', 'qui 19/11', 'sex 20/11', 'sáb 21/11', 'Folgas na semana', 'Ações'],
-            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Em viagem', 'Em viagem', '0 de 2 folgas', ''],
+            ['Nome', 'dom 15/11', 'seg 16/11', 'ter 17/11', 'qua 18/11', 'qui 19/11', 'sex 20/11', 'sáb 21/11', 'Folgas na semana', 'Domingo de folga', 'Ações'],
+            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Em viagem', 'Em viagem', '0 de 2 folgas', 'Sem domingo registrado', ''],
           ],
         )
       end
+    end
+  end
+
+  context 'when the employees have Sunday deadlines', flipper: :hr do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+    let!(:city) { create(:city, tenant:) }
+
+    before do
+      ana = create(:employee, tenant:, name: 'ANA PAULA', legal_id: '11144477735', gender_type: 'female')
+      jose = create(:employee, tenant:, name: 'JOSE SILVA', legal_id: '52998224725', gender_type: 'male')
+      create(:employee, tenant:, name: 'PEDRO ALVES', legal_id: '39053344705', gender_type: 'male')
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 11, 1), city:)
+      create(:work_schedule_day, employee: jose, date: Date.new(2026, 11, 8), city:)
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'shows the Sunday off status of each employee' do
+      visit work_schedules_path
+
+      expect(Employee.count).to eq(3)
+      expect(html_table_to_rows).to eq(
+        [
+          ['Nome', 'dom 22/11', 'seg 23/11', 'ter 24/11', 'qua 25/11', 'qui 26/11', 'sex 27/11', 'sáb 28/11', 'Folgas na semana',
+           'Domingo de folga', 'Ações'],
+          ['ANA PAULA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', 'Atrasado desde 15/11', ''],
+          ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', 'Próximo até 06/12', ''],
+          ['PEDRO ALVES', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', 'Sem domingo registrado', ''],
+        ],
+      )
     end
   end
 
@@ -138,6 +167,7 @@ describe 'Work schedules', :hr do
       within("#card_employee_#{jose.id}") do
         expect(page).to have_text('JOSE SILVA')
         expect(page).to have_text('1 de 2 folgas')
+        expect(page).to have_text('Sem domingo registrado')
         expect(page).to have_text('Folga')
       end
       expect(page).to have_no_css('#work_schedule_table')

@@ -5,6 +5,7 @@ class Employee < ApplicationRecord
   COMPANIES = %i[transjr mme mm_espinola].freeze
   GENDERS = %i[female male].freeze
   WORK_SCHEDULES = %i[five_two not_scheduled].freeze
+  SUNDAY_OFF_INTERVAL_DAYS = { 'female' => 15, 'male' => 28 }.freeze
 
   sortable :name
 
@@ -43,6 +44,10 @@ class Employee < ApplicationRecord
 
   def driver_code
     driver&.code
+  end
+
+  def sunday_off_interval
+    SUNDAY_OFF_INTERVAL_DAYS.fetch(gender_type).days
   end
 end
 

@@ -79,6 +79,13 @@ RSpec.describe Employee do
     end
   end
 
+  describe '#sunday_off_interval' do
+    it 'gives a Sunday off every 15 days to women and every 28 days to men' do
+      expect(build(:employee, gender_type: 'female').sunday_off_interval).to eq(15.days)
+      expect(build(:employee, gender_type: 'male').sunday_off_interval).to eq(28.days)
+    end
+  end
+
   describe '#driver_code' do
     let!(:driver) { create(:driver, tenant:, code: 4321) }
 

@@ -41,6 +41,16 @@ RSpec.describe WorkScheduleDay do
     end
   end
 
+  describe '.on_sundays' do
+    let!(:sunday) { create(:work_schedule_day, employee:, date: Date.new(2026, 11, 22)) }
+
+    before { create(:work_schedule_day, employee:, date: Date.new(2026, 11, 23)) }
+
+    it 'keeps only the entries on Sundays' do
+      expect(described_class.on_sundays).to eq([sunday])
+    end
+  end
+
   describe '.by_period' do
     let!(:inside) { create(:work_schedule_day, employee:, date: Date.new(2026, 11, 22)) }
     let!(:outside) { create(:work_schedule_day, employee:, date: Date.new(2026, 11, 29)) }

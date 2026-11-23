@@ -14,6 +14,7 @@ class WorkScheduleDay < ApplicationRecord
   validates :leave_reason_type, absence: true, unless: :leave?
 
   scope :by_period, ->(dates) { where(date: dates) }
+  scope :on_sundays, -> { where(Arel.sql('EXTRACT(DOW FROM work_schedule_days.date) = 0')) }
 end
 
 # == Schema Information

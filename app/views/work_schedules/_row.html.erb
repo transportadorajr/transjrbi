@@ -4,6 +4,7 @@
     <td class="text-center"><%= work_schedule_day_cell(day) %></td>
   <% end %>
   <td class="text-end text-nowrap"><%= work_schedule_days_off_tag(row) %></td>
+  <td class="text-end text-nowrap"><%= work_schedule_sunday_tag(row.sunday) %></td>
   <td class="text-end text-nowrap">
     <%= responsive_actions_menu(work_schedule_menu(row.employee, schedule)) %>
   </td>

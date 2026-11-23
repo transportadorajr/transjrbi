@@ -3022,6 +3022,12 @@ pt-BR:
     destroy:
       success: Lançamento excluído da escala.
   work_schedules:
+    sunday:
+      taken: Folga neste domingo
+      due: Vence neste domingo
+      overdue: Atrasado desde %{date}
+      on_track: Próximo até %{date}
+      unknown: Sem domingo registrado
     days_off:
       one: '%{count} de %{total} folgas'
       other: '%{count} de %{total} folgas'
@@ -3042,6 +3048,7 @@ pt-BR:
       week: Semana de %{start} a %{finish}
       employees: Funcionários na escala 5x2
       days_off: Folgas na semana
+      sunday: Domingo de folga
   employees:
     status:
       active: Ativo

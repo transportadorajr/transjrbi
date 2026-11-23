@@ -1,7 +1,10 @@
 <div class="border-bottom p-3" id="<%= dom_id(row.employee, :card) %>">
   <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
     <p class="fw-semibold text-break mb-0"><%= row.employee.name %></p>
-    <%= work_schedule_days_off_tag(row) %>
+    <div class="d-flex flex-column align-items-end gap-1">
+      <%= work_schedule_days_off_tag(row) %>
+      <%= work_schedule_sunday_tag(row.sunday) %>
+    </div>
   </div>
   <ul class="list-unstyled mb-0">
     <% row.days.each do |day| %>
