@@ -79,6 +79,7 @@ Rails.application.routes.draw do
   constraints subdomain: Transjrbi::HR_SUBDOMAIN do
     resources :employees, except: :destroy, concerns: :activatable
     resources :work_schedules, only: :index
+    resources :work_schedule_days, only: %i[show new create destroy]
     root 'hr_home#index', as: :hr_root
   end
 

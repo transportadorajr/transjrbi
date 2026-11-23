@@ -4,7 +4,7 @@ module Dashboard
     WEEK_START = :sunday
     WEEK_LENGTH = 7
 
-    Day = Data.define(:date, :status, :city, :leave_reason_type) do
+    Day = Data.define(:date, :status, :city, :leave_reason_type, :entry) do
       def day_off?
         status == :day_off
       end
@@ -29,6 +29,10 @@ module Dashboard
 
     def dates
       week_start..(week_start + (WEEK_LENGTH - 1))
+    end
+
+    def entry_date
+      dates.cover?(Date.current) ? Date.current : week_start
     end
 
     def previous_week
@@ -65,9 +69,9 @@ module Dashboard
 
     def day_for(entry, trip_dates, date)
       if entry
-        Day.new(date:, status: entry.kind_type.to_sym, city: entry.city, leave_reason_type: entry.leave_reason_type)
+        Day.new(date:, status: entry.kind_type.to_sym, city: entry.city, leave_reason_type: entry.leave_reason_type, entry:)
       else
-        Day.new(date:, status: trip_dates&.include?(date) ? :trip : :work, city: nil, leave_reason_type: nil)
+        Day.new(date:, status: trip_dates&.include?(date) ? :trip : :work, city: nil, leave_reason_type: nil, entry: nil)
       end
     end
 
@@ -77,28 +81,7 @@ module Dashboard
     end
 
     def trip_dates_for(employees)
-      codes = employees.filter_map(&:driver_code)
-      return {} if codes.empty?
-
-      trips(codes).each_with_object(Hash.new { |hash, code| hash[code] = Set.new }) do |(code, started_at, departure_on, issued_on, closed_at), result|
-        start = started_at&.to_date || departure_on || issued_on
-        next if start.nil?
-
-        finish = closed_at&.to_date || (started_at ? Date.current : start)
-        result[code].merge(dates.grep(start..finish))
-      end
-    end
-
-    def trips(codes)
-      manifests = Atua::Manifest.arel_table
-      documents = Atua::TransportDocument.arel_table
-
-      Atua::ManifestDocument.active.where(tenant:).joins(:manifest, :transport_document)
-        .merge(Atua::Manifest.trips)
-        .merge(Atua::TransportDocument.active.not_canceled.where(driver_code: codes))
-        .where(manifests[:closed_at].eq(nil).or(manifests[:closed_at].gteq(week_start.beginning_of_day)))
-        .distinct
-        .pluck(documents[:driver_code], manifests[:trip_started_at], manifests[:departure_on], manifests[:issued_on], manifests[:closed_at])
+      WorkSchedules::TripDatesCommand.call(tenant, employees.filter_map(&:driver_code), dates)
     end
   end
 end

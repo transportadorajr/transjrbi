@@ -1,6 +1,6 @@
 <div class="d-lg-none">
   <% rows.each do |row| %>
-    <%= render 'card', row: %>
+    <%= render 'card', row:, schedule: %>
   <% end %>
 </div>
 
@@ -13,11 +13,12 @@
           <th class="text-center"><%= work_schedule_day_label(date) %></th>
         <% end %>
         <th class="text-end"><%= t('work_schedules.index.days_off') %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>
     <tbody>
       <% rows.each do |row| %>
-        <%= render 'row', row: %>
+        <%= render 'row', row:, schedule: %>
       <% end %>
     </tbody>
   </table>

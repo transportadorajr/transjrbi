@@ -1,0 +1,7 @@
+<%# locals: (day_form:) %>
+
+<%= render layout: 'components/new_modal',
+           locals: { id: 'work_schedule_day_modal', title: work_schedule_day_form_title(day_form), title_icon: :'calendar-plus',
+                     auto_show: true, show_footer: false } do %>
+  <%= render 'work_schedule_days/form', day_form: %>
+<% end %>
