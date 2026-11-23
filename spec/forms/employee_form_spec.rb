@@ -24,21 +24,6 @@ RSpec.describe EmployeeForm do
       expect(Employee.last).to be_activated
     end
 
-    it 'links the driver of the CPF found in the transport documents' do
-      create(:atua_transport_document, tenant:, driver_code: 321, driver_document_digits: '52998224725')
-
-      described_class.new(**attributes).save
-
-      expect(Employee.last.driver_code).to eq(321)
-    end
-
-    it 'links a workshop employee of the tenant' do
-      mechanic = create(:workshop_employee, tenant:)
-
-      expect(described_class.new(**attributes, workshop_employee_id: mechanic.id).save).to be(true)
-      expect(Employee.last.workshop_employee).to eq(mechanic)
-    end
-
     it 'rejects an employee without the required fields' do
       form = described_class.new(tenant:, name: ' ', legal_id: '', company_type: '', gender_type: '', work_schedule_type: '')
 
@@ -65,30 +50,55 @@ RSpec.describe EmployeeForm do
       expect(form.errors.full_messages).to eq(['Data de admissão deve ser posterior à data de nascimento'])
     end
 
-    it 'rejects a CPF already registered' do
-      create(:employee, tenant:, legal_id: '52998224725')
-      form = described_class.new(**attributes)
+    context 'when a transport document carries the CPF' do
+      before { create(:atua_transport_document, tenant:, driver_code: 321, driver_document_digits: '52998224725') }
 
-      expect { expect(form.save).to be_falsey }.not_to change(Employee, :count)
-      expect(form.errors.full_messages).to eq(['CPF já está cadastrado em outro funcionário'])
+      it 'links the driver of the CPF found in the transport documents' do
+        described_class.new(**attributes).save
+
+        expect(Employee.last.driver_code).to eq(321)
+      end
     end
 
-    it 'rejects a workshop employee linked to another employee or from another tenant' do
-      linked = create(:workshop_employee, tenant:)
-      create(:employee, tenant:, legal_id: '11144477735', workshop_employee: linked)
-      stranger = create(:workshop_employee)
+    context 'when the tenant has a workshop employee' do
+      let!(:mechanic) { create(:workshop_employee, tenant:) }
 
-      [linked, stranger].each do |workshop_employee|
-        form = described_class.new(**attributes, workshop_employee_id: workshop_employee.id)
+      it 'links the workshop employee' do
+        expect(described_class.new(**attributes, workshop_employee_id: mechanic.id).save).to be(true)
+        expect(Employee.last.workshop_employee).to eq(mechanic)
+      end
+    end
 
-        expect(form.save).to be_falsey
-        expect(form.errors.full_messages).to eq(['Funcionário da oficina não é válido'])
+    context 'when the CPF is already registered' do
+      before { create(:employee, tenant:, legal_id: '52998224725') }
+
+      it 'rejects a CPF already registered' do
+        form = described_class.new(**attributes)
+
+        expect { expect(form.save).to be_falsey }.not_to change(Employee, :count)
+        expect(form.errors.full_messages).to eq(['CPF já está cadastrado em outro funcionário'])
+      end
+    end
+
+    context 'when the workshop employee is unavailable' do
+      let!(:linked) { create(:workshop_employee, tenant:) }
+      let!(:stranger) { create(:workshop_employee) }
+
+      before { create(:employee, tenant:, legal_id: '11144477735', workshop_employee: linked) }
+
+      it 'rejects a workshop employee linked to another employee or from another tenant' do
+        [linked, stranger].each do |workshop_employee|
+          form = described_class.new(**attributes, workshop_employee_id: workshop_employee.id)
+
+          expect(form.save).to be_falsey
+          expect(form.errors.full_messages).to eq(['Funcionário da oficina não é válido'])
+        end
       end
     end
 
     context 'when the employee is edited' do
-      let(:mechanic) { create(:workshop_employee, tenant:) }
-      let(:employee) { create(:employee, tenant:, legal_id: '52998224725', workshop_employee: mechanic) }
+      let!(:mechanic) { create(:workshop_employee, tenant:) }
+      let!(:employee) { create(:employee, tenant:, legal_id: '52998224725', workshop_employee: mechanic) }
 
       it 'keeps its own CPF and workshop employee available' do
         form = described_class.for_employee(employee)

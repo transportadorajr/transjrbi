@@ -26,27 +26,31 @@ RSpec.describe Employees::LinkDriverCommand do
       expect(employee.reload.driver_code).to eq(502)
     end
 
-    it 'reuses a driver already registered' do
-      driver = create(:driver, tenant:, code: 502)
+    context 'when the driver is already registered' do
+      let!(:driver) { create(:driver, tenant:, code: 502) }
 
-      expect { described_class.call(employee) }.not_to change(Driver, :count)
-      expect(employee.reload.driver).to eq(driver)
+      it 'reuses the registered driver' do
+        expect { described_class.call(employee) }.not_to change(Driver, :count)
+        expect(employee.reload.driver).to eq(driver)
+      end
     end
 
-    it 'does not take the driver of another employee' do
-      other = create(:employee, tenant:, legal_id: '11144477735', driver: create(:driver, tenant:, code: 502))
+    context 'when the driver is linked to another employee' do
+      let!(:other) { create(:employee, tenant:, legal_id: '11144477735', driver: create(:driver, tenant:, code: 502)) }
 
-      described_class.call(employee)
+      it 'does not take the driver of another employee' do
+        described_class.call(employee)
 
-      expect(employee.reload.driver).to be_nil
-      expect(other.reload.driver_code).to eq(502)
+        expect(employee.reload.driver).to be_nil
+        expect(other.reload.driver_code).to eq(502)
+      end
     end
   end
 
   context 'when no transport document carries the CPF' do
-    it 'removes a previous link' do
-      employee.update!(driver: create(:driver, tenant:, code: 700))
+    before { employee.update!(driver: create(:driver, tenant:, code: 700)) }
 
+    it 'removes a previous link' do
       expect(described_class.call(employee)).to be_nil
       expect(employee.reload.driver).to be_nil
     end
