@@ -10,7 +10,9 @@ module Dashboard
       end
     end
 
-    Row = Data.define(:employee, :days) do
+    Sunday = Data.define(:status, :last_on, :due_on)
+
+    Row = Data.define(:employee, :days, :sunday) do
       def days_off_count
         days.count(&:day_off?)
       end
@@ -51,9 +53,12 @@ module Dashboard
       employees = employees.to_a
       entries = entries_for(employees)
       trips = trip_dates_for(employees)
+      last_sundays = last_sundays_off_for(employees)
 
       employees.map do |employee|
-        Row.new(employee:, days: dates.map { |date| day_for(entries[[employee.id, date]], trips[employee.driver_code], date) })
+        days = dates.map { |date| day_for(entries[[employee.id, date]], trips[employee.driver_code], date) }
+
+        Row.new(employee:, days:, sunday: sunday_for(employee, last_sundays[employee.id], days.first))
       end
     end
 
@@ -73,6 +78,27 @@ module Dashboard
       else
         Day.new(date:, status: trip_dates&.include?(date) ? :trip : :work, city: nil, leave_reason_type: nil, entry: nil)
       end
+    end
+
+    def sunday_for(employee, last_on, week_sunday)
+      return Sunday.new(status: :unknown, last_on: nil, due_on: nil) if last_on.nil?
+
+      due_on = (last_on + employee.sunday_off_interval).beginning_of_week(WEEK_START)
+
+      Sunday.new(status: sunday_status(last_on, due_on, week_sunday), last_on:, due_on:)
+    end
+
+    def sunday_status(last_on, due_on, week_sunday)
+      if last_on == week_sunday.date then :taken
+      elsif due_on < week_sunday.date then :overdue
+      elsif due_on == week_sunday.date then week_sunday.status == :trip ? :overdue : :due
+      else :on_track
+      end
+    end
+
+    def last_sundays_off_for(employees)
+      tenant.work_schedule_days.day_off.on_sundays.where(employee_id: employees.map(&:id)).where(date: ..week_start)
+        .group(:employee_id).maximum(:date)
     end
 
     def entries_for(employees)

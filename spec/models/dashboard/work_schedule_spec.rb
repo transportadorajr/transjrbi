@@ -75,6 +75,47 @@ RSpec.describe Dashboard::WorkSchedule do
     end
   end
 
+  describe 'Sunday rule' do
+    let!(:ana) { create(:employee, tenant:, name: 'ANA', legal_id: '00000000001', gender_type: 'female') }
+    let!(:maria) { create(:employee, tenant:, name: 'MARIA', legal_id: '00000000002', gender_type: 'female') }
+    let!(:jose) { create(:employee, tenant:, name: 'JOSE', legal_id: '00000000003', gender_type: 'male') }
+    let!(:pedro) { create(:employee, tenant:, name: 'PEDRO', legal_id: '00000000004', gender_type: 'male') }
+    let!(:carlos) do
+      create(:employee, tenant:, name: 'CARLOS', legal_id: '00000000005', gender_type: 'male', driver: create(:driver, tenant:, code: 777))
+    end
+    let!(:lucas) { create(:employee, tenant:, name: 'LUCAS', legal_id: '00000000006', gender_type: 'male') }
+    let!(:city) { create(:city, tenant:) }
+
+    before do
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 11, 8), city:)
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 11, 10), city:)
+      create(:work_schedule_day, employee: maria, date: Date.new(2026, 11, 1), city:)
+      create(:work_schedule_day, employee: jose, date: Date.new(2026, 11, 1), city:)
+      create(:work_schedule_day, employee: pedro, date: Date.new(2026, 11, 22), city:)
+      create(:work_schedule_day, employee: carlos, date: Date.new(2026, 10, 25), city:)
+      create(:work_schedule_day, :leave, employee: lucas, date: Date.new(2026, 11, 15))
+      create(:work_schedule_day, employee: lucas, date: Date.new(2026, 11, 29), city:)
+      manifest = create(:atua_manifest, tenant:, trip_started_at: Time.zone.local(2026, 11, 21, 8), closed_at: Time.zone.local(2026, 11, 23, 18))
+      transport_document = create(:atua_transport_document, tenant:, driver_code: 777)
+      create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: transport_document.number)
+    end
+
+    it 'gives the status of the Sunday off of each employee in the week' do
+      rows = schedule.rows(tenant.employees.preload(:driver).order(:name))
+
+      expect(rows.map { |row| [row.employee.name, row.sunday.status, row.sunday.last_on, row.sunday.due_on] }).to eq(
+        [
+          ['ANA', :due, Date.new(2026, 11, 8), Date.new(2026, 11, 22)],
+          ['CARLOS', :overdue, Date.new(2026, 10, 25), Date.new(2026, 11, 22)],
+          ['JOSE', :on_track, Date.new(2026, 11, 1), Date.new(2026, 11, 29)],
+          ['LUCAS', :unknown, nil, nil],
+          ['MARIA', :overdue, Date.new(2026, 11, 1), Date.new(2026, 11, 15)],
+          ['PEDRO', :taken, Date.new(2026, 11, 22), Date.new(2026, 12, 20)],
+        ],
+      )
+    end
+  end
+
   describe '#employees' do
     let!(:scheduled) { create(:employee, tenant:, legal_id: '52998224725') }
 

@@ -44,6 +44,16 @@ module WorkSchedulesHelper
     )
   end
 
+  def work_schedule_sunday_tag(sunday)
+    case sunday.status
+    when :taken then status_badge(t('work_schedules.sunday.taken'), kind: :success)
+    when :due then status_badge(t('work_schedules.sunday.due'), kind: :warning)
+    when :overdue then status_badge(t('work_schedules.sunday.overdue', date: l(sunday.due_on, format: :chart_week)), kind: :danger)
+    when :on_track then status_badge(t('work_schedules.sunday.on_track', date: l(sunday.due_on, format: :chart_week)), kind: :info)
+    else status_badge(t('work_schedules.sunday.unknown'), kind: :secondary)
+    end
+  end
+
   def work_schedule_company_type_options
     options_for_select(Employee.enum_options_for_select(:company_type), params[:company_type])
   end
