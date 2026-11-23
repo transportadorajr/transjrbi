@@ -39,7 +39,7 @@ describe 'Listing Excel exports' do
 
     context 'when there are cities' do
       let!(:macro_region) { create(:macro_region, tenant:, name: 'VALE DO AÇO/MG', city_names: ['Ipatinga']) }
-      let!(:betim) { create(:city, tenant:, name: 'Betim', state: 'MG') }
+      let!(:betim) { create(:city, tenant:, name: 'Betim', state: 'MG', base: true) }
       let!(:stranger) { create(:city, tenant: other_tenant, name: 'Cubatão', state: 'SP') }
 
       scenario 'exports the cities of the tenant with the name of their macro region' do
@@ -47,10 +47,11 @@ describe 'Listing Excel exports' do
 
         expect_xlsx_download('cidades')
         expect(City.count).to eq(3)
-        expect(downloaded_xlsx_rows.first).to eq(['Macro região', 'Nome', 'UF', 'Criado em', 'Atualizado em', 'Ativada em'])
+        expect(downloaded_xlsx_rows.first).to eq(['Macro região', 'Nome', 'UF', 'Criado em', 'Atualizado em', 'Ativada em', 'Base desde'])
         expect(downloaded_xlsx_records.map { |record| record.slice('Macro região', 'Nome', 'UF') }).to eq(
           [{ 'Macro região' => nil, 'Nome' => 'Betim', 'UF' => 'MG' }, { 'Macro região' => 'VALE DO AÇO/MG', 'Nome' => 'Ipatinga', 'UF' => 'MG' }],
         )
+        expect(downloaded_xlsx_records.map { |record| record['Base desde'].present? }).to eq([true, false])
       end
 
       scenario 'exports only the cities that match the filters' do

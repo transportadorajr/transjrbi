@@ -27,6 +27,9 @@
 
         <dt class="col-12 col-md-3"><%= City.human_attribute_name(:macro_region) %></dt>
         <dd class="col-12 col-md-9 text-break"><%= city_macro_region_name(@city) %></dd>
+
+        <dt class="col-12 col-md-3"><%= City.human_attribute_name(:base) %></dt>
+        <dd class="col-12 col-md-9"><%= city_base_label(@city) %></dd>
       </dl>
     </div>
   </div>

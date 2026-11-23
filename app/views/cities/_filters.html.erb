@@ -22,6 +22,10 @@
                      { class: 'form-select bg-light' } %>
       </div>
       <div class="col-12">
+        <%= f.label :base, City.human_attribute_name(:base), class: 'form-label fw-medium' %>
+        <%= f.select :base, city_base_filter_options, { include_blank: t('shared.all') }, { class: 'form-select bg-light' } %>
+      </div>
+      <div class="col-12">
         <%= f.label :status, City.human_attribute_name(:status), class: 'form-label fw-medium' %>
         <%= f.select :status, City.statuses, { include_blank: t('shared.all'), selected: params[:status] },
                      { class: 'form-select bg-light' } %>

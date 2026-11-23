@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_145442) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_175037) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -613,6 +613,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_145442) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime "base_at"
     t.index ["macro_region_id"], name: "index_cities_on_macro_region_id"
     t.index ["tenant_id", "state", "name"], name: "index_cities_on_tenant_id_and_state_and_name", unique: true
     t.index ["tenant_id"], name: "index_cities_on_tenant_id"

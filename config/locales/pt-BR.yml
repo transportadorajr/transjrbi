@@ -295,6 +295,8 @@ pt-BR:
         macro_region: Macro região
         status: Status
         activated_at: Ativada em
+        base: Base
+        base_at: Base desde
       commission_rule:
         name: Nome
         customer_group: Grupo de clientes
@@ -969,6 +971,7 @@ pt-BR:
         name: Nome
         state: UF
         macro_region_id: Macro região
+        base: Base
         active: Ativa
       excluded_issuer_form:
         code: Emissor
@@ -2545,6 +2548,9 @@ pt-BR:
       active_hint: Macro regiões inativas deixam de receber os CT-es; as origens delas passam para a região do restante do estado.
   cities:
     no_macro_region: Sem macro região
+    base:
+      base: Base
+      not_base: Fora da base
     unassigned_origins_alert:
       title:
         one: 1 cidade de origem de CT-e sem macro região
@@ -2594,6 +2600,7 @@ pt-BR:
         Só aparecem as macro regiões que listam cidades. Sem uma delas, a cidade fica no resto do estado (ex.: Resto do
         Paraná). Toda alteração reatribui a macro região dos CT-es.
       remaining_state_region: Resto do estado
+      base_hint: Marque quando a empresa tiver uma base nesta cidade. As folgas tiradas em cidades base contam como folga na base.
       active_hint: Cidades inativas deixam de valer para a macro região; os CT-es com origem nela passam para a região do restante do estado.
   truck_groups:
     axles:

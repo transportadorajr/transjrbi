@@ -52,7 +52,7 @@ RSpec.describe Exportable do
     it 'puts the name of the associated record where its foreign key was' do
       names = City.export_columns.map(&:name)
 
-      expect(names).to eq(%w[macro_region name state created_at updated_at activated_at])
+      expect(names).to eq(%w[macro_region name state created_at updated_at activated_at base_at])
     end
 
     it 'appends the fields that do not replace a foreign key after the columns' do

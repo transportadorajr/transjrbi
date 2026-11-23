@@ -5,6 +5,7 @@ class CitiesController < BaseController
   has_scope :by_status, as: :status
   has_scope :by_state, as: :state
   has_scope :by_macro_region, as: :macro_region_id
+  has_scope :by_base, as: :base
 
   before_action :set_city, only: %i[show edit update destroy activate deactivate]
 
@@ -81,6 +82,6 @@ class CitiesController < BaseController
   end
 
   def city_params
-    params.expect(city: %i[name state macro_region_id active])
+    params.expect(city: %i[name state macro_region_id base active])
   end
 end

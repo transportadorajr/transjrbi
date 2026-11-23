@@ -38,7 +38,7 @@ describe 'Cities' do
 
     context 'when there are cities' do
       let!(:vale_do_aco) { create(:macro_region, tenant:, city_names: %w[Ipatinga Timóteo]) }
-      let!(:cubatao) { create(:city, tenant:, name: 'Cubatão', state: 'SP') }
+      let!(:cubatao) { create(:city, tenant:, name: 'Cubatão', state: 'SP', base: true) }
       let!(:stranger_city) { create(:city, tenant: other_tenant, name: 'Cidade de Outra', state: 'MG') }
 
       scenario 'lists the cities of the tenant from the registrations menu' do
@@ -52,10 +52,10 @@ describe 'Cities' do
         expect(City.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
-            ['Ipatinga', 'MG', 'VALE DO AÇO/MG', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
-            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
-            ['Cubatão', 'SP', 'Sem macro região', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Nome', 'UF', 'Macro região', 'Base', 'Status', 'Ações'],
+            ['Ipatinga', 'MG', 'VALE DO AÇO/MG', 'Fora da base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Fora da base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Cubatão', 'SP', 'Sem macro região', 'Base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
         expect(page).to have_link('Nova Cidade', href: new_city_path)
@@ -100,10 +100,30 @@ describe 'Cities' do
         expect(City.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
-            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Nome', 'UF', 'Macro região', 'Base', 'Status', 'Ações'],
+            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Fora da base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
+      end
+
+      scenario 'filters the base cities' do
+        visit cities_path
+        select 'Base', from: 'Base'
+        click_on 'Aplicar Filtros'
+
+        expect(City.count).to eq(4)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'UF', 'Macro região', 'Base', 'Status', 'Ações'],
+            ['Cubatão', 'SP', 'Sem macro região', 'Base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+          ],
+        )
+      end
+
+      scenario 'filters the cities out of the bases' do
+        visit cities_path(base: 'not_base')
+
+        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[Ipatinga Timóteo])
       end
 
       scenario 'filters the cities without a macro region' do
@@ -113,8 +133,8 @@ describe 'Cities' do
 
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
-            ['Cubatão', 'SP', 'Sem macro região', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Nome', 'UF', 'Macro região', 'Base', 'Status', 'Ações'],
+            ['Cubatão', 'SP', 'Sem macro região', 'Base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
           ],
         )
       end
@@ -131,6 +151,15 @@ describe 'Cities' do
           'Nome' => ipatinga.name,
           'UF' => ipatinga.state,
           'Macro região' => ipatinga.macro_region.name,
+          'Base' => 'Fora da base',
+        )
+      end
+
+      scenario 'shows a base city' do
+        visit city_path(cubatao)
+
+        expect(dl_to_hash('#city_data')).to eq(
+          'Nome' => cubatao.name, 'UF' => cubatao.state, 'Macro região' => 'Sem macro região', 'Base' => 'Base',
         )
       end
 
@@ -202,6 +231,7 @@ describe 'Cities' do
         fill_in 'Nome', with: 'Belo Oriente'
         fill_in 'UF', with: 'mg'
         select 'VALE DO AÇO/MG (MG)', from: 'Macro região'
+        check 'Base'
 
         expect { click_on 'Cadastrar Cidade' }.to change(City, :count).by(1)
 
@@ -209,6 +239,7 @@ describe 'Cities' do
         expect(page).to have_current_path(city_path(city))
         expect(page).to have_text('Cidade cadastrada com sucesso.')
         expect(city).to have_attributes(tenant:, name: 'Belo Oriente', state: 'MG', macro_region: vale_do_aco)
+        expect(city).to be_base
         expect(belo_oriente_document.reload.origin_macro_region).to eq(vale_do_aco)
       end
 
@@ -248,18 +279,41 @@ describe 'Cities' do
         expect(page).to have_current_path(edit_city_path(ipatinga))
         expect(page).to have_field('Nome', with: 'Ipatinga')
         expect(page).to have_select('Macro região', selected: 'VALE DO AÇO/MG (MG)')
+        expect(page).to have_unchecked_field('Base')
 
         select 'Resto do estado', from: 'Macro região'
+        check 'Base'
 
         expect { click_on 'Salvar Alterações' }.to change(MacroRegion, :count).by(1)
 
         remaining_region = MacroRegion.last
         expect(page).to have_current_path(city_path(ipatinga))
         expect(page).to have_text('Cidade atualizada com sucesso.')
-        expect(dl_to_hash).to include('Macro região' => 'RESTO DE MINAS GERAIS')
+        expect(dl_to_hash).to include('Macro região' => 'RESTO DE MINAS GERAIS', 'Base' => 'Base')
         expect(remaining_region).to have_attributes(name: 'RESTO DE MINAS GERAIS', state: 'MG', remaining_state: true)
         expect(ipatinga.reload).to have_attributes(name: 'Ipatinga', state: 'MG', macro_region: remaining_region)
         expect(ipatinga_document.reload.origin_macro_region).to eq(remaining_region)
+        expect(ipatinga).to be_base
+      end
+    end
+
+    context 'when editing a base city' do
+      let!(:betim) { create(:city, tenant:, name: 'Betim', base: true) }
+
+      scenario 'keeps the date the city became a base and removes the flag when unchecked' do
+        base_at = betim.base_at
+
+        visit edit_city_path(betim)
+        click_on 'Salvar Alterações'
+
+        expect(betim.reload.base_at).to eq(base_at)
+
+        visit edit_city_path(betim)
+        uncheck 'Base'
+        click_on 'Salvar Alterações'
+
+        expect(page).to have_text('Cidade atualizada com sucesso.')
+        expect(betim.reload).not_to be_base
       end
     end
 
@@ -311,8 +365,8 @@ describe 'Cities' do
         expect(City.count).to eq(1)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'UF', 'Macro região', 'Status', 'Ações'],
-            ['Ipatinga', 'MG', 'Sem macro região', 'Ativa', ''],
+            ['Nome', 'UF', 'Macro região', 'Base', 'Status', 'Ações'],
+            ['Ipatinga', 'MG', 'Sem macro região', 'Fora da base', 'Ativa', ''],
           ],
         )
         expect(page).to have_no_link('Nova Cidade')
@@ -343,6 +397,7 @@ describe 'Cities' do
 
       expect(page).to have_css('th', text: 'NOME')
       expect(page).to have_no_css('th', text: 'MACRO REGIÃO')
+      expect(page).to have_no_css('th', text: 'BASE')
 
       within("#city_#{city.id}") do
         expect(page).to have_no_css('.inline-actions')

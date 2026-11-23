@@ -4,6 +4,7 @@
   </td>
   <td><%= item.state %></td>
   <td class="d-none d-md-table-cell"><%= city_macro_region_name(item) %></td>
+  <td class="d-none d-md-table-cell"><%= city_base_label(item) %></td>
   <td><%= activation_status_badge(:cities, item.activated?) %></td>
   <td class="text-end text-nowrap">
     <%= responsive_actions_menu(cities_menu(item)) %>

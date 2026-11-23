@@ -35,4 +35,19 @@ RSpec.describe City do
       expect(described_class.by_macro_region(MacroRegion::OTHERS)).to eq([cubatao])
     end
   end
+
+  describe 'base flag' do
+    let!(:betim) { create(:city, tenant:, name: 'Betim', base: true) }
+    let!(:contagem) { create(:city, tenant:, name: 'Contagem') }
+
+    it 'flags the base cities' do
+      expect(betim).to be_base
+      expect(contagem).not_to be_base
+    end
+
+    it 'filters the cities by base' do
+      expect(described_class.by_base('base')).to eq([betim])
+      expect(described_class.by_base('not_base')).to eq([contagem])
+    end
+  end
 end
