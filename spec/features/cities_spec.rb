@@ -123,7 +123,14 @@ describe 'Cities' do
       scenario 'filters the cities out of the bases' do
         visit cities_path(base: 'not_base')
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[Ipatinga Timóteo])
+        expect(City.count).to eq(4)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'UF', 'Macro região', 'Base', 'Status', 'Ações'],
+            ['Ipatinga', 'MG', 'VALE DO AÇO/MG', 'Fora da base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+            ['Timóteo', 'MG', 'VALE DO AÇO/MG', 'Fora da base', 'Ativa', 'Opções Visualizar Alterar Inativar Excluir'],
+          ],
+        )
       end
 
       scenario 'filters the cities without a macro region' do
@@ -304,13 +311,13 @@ describe 'Cities' do
         base_at = betim.base_at
 
         visit edit_city_path(betim)
-        click_on 'Salvar Alterações'
+        expect { click_on 'Salvar Alterações' }.not_to change(City, :count)
 
         expect(betim.reload.base_at).to eq(base_at)
 
         visit edit_city_path(betim)
         uncheck 'Base'
-        click_on 'Salvar Alterações'
+        expect { click_on 'Salvar Alterações' }.not_to change(City, :count)
 
         expect(page).to have_text('Cidade atualizada com sucesso.')
         expect(betim.reload).not_to be_base

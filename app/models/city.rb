@@ -11,6 +11,8 @@ class City < ApplicationRecord
   belongs_to :tenant
   belongs_to :macro_region, optional: true
 
+  has_many :work_schedule_days, dependent: :nullify
+
   time_based_flag :base, scheduled: false
 
   validates :name, presence: true, uniqueness: { scope: %i[tenant_id state] }

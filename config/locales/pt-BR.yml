@@ -100,6 +100,9 @@ pt-BR:
       employee:
         one: Funcionário
         other: Funcionários
+      work_schedule_day:
+        one: Dia da escala
+        other: Dias da escala
       workshop_employee:
         one: Funcionário da oficina
         other: Funcionários da oficina
@@ -145,6 +148,13 @@ pt-BR:
         typical: Valor típico do dia da semana
         factor: Ajuste aplicado
         forecast: Previsão do dia
+      work_schedule_day:
+        employee: Funcionário
+        date: Data
+        kind_type: Tipo
+        leave_reason_type: Motivo do afastamento
+        city: Cidade
+        notes: Observações
       employee:
         name: Nome
         nickname: Apelido
@@ -1394,6 +1404,13 @@ pt-BR:
         customer_group: Grupo de clientes
         region: Macro região
         truck_group: Grupo de caminhões
+    work_schedule_day:
+      kind_type:
+        day_off: Folga
+        leave: Afastamento
+      leave_reason_type:
+        medical_appointment: Consulta médica
+        medical_certificate: Atestado médico
     employee:
       company_type:
         transjr: TransJR
@@ -2007,6 +2024,7 @@ pt-BR:
     maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
     employees: Funcionários
+    work_schedules: Escala de folgas
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
     maintenance_parts: Peças da manutenção
@@ -2963,6 +2981,27 @@ pt-BR:
         Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
         não funciona (ex.: Carnaval).
       active_hint: Feriados inativos deixam de ser considerados nas metas e na projeção de faturamento, que passam a contar o dia como útil.
+  work_schedules:
+    days_off:
+      one: '%{count} de %{total} folgas'
+      other: '%{count} de %{total} folgas'
+    status:
+      trip: Em viagem
+      day_off: Folga
+      day_off_at_base: Folga na base
+      day_off_away: Folga fora da base
+      leave: Afastamento
+      work: Trabalho
+    week_navigation:
+      label: Navegação entre semanas
+      previous: Semana anterior
+      current: Esta semana
+      next: Próxima semana
+    index:
+      title: Escala de folgas
+      week: Semana de %{start} a %{finish}
+      employees: Funcionários na escala 5x2
+      days_off: Folgas na semana
   employees:
     status:
       active: Ativo
@@ -4225,6 +4264,7 @@ pt-BR:
       chart_month: '%b/%Y'
       chart_week: '%d/%m'
       with_weekday: '%d/%m/%Y (%A)'
+      week_day: '%a %d/%m'
       month_name: '%B de %Y'
   time:
     formats:
@@ -4234,6 +4274,7 @@ pt-BR:
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários
+    work_schedules: Escala de folgas
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
     maintenance_parts: Peças e Estoque

@@ -12,6 +12,8 @@ class Employee < ApplicationRecord
   belongs_to :driver, optional: true
   belongs_to :workshop_employee, optional: true
 
+  has_many :work_schedule_days, dependent: :delete_all
+
   enum :company_type, COMPANIES.index_with(&:to_s), validate: true
   enum :gender_type, GENDERS.index_with(&:to_s), validate: true
   enum :work_schedule_type, WORK_SCHEDULES.index_with(&:to_s), validate: true
@@ -26,6 +28,9 @@ class Employee < ApplicationRecord
   }
   scope :by_company_type, ->(company_type) { where(company_type:) }
   scope :by_work_schedule_type, ->(work_schedule_type) { where(work_schedule_type:) }
+  scope :scheduled_in, ->(dates) {
+    activated.five_two.where(admitted_on: nil).or(activated.five_two.where(admitted_on: ..dates.last))
+  }
 
   class << self
     def statuses
