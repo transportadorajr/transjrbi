@@ -84,6 +84,39 @@ describe 'Work schedules', :hr do
         expect(page).to have_no_text('FUNCIONÁRIO DE OUTRA')
       end
 
+      scenario 'exports the week to a landscape PDF' do
+        visit work_schedules_path(week: '2026-11-22')
+
+        expect(page).to have_link('Exportar PDF', href: work_schedules_path(week: '2026-11-22', format: :pdf))
+
+        visit work_schedules_path(week: '2026-11-22', format: :pdf)
+
+        text = PDF::Inspector::Text.analyze(page.body).strings.join
+        width, height = PDF::Inspector::Page.analyze(page.body).pages.first[:size]
+        expect(page.response_headers['Content-Type']).to include('application/pdf')
+        expect(width).to be > height
+        expect(Employee.count).to eq(4)
+        expect(text).to include('Relatório da Escala de Folgas', 'Semana de 22/11/2026 a 28/11/2026', 'ANA PAULA', 'JOSE SILVA',
+                                'Em viagem', 'Afastamento', 'Sem domingo registrado', '2 registros listados.')
+        expect(text).not_to include('FORA DA ESCALA', 'FUNCIONÁRIO DE OUTRA')
+      end
+
+      scenario 'exports the week to Excel', :xlsx_service, flipper: { hr: :tenant, xlsx_export: :tenant } do
+        visit work_schedules_path(name: 'silva')
+        click_on 'Exportar Excel'
+
+        expect(page.response_headers['Content-Disposition']).to include('attachment', "escala-de-folgas-#{Date.current.iso8601}.xlsx")
+        expect(Employee.count).to eq(4)
+        expect(downloaded_xlsx_rows).to eq(
+          [
+            ['Nome', 'Empresa', 'dom 22/11', 'seg 23/11', 'ter 24/11', 'qua 25/11', 'qui 26/11', 'sex 27/11', 'sáb 28/11', 'Folgas na semana',
+             'Domingo de folga'],
+            ['JOSE SILVA', 'TransJR', 'Em viagem', 'Em viagem', 'Em viagem', 'Folga na base (Ipatinga/MG)', 'Folga fora da base (Cubatão/SP)',
+             'Trabalho', 'Trabalho', 2, 'Sem domingo registrado'],
+          ],
+        )
+      end
+
       scenario 'moves to the next and back to the current week' do
         visit work_schedules_path
         click_on 'Próxima semana'

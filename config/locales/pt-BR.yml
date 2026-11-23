@@ -3022,6 +3022,10 @@ pt-BR:
     destroy:
       success: Lançamento excluído da escala.
   work_schedules:
+    text:
+      day_off_at_base: Folga na base (%{city})
+      day_off_away: Folga fora da base (%{city})
+      leave: Afastamento (%{reason})
     sunday:
       taken: Folga neste domingo
       due: Vence neste domingo
@@ -3046,6 +3050,9 @@ pt-BR:
     index:
       title: Escala de folgas
       week: Semana de %{start} a %{finish}
+      pdf:
+        header: Relatório da Escala de Folgas
+        filename: escala_de_folgas_%{time}.pdf
       employees: Funcionários na escala 5x2
       days_off: Folgas na semana
       sunday: Domingo de folga
