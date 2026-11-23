@@ -1,4 +1,6 @@
 module WorkSchedulesHelper
+  WORK_SCHEDULE_SUNDAY_KINDS = { taken: :success, due: :warning, overdue: :danger, on_track: :info, unknown: :secondary }.freeze
+
   def work_schedule_week_label(schedule)
     t('work_schedules.index.week', start: l(schedule.dates.first), finish: l(schedule.dates.last))
   end
@@ -45,13 +47,44 @@ module WorkSchedulesHelper
   end
 
   def work_schedule_sunday_tag(sunday)
-    case sunday.status
-    when :taken then status_badge(t('work_schedules.sunday.taken'), kind: :success)
-    when :due then status_badge(t('work_schedules.sunday.due'), kind: :warning)
-    when :overdue then status_badge(t('work_schedules.sunday.overdue', date: l(sunday.due_on, format: :chart_week)), kind: :danger)
-    when :on_track then status_badge(t('work_schedules.sunday.on_track', date: l(sunday.due_on, format: :chart_week)), kind: :info)
-    else status_badge(t('work_schedules.sunday.unknown'), kind: :secondary)
+    status_badge(work_schedule_sunday_text(sunday), kind: WORK_SCHEDULE_SUNDAY_KINDS.fetch(sunday.status))
+  end
+
+  def work_schedule_sunday_text(sunday)
+    t("work_schedules.sunday.#{sunday.status}", date: (l(sunday.due_on, format: :chart_week) if sunday.due_on))
+  end
+
+  def work_schedule_day_text(day)
+    case day.status
+    when :day_off then work_schedule_day_off_text(day)
+    when :leave then t('work_schedules.text.leave', reason: WorkScheduleDay.human_enum_name(:leave_reason_type, day.leave_reason_type))
+    else t("work_schedules.status.#{day.status}")
     end
+  end
+
+  def work_schedule_pdf_report(schedule, rows)
+    PdfReport.new(
+      title: t('work_schedules.index.pdf.header'),
+      subtitle: work_schedule_week_label(schedule),
+      columns: [pdf_column(Employee.human_attribute_name(:name), '2fr'),
+                *schedule.dates.map { |date| pdf_column(work_schedule_day_label(date), '1fr') },
+                pdf_column(t('work_schedules.index.days_off'), align: :right), pdf_column(t('work_schedules.index.sunday'))],
+      rows: rows.map do |row|
+        [row.employee.name, *row.days.map { |day| work_schedule_day_text(day) }, row.days_off_count, work_schedule_sunday_text(row.sunday)]
+      end,
+    )
+  end
+
+  def work_schedule_xlsx_sheets(schedule, rows)
+    columns = [xlsx_field(Employee.human_attribute_name(:name)) { |row| row.employee.name },
+               xlsx_field(Employee.human_attribute_name(:company_type)) { |row| row.employee.company_type_name },
+               *schedule.dates.each_with_index.map do |date, index|
+                 xlsx_field(work_schedule_day_label(date)) { |row| work_schedule_day_text(row.days[index]) }
+               end,
+               xlsx_field(t('work_schedules.index.days_off'), :integer, &:days_off_count),
+               xlsx_field(t('work_schedules.index.sunday')) { |row| work_schedule_sunday_text(row.sunday) }]
+
+    [Export::Sheet.new(name: t('work_schedules.index.title'), columns:, rows:)]
   end
 
   def work_schedule_company_type_options
@@ -63,6 +96,12 @@ module WorkSchedulesHelper
   def work_schedule_entry_menu(employee, schedule)
     Menu.new(name: :schedule, record: employee, url: new_work_schedule_day_path(employee_id: employee.id, date: schedule.entry_date.iso8601),
              icon: :'calendar-plus', data: { turbo_stream: true })
+  end
+
+  def work_schedule_day_off_text(day)
+    return t('work_schedules.status.day_off') if day.city.nil?
+
+    t("work_schedules.text.#{day.city.base? ? :day_off_at_base : :day_off_away}", city: tax_city(day.city.name, day.city.state))
   end
 
   def work_schedule_day_off_tag(day)
