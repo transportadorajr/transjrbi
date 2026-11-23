@@ -20,6 +20,23 @@ module WorkSchedulesHelper
     end
   end
 
+  def work_schedule_day_cell(day)
+    return work_schedule_day_tag(day) if day.entry.nil? || cannot?(:read, :work_schedules)
+
+    link_to work_schedule_day_path(day.entry), class: 'text-decoration-none', data: { turbo_stream: true },
+                                               title: t('work_schedule_days.entry.open', date: l(day.date)) do
+      work_schedule_day_tag(day)
+    end
+  end
+
+  def work_schedule_menu(employee, schedule)
+    menus = []
+
+    menus << work_schedule_entry_menu(employee, schedule) if can?(:create, :work_schedules)
+
+    menus
+  end
+
   def work_schedule_days_off_tag(row)
     status_badge(
       t('work_schedules.days_off', count: row.days_off_count, total: Dashboard::WorkSchedule::DAYS_OFF_PER_WEEK),
@@ -32,6 +49,11 @@ module WorkSchedulesHelper
   end
 
   private
+
+  def work_schedule_entry_menu(employee, schedule)
+    Menu.new(name: :schedule, record: employee, url: new_work_schedule_day_path(employee_id: employee.id, date: schedule.entry_date.iso8601),
+             icon: :'calendar-plus', data: { turbo_stream: true })
+  end
 
   def work_schedule_day_off_tag(day)
     return status_badge(t('work_schedules.status.day_off'), kind: :success) if day.city.nil?

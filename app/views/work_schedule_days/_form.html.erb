@@ -1,0 +1,36 @@
+<%# locals: (day_form:) %>
+
+<%= simple_form_for(day_form, url: work_schedule_days_path, html: { id: 'work_schedule_day_form' }) do |f| %>
+  <%= f.hidden_field :employee_id %>
+  <%= f.error :employee, class: 'alert alert-danger small' %>
+  <div class="row g-3">
+    <div class="col-12">
+      <%= f.input :kind_type, collection: WorkScheduleDayForm.enum_options_for_select(:kind_type), include_blank: false,
+                              input_html: { class: 'form-select bg-light' } %>
+    </div>
+    <div class="col-12 col-lg-6">
+      <%= f.input :start_on, as: :date, html5: true, input_html: { class: 'form-control bg-light' } %>
+    </div>
+    <div class="col-12 col-lg-6">
+      <%= f.input :end_on, as: :date, html5: true, hint: t('work_schedule_days.form.end_on_hint'),
+                           input_html: { class: 'form-control bg-light' } %>
+    </div>
+    <div class="col-12">
+      <%= f.input :city_id, collection: work_schedule_day_city_options(day_form), include_blank: t('helpers.select.prompt'),
+                            hint: t('work_schedule_days.form.city_hint'), input_html: { class: 'form-select bg-light' } %>
+    </div>
+    <div class="col-12">
+      <%= f.input :leave_reason_type, collection: WorkScheduleDayForm.enum_options_for_select(:leave_reason_type),
+                                      include_blank: t('helpers.select.prompt'), hint: t('work_schedule_days.form.leave_reason_hint'),
+                                      input_html: { class: 'form-select bg-light' } %>
+    </div>
+    <div class="col-12">
+      <%= f.input :notes, as: :text, input_html: { class: 'form-control bg-light', rows: 2 } %>
+    </div>
+  </div>
+
+  <div class="d-flex flex-column flex-md-row-reverse gap-2 mt-4">
+    <%= f.button :submit, t('helpers.submit.work_schedule_day.create'), class: 'btn btn-primary btn-round px-4' %>
+    <%= button_tag t('helpers.links.cancel'), type: :button, class: 'btn btn-light btn-round px-4', data: { bs_dismiss: 'modal' } %>
+  </div>
+<% end %>

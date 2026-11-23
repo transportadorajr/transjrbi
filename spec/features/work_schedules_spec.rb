@@ -73,11 +73,11 @@ describe 'Work schedules', :hr do
         expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'dom 22/11', 'seg 23/11', 'ter 24/11', 'qua 25/11', 'qui 26/11', 'sex 27/11', 'sáb 28/11', 'Folgas na semana'],
+            ['Nome', 'dom 22/11', 'seg 23/11', 'ter 24/11', 'qua 25/11', 'qui 26/11', 'sex 27/11', 'sáb 28/11', 'Folgas na semana', 'Ações'],
             ['ANA PAULA', 'Trabalho', 'AfastamentoAtestado médico', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho',
-             '0 de 2 folgas'],
+             '0 de 2 folgas', ''],
             ['JOSE SILVA', 'Em viagem', 'Em viagem', 'Em viagem', 'Folga na baseIpatinga/MG', 'Folga fora da baseCubatão/SP',
-             'Trabalho', 'Trabalho', '2 de 2 folgas'],
+             'Trabalho', 'Trabalho', '2 de 2 folgas', ''],
           ],
         )
         expect(page).to have_no_text('FORA DA ESCALA')
@@ -93,9 +93,9 @@ describe 'Work schedules', :hr do
         expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'dom 29/11', 'seg 30/11', 'ter 01/12', 'qua 02/12', 'qui 03/12', 'sex 04/12', 'sáb 05/12', 'Folgas na semana'],
-            ['ANA PAULA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas'],
-            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas'],
+            ['Nome', 'dom 29/11', 'seg 30/11', 'ter 01/12', 'qua 02/12', 'qui 03/12', 'sex 04/12', 'sáb 05/12', 'Folgas na semana', 'Ações'],
+            ['ANA PAULA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', ''],
+            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', '0 de 2 folgas', ''],
           ],
         )
 
@@ -114,8 +114,8 @@ describe 'Work schedules', :hr do
         expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'dom 15/11', 'seg 16/11', 'ter 17/11', 'qua 18/11', 'qui 19/11', 'sex 20/11', 'sáb 21/11', 'Folgas na semana'],
-            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Em viagem', 'Em viagem', '0 de 2 folgas'],
+            ['Nome', 'dom 15/11', 'seg 16/11', 'ter 17/11', 'qua 18/11', 'qui 19/11', 'sex 20/11', 'sáb 21/11', 'Folgas na semana', 'Ações'],
+            ['JOSE SILVA', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Trabalho', 'Em viagem', 'Em viagem', '0 de 2 folgas', ''],
           ],
         )
       end

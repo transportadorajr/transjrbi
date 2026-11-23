@@ -1,0 +1,24 @@
+<%# locals: (work_schedule_day:) %>
+
+<%= render layout: 'components/new_modal',
+           locals: { id: 'work_schedule_day_entry_modal', title: work_schedule_day.employee.name, title_icon: :'calendar-check',
+                     auto_show: true, show_footer: false } do %>
+  <dl class="row detail-list mb-0" id="work_schedule_day_data">
+    <dt class="col-12 col-md-4"><%= WorkScheduleDay.human_attribute_name(:date) %></dt>
+    <dd class="col-12 col-md-8"><%= l(work_schedule_day.date, format: :with_weekday) %></dd>
+
+    <dt class="col-12 col-md-4"><%= WorkScheduleDay.human_attribute_name(:kind_type) %></dt>
+    <dd class="col-12 col-md-8"><%= work_schedule_day.kind_type_name %></dd>
+
+    <dt class="col-12 col-md-4"><%= work_schedule_day_detail_label(work_schedule_day) %></dt>
+    <dd class="col-12 col-md-8"><%= work_schedule_day_detail(work_schedule_day) %></dd>
+
+    <dt class="col-12 col-md-4"><%= WorkScheduleDay.human_attribute_name(:notes) %></dt>
+    <dd class="col-12 col-md-8 text-break"><%= tax_value(work_schedule_day.notes) %></dd>
+  </dl>
+
+  <div class="d-flex flex-column flex-md-row-reverse gap-2 mt-4">
+    <%= work_schedule_day_destroy_button(work_schedule_day) %>
+    <%= button_tag t('shared.close'), type: :button, class: 'btn btn-light btn-round px-4', data: { bs_dismiss: 'modal' } %>
+  </div>
+<% end %>

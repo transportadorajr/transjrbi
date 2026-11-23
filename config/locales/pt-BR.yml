@@ -995,6 +995,15 @@ pt-BR:
       revenue_projection_day_note_form:
         date: Dia
         body: Anotação
+      work_schedule_day_form:
+        employee: Funcionário
+        employee_id: Funcionário
+        kind_type: Tipo
+        start_on: De
+        end_on: Até
+        city_id: Cidade da folga
+        leave_reason_type: Motivo do afastamento
+        notes: Observações
       employee_form:
         name: Nome
         nickname: Apelido
@@ -1235,6 +1244,14 @@ pt-BR:
           attributes:
             date:
               future: não pode ser um dia que ainda não terminou
+        work_schedule_day_form:
+          attributes:
+            start_on:
+              taken: 'já tem lançamento em: %{dates}'
+              on_trip: 'cai em dia de viagem do motorista: %{dates}'
+            end_on:
+              before_start_on: deve ser igual ou posterior à data inicial
+              too_long: não pode passar de %{count} dias
         employee_form:
           attributes:
             legal_id:
@@ -1663,6 +1680,8 @@ pt-BR:
       employee:
         create: Cadastrar Funcionário
         update: Salvar Alterações
+      work_schedule_day:
+        create: Lançar
       workshop_employee:
         create: Cadastrar Funcionário
         update: Salvar Alterações
@@ -1799,6 +1818,7 @@ pt-BR:
         edit: Alterar
         activate: Ativar
         deactivate: Inativar
+        schedule: Lançar folga ou afastamento
       workshop_employee:
         edit: Alterar
         activate: Ativar
@@ -2981,6 +3001,26 @@ pt-BR:
         Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
         não funciona (ex.: Carnaval).
       active_hint: Feriados inativos deixam de ser considerados nas metas e na projeção de faturamento, que passam a contar o dia como útil.
+  work_schedule_days:
+    form:
+      title: Lançar folga ou afastamento
+      employee_title: Lançar para %{name}
+      end_on_hint: Para um único dia, deixe igual à data inicial.
+      city_hint: >-
+        Obrigatória na folga. Vem sugerida a cidade onde a pessoa mais folgou ou, para motoristas, o destino da última viagem
+        encerrada.
+      leave_reason_hint: Obrigatório no afastamento.
+    city:
+      base: '%{city} (base)'
+      not_base: '%{city}'
+    entry:
+      open: Ver o lançamento de %{date}
+      destroy: Excluir lançamento
+      confirm_destroy: Tem certeza que deseja excluir este lançamento da escala?
+    create:
+      success: Lançamento salvo na escala.
+    destroy:
+      success: Lançamento excluído da escala.
   work_schedules:
     days_off:
       one: '%{count} de %{total} folgas'
