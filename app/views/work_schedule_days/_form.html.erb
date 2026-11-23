@@ -16,8 +16,12 @@
                            input_html: { class: 'form-control bg-light' } %>
     </div>
     <div class="col-12">
-      <%= f.input :city_id, collection: work_schedule_day_city_options(day_form), include_blank: t('helpers.select.prompt'),
-                            hint: t('work_schedule_days.form.city_hint'), input_html: { class: 'form-select bg-light' } %>
+      <%= f.label :city_id, for: nil, id: 'work_schedule_day_city_select_label', class: 'form-label' %>
+      <%= render 'components/select2', id: 'work_schedule_day_city_select', name: "#{f.object_name}[city_id]",
+                                       options: work_schedule_day_city_options(day_form), selected: day_form.city_id,
+                                       placeholder: t('work_schedule_days.form.city_placeholder') %>
+      <%= f.error :city_id, class: 'invalid-feedback d-block' %>
+      <%= tag.div t('work_schedule_days.form.city_hint'), class: 'form-text' %>
     </div>
     <div class="col-12">
       <%= f.input :leave_reason_type, collection: WorkScheduleDayForm.enum_options_for_select(:leave_reason_type),
