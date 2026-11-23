@@ -3241,6 +3241,9 @@ pt-BR:
       ambiguous_document: 'há mais de um CT-e com o número %{number}, em trechos diferentes'
       conflicting_distance: 'o trecho deste CT-e já recebeu %{distance} km na linha %{line}'
       row_error: 'Linha %{line}: %{message}.'
+      more_errors:
+        one: 'E mais 1 linha com erro.'
+        other: 'E mais %{count} linhas com erro.'
       unreadable: 'Não foi possível ler a planilha: %{reason}'
     import_modal:
       title: Importar Planilha

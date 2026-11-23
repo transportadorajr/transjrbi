@@ -338,6 +338,25 @@ describe 'Route distances' do
         expect(same_route_document.reload).to have_attributes(distance_km: BigDecimal('1450'), original_distance_km: BigDecimal('1250'))
       end
 
+      scenario 'reports only the first invalid rows when the spreadsheet has many of them' do
+        unknown_rows = (1..150).map { |index| [900_000 + index, 500] }
+        path = xlsx_file([['CTE', 'KM ROTA EXECUTADA'], [document.number.to_i, 1450], *unknown_rows])
+
+        visit route_distances_path
+        within('#routeDistanceImportModal') do
+          attach_file 'Planilha', path
+          expect { click_on 'Importar' }.to change(RouteDistance, :count).by(1)
+        end
+
+        expect(page).to have_current_path(route_distances_path)
+        expect(page).to have_text('Planilha importada: 1 trecho(s) criado(s) e 0 atualizado(s); 1 CT-e(s) usam o KM desses trechos.')
+        expect(page).to have_text('Linha 3: nenhum CT-e importado com o número 900001.')
+        expect(page).to have_text('Linha 12: nenhum CT-e importado com o número 900010.')
+        expect(page).to have_no_text('Linha 13:')
+        expect(page).to have_text('E mais 140 linhas com erro.')
+        expect(document.reload.distance_km).to eq(BigDecimal('1450'))
+      end
+
       scenario 'rejects a file that is not an Excel spreadsheet' do
         visit route_distances_path
         within('#routeDistanceImportModal') do
