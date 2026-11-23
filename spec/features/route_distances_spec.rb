@@ -354,7 +354,10 @@ describe 'Route distances' do
         expect(page).to have_text('Linha 12: nenhum CT-e importado com o número 900010.')
         expect(page).to have_no_text('Linha 13:')
         expect(page).to have_text('E mais 140 linhas com erro.')
-        expect(document.reload.distance_km).to eq(BigDecimal('1450'))
+        route_distance = RouteDistance.last
+        expect(route_distance).to have_attributes(tenant:, customer_code: 7001, origin_city: 'IPATINGA', origin_state: 'MG',
+                                                  destination_city: 'CAXIAS DO SUL', destination_state: 'RS', distance_km: BigDecimal('1450'))
+        expect(document.reload).to have_attributes(distance_km: BigDecimal('1450'), route_distance_id: route_distance.id)
       end
 
       scenario 'rejects a file that is not an Excel spreadsheet' do
