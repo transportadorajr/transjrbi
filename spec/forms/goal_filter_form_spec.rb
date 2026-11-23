@@ -34,32 +34,11 @@ RSpec.describe GoalFilterForm do
     expect(described_class.new(dimension: 'macro_region').section).to eq(:regions)
   end
 
-  it 'shows the trucks of the vehicle grouping by default' do
+  it 'shows the trucks in the vehicle grouping' do
     form = described_class.new(dimension: 'vehicle')
 
-    expect(form.vehicle_type_value).to eq('truck')
+    expect(form.section).to eq(:vehicles)
     expect(form).to be_vehicle_section
-  end
-
-  it 'reads the trailers of the vehicle grouping' do
-    form = described_class.new(dimension: 'vehicle', vehicle_type: 'trailer')
-
-    expect(form.section).to eq(:trailers)
-    expect(form).to be_vehicle_section
-  end
-
-  it 'ignores the vehicle type outside the vehicle grouping' do
-    form = described_class.new(dimension: 'macro_region', vehicle_type: 'trailer')
-
-    expect(form.section).to eq(:regions)
-    expect(form).not_to be_vehicle_section
-  end
-
-  it 'rejects an unknown vehicle type' do
-    form = described_class.new(dimension: 'vehicle', vehicle_type: 'boat')
-
-    expect(form).not_to be_valid
-    expect(form.errors[:vehicle_type]).to be_present
   end
 
   it 'rejects an unknown grouping' do

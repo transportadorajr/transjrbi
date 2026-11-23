@@ -6,10 +6,10 @@ module Dashboard
     COMPANY_KEY = 'company'.freeze
     THIRD_PARTY_KEY = 'third_party'.freeze
     DEFAULT_SORT = 'realized'.freeze
+    STATUS_RANKS = { behind: 1, attention: 2, on_track: 3 }.freeze
     DIMENSIONS = { 'customer_group' => :customer_groups, 'vehicle' => :vehicles, 'macro_region' => :regions }.freeze
     DEFAULT_DIMENSION = 'customer_group'.freeze
-    VEHICLE_SECTIONS = { 'truck' => :vehicles, 'trailer' => :trailers }.freeze
-    DEFAULT_VEHICLE_TYPE = 'truck'.freeze
+    PLATE_SECTIONS = %i[vehicles trailers].freeze
     BREAKDOWNS = {
       customer_groups: { list_all: true, cut: :customer_group_id, extra_label: 'dashboards.goals.ungrouped' },
       regions: { list_all: false, cut: :macro_region_id, extra_label: 'dashboards.goals.no_region', extra_cut: MacroRegion::OTHERS },
@@ -66,6 +66,7 @@ module Dashboard
       'label' => ->(row) { row.label },
       'realized' => ->(row) { row.realized_cents },
       'ratio' => ->(row) { row.ratio || -1 },
+      'status' => ->(row) { [STATUS_RANKS.fetch(row.status, 0), row.projected_ratio || -1] },
     }.freeze
 
     class << self
@@ -74,7 +75,7 @@ module Dashboard
       end
 
       def vehicle_section?(section)
-        VEHICLE_SECTIONS.value?(section)
+        PLATE_SECTIONS.include?(section)
       end
     end
 
