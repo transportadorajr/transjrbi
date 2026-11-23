@@ -95,6 +95,7 @@ describe 'Employees', :hr do
         select 'Ativo', from: 'Situação'
         click_on 'Aplicar Filtros'
 
+        expect(Employee.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
             ['Nome', 'Empresa', 'Função', 'Escala', 'Motorista no Atua', 'Situação', 'Ações'],
@@ -103,19 +104,24 @@ describe 'Employees', :hr do
         )
       end
 
-      scenario 'shows an employee' do
-        mechanic = create(:workshop_employee, tenant:, name: 'ANA MECÂNICA')
-        ana.update!(workshop_employee: mechanic, nickname: 'NINA', registration: '0042', cost_center: 'OFICINA',
-                    born_on: Date.new(1990, 4, 12), admitted_on: Date.new(2020, 2, 3))
+      context 'when the employee has every field filled' do
+        let!(:mechanic) { create(:workshop_employee, tenant:, name: 'ANA MECÂNICA') }
 
-        visit employee_path(ana)
+        before do
+          ana.update!(workshop_employee: mechanic, nickname: 'NINA', registration: '0042', cost_center: 'OFICINA',
+                      born_on: Date.new(1990, 4, 12), admitted_on: Date.new(2020, 2, 3))
+        end
 
-        expect(dl_to_hash('#employee_data')).to eq(
-          'Nome' => 'ANA PAULA', 'Apelido' => 'NINA', 'CPF' => '111.444.777-35', 'Sexo' => 'Feminino',
-          'Data de nascimento' => '12/04/1990', 'Empresa' => 'MME', 'Matrícula' => '0042', 'Data de admissão' => '03/02/2020',
-          'Função' => 'AUXILIAR', 'Centro de custo' => 'OFICINA', 'Escala' => 'Fora da escala',
-          'Motorista no Atua' => 'Não vinculado', 'Funcionário da oficina' => 'ANA MECÂNICA', 'Situação' => 'Inativo'
-        )
+        scenario 'shows an employee' do
+          visit employee_path(ana)
+
+          expect(dl_to_hash('#employee_data')).to eq(
+            'Nome' => 'ANA PAULA', 'Apelido' => 'NINA', 'CPF' => '111.444.777-35', 'Sexo' => 'Feminino',
+            'Data de nascimento' => '12/04/1990', 'Empresa' => 'MME', 'Matrícula' => '0042', 'Data de admissão' => '03/02/2020',
+            'Função' => 'AUXILIAR', 'Centro de custo' => 'OFICINA', 'Escala' => 'Fora da escala',
+            'Motorista no Atua' => 'Não vinculado', 'Funcionário da oficina' => 'ANA MECÂNICA', 'Situação' => 'Inativo'
+          )
+        end
       end
 
       scenario 'edits an employee' do
