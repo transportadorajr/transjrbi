@@ -220,6 +220,12 @@ shared:
       url: /employees
       controllers:
         - employees
+    - name: work_schedules
+      resource: work_schedules
+      icon: calendar-week
+      url: /work_schedules
+      controllers:
+        - work_schedules
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

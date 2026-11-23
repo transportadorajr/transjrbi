@@ -1,0 +1,7 @@
+<tr id="<%= dom_id(row.employee) %>">
+  <td class="fw-semibold text-break"><%= row.employee.name %></td>
+  <% row.days.each do |day| %>
+    <td class="text-center"><%= work_schedule_day_tag(day) %></td>
+  <% end %>
+  <td class="text-end text-nowrap"><%= work_schedule_days_off_tag(row) %></td>
+</tr>

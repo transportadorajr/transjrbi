@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_175037) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_184113) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,6 +49,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_175037) do
   create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
   create_enum "revenue_projection_period_type", ["month", "week"]
   create_enum "user_type", ["owner", "admin", "operator"]
+  create_enum "work_schedule_day_kind_type", ["day_off", "leave"]
+  create_enum "work_schedule_day_leave_reason_type", ["medical_appointment", "medical_certificate"]
   create_enum "workshop_employee_role_type", ["mechanic", "supervisor"]
 
   create_table "accesses", force: :cascade do |t|
@@ -1444,6 +1446,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_175037) do
     t.index ["tenant_id"], name: "index_users_on_tenant_id_where_owner_user_type", unique: true, where: "(user_type = 'owner'::user_type)"
   end
 
+  create_table "work_schedule_days", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "employee_id", null: false
+    t.bigint "city_id"
+    t.date "date", null: false
+    t.enum "kind_type", null: false, enum_type: "work_schedule_day_kind_type"
+    t.enum "leave_reason_type", enum_type: "work_schedule_day_leave_reason_type"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["city_id"], name: "index_work_schedule_days_on_city_id"
+    t.index ["employee_id", "date"], name: "index_work_schedule_days_on_employee_id_and_date", unique: true
+    t.index ["tenant_id", "date"], name: "index_work_schedule_days_on_tenant_id_and_date"
+    t.index ["tenant_id"], name: "index_work_schedule_days_on_tenant_id"
+  end
+
   create_table "workshop_employees", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.string "name", null: false
@@ -1572,5 +1590,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_175037) do
   add_foreign_key "truck_group_fuel_rates", "truck_groups", on_delete: :cascade
   add_foreign_key "truck_groups", "tenants"
   add_foreign_key "users", "tenants"
+  add_foreign_key "work_schedule_days", "cities", on_delete: :nullify
+  add_foreign_key "work_schedule_days", "employees"
+  add_foreign_key "work_schedule_days", "tenants"
   add_foreign_key "workshop_employees", "tenants"
 end

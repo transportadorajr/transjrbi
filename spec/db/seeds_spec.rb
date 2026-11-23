@@ -35,7 +35,7 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(38)
+    expect { run_seeds }.to change(Resource, :count).by(39)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
@@ -62,6 +62,7 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'maintenance_services')).to have_attributes(name: 'Serviços da manutenção', writable: true)
     expect(Resource.find_by!(slug: 'hr')).to have_attributes(name: 'Módulo de RH', writable: false)
     expect(Resource.find_by!(slug: 'employees')).to have_attributes(name: 'Funcionários', writable: true)
+    expect(Resource.find_by!(slug: 'work_schedules')).to have_attributes(name: 'Escala de folgas', writable: true)
   end
 
   it 'registers the HR flag turned off' do
@@ -103,7 +104,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(37)
+      expect { run_seeds }.to change(Resource, :count).by(38)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end

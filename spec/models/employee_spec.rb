@@ -63,6 +63,22 @@ RSpec.describe Employee do
     end
   end
 
+  describe '.scheduled_in' do
+    let(:week) { Date.new(2026, 11, 22)..Date.new(2026, 11, 28) }
+    let!(:scheduled) { create(:employee, tenant:, legal_id: '52998224725', admitted_on: Date.new(2020, 1, 6)) }
+    let!(:without_admission) { create(:employee, tenant:, legal_id: '11144477735') }
+
+    before do
+      create(:employee, tenant:, legal_id: '39053344705', admitted_on: Date.new(2026, 11, 29))
+      create(:employee, tenant:, legal_id: '86288366757', work_schedule_type: 'not_scheduled')
+      create(:employee, tenant:, legal_id: '71428793860', activated: false)
+    end
+
+    it 'keeps the active 5x2 employees admitted until the end of the period' do
+      expect(described_class.scheduled_in(week)).to contain_exactly(scheduled, without_admission)
+    end
+  end
+
   describe '#driver_code' do
     let!(:driver) { create(:driver, tenant:, code: 4321) }
 
