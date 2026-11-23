@@ -11,7 +11,7 @@
         <th class="text-end d-none d-lg-table-cell"><%= t('goals.show.columns.missing') %></th>
         <%= sortable_header(t('goals.show.columns.ratio'), :ratio, first_direction: :desc, anchor: "goal_#{section}", class: 'text-end') %>
         <th class="text-end d-none d-lg-table-cell"><%= t('goals.show.columns.projected') %></th>
-        <th class="text-end"><%= t('goals.show.columns.status') %></th>
+        <%= sortable_header(t('goals.show.columns.status'), :status, first_direction: :desc, anchor: "goal_#{section}", class: 'text-end') %>
         <th class="text-end"><%= t('goals.show.columns.projections') %></th>
       </tr>
     </thead>

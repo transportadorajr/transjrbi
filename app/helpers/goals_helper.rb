@@ -154,14 +154,6 @@ module GoalsHelper
     sort_menu(goal_sort_columns) if Dashboard::Goals.vehicle_section?(section)
   end
 
-  def goal_vehicle_type_nav(section)
-    return unless Dashboard::Goals.vehicle_section?(section)
-
-    tag.div(class: 'dashboard-segmented mt-3', id: 'goal_vehicle_type_nav', role: 'group', aria: { label: t('goals.show.vehicle_type') }) do
-      safe_join(Dashboard::Goals::VEHICLE_SECTIONS.map { |vehicle_type, vehicle_section| goal_vehicle_type_link(vehicle_type, vehicle_section == section) })
-    end
-  end
-
   def goal_breakdown_body(dashboard, section, rows)
     extra_row = dashboard.breakdown_extra_row(section)
     return render('shared/no_content') if rows.empty? && extra_row.nil?
@@ -248,7 +240,7 @@ module GoalsHelper
   end
 
   def goal_sort_columns
-    [[t('goals.show.columns.realized'), :realized, :desc], [t('goals.show.columns.ratio'), :ratio, :desc]]
+    [[t('goals.show.columns.realized'), :realized, :desc], [t('goals.show.columns.ratio'), :ratio, :desc], [t('goals.show.columns.status'), :status, :desc]]
   end
 
   private
@@ -264,14 +256,8 @@ module GoalsHelper
 
   def goal_dimension_link(dimension, filter_form)
     variation = dimension == filter_form.dimension_value ? 'btn-primary' : 'btn-outline-secondary'
-    link_to t(dimension, scope: 'goals.dimensions'), goals_path(**request.query_parameters.symbolize_keys.except(:sort, :direction), dimension:),
+    link_to t(dimension, scope: 'goals.dimensions'), goals_path(**request.query_parameters.symbolize_keys.except(:sort, :direction, :page), dimension:),
             class: "btn btn-sm #{variation}"
-  end
-
-  def goal_vehicle_type_link(vehicle_type, active)
-    link_to t(vehicle_type, scope: 'goals.vehicle_types'),
-            goals_path(**request.query_parameters.symbolize_keys.except(:sort, :direction, :page), vehicle_type:, anchor: 'goal_vehicle_type_nav'),
-            class: "btn btn-sm #{active ? 'btn-primary' : 'btn-outline-secondary'}", aria: { current: (true if active) }
   end
 
   def goal_tab_item(prefix, section, label, active)

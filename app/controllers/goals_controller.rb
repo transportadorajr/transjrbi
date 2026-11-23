@@ -6,7 +6,7 @@ class GoalsController < BaseController
   def show
     authorize!(:read, :goals)
 
-    @filter_form = GoalFilterForm.new(month: params[:month], dimension: params[:dimension], vehicle_type: params[:vehicle_type])
+    @filter_form = GoalFilterForm.new(month: params[:month], dimension: params[:dimension])
     return redirect_to(goals_path, alert: @filter_form.errors.full_messages.to_sentence) if @filter_form.invalid?
 
     @last_synced_at = current_tenant.last_synced_at

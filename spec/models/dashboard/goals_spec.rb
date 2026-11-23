@@ -52,6 +52,12 @@ RSpec.describe Dashboard::Goals do
     expect(dashboard.vehicle_goals_cents).to eq(3_000_000)
   end
 
+  it 'ranks the own fleet by status from on track to behind with the plates without goal last' do
+    expect(dashboard.sorted_vehicle_rows('status', 'desc').map { [it.key, it.status] })
+      .to eq([['AJR4391', :on_track], ['RHJ5A50', :behind], ['QWE1A23', nil]])
+    expect(dashboard.sorted_vehicle_rows('status', 'asc').map(&:key)).to eq(%w[QWE1A23 RHJ5A50 AJR4391])
+  end
+
   context 'with trailers in the own fleet' do
     let(:own_fleet) { create(:own_fleet, tenant:, plates: %w[AJR4391 RHJ5A50 QWE1A23 RHJ5A51 QWE1A24]) }
 
