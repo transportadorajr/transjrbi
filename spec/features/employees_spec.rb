@@ -126,6 +126,22 @@ describe 'Employees', :hr do
         end
       end
 
+      context 'when the employee has no CPF' do
+        before { jose.update!(legal_id: nil) }
+
+        scenario 'shows the CPF as not informed and requires it on the edit' do
+          visit employee_path(jose)
+
+          expect(dl_to_hash('#employee_data')).to include('CPF' => 'Não informado')
+
+          click_on 'Alterar'
+          click_on 'Salvar Alterações'
+
+          expect(page).to have_text('CPF não pode ficar em branco')
+          expect(jose.reload.legal_id).to be_nil
+        end
+      end
+
       scenario 'edits an employee' do
         visit employee_path(jose)
         click_on 'Alterar'

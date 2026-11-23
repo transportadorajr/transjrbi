@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_210613) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_211606) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -675,7 +675,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_210613) do
     t.bigint "workshop_employee_id"
     t.string "name", null: false
     t.string "nickname"
-    t.string "legal_id", null: false
+    t.string "legal_id"
     t.enum "company_type", null: false, enum_type: "employee_company_type"
     t.string "registration"
     t.string "role"

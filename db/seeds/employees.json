@@ -1,0 +1,718 @@
+{
+  "job_positions": [
+    "ANALISTA DE LOGÍSTICA",
+    "ASSISTENTE FINANCEIRO",
+    "AUXILIAR ADMINISTRATIVO",
+    "AUXILIAR DE MECÂNICO",
+    "AUXILIAR DE SERVIÇOS GERAIS",
+    "DIRETOR DE OPERAÇÕES",
+    "ENCARREGADO DE DEPÓSITO",
+    "ENCARREGADO DE FROTA",
+    "ENCARREGADO DE LOGÍSTICA",
+    "ENCARREGADO DE OFICINA",
+    "FAXINEIRA",
+    "MANOBRISTA",
+    "MECÂNICO",
+    "MOTORISTA DE CARRETA",
+    "MOTORISTA DE RODOTREM",
+    "OPERADOR DE MÁQUINA MULTIFUNCIONAL"
+  ],
+  "employees": [
+    {
+      "company_type": "transjr",
+      "registration": "00073",
+      "name": "JORGE ZENOLDO SANTOS KOVALESKI",
+      "job_position": "AUXILIAR ADMINISTRATIVO",
+      "cost_center": "UNICO",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00166",
+      "name": "ALESSANDRO CELESTINO DOS SANTO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00207",
+      "name": "APARECIDO DONIZETI GARCIA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00190",
+      "name": "BENONIN FERNANDO DA SILVA NETO",
+      "job_position": "MOTORISTA DE RODOTREM",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00214",
+      "name": "CARLOS DANIEL NEVES",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00193",
+      "name": "CLAITON MAZZONETTO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00237",
+      "name": "CLEILTON DE OLIVEIRA ARRUDA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00188",
+      "name": "DANIEL LUIS TONINI",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00242",
+      "name": "DARIO FERREIRA DE LIRA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00247",
+      "name": "DENILSO MARIANO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00151",
+      "name": "EDER ALOI CEMBRANI",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00236",
+      "name": "EDER JUNIOR DONZELLI ZILLI",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00221",
+      "name": "EDISON LEITE GOMES",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00168",
+      "name": "EVANDRO LUIS KAIM",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00010",
+      "name": "FERNANDO ANTONIO PETZEN",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00240",
+      "name": "FREDERICO GUILLEN FERREIRA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00170",
+      "name": "GILSON LUIZ BONFIM",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00246",
+      "name": "GUSTAVO GERMAN SOTELO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00229",
+      "name": "HECTOR RODOLFO SOTELO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00158",
+      "name": "JOABERSON DE OLIVEIRA CUSTODIO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00155",
+      "name": "JOAO RIBEIRO HAMBRUSCH",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00201",
+      "name": "JOSE VALMIR DA SILVA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00241",
+      "name": "LUAN MEDEIROS BORGES",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00150",
+      "name": "LUCIANO DE CARVALHO MARTIN",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00235",
+      "name": "LUIS HORACIO METZ",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00209",
+      "name": "LUSIMARIO SILVA DE ALMEIDA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00060",
+      "name": "MARCOS CABREIRA DOS SANTOS",
+      "job_position": "MOTORISTA DE RODOTREM",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00230",
+      "name": "MATEUS CUSTODIO GOMES",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00157",
+      "name": "ORLANDO FRANCISCO BARBOSA",
+      "job_position": "MOTORISTA DE RODOTREM",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00198",
+      "name": "ROBISON MARTINS SAMPAIO",
+      "job_position": "MOTORISTA DE RODOTREM",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00206",
+      "name": "SAMIR REINILDES MOLL",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00205",
+      "name": "SIDNEY ZEN",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00160",
+      "name": "WILIAN GILBERTO REVAY DE LOREN",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00223",
+      "name": "ANA JULIA FORMIGUEIRI",
+      "job_position": "ENCARREGADO DE FROTA",
+      "cost_center": "ADMINISTRATIVO",
+      "gender_type": "female"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00186",
+      "name": "BARBARA VICTORIA CORREIA",
+      "job_position": "AUXILIAR ADMINISTRATIVO",
+      "cost_center": "ADMINISTRATIVO",
+      "gender_type": "female"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00176",
+      "name": "JAQUELINE APARECIDA BARBOSA",
+      "job_position": "ENCARREGADO DE LOGÍSTICA",
+      "cost_center": "ADMINISTRATIVO",
+      "gender_type": "female"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00164",
+      "name": "JONAS CLEITON COMISSIO",
+      "job_position": "AUXILIAR ADMINISTRATIVO",
+      "cost_center": "ADMINISTRATIVO",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00172",
+      "name": "LIEDSON GABRIEL OLIVEIRA VIEIR",
+      "job_position": "AUXILIAR DE MECÂNICO",
+      "cost_center": "OFICINA MECANICA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00238",
+      "name": "BRUNO LARRAMENDIA OLIVEIRA",
+      "job_position": "AUXILIAR ADMINISTRATIVO",
+      "cost_center": "FOZ DO IGUAÇU",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00192",
+      "name": "EDUARDO JAVIER ANGARITA GONZAL",
+      "job_position": "ENCARREGADO DE DEPÓSITO",
+      "cost_center": "FOZ DO IGUAÇU",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00244",
+      "name": "JACKSON JOSE HERNANDEZ",
+      "job_position": "OPERADOR DE MÁQUINA MULTIFUNCIONAL",
+      "cost_center": "FOZ DO IGUAÇU",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00243",
+      "name": "RICARDO JOSE LORETO FLORES",
+      "job_position": "OPERADOR DE MÁQUINA MULTIFUNCIONAL",
+      "cost_center": "FOZ DO IGUAÇU",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mme",
+      "registration": "00245",
+      "name": "DANIELLE CRISTINE SAMPAIO VIEI",
+      "job_position": "ANALISTA DE LOGÍSTICA",
+      "cost_center": "SÃO PAULO (ADMINISTRATIVO)",
+      "gender_type": "female"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00002",
+      "name": "ADEILDO SANT ANNA DE SOUSA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00098",
+      "name": "ALDEIR DA SILVA ARRUDA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00091",
+      "name": "ALTAMIRO GOMES DA SILVA NETO D",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00102",
+      "name": "AMADEU BATISTA DOS SANTOS",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00065",
+      "name": "ANDERSON KLOCK DOS SANTOS",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00005",
+      "name": "ANDERSON ROGERIO TEIXEIRA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00090",
+      "name": "ANDRE HENRIQUE COUTINHO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00023",
+      "name": "ARMANDO FRANCISCO BARBOSA",
+      "job_position": "MOTORISTA DE RODOTREM",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00076",
+      "name": "CAIQUE MAXIMIANO DE OLIVEIRA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00061",
+      "name": "CESAR SILVESTRE DA COSTA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00089",
+      "name": "CLAUDIONOR BUENO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00071",
+      "name": "DANIEL SERGIO AMARAL",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00072",
+      "name": "DENILSON APARECIDO MARTINS",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00080",
+      "name": "DOUGLAS FERREIRA NASCIMENTO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00009",
+      "name": "FABIO JOSE CAUZ",
+      "job_position": "MOTORISTA DE RODOTREM",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00039",
+      "name": "FRANCISCO ROBERTO DOMINGUES",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00010",
+      "name": "IVO MIRANDA MONTEIRO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00012",
+      "name": "JECI FERREIRA DE SOUZA",
+      "job_position": "MANOBRISTA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00103",
+      "name": "JOCIMAR SILVA DA CRUZ ROCHA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00013",
+      "name": "JOSE CARLOS DE OLIVEIRA FILHO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00106",
+      "name": "JOSE OLAVO BATISTA FILHO",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00107",
+      "name": "LUANA CRISTINA TSCHOPE",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "female"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00099",
+      "name": "LUIS EDUARDO DOS SANTOS VARGAS",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00015",
+      "name": "MAIKON RODRIGO DE LIMA",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00101",
+      "name": "MAURICIO MIRANDA SANTOS SOBRIN",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00096",
+      "name": "MIGUEL RAMOS LOPES",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00095",
+      "name": "PATRICK ALESSANDER SANTOS SOUZ",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00108",
+      "name": "PEDRO HENRIQUE LUTZ",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00084",
+      "name": "PEDRO VINICIUS RODRIGUES ROLIM",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00105",
+      "name": "RICARDO ADRIANO BASSI",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00017",
+      "name": "ROGERIO ROSA DE ANDRADE",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00049",
+      "name": "TARSIO JONAS FIGURSKI LEAL",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00094",
+      "name": "WAGNER ANTONIO BERTE",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00021",
+      "name": "WILLIAN PERONDI",
+      "job_position": "MOTORISTA DE CARRETA",
+      "cost_center": "MOTORISTAS",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00092",
+      "name": "ALEXANDRE FRASSETTO DA SILVA",
+      "job_position": "MECÂNICO",
+      "cost_center": "OFICINA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00056",
+      "name": "CLAUDINOR CASSOL",
+      "job_position": "MECÂNICO",
+      "cost_center": "OFICINA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00006",
+      "name": "DENIS MACIEL DOS SANTOS",
+      "job_position": "ENCARREGADO DE OFICINA",
+      "cost_center": "OFICINA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00008",
+      "name": "FABIANO DANIEL DE LIMA",
+      "job_position": "MECÂNICO",
+      "cost_center": "OFICINA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00011",
+      "name": "IZAQUE FERREIRA",
+      "job_position": "MECÂNICO",
+      "cost_center": "OFICINA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00104",
+      "name": "RENAN WESLEY PEREIRA DA SILVA",
+      "job_position": "MECÂNICO",
+      "cost_center": "OFICINA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00067",
+      "name": "JEFFERSON ANDRE REMONATTO",
+      "job_position": "DIRETOR DE OPERAÇÕES",
+      "cost_center": "ADMINISTRATIVO | LIMPEZA",
+      "gender_type": "male"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00030",
+      "name": "MARISA LIMA DE OLIVEIRA",
+      "job_position": "FAXINEIRA",
+      "cost_center": "ADMINISTRATIVO | LIMPEZA",
+      "gender_type": "female"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00018",
+      "name": "SEBASTIANA DA SILVA NASCIMENTO",
+      "job_position": "AUXILIAR DE SERVIÇOS GERAIS",
+      "cost_center": "ADMINISTRATIVO | LIMPEZA",
+      "gender_type": "female"
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00097",
+      "name": "WELLINGTON BITTENCOURT",
+      "job_position": "ASSISTENTE FINANCEIRO",
+      "cost_center": "ADMINISTRATIVO | LIMPEZA",
+      "gender_type": "male"
+    }
+  ]
+}

@@ -3091,6 +3091,7 @@ pt-BR:
       no_driver: Não vinculado
       no_workshop_employee: Não vinculado
       no_job_position: Sem cargo
+      no_legal_id: Não informado
     new:
       title: Novo Funcionário
       back: Voltar para funcionários

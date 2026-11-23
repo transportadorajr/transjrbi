@@ -22,8 +22,8 @@ class Employee < ApplicationRecord
   enum :gender_type, GENDERS.index_with(&:to_s), validate: true
   enum :work_schedule_type, WORK_SCHEDULES.index_with(&:to_s), validate: true
 
-  validates :name, :legal_id, presence: true
-  validates :legal_id, uniqueness: { scope: :tenant_id }
+  validates :name, presence: true
+  validates :legal_id, uniqueness: { scope: :tenant_id }, allow_nil: true
   validates :driver_id, :workshop_employee_id, uniqueness: true, allow_nil: true
 
   scope :by_name, ->(name) {
@@ -77,7 +77,7 @@ end
 #  updated_at           :datetime         not null
 #  driver_id            :bigint
 #  job_position_id      :bigint
-#  legal_id             :string           not null
+#  legal_id             :string
 #  tenant_id            :bigint           not null
 #  workshop_employee_id :bigint
 #

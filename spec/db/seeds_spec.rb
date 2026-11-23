@@ -135,4 +135,13 @@ RSpec.describe 'db/seeds.rb' do
     expect(Holidays::SeedNationalCommand).to have_received(:call).with(tenant)
     expect(Holidays::SeedNationalCommand).to have_received(:call).with(other_tenant)
   end
+
+  it 'registers the employees and job positions of every tenant' do
+    allow(Employees::SeedCommand).to receive(:call)
+
+    run_seeds
+
+    expect(Employees::SeedCommand).to have_received(:call).with(tenant)
+    expect(Employees::SeedCommand).to have_received(:call).with(other_tenant)
+  end
 end

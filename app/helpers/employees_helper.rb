@@ -18,7 +18,9 @@ module EmployeesHelper
   end
 
   def employee_legal_id(employee)
-    employee.legal_id.to_s.sub(/\A(\d{3})(\d{3})(\d{3})(\d{2})\z/, '\1.\2.\3-\4')
+    return t('employees.show.no_legal_id') if employee.legal_id.blank?
+
+    employee.legal_id.sub(/\A(\d{3})(\d{3})(\d{3})(\d{2})\z/, '\1.\2.\3-\4')
   end
 
   def employee_date(date)
