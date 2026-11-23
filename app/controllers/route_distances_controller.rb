@@ -1,6 +1,8 @@
 class RouteDistancesController < BaseController
   include Activation
 
+  IMPORT_ERRORS_SHOWN = 10
+
   has_scope :by_customer, as: :customer_code
   has_scope :by_origin, as: :origin
   has_scope :by_destination, as: :destination
@@ -72,7 +74,7 @@ class RouteDistancesController < BaseController
     form = RouteDistanceImportForm.new(tenant: current_tenant, file: params.dig(:route_distance_import, :file))
 
     if form.save
-      redirect_to route_distances_path, notice: import_notice(form.result), alert: form.result.errors.join(' ').presence
+      redirect_to route_distances_path, notice: import_notice(form.result), alert: import_alert(form.result.errors)
     else
       redirect_to route_distances_path, alert: form.errors.full_messages.to_sentence
     end
@@ -99,5 +101,12 @@ class RouteDistancesController < BaseController
 
   def import_notice(result)
     t('.success', created: result.created, updated: result.updated, documents: result.documents)
+  end
+
+  def import_alert(errors)
+    hidden = errors.size - IMPORT_ERRORS_SHOWN
+    shown = errors.first(IMPORT_ERRORS_SHOWN)
+    shown << t('route_distances.import.more_errors', count: hidden) if hidden.positive?
+    shown.join(' ').presence
   end
 end
