@@ -97,6 +97,38 @@ RSpec.describe CityForm do
     end
   end
 
+  describe 'base flag' do
+    it 'creates a city that is not a base by default' do
+      expect(described_class.new(tenant:, name: 'Ipatinga', state: 'MG').save).to be(true)
+      expect(City.last).not_to be_base
+    end
+
+    it 'creates a base city' do
+      expect(described_class.new(tenant:, name: 'Ipatinga', state: 'MG', base: '1').save).to be(true)
+      expect(City.last).to be_base
+    end
+
+    context 'when the city is already a base' do
+      let!(:betim) { create(:city, tenant:, name: 'Betim', state: 'MG', base_at: Time.zone.local(2026, 1, 5)) }
+
+      it 'loads the flag and keeps the date it became a base' do
+        form = described_class.for_city(betim)
+
+        expect(form.base).to be(true)
+        expect(form.save).to be(true)
+        expect(betim.reload.base_at).to eq(Time.zone.local(2026, 1, 5))
+      end
+
+      it 'removes the flag' do
+        form = described_class.for_city(betim)
+        form.assign_attributes(base: '0')
+
+        expect(form.save).to be(true)
+        expect(betim.reload).not_to be_base
+      end
+    end
+  end
+
   describe '#available_macro_regions' do
     it 'offers only the regions that list cities' do
       expect(described_class.new(tenant:).available_macro_regions).to eq([vale_do_aco])

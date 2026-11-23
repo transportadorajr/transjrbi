@@ -11,6 +11,8 @@ class City < ApplicationRecord
   belongs_to :tenant
   belongs_to :macro_region, optional: true
 
+  time_based_flag :base, scheduled: false
+
   validates :name, presence: true, uniqueness: { scope: %i[tenant_id state] }
   validates :state, format: { with: /\A[A-Z]{2}\z/ }
 
@@ -19,6 +21,7 @@ class City < ApplicationRecord
   scope :by_macro_region, ->(macro_region_id) {
     where(macro_region_id: macro_region_id.to_s == MacroRegion::OTHERS ? nil : macro_region_id)
   }
+  scope :by_base, ->(value) { value.to_s == 'base' ? base : not_base }
 
   def compacted_name
     CustomerGroup.compact(name)
@@ -31,6 +34,13 @@ class City < ApplicationRecord
         I18n.t('cities.index.deactivated') => :deactivated,
       }
     end
+
+    def base_options
+      {
+        I18n.t('cities.base.base') => :base,
+        I18n.t('cities.base.not_base') => :not_base,
+      }
+    end
   end
 end
 
@@ -40,6 +50,7 @@ end
 #
 #  id              :bigint           not null, primary key
 #  activated_at    :datetime
+#  base_at         :datetime
 #  name            :string           not null
 #  state           :string           not null
 #  created_at      :datetime         not null

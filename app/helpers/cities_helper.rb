@@ -14,6 +14,14 @@ module CitiesHelper
     city.macro_region&.name || t('cities.no_macro_region')
   end
 
+  def city_base_label(city)
+    t("cities.base.#{city.base? ? :base : :not_base}")
+  end
+
+  def city_base_filter_options
+    options_for_select(City.base_options, params[:base])
+  end
+
   def city_macro_region_filter_options(macro_regions)
     options = macro_regions.map { |macro_region| [macro_region_label(macro_region), macro_region.id] }
 
@@ -55,8 +63,11 @@ module CitiesHelper
     PdfReport.new(
       title: t('cities.index.pdf.header'),
       columns: [pdf_column(City.human_attribute_name(:name), '2fr'), pdf_column(City.human_attribute_name(:state)),
-                pdf_column(City.human_attribute_name(:macro_region), '2fr'), pdf_column(City.human_attribute_name(:status))],
-      rows: cities.map { |city| [city.name, city.state, city_macro_region_name(city), activation_status_label(:cities, city.activated?)] },
+                pdf_column(City.human_attribute_name(:macro_region), '2fr'), pdf_column(City.human_attribute_name(:base)),
+                pdf_column(City.human_attribute_name(:status))],
+      rows: cities.map do |city|
+        [city.name, city.state, city_macro_region_name(city), city_base_label(city), activation_status_label(:cities, city.activated?)]
+      end,
     )
   end
 

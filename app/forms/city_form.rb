@@ -2,6 +2,7 @@ class CityForm < BaseForm
   attribute :name, :string
   attribute :state, :string
   attribute :macro_region_id, :integer
+  attribute :base, :boolean, default: false
   attribute :active, :boolean, default: true
 
   before_validation :normalize_fields
@@ -18,8 +19,8 @@ class CityForm < BaseForm
 
   class << self
     def for_city(city)
-      form = new(name: city.name, state: city.state, macro_region_id: city.macro_region_id, active: city.activated?,
-                 tenant: city.tenant)
+      form = new(name: city.name, state: city.state, macro_region_id: city.macro_region_id, base: city.base?,
+                 active: city.activated?, tenant: city.tenant)
       form.city = city
       form
     end
@@ -40,7 +41,7 @@ class CityForm < BaseForm
   end
 
   def submit
-    city.update!(name:, state:, macro_region:, activated: active)
+    city.update!(name:, state:, macro_region:, base:, activated: active)
 
     MacroRegions::AssignRemainingStateCommand.call(tenant)
     MacroRegions::AssignCommand.call(tenant)
