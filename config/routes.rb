@@ -77,6 +77,7 @@ Rails.application.routes.draw do
   end
 
   constraints subdomain: Transjrbi::HR_SUBDOMAIN do
+    resources :employees, except: :destroy, concerns: :activatable
     root 'hr_home#index', as: :hr_root
   end
 

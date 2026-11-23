@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_19_201539) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_145442) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -26,6 +26,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_201539) do
   create_enum "atua_transport_document_cargo_destination_type", ["national", "export", "import"]
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
+  create_enum "employee_company_type", ["transjr", "mme", "mm_espinola"]
+  create_enum "employee_gender_type", ["female", "male"]
+  create_enum "employee_work_schedule_type", ["five_two", "not_scheduled"]
   create_enum "empty_leg_status_type", ["calculated", "unlocated", "unrouted"]
   create_enum "freight_expense_kind_type", ["commission", "tonnage", "insurance", "tarp_lining", "fuel"]
   create_enum "holiday_kind_type", ["holiday", "bridge_day", "optional"]
@@ -661,6 +664,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_201539) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["tenant_id", "code"], name: "index_drivers_on_tenant_id_and_code", unique: true
+  end
+
+  create_table "employees", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "driver_id"
+    t.bigint "workshop_employee_id"
+    t.string "name", null: false
+    t.string "nickname"
+    t.string "legal_id", null: false
+    t.enum "company_type", null: false, enum_type: "employee_company_type"
+    t.string "registration"
+    t.string "role"
+    t.string "cost_center"
+    t.enum "gender_type", null: false, enum_type: "employee_gender_type"
+    t.date "born_on"
+    t.date "admitted_on"
+    t.enum "work_schedule_type", default: "five_two", null: false, enum_type: "employee_work_schedule_type"
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["driver_id"], name: "index_employees_on_driver_id", unique: true
+    t.index ["tenant_id", "legal_id"], name: "index_employees_on_tenant_id_and_legal_id", unique: true
+    t.index ["tenant_id"], name: "index_employees_on_tenant_id"
+    t.index ["workshop_employee_id"], name: "index_employees_on_workshop_employee_id", unique: true
   end
 
   create_table "empty_leg_transport_documents", force: :cascade do |t|
@@ -1465,6 +1492,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_19_201539) do
   add_foreign_key "customer_groups", "tenants"
   add_foreign_key "distance_adjustments", "tenants"
   add_foreign_key "drivers", "tenants"
+  add_foreign_key "employees", "drivers"
+  add_foreign_key "employees", "tenants"
+  add_foreign_key "employees", "workshop_employees"
   add_foreign_key "empty_leg_transport_documents", "empty_legs", on_delete: :cascade
   add_foreign_key "empty_leg_transport_documents", "tenants"
   add_foreign_key "empty_legs", "locations", column: "destination_id"

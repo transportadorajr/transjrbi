@@ -1,0 +1,67 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('employees.form.employee_data') %></p>
+    <p class="form-card-subtitle"><%= t('employees.form.employee_data_text') %></p>
+  </div>
+  <%= simple_form_for(employee_form, url: employee_form_url(employee_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <%= f.input :name, required: true, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :nickname, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :legal_id, required: true,
+                                 input_html: { class: 'form-control', autocomplete: 'off', inputmode: 'numeric',
+                                               data: { controller: 'mask', mask_pattern_value: %w[000.000.000-00] } } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :gender_type, collection: EmployeeForm.enum_options_for_select(:gender_type), required: true,
+                                    include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :born_on, as: :date, html5: true, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :company_type, collection: EmployeeForm.enum_options_for_select(:company_type), required: true,
+                                     include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :registration, input_html: { class: 'form-control', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :admitted_on, as: :date, html5: true, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :role, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :cost_center, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :work_schedule_type, collection: EmployeeForm.enum_options_for_select(:work_schedule_type),
+                                           required: true, include_blank: t('helpers.select.prompt'),
+                                           input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :workshop_employee_id, collection: employee_workshop_employee_options(employee_form),
+                                             include_blank: t('employees.form.no_workshop_employee'),
+                                             hint: t('employees.form.workshop_employee_hint'),
+                                             input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :active, as: :boolean, hint: t('employees.form.active_hint'),
+                               input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+      <p class="form-text mb-0 mt-3"><%= t('employees.form.driver_hint') %></p>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, employee_form_submit_label(employee_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), employees_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

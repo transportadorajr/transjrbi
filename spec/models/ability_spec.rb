@@ -245,6 +245,15 @@ RSpec.describe Ability do
     it 'cannot reach the maintenance module' do
       expect(ability).not_to be_able_to(:read, :maintenance)
     end
+
+    context 'when the employees resource is registered' do
+      let!(:employees_resource) { create(:resource, slug: 'employees') }
+
+      it 'manages the employees' do
+        expect(Resource.find_by(slug: 'employees')).to eq(employees_resource)
+        expect(ability).to be_able_to(:update, :employees)
+      end
+    end
   end
 
   context 'when an admin has access only to the HR module' do

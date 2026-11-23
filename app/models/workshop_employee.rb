@@ -11,6 +11,7 @@ class WorkshopEmployee < ApplicationRecord
   has_many :maintenance_order_mechanics, dependent: :restrict_with_error
   has_many :maintenance_order_labors, dependent: :restrict_with_error
   has_many :maintenance_order_signatures, dependent: :restrict_with_error
+  has_one :employee, dependent: :nullify
 
   enum :role_type, ROLES.index_with(&:to_s), validate: true
 

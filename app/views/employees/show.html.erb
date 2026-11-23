@@ -1,0 +1,66 @@
+<% content_for :title, @employee.name %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('employees.index.title'), employees_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @employee.name %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag @employee.name, back_path: employees_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= employee_edit_button(@employee) %>
+    <% end %>
+  </div>
+
+  <div class="card detail-card mb-4">
+    <div class="detail-card-header">
+      <p class="detail-card-title"><%= t('.employee_data') %></p>
+    </div>
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="employee_data">
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:name) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= @employee.name %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:nickname) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@employee.nickname) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:legal_id) %></dt>
+        <dd class="col-12 col-md-9"><%= employee_legal_id(@employee) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:gender_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @employee.gender_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:born_on) %></dt>
+        <dd class="col-12 col-md-9"><%= employee_date(@employee.born_on) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:company_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @employee.company_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:registration) %></dt>
+        <dd class="col-12 col-md-9"><%= tax_value(@employee.registration) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:admitted_on) %></dt>
+        <dd class="col-12 col-md-9"><%= employee_date(@employee.admitted_on) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:role) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@employee.role) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:cost_center) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= tax_value(@employee.cost_center) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:work_schedule_type) %></dt>
+        <dd class="col-12 col-md-9"><%= @employee.work_schedule_type_name %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:driver) %></dt>
+        <dd class="col-12 col-md-9"><%= employee_driver_code(@employee) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:workshop_employee) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= employee_workshop_employee_name(@employee) %></dd>
+
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:activated_at) %></dt>
+        <dd class="col-12 col-md-9"><%= employee_status_badge(@employee) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

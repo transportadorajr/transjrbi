@@ -1,5 +1,6 @@
 class Driver < ApplicationRecord
   belongs_to :tenant
+  has_one :employee, dependent: :nullify
 
   validates :code, presence: true, uniqueness: { scope: :tenant_id }
 end
