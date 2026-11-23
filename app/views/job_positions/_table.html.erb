@@ -1,0 +1,21 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(JobPosition.human_attribute_name(:name), :name) %>
+        <th class="d-none d-md-table-cell text-end"><%= JobPosition.human_attribute_name(:employees_count) %></th>
+        <th><%= JobPosition.human_attribute_name(:activated_at) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item:, employee_counts: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

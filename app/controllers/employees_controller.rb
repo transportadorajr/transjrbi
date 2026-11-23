@@ -11,7 +11,7 @@ class EmployeesController < BaseController
   def index
     authorize!(:read, :employees)
 
-    @employees = listing_page(apply_sort(apply_scopes(current_tenant.employees.preload(:driver)), :name, :id))
+    @employees = listing_page(apply_sort(apply_scopes(current_tenant.employees.preload(:driver, :job_position)), :name, :id))
   end
 
   def show
@@ -64,12 +64,12 @@ class EmployeesController < BaseController
   end
 
   def set_employee
-    @employee = current_tenant.employees.preload(:driver, :workshop_employee).find(params.expect(:id))
+    @employee = current_tenant.employees.preload(:driver, :workshop_employee, :job_position).find(params.expect(:id))
   end
 
   def employee_params
     params.expect(
-      employee: %i[name nickname legal_id company_type registration role cost_center gender_type born_on admitted_on
+      employee: %i[name nickname legal_id company_type registration job_position_id cost_center gender_type born_on admitted_on
                    work_schedule_type workshop_employee_id active],
     )
   end

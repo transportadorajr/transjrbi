@@ -220,6 +220,12 @@ shared:
       url: /employees
       controllers:
         - employees
+    - name: job_positions
+      resource: job_positions
+      icon: briefcase
+      url: /job_positions
+      controllers:
+        - job_positions
     - name: work_schedules
       resource: work_schedules
       icon: calendar-week

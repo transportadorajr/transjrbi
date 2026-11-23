@@ -6,7 +6,7 @@ class EmployeeForm < BaseForm
   attribute :legal_id, :string
   attribute :company_type, :string
   attribute :registration, :string
-  attribute :role, :string
+  attribute :job_position_id, :integer
   attribute :cost_center, :string
   attribute :gender_type, :string
   attribute :born_on, :date
@@ -29,6 +29,7 @@ class EmployeeForm < BaseForm
   validate :legal_id_must_be_available
   validate :admitted_on_must_follow_born_on
   validate :workshop_employee_must_be_available
+  validate :job_position_must_be_available
 
   attr_accessor :tenant
   attr_writer :employee
@@ -39,7 +40,7 @@ class EmployeeForm < BaseForm
     def for_employee(employee)
       form = new(
         name: employee.name, nickname: employee.nickname, legal_id: employee.legal_id, company_type: employee.company_type,
-        registration: employee.registration, role: employee.role, cost_center: employee.cost_center,
+        registration: employee.registration, job_position_id: employee.job_position_id, cost_center: employee.cost_center,
         gender_type: employee.gender_type, born_on: employee.born_on, admitted_on: employee.admitted_on,
         work_schedule_type: employee.work_schedule_type, workshop_employee_id: employee.workshop_employee_id,
         active: employee.activated?, tenant: employee.tenant
@@ -59,10 +60,14 @@ class EmployeeForm < BaseForm
     tenant.workshop_employees.where.not(id: linked_ids).order(:name)
   end
 
+  def available_job_positions
+    tenant.job_positions.activated.or(tenant.job_positions.where(id: employee.job_position_id)).order(:name)
+  end
+
   def submit
     transaction do
       employee.update!(
-        name:, nickname:, legal_id:, company_type:, registration:, role:, cost_center:, gender_type:, born_on:,
+        name:, nickname:, legal_id:, company_type:, registration:, job_position_id:, cost_center:, gender_type:, born_on:,
         admitted_on:, work_schedule_type:, workshop_employee_id:, activated: active
       )
       Employees::LinkDriverCommand.call(employee) unless activation_only?
@@ -76,7 +81,6 @@ class EmployeeForm < BaseForm
     self.nickname = nickname.to_s.squish.upcase.presence
     self.legal_id = legal_id.to_s.gsub(/\D/, '')
     self.registration = registration.to_s.squish.presence
-    self.role = role.to_s.squish.upcase.presence
     self.cost_center = cost_center.to_s.squish.upcase.presence
   end
 
@@ -117,6 +121,12 @@ class EmployeeForm < BaseForm
     return if workshop_employee_id.blank?
 
     errors.add(:workshop_employee_id, :invalid) unless available_workshop_employees.exists?(id: workshop_employee_id)
+  end
+
+  def job_position_must_be_available
+    return if job_position_id.blank?
+
+    errors.add(:job_position_id, :invalid) unless available_job_positions.exists?(id: job_position_id)
   end
 
   def other_employees

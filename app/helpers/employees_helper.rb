@@ -49,6 +49,14 @@ module EmployeesHelper
     employee_form.available_workshop_employees.map { |workshop_employee| [workshop_employee.name, workshop_employee.id] }
   end
 
+  def employee_job_position_options(employee_form)
+    employee_form.available_job_positions.map { |job_position| [job_position.name, job_position.id] }
+  end
+
+  def employee_job_position_name(employee)
+    employee.job_position_name || t('employees.show.no_job_position')
+  end
+
   def employee_form_url(employee_form)
     employee_form.persisted? ? employee_path(employee_form.employee) : employees_path
   end

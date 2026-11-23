@@ -61,12 +61,14 @@ describe 'Employees', :hr do
 
     context 'when there are employees' do
       let!(:driver) { create(:driver, tenant:, code: 501) }
+      let!(:truck_driver) { create(:job_position, tenant:, name: 'MOTORISTA') }
+      let!(:assistant) { create(:job_position, tenant:, name: 'AUXILIAR') }
       let!(:jose) do
-        create(:employee, tenant:, name: 'JOSE SILVA', legal_id: '52998224725', role: 'MOTORISTA', driver:)
+        create(:employee, tenant:, name: 'JOSE SILVA', legal_id: '52998224725', job_position: truck_driver, driver:)
       end
       let!(:ana) do
         create(:employee, tenant:, name: 'ANA PAULA', legal_id: '11144477735', company_type: 'mme', gender_type: 'female',
-                          role: 'AUXILIAR', work_schedule_type: 'not_scheduled', activated: false)
+                          job_position: assistant, work_schedule_type: 'not_scheduled', activated: false)
       end
       let!(:stranger) { create(:employee, tenant: other_tenant, name: 'FUNCIONÁRIO DE OUTRA') }
 
@@ -78,7 +80,7 @@ describe 'Employees', :hr do
         expect(Employee.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Empresa', 'Função', 'Escala', 'Motorista no Atua', 'Situação', 'Ações'],
+            ['Nome', 'Empresa', 'Cargo', 'Escala', 'Motorista no Atua', 'Situação', 'Ações'],
             ['ANA PAULA', 'MME', 'AUXILIAR', 'Fora da escala', 'Não vinculado', 'Inativo', 'Opções Visualizar Alterar Ativar'],
             ['JOSE SILVA', 'TransJR', 'MOTORISTA', 'Escala 5x2', '501', 'Ativo', 'Opções Visualizar Alterar Inativar'],
           ],
@@ -98,7 +100,7 @@ describe 'Employees', :hr do
         expect(Employee.count).to eq(3)
         expect(html_table_to_rows).to eq(
           [
-            ['Nome', 'Empresa', 'Função', 'Escala', 'Motorista no Atua', 'Situação', 'Ações'],
+            ['Nome', 'Empresa', 'Cargo', 'Escala', 'Motorista no Atua', 'Situação', 'Ações'],
             ['JOSE SILVA', 'TransJR', 'MOTORISTA', 'Escala 5x2', '501', 'Ativo', 'Opções Visualizar Alterar Inativar'],
           ],
         )
@@ -118,7 +120,7 @@ describe 'Employees', :hr do
           expect(dl_to_hash('#employee_data')).to eq(
             'Nome' => 'ANA PAULA', 'Apelido' => 'NINA', 'CPF' => '111.444.777-35', 'Sexo' => 'Feminino',
             'Data de nascimento' => '12/04/1990', 'Empresa' => 'MME', 'Matrícula' => '0042', 'Data de admissão' => '03/02/2020',
-            'Função' => 'AUXILIAR', 'Centro de custo' => 'OFICINA', 'Escala' => 'Fora da escala',
+            'Cargo' => 'AUXILIAR', 'Centro de custo' => 'OFICINA', 'Escala' => 'Fora da escala',
             'Motorista no Atua' => 'Não vinculado', 'Funcionário da oficina' => 'ANA MECÂNICA', 'Situação' => 'Inativo'
           )
         end
@@ -130,12 +132,41 @@ describe 'Employees', :hr do
 
         fill_in 'Apelido', with: 'Zé'
         select 'Fora da escala', from: 'Escala'
+        select 'AUXILIAR', from: 'Cargo'
 
         expect { click_on 'Salvar Alterações' }.not_to change(Employee, :count)
 
         expect(page).to have_current_path(employee_path(jose))
         expect(page).to have_text('Funcionário atualizado com sucesso.')
-        expect(jose.reload).to have_attributes(nickname: 'ZÉ', work_schedule_type: 'not_scheduled', driver_code: nil)
+        expect(jose.reload).to have_attributes(nickname: 'ZÉ', work_schedule_type: 'not_scheduled', driver_code: nil,
+                                               job_position: assistant)
+      end
+
+      context 'when a job position is inactive' do
+        let!(:former) { create(:job_position, tenant:, name: 'ENCARREGADO', activated: false) }
+        let!(:carlos) { create(:employee, tenant:, name: 'CARLOS LIMA', legal_id: '39053344705', job_position: former) }
+
+        scenario 'offers only the active job positions and the current one of the employee' do
+          create(:job_position, tenant: other_tenant, name: 'CARGO DE OUTRA')
+
+          visit edit_employee_path(jose)
+
+          expect(page).to have_select('Cargo', options: ['Sem cargo', 'AUXILIAR', 'MOTORISTA'], selected: 'MOTORISTA')
+
+          visit edit_employee_path(carlos)
+
+          expect(page).to have_select('Cargo', options: ['Sem cargo', 'AUXILIAR', 'ENCARREGADO', 'MOTORISTA'],
+                                               selected: 'ENCARREGADO')
+        end
+      end
+
+      scenario 'removes the job position of an employee' do
+        visit edit_employee_path(jose)
+        select 'Sem cargo', from: 'Cargo'
+        click_on 'Salvar Alterações'
+
+        expect(page).to have_text('Funcionário atualizado com sucesso.')
+        expect(jose.reload.job_position).to be_nil
       end
 
       scenario 'deactivates an employee from the listing' do
@@ -156,6 +187,7 @@ describe 'Employees', :hr do
 
     context 'when creating an employee' do
       let!(:mechanic) { create(:workshop_employee, tenant:, name: 'CARLOS MECÂNICO') }
+      let!(:truck_driver) { create(:job_position, tenant:, name: 'MOTORISTA') }
       let!(:transport_document) do
         create(:atua_transport_document, tenant:, driver_code: 777, driver_document_digits: '52998224725')
       end
@@ -170,6 +202,7 @@ describe 'Employees', :hr do
         select 'MM Espinola', from: 'Empresa'
         fill_in 'Data de admissão', with: '2021-06-01'
         select 'CARLOS MECÂNICO', from: 'Funcionário da oficina'
+        select 'MOTORISTA', from: 'Cargo'
 
         expect { click_on 'Cadastrar Funcionário' }.to change(Employee, :count).by(1).and change(Driver, :count).by(1)
 
@@ -178,7 +211,8 @@ describe 'Employees', :hr do
         expect(page).to have_text('Funcionário cadastrado com sucesso.')
         expect(employee).to have_attributes(
           tenant:, name: 'CARLOS PEREIRA', legal_id: '52998224725', gender_type: 'male', company_type: 'mm_espinola',
-          admitted_on: Date.new(2021, 6, 1), work_schedule_type: 'five_two', workshop_employee: mechanic, driver_code: 777
+          admitted_on: Date.new(2021, 6, 1), work_schedule_type: 'five_two', workshop_employee: mechanic, driver_code: 777,
+          job_position: truck_driver
         )
         expect(employee).to be_activated
       end
@@ -200,7 +234,8 @@ describe 'Employees', :hr do
 
   context 'when the owner is signed in on a phone', :js, flipper: :hr do
     let!(:owner) { create(:user, tenant:, user_type: :owner) }
-    let!(:jose) { create(:employee, tenant:, name: 'JOSE SILVA', role: 'MOTORISTA') }
+    let!(:truck_driver) { create(:job_position, tenant:, name: 'MOTORISTA') }
+    let!(:jose) { create(:employee, tenant:, name: 'JOSE SILVA', job_position: truck_driver) }
 
     before do
       use_mobile_screen
