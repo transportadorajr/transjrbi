@@ -100,6 +100,9 @@ pt-BR:
       employee:
         one: Funcionário
         other: Funcionários
+      job_position:
+        one: Cargo
+        other: Cargos
       work_schedule_day:
         one: Dia da escala
         other: Dias da escala
@@ -161,7 +164,8 @@ pt-BR:
         legal_id: CPF
         company_type: Empresa
         registration: Matrícula
-        role: Função
+        job_position: Cargo
+        job_position_id: Cargo
         cost_center: Centro de custo
         gender_type: Sexo
         born_on: Data de nascimento
@@ -171,6 +175,10 @@ pt-BR:
         driver_id: Motorista no Atua
         workshop_employee: Funcionário da oficina
         workshop_employee_id: Funcionário da oficina
+        activated_at: Situação
+      job_position:
+        name: Nome
+        employees_count: Funcionários
         activated_at: Situação
       workshop_employee:
         name: Nome
@@ -1010,13 +1018,17 @@ pt-BR:
         legal_id: CPF
         company_type: Empresa
         registration: Matrícula
-        role: Função
+        job_position: Cargo
+        job_position_id: Cargo
         cost_center: Centro de custo
         gender_type: Sexo
         born_on: Data de nascimento
         admitted_on: Data de admissão
         work_schedule_type: Escala
         workshop_employee_id: Funcionário da oficina
+        active: Ativo
+      job_position_form:
+        name: Nome
         active: Ativo
       workshop_employee_form:
         name: Nome
@@ -1680,6 +1692,9 @@ pt-BR:
       employee:
         create: Cadastrar Funcionário
         update: Salvar Alterações
+      job_position:
+        create: Cadastrar Cargo
+        update: Salvar Alterações
       work_schedule_day:
         create: Lançar
       workshop_employee:
@@ -1819,6 +1834,10 @@ pt-BR:
         activate: Ativar
         deactivate: Inativar
         schedule: Lançar folga ou afastamento
+      job_position:
+        edit: Alterar
+        activate: Ativar
+        deactivate: Inativar
       workshop_employee:
         edit: Alterar
         activate: Ativar
@@ -2044,6 +2063,7 @@ pt-BR:
     maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
     employees: Funcionários
+    job_positions: Cargos
     work_schedules: Escala de folgas
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores
@@ -3070,6 +3090,8 @@ pt-BR:
       employee_data: Dados do Funcionário
       no_driver: Não vinculado
       no_workshop_employee: Não vinculado
+      no_job_position: Sem cargo
+      no_legal_id: Não informado
     new:
       title: Novo Funcionário
       back: Voltar para funcionários
@@ -3087,6 +3109,29 @@ pt-BR:
       workshop_employee_hint: Liga o funcionário ao cadastro usado nas ordens de serviço.
       active_hint: Funcionários inativos saem da escala de folgas.
       driver_hint: O motorista do Atua é vinculado automaticamente pelo CPF informado nos CT-es.
+      no_job_position: Sem cargo
+  job_positions:
+    status:
+      active: Ativo
+      inactive: Inativo
+    index:
+      title: Cargos
+      subtitle: Os cargos que podem ser escolhidos no cadastro dos funcionários.
+      new_job_position: Novo Cargo
+    new:
+      title: Novo Cargo
+      back: Voltar para cargos
+    create:
+      success: Cargo cadastrado com sucesso.
+    edit:
+      title: Alterar Cargo
+      back: Voltar para cargos
+    update:
+      success: Cargo atualizado com sucesso.
+    form:
+      job_position_data: Dados do Cargo
+      job_position_data_text: O nome do cargo aparece no cadastro e na listagem dos funcionários.
+      active_hint: Cargos inativos deixam de aparecer para escolha no cadastro dos funcionários.
   workshop_employees:
     status:
       active: Ativo
@@ -4328,6 +4373,7 @@ pt-BR:
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários
+    job_positions: Cargos
     work_schedules: Escala de folgas
     workshop_employees: Funcionários da oficina
     suppliers: Fornecedores

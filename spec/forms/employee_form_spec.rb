@@ -2,10 +2,11 @@ require 'rails_helper'
 
 RSpec.describe EmployeeForm do
   let(:tenant) { create(:tenant) }
+  let(:job_position) { create(:job_position, tenant:, name: 'MOTORISTA') }
   let(:attributes) do
     {
       tenant:, name: ' josé  da silva ', nickname: ' zé ', legal_id: '529.982.247-25', company_type: 'mm_espinola',
-      registration: ' 0042 ', role: ' motorista ', cost_center: ' frota ', gender_type: 'male', born_on: '1980-05-10',
+      registration: ' 0042 ', job_position_id: job_position.id, cost_center: ' frota ', gender_type: 'male', born_on: '1980-05-10',
       admitted_on: '2015-03-02', work_schedule_type: 'five_two'
     }
   end
@@ -18,7 +19,7 @@ RSpec.describe EmployeeForm do
 
       expect(Employee.last).to have_attributes(
         tenant:, name: 'JOSÉ DA SILVA', nickname: 'ZÉ', legal_id: '52998224725', company_type: 'mm_espinola',
-        registration: '0042', role: 'MOTORISTA', cost_center: 'FROTA', gender_type: 'male', born_on: Date.new(1980, 5, 10),
+        registration: '0042', job_position:, cost_center: 'FROTA', gender_type: 'male', born_on: Date.new(1980, 5, 10),
         admitted_on: Date.new(2015, 3, 2), work_schedule_type: 'five_two', driver: nil, workshop_employee: nil
       )
       expect(Employee.last).to be_activated
@@ -93,6 +94,33 @@ RSpec.describe EmployeeForm do
           expect(form.save).to be_falsey
           expect(form.errors.full_messages).to eq(['Funcionário da oficina não é válido'])
         end
+      end
+    end
+
+    context 'when the job position is unavailable' do
+      let!(:inactive) { create(:job_position, tenant:, activated: false) }
+      let!(:stranger) { create(:job_position) }
+
+      it 'rejects an inactive job position or one from another tenant' do
+        [inactive, stranger].each do |unavailable|
+          form = described_class.new(**attributes, job_position_id: unavailable.id)
+
+          expect(form.save).to be_falsey
+          expect(form.errors.full_messages).to eq(['Cargo não é válido'])
+        end
+      end
+    end
+
+    context 'when the employee keeps an inactive job position' do
+      let!(:inactive) { create(:job_position, tenant:, activated: false) }
+      let!(:employee) { create(:employee, tenant:, legal_id: '52998224725', job_position: inactive) }
+
+      it 'keeps the job position on the edit' do
+        form = described_class.for_employee(employee)
+        form.assign_attributes(nickname: 'Zé')
+
+        expect(form.save).to be(true)
+        expect(employee.reload).to have_attributes(nickname: 'ZÉ', job_position: inactive)
       end
     end
 

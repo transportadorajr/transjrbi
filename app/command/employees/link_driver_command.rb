@@ -30,6 +30,8 @@ module Employees
     end
 
     def driver_code
+      return if employee.legal_id.blank?
+
       tenant.atua_transport_documents
         .where(driver_document_digits: employee.legal_id)
         .where.not(driver_code: nil)

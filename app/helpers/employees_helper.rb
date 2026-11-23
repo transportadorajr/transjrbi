@@ -18,7 +18,9 @@ module EmployeesHelper
   end
 
   def employee_legal_id(employee)
-    employee.legal_id.to_s.sub(/\A(\d{3})(\d{3})(\d{3})(\d{2})\z/, '\1.\2.\3-\4')
+    return t('employees.show.no_legal_id') if employee.legal_id.blank?
+
+    employee.legal_id.sub(/\A(\d{3})(\d{3})(\d{3})(\d{2})\z/, '\1.\2.\3-\4')
   end
 
   def employee_date(date)
@@ -47,6 +49,14 @@ module EmployeesHelper
 
   def employee_workshop_employee_options(employee_form)
     employee_form.available_workshop_employees.map { |workshop_employee| [workshop_employee.name, workshop_employee.id] }
+  end
+
+  def employee_job_position_options(employee_form)
+    employee_form.available_job_positions.map { |job_position| [job_position.name, job_position.id] }
+  end
+
+  def employee_job_position_name(employee)
+    employee.job_position_name || t('employees.show.no_job_position')
   end
 
   def employee_form_url(employee_form)

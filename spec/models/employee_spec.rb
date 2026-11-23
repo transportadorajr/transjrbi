@@ -30,6 +30,14 @@ RSpec.describe Employee do
       end
     end
 
+    context 'when the tenant has an employee without CPF' do
+      before { create(:employee, tenant:, legal_id: nil) }
+
+      it 'accepts another employee without CPF' do
+        expect(build(:employee, tenant:, legal_id: nil)).to be_valid
+      end
+    end
+
     context 'when the driver is linked to another employee' do
       let!(:driver) { create(:driver, tenant:) }
 

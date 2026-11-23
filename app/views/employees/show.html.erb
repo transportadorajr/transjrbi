@@ -43,8 +43,8 @@
         <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:admitted_on) %></dt>
         <dd class="col-12 col-md-9"><%= employee_date(@employee.admitted_on) %></dd>
 
-        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:role) %></dt>
-        <dd class="col-12 col-md-9 text-break"><%= tax_value(@employee.role) %></dd>
+        <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:job_position) %></dt>
+        <dd class="col-12 col-md-9 text-break"><%= employee_job_position_name(@employee) %></dd>
 
         <dt class="col-12 col-md-3"><%= Employee.human_attribute_name(:cost_center) %></dt>
         <dd class="col-12 col-md-9 text-break"><%= tax_value(@employee.cost_center) %></dd>

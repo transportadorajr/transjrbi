@@ -47,6 +47,18 @@ RSpec.describe Employees::LinkDriverCommand do
     end
   end
 
+  context 'when the employee has no CPF' do
+    before do
+      employee.update!(legal_id: nil)
+      create(:atua_transport_document, tenant:, driver_code: 800, driver_document_digits: nil)
+    end
+
+    it 'does not link a driver of a document without CPF' do
+      expect(described_class.call(employee)).to be_nil
+      expect(employee.reload.driver).to be_nil
+    end
+  end
+
   context 'when no transport document carries the CPF' do
     before { employee.update!(driver: create(:driver, tenant:, code: 700)) }
 

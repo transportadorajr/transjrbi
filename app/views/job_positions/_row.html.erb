@@ -1,0 +1,8 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="fw-semibold text-break"><%= item.name %></td>
+  <td class="d-none d-md-table-cell text-end"><%= job_position_employees_count(item, employee_counts) %></td>
+  <td><%= job_position_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(job_positions_menu(item)) %>
+  </td>
+</tr>

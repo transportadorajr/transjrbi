@@ -54,6 +54,7 @@ end
   'vehicle_availability' => { name: 'Disponibilidade da frota', writable: false },
   'hr' => { name: 'Módulo de RH', writable: false },
   'employees' => { name: 'Funcionários', writable: true },
+  'job_positions' => { name: 'Cargos', writable: true },
   'work_schedules' => { name: 'Escala de folgas', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
@@ -76,4 +77,5 @@ Tenant.find_each do |tenant|
   TruckGroups::BackfillCommand.call(tenant)
   ProductGroups::BackfillCommand.call(tenant)
   Holidays::SeedNationalCommand.call(tenant)
+  Employees::SeedCommand.call(tenant)
 end

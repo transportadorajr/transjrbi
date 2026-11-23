@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_184113) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_23_211606) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -675,7 +675,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_184113) do
     t.bigint "workshop_employee_id"
     t.string "name", null: false
     t.string "nickname"
-    t.string "legal_id", null: false
+    t.string "legal_id"
     t.enum "company_type", null: false, enum_type: "employee_company_type"
     t.string "registration"
     t.string "role"
@@ -687,7 +687,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_184113) do
     t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "job_position_id"
     t.index ["driver_id"], name: "index_employees_on_driver_id", unique: true
+    t.index ["job_position_id"], name: "index_employees_on_job_position_id"
     t.index ["tenant_id", "legal_id"], name: "index_employees_on_tenant_id_and_legal_id", unique: true
     t.index ["tenant_id"], name: "index_employees_on_tenant_id"
     t.index ["workshop_employee_id"], name: "index_employees_on_workshop_employee_id", unique: true
@@ -958,6 +960,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_184113) do
     t.datetime "updated_at", null: false
     t.decimal "international_insurance_percentage", precision: 7, scale: 4, null: false
     t.index ["tenant_id"], name: "index_insurance_rates_on_tenant_id", unique: true
+  end
+
+  create_table "job_positions", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.string "name", null: false
+    t.datetime "activated_at", default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "name"], name: "index_job_positions_on_tenant_id_and_name", unique: true
+    t.index ["tenant_id"], name: "index_job_positions_on_tenant_id"
   end
 
   create_table "locations", force: :cascade do |t|
@@ -1512,6 +1524,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_184113) do
   add_foreign_key "distance_adjustments", "tenants"
   add_foreign_key "drivers", "tenants"
   add_foreign_key "employees", "drivers"
+  add_foreign_key "employees", "job_positions"
   add_foreign_key "employees", "tenants"
   add_foreign_key "employees", "workshop_employees"
   add_foreign_key "empty_leg_transport_documents", "empty_legs", on_delete: :cascade
@@ -1534,6 +1547,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_184113) do
   add_foreign_key "freight_expenses", "truck_groups"
   add_foreign_key "holidays", "tenants"
   add_foreign_key "insurance_rates", "tenants"
+  add_foreign_key "job_positions", "tenants"
   add_foreign_key "macro_regions", "tenants"
   add_foreign_key "maintenance_order_items", "maintenance_orders"
   add_foreign_key "maintenance_order_items", "tenants"

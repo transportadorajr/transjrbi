@@ -1,0 +1,25 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('job_positions.form.job_position_data') %></p>
+    <p class="form-card-subtitle"><%= t('job_positions.form.job_position_data_text') %></p>
+  </div>
+  <%= simple_form_for(job_position_form, url: job_position_form_url(job_position_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-8">
+          <%= f.input :name, required: true, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :active, as: :boolean, hint: t('job_positions.form.active_hint'),
+                               input_html: { class: 'form-check-input me-2' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, job_position_form_submit_label(job_position_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), job_positions_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

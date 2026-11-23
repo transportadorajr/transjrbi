@@ -1,7 +1,7 @@
 <tr id="<%= dom_id(item) %>">
   <td class="fw-semibold text-break"><%= item.name %></td>
   <td class="d-none d-md-table-cell"><%= item.company_type_name %></td>
-  <td class="d-none d-lg-table-cell"><%= tax_value(item.role) %></td>
+  <td class="d-none d-lg-table-cell"><%= employee_job_position_name(item) %></td>
   <td class="d-none d-lg-table-cell"><%= item.work_schedule_type_name %></td>
   <td class="d-none d-lg-table-cell"><%= employee_driver_code(item) %></td>
   <td><%= employee_status_badge(item) %></td>

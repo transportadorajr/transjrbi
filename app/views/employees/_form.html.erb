@@ -35,7 +35,9 @@
           <%= f.input :admitted_on, as: :date, html5: true, input_html: { class: 'form-control' } %>
         </div>
         <div class="col-12 col-lg-6">
-          <%= f.input :role, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
+          <%= f.input :job_position_id, collection: employee_job_position_options(employee_form),
+                                        include_blank: t('employees.form.no_job_position'),
+                                        input_html: { class: 'form-select' } %>
         </div>
         <div class="col-12 col-lg-6">
           <%= f.input :cost_center, input_html: { class: 'form-control text-uppercase', autocomplete: 'off' } %>
