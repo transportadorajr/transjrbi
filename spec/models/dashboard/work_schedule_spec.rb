@@ -116,6 +116,85 @@ RSpec.describe Dashboard::WorkSchedule do
     end
   end
 
+  describe 'alerts' do
+    let!(:city) { create(:city, tenant:) }
+    let!(:ana) { create(:employee, tenant:, name: 'ANA', legal_id: '00000000001', gender_type: 'male') }
+    let!(:bruno) { create(:employee, tenant:, name: 'BRUNO', legal_id: '00000000002', gender_type: 'male') }
+    let!(:carlos) do
+      create(:employee, tenant:, name: 'CARLOS', legal_id: '00000000003', gender_type: 'male', driver: create(:driver, tenant:, code: 777))
+    end
+    let!(:jose) { create(:employee, tenant:, name: 'JOSE', legal_id: '00000000004', gender_type: 'male') }
+    let!(:maria) { create(:employee, tenant:, name: 'MARIA', legal_id: '00000000005', gender_type: 'female') }
+
+    before do
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 11, 22), city:)
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 11, 17), city:)
+      (26..28).each { |day| create(:work_schedule_day, :leave, employee: bruno, date: Date.new(2026, 11, day)) }
+      create(:work_schedule_day, employee: carlos, date: Date.new(2026, 11, 22), city:)
+      create(:work_schedule_day, employee: jose, date: Date.new(2026, 11, 15), city:)
+      create(:work_schedule_day, employee: jose, date: Date.new(2026, 11, 16), city:)
+      create(:work_schedule_day, employee: jose, date: Date.new(2026, 11, 22), city:)
+      create(:work_schedule_day, employee: maria, date: Date.new(2026, 11, 1), city:)
+      create(:work_schedule_day, employee: maria, date: Date.new(2026, 11, 23), city:)
+      create(:work_schedule_day, employee: maria, date: Date.new(2026, 11, 27), city:)
+      manifest = create(:atua_manifest, tenant:, trip_started_at: Time.zone.local(2026, 11, 24, 8),
+                                        closed_at: Time.zone.local(2026, 11, 28, 18))
+      transport_document = create(:atua_transport_document, tenant:, driver_code: 777)
+      create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: transport_document.number)
+    end
+
+    def alerts_of(week)
+      described_class.new(tenant:, week:).rows(tenant.employees.preload(:driver).order(:name)).map { |row| [row.employee.name, row.alerts] }
+    end
+
+    it 'warns in the current week only when the days left cannot fit the days off owed' do
+      travel_to Date.new(2026, 11, 25) do
+        expect(alerts_of('2026-11-25')).to eq(
+          [
+            ['ANA', []],
+            ['BRUNO', [:few_days_off]],
+            ['CARLOS', [:few_days_off]],
+            ['JOSE', []],
+            ['MARIA', [:sunday_overdue]],
+          ],
+        )
+      end
+    end
+
+    it 'warns every employee with less than two days off in a past week' do
+      travel_to Date.new(2026, 11, 25) do
+        expect(alerts_of('2026-11-15')).to eq(
+          [
+            ['ANA', [:few_days_off]],
+            ['BRUNO', [:few_days_off]],
+            ['CARLOS', [:few_days_off]],
+            ['JOSE', []],
+            ['MARIA', [:few_days_off]],
+          ],
+        )
+      end
+    end
+
+    it 'does not warn about the days off of a future week' do
+      travel_to Date.new(2026, 11, 25) do
+        expect(alerts_of('2026-11-29').to_h.values.flatten).not_to include(:few_days_off)
+      end
+    end
+
+    it 'counts and filters the rows by alert' do
+      travel_to Date.new(2026, 11, 25) do
+        schedule = described_class.new(tenant:, week: '2026-11-25')
+        rows = schedule.rows(tenant.employees.preload(:driver).order(:name))
+
+        expect(schedule.alert_counts(rows)).to eq(few_days_off: 2, sunday_overdue: 1, any: 3)
+        expect(schedule.with_alert(rows, 'any').map { |row| row.employee.name }).to eq(%w[BRUNO CARLOS MARIA])
+        expect(schedule.with_alert(rows, 'sunday_overdue').map { |row| row.employee.name }).to eq(%w[MARIA])
+        expect(schedule.with_alert(rows, 'unknown').size).to eq(5)
+        expect(schedule.with_alert(rows, nil).size).to eq(5)
+      end
+    end
+  end
+
   describe '#employees' do
     let!(:scheduled) { create(:employee, tenant:, legal_id: '52998224725') }
 

@@ -10,16 +10,22 @@
   <%= render 'filters', schedule: @schedule %>
   <%= render 'week_navigation', schedule: @schedule %>
 
+  <div class="row g-3 mb-4">
+    <%= counter_card(:dark, t('.alerts.any'), @alert_counts[:any]) %>
+    <%= counter_card(:warning, t('.alerts.few_days_off', total: Dashboard::WorkSchedule::DAYS_OFF_PER_WEEK), @alert_counts[:few_days_off]) %>
+    <%= counter_card(:danger, t('.alerts.sunday_overdue'), @alert_counts[:sunday_overdue]) %>
+  </div>
+
   <div class="card table-card">
     <div class="table-card-header">
       <div class="table-card-heading">
         <p class="table-card-title"><%= t('.employees') %></p>
-        <p class="table-card-subtitle"><%= t('shared.total_records', count: @employees.total_count) %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @rows.total_count) %></p>
       </div>
     </div>
     <div class="table-card-body">
-      <% if @employees.any? %>
-        <%= render 'table', collection: @employees, rows: @rows, schedule: @schedule %>
+      <% if @rows.any? %>
+        <%= render 'table', rows: @rows, schedule: @schedule %>
       <% else %>
         <%= render 'shared/no_content' %>
       <% end %>

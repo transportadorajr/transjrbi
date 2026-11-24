@@ -291,6 +291,8 @@ end
   - Use `success` for active records.
   - Use `danger` for inactive/deactivated records.
   - Use `dark` for total/general counts.
+  - Use `warning` for counts of records that need attention (alerts, pending items).
+  - Use `primary` for monetary or km metrics on dashboards.
   - All card elements (border, label, and value) will automatically use the themed color.
 
   Example usage:
