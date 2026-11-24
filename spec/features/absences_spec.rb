@@ -72,6 +72,8 @@ describe 'Absences', :hr do
       scenario 'moves the next months along with the month' do
         visit absences_path(month: '2026-12')
 
+        expect(Vacation.count).to eq(5)
+        expect(WorkScheduleDay.count).to eq(3)
         expect(page).to have_text('Saídas de janeiro de 2027 a março de 2027, 2 registros.')
         expect(html_table_to_rows(table: find_by_id('upcoming_absences'))).to eq(
           [
@@ -109,18 +111,22 @@ describe 'Absences', :hr do
       expect(page).to have_no_css('#absence_calendar')
     end
 
-    scenario 'lists the next months with the employee and the period only' do
-      create(:vacation, employee: ana, acquisition_start_on: Date.new(2026, 1, 7), start_on: Date.new(2027, 1, 7), end_on: Date.new(2027, 2, 5))
+    context 'when there is a vacation in the next months' do
+      let!(:ana_vacation) do
+        create(:vacation, employee: ana, acquisition_start_on: Date.new(2026, 1, 7), start_on: Date.new(2027, 1, 7), end_on: Date.new(2027, 2, 5))
+      end
 
-      visit absences_path
+      scenario 'lists the next months with the employee and the period only' do
+        visit absences_path
 
-      expect(Vacation.count).to eq(3)
-      expect(html_table_to_rows(table: find_by_id('upcoming_absences')).map { |row| row.reject(&:empty?) }).to eq(
-        [
-          %w[FUNCIONÁRIO PERÍODO],
-          ['ANA PAULA', '07/01/2027 a 05/02/2027'],
-        ],
-      )
+        expect(Vacation.count).to eq(3)
+        expect(html_table_to_rows(table: find_by_id('upcoming_absences')).map { |row| row.reject(&:empty?) }).to eq(
+          [
+            %w[FUNCIONÁRIO PERÍODO],
+            [ana_vacation.employee.name, '07/01/2027 a 05/02/2027'],
+          ],
+        )
+      end
     end
   end
 end
