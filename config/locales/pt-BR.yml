@@ -109,6 +109,9 @@ pt-BR:
       vacation:
         one: Férias
         other: Férias
+      risk_assessment:
+        one: Pesquisa de gerenciadora de risco
+        other: Pesquisas de gerenciadoras de risco
       workshop_employee:
         one: Funcionário da oficina
         other: Funcionários da oficina
@@ -169,6 +172,15 @@ pt-BR:
         returns_on: Retorno
         days_count: Dias de férias
         sold_days: Dias vendidos
+        notes: Observações
+        created_at: Criado em
+        updated_at: Atualizado em
+      risk_assessment:
+        employee: Funcionário
+        provider_type: Gerenciadora
+        status_type: Situação
+        score: Score
+        valid_until: Validade
         notes: Observações
         created_at: Criado em
         updated_at: Atualizado em
@@ -1027,6 +1039,14 @@ pt-BR:
         city_id: Cidade da folga
         leave_reason_type: Motivo do afastamento
         notes: Observações
+      risk_assessment_form:
+        employee: Funcionário
+        employee_id: Funcionário
+        provider_type: Gerenciadora
+        status_type: Situação
+        score: Score
+        valid_until: Validade
+        notes: Observações
       vacation_form:
         employee: Funcionário
         employee_id: Funcionário
@@ -1287,6 +1307,10 @@ pt-BR:
             end_on:
               before_start_on: deve ser igual ou posterior à data inicial
               too_long: não pode passar de %{count} dias
+        risk_assessment_form:
+          attributes:
+            provider_type:
+              taken: já tem uma pesquisa cadastrada para este funcionário
         vacation_form:
           attributes:
             employee_id:
@@ -1488,6 +1512,14 @@ pt-BR:
       leave_reason_type:
         medical_appointment: Consulta médica
         medical_certificate: Atestado médico
+    risk_assessment:
+      provider_type:
+        apisul: Apisul
+        opentech: Opentech
+      status_type:
+        recommended: Recomendado
+        not_recommended: Não recomendado
+        in_progress: Em andamento
     employee:
       company_type:
         transjr: TransJR
@@ -1745,6 +1777,9 @@ pt-BR:
         update: Salvar Alterações
       work_schedule_day:
         create: Lançar
+      risk_assessment:
+        create: Cadastrar Pesquisa
+        update: Salvar Alterações
       vacation:
         create: Lançar Férias
         update: Salvar Alterações
@@ -1783,6 +1818,9 @@ pt-BR:
       revenue_goals:
         update: Salvar Metas
     tooltips:
+      risk_assessment:
+        edit: Alterar
+        destroy: Excluir
       vacation:
         edit: Alterar
         destroy: Excluir
@@ -2115,6 +2153,7 @@ pt-BR:
         description: Seu usuário ainda não tem acesso às telas da manutenção. Peça a liberação ao responsável pela sua empresa.
   resource_names:
     vacations: Férias
+    risk_assessments: Gerenciadoras de risco
     hr: Módulo de RH
     maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
@@ -3123,6 +3162,36 @@ pt-BR:
       due_soon: A vencer em até %{days} dias
       open: Em dia, com saldo
       periods: Períodos com saldo
+  risk_assessments:
+    index:
+      title: Gerenciadoras de risco
+      subtitle: Score, validade e situação das pesquisas dos motoristas na Apisul e na Opentech.
+      new_risk_assessment: Cadastrar Pesquisa
+      confirm_destroy: Tem certeza que deseja excluir esta pesquisa?
+      pdf:
+        header: Relatório das Gerenciadoras de Risco
+        filename: gerenciadoras_de_risco_%{time}.pdf
+    filters:
+      name: Nome do funcionário
+    new:
+      title: Cadastrar Pesquisa
+      back: Voltar para gerenciadoras de risco
+    create:
+      success: Pesquisa cadastrada com sucesso.
+    edit:
+      title: Alterar Pesquisa
+      back: Voltar para gerenciadoras de risco
+    update:
+      success: Pesquisa atualizada com sucesso.
+    destroy:
+      success: Pesquisa excluída com sucesso.
+    form:
+      risk_assessment_data: Dados da Pesquisa
+      risk_assessment_data_text: Cada funcionário tem uma pesquisa por gerenciadora. Atualize-a quando a gerenciadora renovar a pesquisa.
+      employee_placeholder: Selecione o funcionário
+      status_blank: Sem situação
+      status_hint: Na Apisul, a situação vem do score, quando informado. Abaixo de %{min} é não recomendado.
+      score_hint: Pontuação da Apisul. A Opentech não informa score.
   vacations:
     period: '%{start} a %{finish}'
     index:
@@ -3237,6 +3306,10 @@ pt-BR:
     status:
       active: Ativo
       inactive: Inativo
+    risk_assessments:
+      title: Gerenciadoras de risco
+      subtitle: Pesquisas do funcionário na Apisul e na Opentech.
+      new_risk_assessment: Cadastrar pesquisa
     vacation_periods:
       title: Férias por período aquisitivo
       subtitle: Cada período aquisitivo dá 30 dias de férias, que precisam ser gozados até o fim do ano seguinte.
@@ -4539,6 +4612,7 @@ pt-BR:
     vacations: Férias
     absences: Quem está fora
     vacation_balances: Férias a vencer
+    risk_assessments: Gerenciadoras de risco
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários

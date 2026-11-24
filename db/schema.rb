@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_154506) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_194500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -48,6 +48,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_154506) do
   create_enum "revenue_projection_day_type", ["regular", "weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end"]
   create_enum "revenue_projection_factor_type", ["weekday_holiday", "saturday_holiday", "bridge_day", "optional_day", "month_end", "weekday_bias"]
   create_enum "revenue_projection_period_type", ["month", "week"]
+  create_enum "risk_assessment_provider_type", ["apisul", "opentech"]
+  create_enum "risk_assessment_status_type", ["recommended", "not_recommended", "in_progress"]
   create_enum "user_type", ["owner", "admin", "operator"]
   create_enum "work_schedule_day_kind_type", ["day_off", "leave"]
   create_enum "work_schedule_day_leave_reason_type", ["medical_appointment", "medical_certificate"]
@@ -1337,6 +1339,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_154506) do
     t.index ["tenant_id", "period_type", "period_start", "taken_on"], name: "idx_on_tenant_id_period_type_period_start_taken_on_fad3550f68", unique: true
   end
 
+  create_table "risk_assessments", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "employee_id", null: false
+    t.enum "provider_type", null: false, enum_type: "risk_assessment_provider_type"
+    t.enum "status_type", enum_type: "risk_assessment_status_type"
+    t.integer "score"
+    t.date "valid_until"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id", "provider_type"], name: "index_risk_assessments_on_employee_id_and_provider_type", unique: true
+    t.index ["tenant_id", "valid_until"], name: "index_risk_assessments_on_tenant_id_and_valid_until"
+    t.index ["tenant_id"], name: "index_risk_assessments_on_tenant_id"
+  end
+
   create_table "road_routes", force: :cascade do |t|
     t.bigint "origin_id", null: false
     t.bigint "destination_id", null: false
@@ -1611,6 +1628,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_154506) do
   add_foreign_key "revenue_projection_day_notes", "users"
   add_foreign_key "revenue_projection_factors", "tenants"
   add_foreign_key "revenue_projection_snapshots", "tenants"
+  add_foreign_key "risk_assessments", "employees"
+  add_foreign_key "risk_assessments", "tenants"
   add_foreign_key "road_routes", "locations", column: "destination_id"
   add_foreign_key "road_routes", "locations", column: "origin_id"
   add_foreign_key "route_distances", "tenants"

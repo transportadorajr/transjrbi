@@ -84,6 +84,7 @@ Rails.application.routes.draw do
     resources :vacations, except: :show
     resources :absences, only: :index
     resources :vacation_balances, only: :index
+    resources :risk_assessments, except: :show
     root 'hr_home#index', as: :hr_root
   end
 

@@ -1,0 +1,22 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= RiskAssessment.human_attribute_name(:provider_type) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= RiskAssessment.human_attribute_name(:score) %></th>
+        <th><%= RiskAssessment.human_attribute_name(:valid_until) %></th>
+        <th class="d-none d-md-table-cell"><%= RiskAssessment.human_attribute_name(:status_type) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'employees/risk_assessment_row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection, param_name: :risk_assessments_page %>
+</div>

@@ -1,0 +1,23 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(RiskAssessment.human_attribute_name(:employee), :employee_name) %>
+        <th><%= RiskAssessment.human_attribute_name(:provider_type) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= RiskAssessment.human_attribute_name(:score) %></th>
+        <%= sortable_header(RiskAssessment.human_attribute_name(:valid_until), :valid_until, class: 'd-none d-md-table-cell') %>
+        <th class="d-none d-lg-table-cell"><%= RiskAssessment.human_attribute_name(:status_type) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

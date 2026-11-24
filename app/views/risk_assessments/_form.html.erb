@@ -1,0 +1,43 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('risk_assessments.form.risk_assessment_data') %></p>
+    <p class="form-card-subtitle"><%= t('risk_assessments.form.risk_assessment_data_text') %></p>
+  </div>
+  <%= simple_form_for(risk_assessment_form, url: risk_assessment_form_url(risk_assessment_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <%= f.label :employee_id, for: nil, id: 'risk_assessment_employee_select_label', class: 'form-label' %>
+          <%= risk_assessment_employee_field(f, risk_assessment_form) %>
+          <%= f.error :employee_id, class: 'invalid-feedback d-block' %>
+          <%= f.error :employee, class: 'invalid-feedback d-block' %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :provider_type, as: :select, collection: RiskAssessment.enum_options_for_select(:provider_type), required: true,
+                                      include_blank: t('helpers.select.prompt'), input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :status_type, as: :select, collection: RiskAssessment.enum_options_for_select(:status_type),
+                                    include_blank: t('risk_assessments.form.status_blank'), hint: t('risk_assessments.form.status_hint', min: RiskAssessment::APISUL_MIN_SCORE),
+                                    input_html: { class: 'form-select' } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :score, as: :integer, hint: t('risk_assessments.form.score_hint'),
+                              input_html: { class: 'form-control', min: 0, inputmode: :numeric } %>
+        </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :valid_until, as: :date, html5: true, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :notes, as: :text, input_html: { class: 'form-control', rows: 3 } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, risk_assessment_form_submit_label(risk_assessment_form),
+                   class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), risk_assessments_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>
