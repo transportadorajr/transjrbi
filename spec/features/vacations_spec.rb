@@ -56,17 +56,35 @@ describe 'Vacations', :hr do
       scenario 'filters the vacations by employee and month' do
         visit vacations_path(name: 'jose')
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['JOSE SILVA'])
+        expect(Vacation.count).to eq(3)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Funcionário', 'Saída', 'Retorno', 'Dias de férias', 'Dias vendidos', 'Período aquisitivo', 'Ações'],
+            ['JOSE SILVA', '01/04/2025 a 20/04/2025', '21/04/2025', '20', '10', '10/03/2024 a 09/03/2025', 'Opções Alterar Excluir'],
+          ],
+        )
 
         visit vacations_path(month: '2025-06')
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['ANA PAULA'])
+        expect(html_table_to_rows).to eq(
+          [
+            ['Funcionário', 'Saída', 'Retorno', 'Dias de férias', 'Dias vendidos', 'Período aquisitivo', 'Ações'],
+            ['ANA PAULA', '05/05/2025 a 03/06/2025', '04/06/2025', '30', '0', '10/03/2024 a 09/03/2025', 'Opções Alterar Excluir'],
+          ],
+        )
       end
 
       scenario 'sorts the vacations by employee name' do
         visit vacations_path(sort: 'employee_name', direction: 'asc')
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['ANA PAULA', 'JOSE SILVA'])
+        expect(Vacation.count).to eq(3)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Funcionário', 'Saída', 'Retorno', 'Dias de férias', 'Dias vendidos', 'Período aquisitivo', 'Ações'],
+            ['ANA PAULA', '05/05/2025 a 03/06/2025', '04/06/2025', '30', '0', '10/03/2024 a 09/03/2025', 'Opções Alterar Excluir'],
+            ['JOSE SILVA', '01/04/2025 a 20/04/2025', '21/04/2025', '20', '10', '10/03/2024 a 09/03/2025', 'Opções Alterar Excluir'],
+          ],
+        )
       end
 
       scenario 'edits a vacation' do
@@ -180,7 +198,8 @@ describe 'Vacations', :hr do
       expect(page).to have_text('Férias lançadas com sucesso.')
       expect(page).to have_css('td', text: 'JOSE SILVA')
       expect(page).to have_no_css('td', text: '01/05/2025')
-      expect(Vacation.last).to have_attributes(employee: jose, start_on: Date.new(2025, 4, 1), end_on: Date.new(2025, 4, 30))
+      expect(Vacation.last).to have_attributes(tenant:, employee: jose, acquisition_start_on: Date.new(2024, 3, 10), start_on: Date.new(2025, 4, 1),
+                                               end_on: Date.new(2025, 4, 30), sold_days: 0, notes: nil)
     end
   end
 

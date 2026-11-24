@@ -42,11 +42,35 @@ describe 'Vacation balances', :hr do
     scenario 'filters the overdue periods and enters the vacation' do
       visit vacation_balances_path(status: 'overdue')
 
-      expect(html_table_to_rows.drop(1).map(&:first)).to eq(['ANA PAULA'])
+      expect(html_table_to_rows).to eq(
+        [
+          ['Funcionário', 'Período aquisitivo', 'Gozar até', 'Saldo (dias)', 'Situação', 'Ações'],
+          ['ANA PAULA', '01/10/2024 a 30/09/2025', '30/09/2026', '10', 'Vencidas', ''],
+        ],
+      )
 
       click_on 'Lançar férias'
 
       expect(page).to have_current_path(new_vacation_path(employee_id: ana.id))
+    end
+  end
+
+  context 'when the owner is signed in on a phone', :js, flipper: :hr do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+
+    before do
+      use_mobile_screen
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'keeps only the employee, the status and the actions on the table' do
+      visit vacation_balances_path
+
+      expect(page).to have_css('th', text: /situação/i)
+      expect(page).to have_no_css('th', text: /gozar até/i)
+      expect(page).to have_no_css('th', text: /saldo/i)
+      expect(page).to have_css('tbody tr', count: 3)
+      expect(page).to have_css('tbody tr', text: /ANA PAULA\s*Vencidas/i)
     end
   end
 end
