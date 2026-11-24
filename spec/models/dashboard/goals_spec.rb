@@ -15,6 +15,7 @@ RSpec.describe Dashboard::Goals do
   end
 
   before do
+    create(:atua_vehicle, tenant:, plate: 'QWE1A23')
     create(:revenue_goal, tenant:, month:, amount_cents: 10_000_000)
     create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391', amount_cents: 1_000_000)
     create(:revenue_goal, :vehicle, tenant:, month:, plate: 'RHJ5A50', amount_cents: 2_000_000)

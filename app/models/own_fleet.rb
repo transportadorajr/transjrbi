@@ -5,6 +5,10 @@ class OwnFleet < ApplicationRecord
 
   validates :tenant_id, uniqueness: true
 
+  def goal_plates
+    plates - goal_excluded_plates
+  end
+
   def third_party?(plate)
     normalized = Atua::TransportDocument.normalize_plate(plate)
 
@@ -16,11 +20,12 @@ end
 #
 # Table name: own_fleets
 #
-#  id         :bigint           not null, primary key
-#  plates     :string           default([]), not null, is an Array
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  tenant_id  :bigint           not null
+#  id                   :bigint           not null, primary key
+#  goal_excluded_plates :string           default([]), not null, is an Array
+#  plates               :string           default([]), not null, is an Array
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  tenant_id            :bigint           not null
 #
 # Indexes
 #

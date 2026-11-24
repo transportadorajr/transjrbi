@@ -299,6 +299,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     before do
       travel_to(Time.zone.local(2026, 11, 10, 10))
       create(:own_fleet, tenant:, plates: %w[AJR4391 RHJ5A50])
+      %w[AJR4391 RHJ5A50].each { |plate| create(:atua_vehicle, tenant:, plate:) }
       usiminas = create(:customer_group, tenant:, name: 'USIMINAS')
       create(:revenue_goal, tenant:, month:, amount_cents: 10_000_000)
       create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391', amount_cents: 1_000_000)

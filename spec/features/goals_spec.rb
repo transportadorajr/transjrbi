@@ -37,6 +37,7 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
     context 'with the goals and the billing of the month' do
       before do
         create(:own_fleet, tenant:, plates: %w[AJR4391 RHJ5A50 QWE1A23])
+        create(:atua_vehicle, tenant:, plate: 'QWE1A23')
         create(:revenue_goal, tenant:, month:, amount_cents: 10_000_000)
         create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AJR4391', amount_cents: 1_000_000)
         create(:revenue_goal, :vehicle, tenant:, month:, plate: 'RHJ5A50', amount_cents: 2_000_000)

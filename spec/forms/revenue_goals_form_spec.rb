@@ -27,6 +27,7 @@ RSpec.describe RevenueGoalsForm do
     it 'lists the own fleet and the plates that already have a goal with the billing of the previous month' do
       create(:revenue_goal, tenant:, month:, amount_cents: 15_000_000)
       create(:revenue_goal, :vehicle, tenant:, month:, plate: 'XYZ9K87', amount_cents: 1_234_550)
+      create(:atua_vehicle, tenant:, plate: 'RHJ5A50')
 
       loaded = described_class.for_month(tenant, month)
 
@@ -36,6 +37,33 @@ RSpec.describe RevenueGoalsForm do
                                                   ['XYZ9K87', 'XYZ9K87', '12.345,50', 0]])
       expect(loaded.total_cents(:vehicles)).to eq(1_234_550)
       expect(loaded.customer_groups.map { [it.name, it.amount] }).to eq([['USIMINAS', nil]])
+    end
+
+    context 'with trailers missing from the vehicle registry in the own fleet' do
+      before do
+        tenant.own_fleet.update!(plates: %w[AJR4391 RHJ5A50 AUX8041 AUX8046])
+        create(:atua_vehicle, tenant:, plate: 'RHJ5A50')
+      end
+
+      it 'leaves out the own fleet plates that are neither registered as a truck nor billed as one' do
+        loaded = described_class.for_month(tenant, month)
+
+        expect(loaded.vehicles.map(&:key)).to eq(%w[AJR4391 RHJ5A50])
+      end
+    end
+
+    context 'with a plate excluded from the goals' do
+      before do
+        tenant.own_fleet.update!(plates: %w[AJR4391 AVC4E64], goal_excluded_plates: %w[AVC4E64])
+        create(:atua_transport_document, tenant:, plate: 'AVC4E64', freight_cents: 100_000, issued_at: Time.zone.local(2026, 10, 5, 10))
+      end
+
+      it 'leaves out the plates excluded from the goals' do
+        loaded = described_class.for_month(tenant, month)
+
+        expect(loaded.vehicles.map(&:key)).to eq(%w[AJR4391])
+        expect(loaded.excluded_plates).to eq('AVC4E64')
+      end
     end
 
     it 'keeps a deactivated customer group that already has a goal' do
@@ -151,6 +179,25 @@ RSpec.describe RevenueGoalsForm do
   end
 
   describe '#save' do
+    context 'with goals of a truck that does not bill for the company' do
+      before do
+        tenant.own_fleet.update!(plates: %w[AJR4391 AVC4E64])
+        create(:atua_transport_document, tenant:, plate: 'AVC4E64', freight_cents: 100_000, issued_at: Time.zone.local(2026, 10, 5, 10))
+        create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AVC4E64', amount_cents: 13_000_000)
+        create(:revenue_goal, :vehicle, tenant:, month: month.prev_month, plate: 'AVC4E64', amount_cents: 13_000_000)
+      end
+
+      it 'saves the plates excluded from the goals and drops their goals of the month' do
+        saved = form(excluded_plates: "avc-4e64\nlixo", vehicles_attributes: { '0' => { key: 'AJR4391', amount: '1.000,00' },
+                                                                               '1' => { key: 'AVC4E64', amount: '130.000,00' } })
+
+        expect { expect(saved.save).to be(true) }.not_to change(RevenueGoal, :count)
+        expect(tenant.own_fleet.reload.goal_excluded_plates).to eq(%w[AVC4E64])
+        expect(tenant.revenue_goals.for_month(month).pluck(:plate, :amount_cents)).to eq([['AJR4391', 100_000]])
+        expect(tenant.revenue_goals.for_month(month.prev_month).pluck(:plate)).to eq(%w[AVC4E64])
+      end
+    end
+
     it 'creates, updates and removes the goals of the month' do
       create(:revenue_goal, :vehicle, tenant:, month:, plate: 'RHJ5A50', amount_cents: 500_000)
       create(:revenue_goal, tenant:, month: month.prev_month, amount_cents: 900_000)

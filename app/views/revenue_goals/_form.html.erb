@@ -14,6 +14,10 @@
           <%= f.input :company, as: :money, required: false, hint: t('revenue_goals.form.company_hint'),
                                 input_html: { class: 'form-control bg-light', data: { goal_lines_target: 'company' } } %>
         </div>
+        <div class="col-12 col-lg-6">
+          <%= f.input :excluded_plates, as: :text, required: false, hint: t('revenue_goals.form.excluded_plates_hint'),
+                                        input_html: { class: 'form-control bg-light', rows: 3, autocapitalize: 'characters' } %>
+        </div>
       </div>
     </div>
   </div>
