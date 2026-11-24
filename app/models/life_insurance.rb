@@ -1,4 +1,19 @@
 class LifeInsurance < ApplicationRecord
+  include Sortable
+
+  COVERAGES = %i[capital accidental_death accidental_permanent_disability functional_permanent_disability spouse_death children_death
+                 funeral_assistance].freeze
+
+  PremiumTotal = Data.define(:company_type, :count, :premium) do
+    def company_name
+      LifeInsurancePolicy.human_enum_name(:company_type, company_type)
+    end
+  end
+
+  sortable :employee_name, -> { sort_text(Employee.arel_table[:name]) }
+  sortable :capital, -> { capital_cents_expression }
+  sortable :premium, -> { premium_cents_expression }
+
   belongs_to :tenant
   belongs_to :employee
   belongs_to :life_insurance_policy
@@ -13,6 +28,28 @@ class LifeInsurance < ApplicationRecord
   scope :covered_on, ->(date) {
     where(included_on: nil).or(where(included_on: ..date)).merge(where(excluded_on: nil).or(where(excluded_on: date.next_day..)))
   }
+  scope :by_name, ->(name) { joins(:employee).merge(Employee.by_name(name)) }
+  scope :by_company_type, ->(company_type) { joins(:employee).merge(Employee.by_company_type(company_type)) }
+
+  class << self
+    def capital_cents_expression
+      Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:capital_cents], LifeInsurancePolicy.arel_table[:capital_cents]])
+    end
+
+    def premium_cents_expression
+      per_mille = Arel::Nodes::Multiplication.new(capital_cents_expression, LifeInsurancePolicy.arel_table[:premium_rate_per_mille])
+
+      Arel::Nodes::NamedFunction.new('ROUND', [Arel::Nodes::Division.new(per_mille, LifeInsurancePolicy::PER_MILLE)])
+    end
+
+    def premium_totals
+      company = LifeInsurancePolicy.arel_table[:company_type]
+
+      joins(:life_insurance_policy).reorder(nil).group(company).order(company)
+        .pluck(company, Arel.star.count, premium_cents_expression.sum)
+        .map { |company_type, count, cents| PremiumTotal.new(company_type:, count:, premium: Money.from_cents(cents.to_i)) }
+    end
+  end
 
   def capital_cents
     self[:capital_cents] || life_insurance_policy&.capital_cents

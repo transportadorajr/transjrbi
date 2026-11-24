@@ -1,0 +1,11 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="fw-semibold text-nowrap"><%= item.company_type_name %></td>
+  <td class="text-end text-nowrap"><%= tax_money(item.capital) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= life_insurance_policy_rate(item.premium_rate_per_mille) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= life_insurance_policy_percentage(item.spouse_percentage) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= life_insurance_policy_percentage(item.children_percentage) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(item.funeral_assistance) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(life_insurance_policies_menu(item)) %>
+  </td>
+</tr>

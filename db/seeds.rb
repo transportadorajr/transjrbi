@@ -58,6 +58,7 @@ end
   'work_schedules' => { name: 'Escala de folgas', writable: true },
   'vacations' => { name: 'Férias', writable: true },
   'risk_assessments' => { name: 'Gerenciadoras de risco', writable: true },
+  'life_insurances' => { name: 'Seguro de vida', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)

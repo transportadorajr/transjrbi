@@ -1,0 +1,23 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle'), back_path: life_insurances_path, back_title: t('.back') do %>
+    <%= life_insurance_policy_create_button(@available_company_types) %>
+  <% end %>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @life_insurance_policies.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @life_insurance_policies.any? %>
+        <%= render 'table', collection: @life_insurance_policies %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

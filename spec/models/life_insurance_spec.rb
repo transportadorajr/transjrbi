@@ -82,4 +82,44 @@ RSpec.describe LifeInsurance do
       expect(included).not_to be_covered_on(Date.new(2026, 5, 9))
     end
   end
+
+  describe 'filters, sorting and totals' do
+    let(:tenant) { create(:tenant) }
+    let(:mme) { create(:life_insurance_policy, tenant:, company_type: 'mme', capital_cents: 11_500_000) }
+    let(:mm) { create(:life_insurance_policy, tenant:, company_type: 'mm_espinola', capital_cents: 11_000_000) }
+    let!(:jose) do
+      create(:life_insurance, employee: create(:employee, tenant:, name: 'JOSE SILVA', legal_id: nil, company_type: 'mme'), life_insurance_policy: mme)
+    end
+    let!(:ana) do
+      create(:life_insurance, employee: create(:employee, tenant:, name: 'ANA PAULA', legal_id: nil, company_type: 'mm_espinola'),
+                              life_insurance_policy: mm, capital_cents: 17_000_000)
+    end
+    let!(:carlos) do
+      create(:life_insurance, employee: create(:employee, tenant:, name: 'CARLOS LIMA', legal_id: nil, company_type: 'mm_espinola'),
+                              life_insurance_policy: mm)
+    end
+
+    it 'filters by the name and the company of the employee' do
+      expect(described_class.by_name('jose')).to contain_exactly(jose)
+      expect(described_class.by_company_type('mm_espinola')).to contain_exactly(ana, carlos)
+    end
+
+    it 'sorts by the capital and the premium of the policy or of the life insurance' do
+      relation = described_class.joins(:employee, :life_insurance_policy)
+
+      expect(relation.sorted_by(:capital, :desc).order(:id)).to eq([ana, jose, carlos])
+      expect(relation.sorted_by(:premium, :asc).order(:id)).to eq([carlos, jose, ana])
+      expect(relation.sorted_by(:employee_name, :asc)).to eq([ana, carlos, jose])
+    end
+
+    it 'totals the insured and the premium by company' do
+      expect(described_class.premium_totals.map(&:to_h)).to eq(
+        [
+          { company_type: 'mme', count: 1, premium: Money.from_cents(3663) },
+          { company_type: 'mm_espinola', count: 2, premium: Money.from_cents(5415 + 3504) },
+        ],
+      )
+      expect(described_class.by_company_type('mme').premium_totals.map(&:company_name)).to eq(['MME'])
+    end
+  end
 end
