@@ -244,5 +244,38 @@ describe 'Life insurances', :hr do
       expect(all('tbody tr td:first-child').map(&:text)).to eq(['ANA PAULA', 'JOSE SILVA'])
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
+
+    scenario 'picks the employee and includes them in the life insurance' do
+      carlos.update!(born_on: Date.new(1985, 4, 2))
+      visit new_life_insurance_path
+      use_mobile_screen
+
+      within('#life_insurance_employee_select') do
+        find('.select2-trigger').click
+        find('.select2-search').fill_in(with: 'carlos')
+        find('.select2-option', text: 'CARLOS LIMA').click
+      end
+      fill_in 'Data de inclusão', with: '2026-11-20'
+
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      expect { click_on 'Incluir no Seguro' }.to change(LifeInsurance, :count).by(1)
+
+      expect(page).to have_text('Funcionário incluído no seguro de vida.')
+      expect(LifeInsurance.last).to have_attributes(employee: carlos, life_insurance_policy: mm_policy, included_on: Date.new(2026, 11, 20))
+    end
+
+    scenario 'excludes an employee from the life insurance' do
+      jose_insurance = LifeInsurance.find_by!(employee: jose)
+      visit new_life_insurance_exclusion_path(jose_insurance)
+      use_mobile_screen
+
+      fill_in 'Data de exclusão', with: '2026-11-23'
+
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      expect { accept_confirm { click_on 'Excluir do Seguro' } }.not_to change(LifeInsurance, :count)
+
+      expect(page).to have_text('Funcionário excluído do seguro de vida.')
+      expect(jose_insurance.reload.excluded_on).to eq(Date.new(2026, 11, 23))
+    end
   end
 end
