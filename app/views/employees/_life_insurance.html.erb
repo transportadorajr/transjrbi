@@ -1,0 +1,22 @@
+<div class="card detail-card mt-4" id="life_insurance">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('employees.life_insurance.title') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0">
+      <dt class="col-12 col-md-3"><%= t('employees.life_insurance.status') %></dt>
+      <dd class="col-12 col-md-9"><%= status_badge(t('employees.life_insurance.insured'), kind: :success) %></dd>
+
+      <% LifeInsurance::COVERAGES.each do |coverage| %>
+        <dt class="col-12 col-md-3"><%= LifeInsurance.human_attribute_name(coverage) %></dt>
+        <dd class="col-12 col-md-9"><%= tax_money(life_insurance.public_send(coverage)) %></dd>
+      <% end %>
+
+      <dt class="col-12 col-md-3"><%= LifeInsurance.human_attribute_name(:premium) %></dt>
+      <dd class="col-12 col-md-9"><%= tax_money(life_insurance.premium) %></dd>
+
+      <dt class="col-12 col-md-3"><%= LifeInsurance.human_attribute_name(:included_on) %></dt>
+      <dd class="col-12 col-md-9"><%= employee_date(life_insurance.included_on) %></dd>
+    </dl>
+  </div>
+</div>

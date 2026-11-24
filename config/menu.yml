@@ -263,6 +263,12 @@ shared:
       controllers:
         - life_insurances
         - life_insurance_policies
+    - name: uninsured_employees
+      resource: life_insurances
+      icon: person-exclamation
+      url: /uninsured_employees
+      controllers:
+        - uninsured_employees
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

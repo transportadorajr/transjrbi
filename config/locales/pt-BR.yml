@@ -3235,12 +3235,22 @@ pt-BR:
       subtitle: Coberturas e prêmio mensal de cada funcionário segurado, separados por empresa.
       insured_employees: Funcionários segurados
       insured: Segurados
+      uninsured: Sem seguro
       premium: Prêmio mensal
       company_premium: Prêmio %{company} (%{count})
       policies: Apólices
       pdf:
         header: Relatório do Seguro de Vida
         filename: seguro_de_vida_%{time}.pdf
+    filters:
+      name: Nome do funcionário
+  uninsured_employees:
+    index:
+      title: Sem seguro de vida
+      subtitle: Funcionários ativos que não estão cobertos pelo seguro de vida hoje.
+      pdf:
+        header: Relatório dos Funcionários sem Seguro de Vida
+        filename: sem_seguro_de_vida_%{time}.pdf
     filters:
       name: Nome do funcionário
   life_insurance_policies:
@@ -3409,6 +3419,12 @@ pt-BR:
     status:
       active: Ativo
       inactive: Inativo
+    life_insurance:
+      title: Seguro de vida
+      status: Situação
+      insured: Segurado
+      uninsured: Sem seguro
+      uninsured_text: O funcionário não está coberto pelo seguro de vida hoje. Inclua-o na próxima planilha da seguradora.
     risk_assessments:
       title: Gerenciadoras de risco
       subtitle: Pesquisas do funcionário na Apisul e na Opentech.
@@ -4717,6 +4733,7 @@ pt-BR:
     vacation_balances: Férias a vencer
     risk_assessments: Gerenciadoras de risco
     life_insurances: Seguro de vida
+    uninsured_employees: Sem seguro de vida
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários

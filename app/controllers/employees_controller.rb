@@ -19,6 +19,7 @@ class EmployeesController < BaseController
 
     @vacation_periods = listing_page(VacationPeriod.for_employee(@employee).reverse, param_name: :periods_page)
     @risk_assessments = listing_page(@employee.risk_assessments.order(:provider_type), param_name: :risk_assessments_page)
+    @life_insurance = @employee.life_insurances.covered_on(Date.current).preload(:life_insurance_policy).first
   end
 
   def new
