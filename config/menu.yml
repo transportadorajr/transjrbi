@@ -263,6 +263,13 @@ shared:
       controllers:
         - life_insurances
         - life_insurance_policies
+        - life_insurance_exclusions
+    - name: life_insurance_movements
+      resource: life_insurances
+      icon: arrow-left-right
+      url: /life_insurance_movements
+      controllers:
+        - life_insurance_movements
     - name: uninsured_employees
       resource: life_insurances
       icon: person-exclamation

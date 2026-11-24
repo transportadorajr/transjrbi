@@ -1,0 +1,12 @@
+<nav class="d-flex flex-wrap gap-2 mb-3" aria-label="<%= t('life_insurance_movements.month_navigation.label') %>">
+  <%= link_to life_insurance_movements_month_path(month.prev_month), class: 'btn btn-outline-secondary btn-round' do %>
+    <%= icon(:'chevron-left', class: 'me-1') %>
+    <%= t('life_insurance_movements.month_navigation.previous') %>
+  <% end %>
+  <%= link_to t('life_insurance_movements.month_navigation.current'), life_insurance_movements_month_path(Date.current),
+              class: 'btn btn-outline-secondary btn-round' %>
+  <%= link_to life_insurance_movements_month_path(month.next_month), class: 'btn btn-outline-secondary btn-round' do %>
+    <%= t('life_insurance_movements.month_navigation.next') %>
+    <%= icon(:'chevron-right', class: 'ms-1') %>
+  <% end %>
+</nav>

@@ -85,7 +85,10 @@ Rails.application.routes.draw do
     resources :absences, only: :index
     resources :vacation_balances, only: :index
     resources :risk_assessments, except: :show
-    resources :life_insurances, only: :index
+    resources :life_insurances, only: %i[index new create edit update] do
+      resource :exclusion, only: %i[new create], controller: :life_insurance_exclusions
+    end
+    resources :life_insurance_movements, only: :index
     resources :life_insurance_policies, except: %i[show destroy]
     resources :uninsured_employees, only: :index
     root 'hr_home#index', as: :hr_root

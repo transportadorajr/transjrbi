@@ -3,6 +3,7 @@ module UninsuredEmployeesHelper
     menus = []
 
     menus << uninsured_employee_show_menu(employee) if can?(:read, :employees)
+    menus << uninsured_employee_include_menu(employee) if can?(:create, :life_insurances)
 
     menus
   end
@@ -39,6 +40,10 @@ module UninsuredEmployeesHelper
   end
 
   private
+
+  def uninsured_employee_include_menu(employee)
+    Menu.new(name: :include_life_insurance, record: employee, url: new_life_insurance_path(employee_id: employee.id), icon: :'person-plus')
+  end
 
   def uninsured_employee_show_menu(employee)
     Menu.new(name: :show, record: employee, url: employee_path(employee), icon: :eye)

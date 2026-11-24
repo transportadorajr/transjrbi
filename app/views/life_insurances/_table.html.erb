@@ -9,6 +9,7 @@
         <th class="d-none d-lg-table-cell text-end"><%= LifeInsurance.human_attribute_name(:children_death) %></th>
         <th class="d-none d-lg-table-cell text-end"><%= LifeInsurance.human_attribute_name(:funeral_assistance) %></th>
         <%= sortable_header(LifeInsurance.human_attribute_name(:premium), :premium, first_direction: :desc, class: 'text-end') %>
+        <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>
     <tbody>

@@ -104,6 +104,22 @@ RSpec.describe LifeInsurance do
       expect(described_class.by_company_type('mm_espinola')).to contain_exactly(ana, carlos)
     end
 
+    it 'filters by the status of the employee' do
+      carlos.employee.update!(activated: false)
+
+      expect(described_class.by_employee_status('active')).to contain_exactly(jose, ana)
+      expect(described_class.by_employee_status('deactivated')).to contain_exactly(carlos)
+      expect(described_class.with_deactivated_employee).to contain_exactly(carlos)
+    end
+
+    it 'finds the life insurances included, excluded or with a capital change in the dates' do
+      jose.update!(included_on: Date.new(2026, 11, 20))
+      ana.update!(capital_changed_on: Date.new(2026, 11, 3))
+      carlos.update!(included_on: Date.new(2026, 1, 5), excluded_on: Date.new(2026, 12, 1))
+
+      expect(described_class.moved_in(Date.new(2026, 11, 1)..Date.new(2026, 11, 30))).to contain_exactly(jose, ana)
+    end
+
     it 'sorts by the capital and the premium of the policy or of the life insurance' do
       relation = described_class.joins(:employee, :life_insurance_policy)
 
