@@ -154,4 +154,13 @@ RSpec.describe 'db/seeds.rb' do
     expect(RiskAssessments::SeedCommand).to have_received(:call).with(tenant)
     expect(RiskAssessments::SeedCommand).to have_received(:call).with(other_tenant)
   end
+
+  it 'registers the life insurances of every tenant' do
+    allow(LifeInsurances::SeedCommand).to receive(:call)
+
+    run_seeds
+
+    expect(LifeInsurances::SeedCommand).to have_received(:call).with(tenant)
+    expect(LifeInsurances::SeedCommand).to have_received(:call).with(other_tenant)
+  end
 end
