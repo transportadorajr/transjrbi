@@ -212,7 +212,8 @@ describe 'Work schedules', :hr do
 
       expect(Employee.count).to eq(3)
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-        ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 2', 'Domingo de folga atrasado 1'],
+        ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 2', 'Semana em viagem sem folga 0', 'Domingo de folga atrasado 1',
+         'Folgas acumuladas após semanas sem folga 0'],
       )
       expect(html_table_to_rows.map { |row| [row.first, row[-2]] }).to eq(
         [
@@ -232,7 +233,8 @@ describe 'Work schedules', :hr do
       expect(page).to have_css('.page-header', text: 'Semana de 22/11/2026 a 28/11/2026')
       expect(Employee.count).to eq(3)
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-        ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 2', 'Domingo de folga atrasado 1'],
+        ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 2', 'Semana em viagem sem folga 0', 'Domingo de folga atrasado 1',
+         'Folgas acumuladas após semanas sem folga 0'],
       )
       expect(html_table_to_rows.map(&:first)).to eq(['Nome', 'ANA PAULA'])
       expect(page).to have_text('1 registro')
@@ -249,6 +251,51 @@ describe 'Work schedules', :hr do
       text = PDF::Inspector::Text.analyze(page.body).strings.join
       expect(Employee.count).to eq(3)
       expect(text).to include('Avisos', 'Menos de 2 folgas, Domingo atrasado')
+    end
+  end
+
+  context 'when a driver travels the whole week and another piles up days off', flipper: :hr do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+    let!(:city) { create(:city, tenant:) }
+
+    before do
+      jose = create(:employee, tenant:, name: 'JOSE SILVA', legal_id: '52998224725', driver: create(:driver, tenant:, code: 501))
+      ana = create(:employee, tenant:, name: 'ANA PAULA', legal_id: '11144477735')
+      manifest = create(:atua_manifest, tenant:, trip_started_at: Time.zone.local(2026, 11, 22, 8),
+                                        closed_at: Time.zone.local(2026, 11, 28, 18))
+      transport_document = create(:atua_transport_document, tenant:, driver_code: 501)
+      create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: transport_document.number)
+      create(:work_schedule_day, :leave, employee: jose, date: Date.new(2026, 10, 25))
+      [Date.new(2026, 11, 1), Date.new(2026, 11, 2), *(23..25).map { |day| Date.new(2026, 11, day) }].each do |date|
+        create(:work_schedule_day, employee: ana, date:, city:)
+      end
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'shows the trip week and the accumulated days off alerts' do
+      visit work_schedules_path
+
+      expect(Employee.count).to eq(2)
+      expect(all('.counter-card').map { |card| card.text.squish }).to eq(
+        ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 0', 'Semana em viagem sem folga 1', 'Domingo de folga atrasado 0',
+         'Folgas acumuladas após semanas sem folga 1'],
+      )
+      expect(html_table_to_rows.map { |row| [row.first, row[-2]] }).to eq(
+        [
+          %w[Nome Avisos],
+          ['ANA PAULA', 'Folgas acumuladas'],
+          ['JOSE SILVA', 'Semana em viagem sem folga'],
+        ],
+      )
+    end
+
+    scenario 'filters the drivers on a trip week without a day off' do
+      visit work_schedules_path
+      select 'Semana em viagem sem folga', from: 'Aviso'
+      click_on 'Aplicar Filtros'
+
+      expect(Employee.count).to eq(2)
+      expect(html_table_to_rows.map(&:first)).to eq(['Nome', 'JOSE SILVA'])
     end
   end
 

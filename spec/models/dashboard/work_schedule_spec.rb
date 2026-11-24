@@ -186,11 +186,57 @@ RSpec.describe Dashboard::WorkSchedule do
         schedule = described_class.new(tenant:, week: '2026-11-25')
         rows = schedule.rows(tenant.employees.preload(:driver).order(:name))
 
-        expect(schedule.alert_counts(rows)).to eq(few_days_off: 2, sunday_overdue: 1, any: 3)
+        expect(schedule.alert_counts(rows)).to eq(few_days_off: 2, trip_week_without_day_off: 0, sunday_overdue: 1, accumulated_days_off: 0, any: 3)
         expect(schedule.with_alert(rows, 'any').map { |row| row.employee.name }).to eq(%w[BRUNO CARLOS MARIA])
         expect(schedule.with_alert(rows, 'sunday_overdue').map { |row| row.employee.name }).to eq(%w[MARIA])
         expect(schedule.with_alert(rows, 'unknown').size).to eq(5)
         expect(schedule.with_alert(rows, nil).size).to eq(5)
+      end
+    end
+  end
+
+  describe 'trip and accumulated days off alerts' do
+    let!(:city) { create(:city, tenant:) }
+    let!(:diego) do
+      create(:employee, tenant:, name: 'DIEGO', legal_id: '00000000011', gender_type: 'male', driver: create(:driver, tenant:, code: 888))
+    end
+    let!(:luiz) { create(:employee, tenant:, name: 'LUIZ', legal_id: '00000000012', gender_type: 'male') }
+    let!(:marcos) { create(:employee, tenant:, name: 'MARCOS', legal_id: '00000000013', gender_type: 'male') }
+    let!(:nelson) { create(:employee, tenant:, name: 'NELSON', legal_id: '00000000014', gender_type: 'male', admitted_on: Date.new(2026, 11, 18)) }
+    let!(:paulo) { create(:employee, tenant:, name: 'PAULO', legal_id: '00000000015', gender_type: 'male') }
+    let!(:rui) { create(:employee, tenant:, name: 'RUI', legal_id: '00000000016', gender_type: 'male') }
+
+    def days_off(employee, *dates)
+      dates.each { |date| create(:work_schedule_day, employee:, date:, city:) }
+    end
+
+    before do
+      create(:work_schedule_day, :leave, employee: rui, date: Date.new(2026, 10, 1))
+      manifest = create(:atua_manifest, tenant:, trip_started_at: Time.zone.local(2026, 11, 23, 8),
+                                        closed_at: Time.zone.local(2026, 11, 28, 18))
+      transport_document = create(:atua_transport_document, tenant:, driver_code: 888)
+      create(:atua_manifest_document, tenant:, manifest_code: manifest.code, transport_document_number: transport_document.number)
+      days_off(luiz, Date.new(2026, 11, 1), Date.new(2026, 11, 2), Date.new(2026, 11, 23), Date.new(2026, 11, 24), Date.new(2026, 11, 25))
+      days_off(marcos, *[25, 26].map { |day| Date.new(2026, 10, day) }, *[2, 3, 9, 10, 16, 17, 23, 24, 25].map { |day| Date.new(2026, 11, day) })
+      days_off(nelson, Date.new(2026, 11, 23), Date.new(2026, 11, 24), Date.new(2026, 11, 25))
+      days_off(paulo, Date.new(2026, 11, 27), Date.new(2026, 11, 28), Date.new(2026, 11, 29))
+      days_off(rui, Date.new(2026, 11, 26), Date.new(2026, 11, 27))
+    end
+
+    it 'warns about trip weeks without a day off and days off piled up after weeks without one' do
+      travel_to Date.new(2026, 11, 25) do
+        rows = described_class.new(tenant:, week: '2026-11-25').rows(tenant.employees.preload(:driver).order(:name))
+
+        expect(rows.map { |row| [row.employee.name, row.alerts] }).to eq(
+          [
+            ['DIEGO', [:trip_week_without_day_off]],
+            ['LUIZ', [:accumulated_days_off]],
+            ['MARCOS', []],
+            ['NELSON', []],
+            ['PAULO', [:accumulated_days_off]],
+            ['RUI', []],
+          ],
+        )
       end
     end
   end
