@@ -3076,6 +3076,27 @@ pt-BR:
         Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
         não funciona (ex.: Carnaval).
       active_hint: Feriados inativos deixam de ser considerados nas metas e na projeção de faturamento, que passam a contar o dia como útil.
+  absences:
+    kind:
+      vacation: Férias
+      leave: Afastamento (%{reason})
+    month_navigation:
+      label: Navegação entre meses
+      previous: Mês anterior
+      current: Este mês
+      next: Próximo mês
+    table:
+      kind: Motivo
+      period: Período
+      days_in_month: Dias no mês
+    index:
+      title: Quem está fora
+      employees_out: Funcionários fora no mês
+      on_vacation: De férias
+      on_leave: Afastados
+      calendar: Calendário do mês
+      calendar_subtitle: Férias em azul e afastamentos em amarelo.
+      absences: Férias e afastamentos do mês
   vacations:
     period: '%{start} a %{finish}'
     index:
@@ -4483,6 +4504,7 @@ pt-BR:
       hour_minute: '%H:%M'
   menus:
     vacations: Férias
+    absences: Quem está fora
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários

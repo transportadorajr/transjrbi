@@ -1,0 +1,11 @@
+<nav class="d-flex flex-wrap gap-2 mb-3" aria-label="<%= t('absences.month_navigation.label') %>">
+  <%= link_to absence_month_path(calendar.previous_month), class: 'btn btn-outline-secondary btn-round' do %>
+    <%= icon(:'chevron-left', class: 'me-1') %>
+    <%= t('absences.month_navigation.previous') %>
+  <% end %>
+  <%= link_to t('absences.month_navigation.current'), absence_month_path(Date.current), class: 'btn btn-outline-secondary btn-round' %>
+  <%= link_to absence_month_path(calendar.next_month), class: 'btn btn-outline-secondary btn-round' do %>
+    <%= t('absences.month_navigation.next') %>
+    <%= icon(:'chevron-right', class: 'ms-1') %>
+  <% end %>
+</nav>

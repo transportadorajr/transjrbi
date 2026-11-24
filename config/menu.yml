@@ -238,6 +238,12 @@ shared:
       url: /vacations
       controllers:
         - vacations
+    - name: absences
+      resource: vacations
+      icon: calendar-month
+      url: /absences
+      controllers:
+        - absences
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

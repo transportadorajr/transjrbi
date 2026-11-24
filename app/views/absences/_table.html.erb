@@ -1,0 +1,21 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= Vacation.human_attribute_name(:employee) %></th>
+        <th><%= t('absences.table.kind') %></th>
+        <th class="d-none d-md-table-cell"><%= t('absences.table.period') %></th>
+        <th class="d-none d-md-table-cell text-end"><%= t('absences.table.days_in_month') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item:, calendar: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>
