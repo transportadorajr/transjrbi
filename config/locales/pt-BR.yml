@@ -1888,6 +1888,7 @@ pt-BR:
         activate: Ativar
         deactivate: Inativar
         schedule: Lançar folga ou afastamento
+        vacation: Lançar férias
       job_position:
         edit: Alterar
         activate: Ativar
@@ -3097,6 +3098,26 @@ pt-BR:
       calendar: Calendário do mês
       calendar_subtitle: Férias em azul e afastamentos em amarelo.
       absences: Férias e afastamentos do mês
+  vacation_balances:
+    status:
+      overdue: Vencidas
+      due_soon: A vencer
+      open: Em dia
+      taken: Gozadas
+      acquiring: Em aquisição
+    table:
+      deadline_on: Gozar até
+      balance: Saldo (dias)
+      status: Situação
+    index:
+      title: Férias a vencer
+      subtitle: >-
+        Períodos aquisitivos completos com saldo de férias. Ficam a vencer %{days} dias antes do fim do prazo para gozar,
+        e vencidas depois dele, quando a empresa paga as férias em dobro.
+      overdue: Férias vencidas
+      due_soon: A vencer em até %{days} dias
+      open: Em dia, com saldo
+      periods: Períodos com saldo
   vacations:
     period: '%{start} a %{finish}'
     index:
@@ -3211,6 +3232,13 @@ pt-BR:
     status:
       active: Ativo
       inactive: Inativo
+    vacation_periods:
+      title: Férias por período aquisitivo
+      subtitle: Cada período aquisitivo dá 30 dias de férias, que precisam ser gozados até o fim do ano seguinte.
+      without_admission: Cadastre a data de admissão para calcular os períodos aquisitivos.
+      new_vacation: Lançar férias
+      taken: Gozados + vendidos
+      taken_days: '%{enjoyed} + %{sold}'
     index:
       title: Funcionários
       subtitle: Cadastro único dos funcionários de todas as empresas do grupo.
@@ -4505,6 +4533,7 @@ pt-BR:
   menus:
     vacations: Férias
     absences: Quem está fora
+    vacation_balances: Férias a vencer
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários

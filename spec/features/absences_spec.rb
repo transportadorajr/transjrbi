@@ -27,6 +27,8 @@ describe 'Absences', :hr do
       within('.sidebar-desktop') { click_on 'Quem está fora' }
 
       expect(page).to have_css('.page-header', text: 'Novembro de 2026')
+      expect(Vacation.count).to eq(2)
+      expect(WorkScheduleDay.count).to eq(2)
       expect(page).to have_css('.card', text: "Funcionários fora no mês\n2")
       within('#absence_calendar') do
         expect(page).to have_css('.absence-calendar-cell', text: "2\nZÉ")

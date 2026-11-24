@@ -1,0 +1,7 @@
+<tr>
+  <td class="text-nowrap"><%= vacation_period_text(item.start_on, item.end_on) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= l(item.deadline_on) %></td>
+  <td class="d-none d-md-table-cell text-end"><%= t('employees.vacation_periods.taken_days', enjoyed: item.enjoyed_days, sold: item.sold_days) %></td>
+  <td class="text-end"><%= item.balance %></td>
+  <td class="text-end"><%= vacation_period_status_badge(item) %></td>
+</tr>

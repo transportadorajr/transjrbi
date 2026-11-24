@@ -1,0 +1,16 @@
+<div class="card table-card" id="vacation_periods">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('employees.vacation_periods.title') %></p>
+      <p class="table-card-subtitle"><%= employee_vacation_periods_subtitle(employee) %></p>
+    </div>
+    <%= employee_new_vacation_button(employee) %>
+  </div>
+  <div class="table-card-body">
+    <% if periods.any? %>
+      <%= render 'employees/vacation_period_table', collection: periods %>
+    <% else %>
+      <%= render 'shared/no_content' %>
+    <% end %>
+  </div>
+</div>

@@ -1,4 +1,6 @@
 module VacationsHelper
+  VACATION_PERIOD_STATUS_KINDS = { overdue: :danger, due_soon: :warning, open: :info, taken: :success, acquiring: :secondary }.freeze
+
   def vacations_menu(vacation)
     menus = []
 
@@ -48,6 +50,23 @@ module VacationsHelper
     create_button(t('vacations.index.new_vacation')) if can?(:create, :vacations)
   end
 
+  def vacation_period_status_badge(period)
+    status = period.status
+    status_badge(t("vacation_balances.status.#{status}"), kind: VACATION_PERIOD_STATUS_KINDS.fetch(status))
+  end
+
+  def vacation_period_status_options
+    options_for_select(Dashboard::VacationBalances::STATUSES.map { |status| [t("vacation_balances.status.#{status}"), status] }, params[:status])
+  end
+
+  def vacation_balance_menu(period)
+    menus = []
+
+    menus << vacation_new_menu(period.employee) if can?(:create, :vacations)
+
+    menus
+  end
+
   def vacation_pdf_report(vacations)
     PdfReport.new(
       title: t('vacations.index.pdf.header'),
@@ -64,6 +83,10 @@ module VacationsHelper
   end
 
   private
+
+  def vacation_new_menu(employee)
+    Menu.new(name: :vacation, record: employee, url: new_vacation_path(employee_id: employee.id), icon: :sun)
+  end
 
   def vacation_edit_menu(vacation)
     Menu.new(name: :edit, record: vacation, url: edit_vacation_path(vacation), icon: :pencil)

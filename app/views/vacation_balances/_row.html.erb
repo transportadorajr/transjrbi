@@ -1,0 +1,10 @@
+<tr id="<%= dom_id(item.employee, "vacation_period_#{item.start_on.iso8601}") %>">
+  <td class="fw-semibold text-break"><%= item.employee.name %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= vacation_period_text(item.start_on, item.end_on) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= l(item.deadline_on) %></td>
+  <td class="d-none d-lg-table-cell text-end"><%= item.balance %></td>
+  <td><%= vacation_period_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(vacation_balance_menu(item)) %>
+  </td>
+</tr>

@@ -126,6 +126,34 @@ describe 'Employees', :hr do
         end
       end
 
+      context 'when the employee has taken vacations' do
+        let!(:vacation_resource) { create(:resource, name: 'Férias', slug: 'vacations') }
+
+        around { |example| travel_to(Time.zone.local(2026, 11, 24, 10)) { example.run } }
+
+        before do
+          jose.update!(admitted_on: Date.new(2024, 3, 10))
+          create(:vacation, employee: jose, start_on: Date.new(2025, 4, 1), end_on: Date.new(2025, 4, 20), sold_days: 10)
+        end
+
+        scenario 'shows the vacations of each acquisition period of the employee' do
+          visit employee_path(jose)
+
+          expect(Vacation.count).to eq(1)
+          within('#vacation_periods') do
+            expect(html_table_to_rows).to eq(
+              [
+                ['Período aquisitivo', 'Gozar até', 'Gozados + vendidos', 'Saldo (dias)', 'Situação'],
+                ['10/03/2026 a 09/03/2027', '09/03/2028', '0 + 0', '30', 'Em aquisição'],
+                ['10/03/2025 a 09/03/2026', '09/03/2027', '0 + 0', '30', 'Em dia'],
+                ['10/03/2024 a 09/03/2025', '09/03/2026', '20 + 10', '0', 'Gozadas'],
+              ],
+            )
+            expect(page).to have_link('Lançar férias', href: new_vacation_path(employee_id: jose.id))
+          end
+        end
+      end
+
       context 'when the employee has no CPF' do
         before { jose.update!(legal_id: nil) }
 
