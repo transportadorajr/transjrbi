@@ -18,6 +18,7 @@ class Employee < ApplicationRecord
 
   has_many :work_schedule_days, dependent: :delete_all
   has_many :vacations, dependent: :delete_all
+  has_many :risk_assessments, dependent: :delete_all
 
   enum :company_type, COMPANIES.index_with(&:to_s), validate: true
   enum :gender_type, GENDERS.index_with(&:to_s), validate: true

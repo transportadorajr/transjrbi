@@ -57,6 +57,7 @@ end
   'job_positions' => { name: 'Cargos', writable: true },
   'work_schedules' => { name: 'Escala de folgas', writable: true },
   'vacations' => { name: 'Férias', writable: true },
+  'risk_assessments' => { name: 'Gerenciadoras de risco', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)
@@ -80,4 +81,5 @@ Tenant.find_each do |tenant|
   Holidays::SeedNationalCommand.call(tenant)
   Employees::SeedCommand.call(tenant)
   Vacations::SeedCommand.call(tenant)
+  RiskAssessments::SeedCommand.call(tenant)
 end

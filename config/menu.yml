@@ -250,6 +250,12 @@ shared:
       url: /vacation_balances
       controllers:
         - vacation_balances
+    - name: risk_assessments
+      resource: risk_assessments
+      icon: shield-check
+      url: /risk_assessments
+      controllers:
+        - risk_assessments
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

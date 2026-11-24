@@ -1,0 +1,29 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= pdf_export_button %>
+    <%= xlsx_export_button %>
+    <%= risk_assessment_create_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @risk_assessments.total_count) %></p>
+      </div>
+      <%= sort_menu([[RiskAssessment.human_attribute_name(:valid_until), :valid_until]]) %>
+    </div>
+    <div class="table-card-body">
+      <% if @risk_assessments.any? %>
+        <%= render 'table', collection: @risk_assessments %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

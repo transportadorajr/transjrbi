@@ -97,6 +97,20 @@ module EmployeesHelper
     end
   end
 
+  def employee_risk_assessments_card(employee, risk_assessments)
+    return unless can?(:read, :risk_assessments)
+
+    render 'employees/risk_assessments', employee:, risk_assessments:
+  end
+
+  def employee_new_risk_assessment_button(employee)
+    return unless can?(:create, :risk_assessments)
+
+    link_to new_risk_assessment_path(employee_id: employee.id), class: 'btn btn-outline-secondary btn-round' do
+      safe_join([icon(:'shield-check', class: 'me-2'), t('employees.risk_assessments.new_risk_assessment')])
+    end
+  end
+
   private
 
   def employee_show_menu(employee)

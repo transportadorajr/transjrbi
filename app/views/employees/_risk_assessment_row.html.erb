@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="text-nowrap"><%= item.provider_type_name %></td>
+  <td class="d-none d-md-table-cell text-end"><%= risk_assessment_score(item) %></td>
+  <td class="text-nowrap"><%= risk_assessment_valid_until(item) %></td>
+  <td class="d-none d-md-table-cell"><%= risk_assessment_status_badge(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(risk_assessments_menu(item)) %>
+  </td>
+</tr>

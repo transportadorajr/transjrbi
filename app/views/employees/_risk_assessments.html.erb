@@ -1,0 +1,16 @@
+<div class="card table-card mt-4" id="risk_assessments">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('employees.risk_assessments.title') %></p>
+      <p class="table-card-subtitle"><%= t('employees.risk_assessments.subtitle') %></p>
+    </div>
+    <%= employee_new_risk_assessment_button(employee) %>
+  </div>
+  <div class="table-card-body">
+    <% if risk_assessments.any? %>
+      <%= render 'employees/risk_assessment_table', collection: risk_assessments %>
+    <% else %>
+      <%= render 'shared/no_content' %>
+    <% end %>
+  </div>
+</div>
