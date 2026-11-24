@@ -1,0 +1,40 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('vacations.form.vacation_data') %></p>
+    <p class="form-card-subtitle"><%= t('vacations.form.vacation_data_text') %></p>
+  </div>
+  <%= simple_form_for(vacation_form, url: vacation_form_url(vacation_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <%= f.label :employee_id, for: nil, id: 'vacation_employee_select_label', class: 'form-label' %>
+          <%= vacation_employee_field(f, vacation_form) %>
+          <%= f.error :employee_id, class: 'invalid-feedback d-block' %>
+          <%= f.error :employee, class: 'invalid-feedback d-block' %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :start_on, as: :date, html5: true, required: true, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :end_on, as: :date, html5: true, required: true, hint: t('vacations.form.end_on_hint'),
+                               input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :sold_days, as: :integer, hint: t('vacations.form.sold_days_hint', count: VacationPeriod::MAX_SOLD_DAYS),
+                                  input_html: { class: 'form-control', min: 0, max: VacationPeriod::MAX_SOLD_DAYS, inputmode: :numeric } %>
+        </div>
+        <div class="col-12">
+          <%= f.input :notes, as: :text, input_html: { class: 'form-control', rows: 3 } %>
+        </div>
+      </div>
+      <p class="form-text mt-3 mb-0"><%= t('vacations.form.rules_hint', parts: VacationPeriod::MAX_PARTS,
+                                                                        main: VacationPeriod::MIN_MAIN_PART_DAYS,
+                                                                        minimum: VacationPeriod::MIN_PART_DAYS) %></p>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, vacation_form_submit_label(vacation_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), vacations_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

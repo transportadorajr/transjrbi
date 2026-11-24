@@ -232,6 +232,12 @@ shared:
       url: /work_schedules
       controllers:
         - work_schedules
+    - name: vacations
+      resource: vacations
+      icon: sun
+      url: /vacations
+      controllers:
+        - vacations
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

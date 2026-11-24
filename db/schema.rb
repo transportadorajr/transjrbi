@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_145546) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_154506) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1459,6 +1459,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_145546) do
     t.index ["tenant_id"], name: "index_users_on_tenant_id_where_owner_user_type", unique: true, where: "(user_type = 'owner'::user_type)"
   end
 
+  create_table "vacations", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "employee_id", null: false
+    t.date "acquisition_start_on", null: false
+    t.date "start_on", null: false
+    t.date "end_on", null: false
+    t.integer "sold_days", default: 0, null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id", "start_on"], name: "index_vacations_on_employee_id_and_start_on"
+    t.index ["employee_id"], name: "index_vacations_on_employee_id"
+    t.index ["tenant_id", "start_on"], name: "index_vacations_on_tenant_id_and_start_on"
+    t.index ["tenant_id"], name: "index_vacations_on_tenant_id"
+  end
+
   create_table "work_schedule_days", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.bigint "employee_id", null: false
@@ -1605,6 +1621,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_145546) do
   add_foreign_key "truck_group_fuel_rates", "truck_groups", on_delete: :cascade
   add_foreign_key "truck_groups", "tenants"
   add_foreign_key "users", "tenants"
+  add_foreign_key "vacations", "employees"
+  add_foreign_key "vacations", "tenants"
   add_foreign_key "work_schedule_days", "cities", on_delete: :nullify
   add_foreign_key "work_schedule_days", "employees"
   add_foreign_key "work_schedule_days", "tenants"

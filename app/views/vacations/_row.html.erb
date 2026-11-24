@@ -1,0 +1,11 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="fw-semibold text-break"><%= item.employee.name %></td>
+  <td class="text-nowrap"><%= vacation_period_text(item.start_on, item.end_on) %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= l(item.returns_on) %></td>
+  <td class="d-none d-md-table-cell text-end"><%= item.days_count %></td>
+  <td class="d-none d-lg-table-cell text-end"><%= item.sold_days %></td>
+  <td class="d-none d-lg-table-cell text-nowrap"><%= vacation_acquisition_text(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(vacations_menu(item)) %>
+  </td>
+</tr>
