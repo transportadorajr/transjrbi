@@ -186,7 +186,8 @@ RSpec.describe Dashboard::WorkSchedule do
         schedule = described_class.new(tenant:, week: '2026-11-25')
         rows = schedule.rows(tenant.employees.preload(:driver).order(:name))
 
-        expect(schedule.alert_counts(rows)).to eq(few_days_off: 2, trip_week_without_day_off: 0, sunday_overdue: 1, accumulated_days_off: 0, any: 3)
+        expect(schedule.alert_counts(rows)).to eq(few_days_off: 2, trip_week_without_day_off: 0, sunday_overdue: 1, accumulated_days_off: 0,
+                                                  next_week_missing: 0, any: 3)
         expect(schedule.with_alert(rows, 'any').map { |row| row.employee.name }).to eq(%w[BRUNO CARLOS MARIA])
         expect(schedule.with_alert(rows, 'sunday_overdue').map { |row| row.employee.name }).to eq(%w[MARIA])
         expect(schedule.with_alert(rows, 'unknown').size).to eq(5)
@@ -237,6 +238,51 @@ RSpec.describe Dashboard::WorkSchedule do
             ['RUI', []],
           ],
         )
+      end
+    end
+  end
+
+  describe 'next week alert' do
+    let!(:city) { create(:city, tenant:) }
+    let!(:ana) { create(:employee, tenant:, name: 'ANA', legal_id: '00000000021', gender_type: 'male') }
+    let!(:bruno) { create(:employee, tenant:, name: 'BRUNO', legal_id: '00000000022', gender_type: 'male') }
+    let!(:carlos) { create(:employee, tenant:, name: 'CARLOS', legal_id: '00000000023', gender_type: 'male') }
+    let!(:diego) { create(:employee, tenant:, name: 'DIEGO', legal_id: '00000000024', gender_type: 'male') }
+    let!(:edson) { create(:employee, tenant:, name: 'EDSON', legal_id: '00000000025', gender_type: 'male') }
+
+    before do
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 11, 30), city:)
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 12, 1), city:)
+      create(:work_schedule_day, employee: bruno, date: Date.new(2026, 12, 2), city:)
+      (Date.new(2026, 11, 29)..Date.new(2026, 12, 5)).each { |date| create(:work_schedule_day, :leave, employee: carlos, date:) }
+      (Date.new(2026, 11, 29)..Date.new(2026, 12, 4)).each { |date| create(:work_schedule_day, :leave, employee: edson, date:) }
+    end
+
+    def missing_next_week(week)
+      described_class.new(tenant:, week:).rows(tenant.employees.preload(:driver).order(:name))
+        .select { |row| row.alerts.include?(:next_week_missing) }.map { |row| row.employee.name }
+    end
+
+    it 'warns from Thursday on about the employees without the days off of next week' do
+      travel_to Date.new(2026, 11, 26) do
+        expect(missing_next_week('2026-11-26')).to eq(%w[BRUNO DIEGO EDSON])
+      end
+
+      travel_to Date.new(2026, 11, 28) do
+        expect(missing_next_week('2026-11-28')).to eq(%w[BRUNO DIEGO EDSON])
+      end
+    end
+
+    it 'does not warn before Thursday' do
+      travel_to Date.new(2026, 11, 25) do
+        expect(missing_next_week('2026-11-25')).to be_empty
+      end
+    end
+
+    it 'warns only on the current week' do
+      travel_to Date.new(2026, 11, 26) do
+        expect(missing_next_week('2026-11-15')).to be_empty
+        expect(missing_next_week('2026-11-29')).to be_empty
       end
     end
   end

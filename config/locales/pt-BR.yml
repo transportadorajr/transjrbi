@@ -3068,6 +3068,7 @@ pt-BR:
       trip_week_without_day_off: Semana em viagem sem folga
       sunday_overdue: Domingo atrasado
       accumulated_days_off: Folgas acumuladas
+      next_week_missing: Próxima semana não lançada
     filters:
       alert: Aviso
       any_alert: Com qualquer aviso
@@ -3092,6 +3093,7 @@ pt-BR:
         trip_week_without_day_off: Semana em viagem sem folga
         sunday_overdue: Domingo de folga atrasado
         accumulated_days_off: Folgas acumuladas após semanas sem folga
+        next_week_missing: Escala da próxima semana não lançada
   employees:
     status:
       active: Ativo

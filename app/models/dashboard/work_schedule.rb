@@ -3,9 +3,10 @@ module Dashboard
     DAYS_OFF_PER_WEEK = 2
     WEEK_START = :sunday
     WEEK_LENGTH = 7
-    ALERTS = %i[few_days_off trip_week_without_day_off sunday_overdue accumulated_days_off].freeze
+    ALERTS = %i[few_days_off trip_week_without_day_off sunday_overdue accumulated_days_off next_week_missing].freeze
     ACCUMULATED_LOOKBACK_WEEKS = 4
     ACCUMULATED_BLOCK_DAYS = 3
+    NEXT_WEEK_DEADLINE_WDAY = 4
     ANY_ALERT = 'any'.freeze
 
     Day = Data.define(:date, :status, :city, :leave_reason_type, :entry) do
@@ -71,12 +72,15 @@ module Dashboard
       trips = trip_dates_for(employees)
       last_sundays = last_sundays_off_for(employees)
       days_off = days_off_history_for(employees)
+      next_week_entries = next_week_entries_for(employees)
 
       employees.map do |employee|
         days = dates.map { |date| day_for(entries[[employee.id, date]], trips[employee.driver_code], date) }
         sunday = sunday_for(employee, last_sundays[employee.id], days.first)
 
-        Row.new(employee:, days:, sunday:, alerts: alerts_for(employee, days, sunday, days_off[employee.id]))
+        alerts = alerts_for(employee, days, sunday, days_off[employee.id], next_week_entries)
+
+        Row.new(employee:, days:, sunday:, alerts:)
       end
     end
 
@@ -98,7 +102,7 @@ module Dashboard
       end
     end
 
-    def alerts_for(employee, days, sunday, days_off)
+    def alerts_for(employee, days, sunday, days_off, next_week_entries)
       trip_week = trip_week_without_day_off?(days)
 
       {
@@ -106,7 +110,20 @@ module Dashboard
         trip_week_without_day_off: trip_week,
         sunday_overdue: sunday.status == :overdue,
         accumulated_days_off: accumulated_days_off?(employee, days_off),
+        next_week_missing: next_week_missing?(employee, next_week_entries),
       }.select { |_kind, alert| alert }.keys
+    end
+
+    def next_week_missing?(employee, next_week_entries)
+      return false unless next_week_deadline?
+
+      leaves = next_week_entries.fetch([employee.id, 'leave'], 0)
+      next_week_entries.fetch([employee.id, 'day_off'], 0) < [DAYS_OFF_PER_WEEK, WEEK_LENGTH - leaves].min
+    end
+
+    def next_week_deadline?
+      today = Date.current
+      dates.cover?(today) && today.wday >= NEXT_WEEK_DEADLINE_WDAY
     end
 
     def trip_week_without_day_off?(days)
@@ -174,6 +191,13 @@ module Dashboard
 
       tenant.work_schedule_days.day_off.where(employee_id: employees.map(&:id)).by_period(period).pluck(:employee_id, :date)
         .each_with_object(Hash.new { |hash, id| hash[id] = Set.new }) { |(employee_id, date), result| result[employee_id] << date }
+    end
+
+    def next_week_entries_for(employees)
+      return {} unless next_week_deadline?
+
+      tenant.work_schedule_days.where(employee_id: employees.map(&:id)).by_period(next_week..(next_week + (WEEK_LENGTH - 1)))
+        .group(:employee_id, :kind_type).count
     end
 
     def entries_for(employees)
