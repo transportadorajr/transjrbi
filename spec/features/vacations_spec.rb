@@ -53,6 +53,27 @@ describe 'Vacations', :hr do
         expect(page).to have_no_text('FUNCIONÁRIO DE OUTRA')
       end
 
+      context 'when the employee has no admission date' do
+        let!(:evandro) { create(:employee, tenant:, name: 'EVANDRO LUIS KAIM', legal_id: nil, admitted_on: nil) }
+
+        before do
+          create(:vacation, employee: evandro, acquisition_start_on: Date.new(2025, 2, 23), start_on: Date.new(2026, 2, 23),
+                            end_on: Date.new(2026, 3, 24))
+        end
+
+        scenario 'lists the vacation with its acquisition period' do
+          visit vacations_path(name: 'evandro')
+
+          expect(Vacation.count).to eq(4)
+          expect(html_table_to_rows).to eq(
+            [
+              ['Funcionário', 'Saída', 'Retorno', 'Dias de férias', 'Dias vendidos', 'Período aquisitivo', 'Ações'],
+              ['EVANDRO LUIS KAIM', '23/02/2026 a 24/03/2026', '25/03/2026', '30', '0', '23/02/2025 a 22/02/2026', 'Opções Alterar Excluir'],
+            ],
+          )
+        end
+      end
+
       scenario 'filters the vacations by employee and month' do
         visit vacations_path(name: 'jose')
 

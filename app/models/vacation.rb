@@ -28,8 +28,8 @@ class Vacation < ApplicationRecord
     end
   end
 
-  def period
-    VacationPeriod.find(employee, acquisition_start_on, vacations: [])
+  def acquisition_end_on
+    acquisition_start_on.next_year - 1
   end
 
   def dates
