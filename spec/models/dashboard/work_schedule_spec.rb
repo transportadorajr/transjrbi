@@ -287,6 +287,40 @@ RSpec.describe Dashboard::WorkSchedule do
     end
   end
 
+  describe 'vacations' do
+    let!(:ana) { create(:employee, tenant:, name: 'ANA', legal_id: '00000000031', admitted_on: Date.new(2025, 1, 5)) }
+    let!(:bruno) { create(:employee, tenant:, name: 'BRUNO', legal_id: '00000000032', admitted_on: Date.new(2025, 1, 5)) }
+
+    before do
+      create(:vacation, employee: ana, start_on: Date.new(2026, 11, 18), end_on: Date.new(2026, 12, 7))
+      create(:vacation, employee: bruno, start_on: Date.new(2026, 11, 26), end_on: Date.new(2026, 12, 15))
+    end
+
+    def rows_of(week)
+      described_class.new(tenant:, week:).rows(tenant.employees.preload(:driver).order(:name))
+    end
+
+    it 'shows the vacation days on the schedule' do
+      travel_to Date.new(2026, 11, 26) do
+        rows = rows_of('2026-11-25')
+
+        expect(rows.map { |row| [row.employee.name, row.days.map(&:status)] }).to eq(
+          [
+            ['ANA', %i[vacation vacation vacation vacation vacation vacation vacation]],
+            ['BRUNO', %i[work work work work vacation vacation vacation]],
+          ],
+        )
+        expect(rows.map(&:owed_days_off)).to eq([0, 0])
+      end
+    end
+
+    it 'does not warn about days off missing on a vacation week or next week' do
+      travel_to Date.new(2026, 11, 26) do
+        expect(rows_of('2026-11-25').map(&:alerts)).to eq([[], []])
+      end
+    end
+  end
+
   describe '#employees' do
     let!(:scheduled) { create(:employee, tenant:, legal_id: '52998224725') }
 
