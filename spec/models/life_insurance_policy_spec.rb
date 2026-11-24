@@ -25,6 +25,11 @@ RSpec.describe LifeInsurancePolicy do
     end
   end
 
+  it 'translates the companies' do
+    expect(described_class.company_types.keys.map { |company_type| described_class.human_enum_name(:company_type, company_type) })
+      .to eq(['TransJR', 'MME', 'MM Espinola'])
+  end
+
   describe 'coverages' do
     let(:policy) { build(:life_insurance_policy) }
 

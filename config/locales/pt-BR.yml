@@ -1559,6 +1559,11 @@ pt-BR:
         recommended: Recomendado
         not_recommended: Não recomendado
         in_progress: Em andamento
+    life_insurance_policy:
+      company_type:
+        transjr: TransJR
+        mme: MME
+        mm_espinola: MM Espinola
     employee:
       company_type:
         transjr: TransJR
