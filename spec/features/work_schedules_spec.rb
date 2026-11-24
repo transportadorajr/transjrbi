@@ -45,6 +45,25 @@ describe 'Work schedules', :hr do
       end
     end
 
+    context 'when an employee is on vacation' do
+      let!(:maria) { create(:employee, tenant:, name: 'MARIA LIMA', legal_id: '11144477735', admitted_on: Date.new(2025, 1, 5)) }
+
+      before { create(:vacation, employee: maria, start_on: Date.new(2026, 11, 25), end_on: Date.new(2026, 12, 14)) }
+
+      scenario 'shows the vacation days on the schedule without warnings' do
+        visit work_schedules_path
+
+        expect(Vacation.count).to eq(1)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'dom 22/11', 'seg 23/11', 'ter 24/11', 'qua 25/11', 'qui 26/11', 'sex 27/11', 'sáb 28/11', 'Folgas na semana', 'Domingo de folga',
+             'Avisos', 'Ações'],
+            ['MARIA LIMA', 'Trabalho', 'Trabalho', 'Trabalho', 'Férias', 'Férias', 'Férias', 'Férias', '0 de 2 folgas', 'Sem domingo registrado', '', ''],
+          ],
+        )
+      end
+    end
+
     context 'when there are employees in the schedule' do
       let!(:driver) { create(:driver, tenant:, code: 501) }
       let!(:jose) { create(:employee, tenant:, name: 'JOSE SILVA', legal_id: '52998224725', company_type: 'transjr', driver:) }

@@ -1283,6 +1283,7 @@ pt-BR:
             start_on:
               taken: 'já tem lançamento em: %{dates}'
               on_trip: 'cai em dia de viagem do motorista: %{dates}'
+              on_vacation: 'cai em dia de férias: %{dates}'
             end_on:
               before_start_on: deve ser igual ou posterior à data inicial
               too_long: não pode passar de %{count} dias
@@ -3152,6 +3153,7 @@ pt-BR:
       day_off_at_base: Folga na base
       day_off_away: Folga fora da base
       leave: Afastamento
+      vacation: Férias
       work: Trabalho
     alerts:
       few_days_off: Menos de %{total} folgas

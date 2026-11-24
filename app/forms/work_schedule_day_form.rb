@@ -96,6 +96,9 @@ class WorkScheduleDayForm < BaseForm
 
     taken = employee.work_schedule_days.by_period(dates).order(:date).pluck(:date)
     errors.add(:start_on, :taken, dates: format_dates(taken)) if taken.any?
+
+    vacation_dates = employee.vacations.overlapping(dates.first..dates.last).flat_map { |vacation| vacation.dates.to_a } & dates
+    errors.add(:start_on, :on_vacation, dates: format_dates(vacation_dates.sort)) if vacation_dates.any?
   end
 
   def day_off_must_not_fall_on_a_trip

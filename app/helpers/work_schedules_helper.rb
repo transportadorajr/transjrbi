@@ -20,6 +20,7 @@ module WorkSchedulesHelper
   def work_schedule_day_tag(day)
     case day.status
     when :trip then status_badge(t('work_schedules.status.trip'), kind: :info)
+    when :vacation then status_badge(t('work_schedules.status.vacation'), kind: :primary)
     when :day_off then work_schedule_day_off_tag(day)
     when :leave then work_schedule_leave_tag(day)
     else content_tag(:span, t('work_schedules.status.work'), class: 'small text-body-secondary')

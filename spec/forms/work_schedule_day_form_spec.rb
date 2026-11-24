@@ -105,6 +105,21 @@ RSpec.describe WorkScheduleDayForm do
         expect(form.save).to be(true)
       end
     end
+
+    context 'when the employee is on vacation' do
+      before do
+        employee.update!(admitted_on: Date.new(2025, 1, 5))
+        create(:vacation, employee:, start_on: Date.new(2026, 11, 26), end_on: Date.new(2026, 12, 15))
+      end
+
+      it 'rejects a day off or a leave on the vacation days' do
+        form = described_class.new(tenant:, employee_id: employee.id, kind_type: 'leave', start_on: '2026-11-25', end_on: '2026-11-27',
+                                   leave_reason_type: 'medical_certificate')
+
+        expect { expect(form.save).to be_falsey }.not_to change(WorkScheduleDay, :count)
+        expect(form.errors.full_messages).to eq(['De cai em dia de férias: 26/11/2026 e 27/11/2026'])
+      end
+    end
   end
 
   describe '.for_employee' do

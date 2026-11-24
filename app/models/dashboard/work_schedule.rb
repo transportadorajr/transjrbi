@@ -13,6 +13,10 @@ module Dashboard
       def day_off?
         status == :day_off
       end
+
+      def vacation?
+        status == :vacation
+      end
     end
 
     Sunday = Data.define(:status, :last_on, :due_on)
@@ -23,7 +27,7 @@ module Dashboard
       end
 
       def owed_days_off
-        [DAYS_OFF_PER_WEEK - days_off_count, 0].max
+        [DAYS_OFF_PER_WEEK - days_off_count - days.count(&:vacation?), 0].max
       end
     end
 
@@ -73,12 +77,13 @@ module Dashboard
       last_sundays = last_sundays_off_for(employees)
       days_off = days_off_history_for(employees)
       next_week_entries = next_week_entries_for(employees)
+      vacations = vacation_dates_for(employees)
 
       employees.map do |employee|
-        days = dates.map { |date| day_for(entries[[employee.id, date]], trips[employee.driver_code], date) }
+        days = dates.map { |date| day_for(entries[[employee.id, date]], trips[employee.driver_code], date, vacations[employee.id]) }
         sunday = sunday_for(employee, last_sundays[employee.id], days.first)
 
-        alerts = alerts_for(employee, days, sunday, days_off[employee.id], next_week_entries)
+        alerts = alerts_for(employee, days, sunday, days_off[employee.id], next_week_entries, vacations[employee.id])
 
         Row.new(employee:, days:, sunday:, alerts:)
       end
@@ -94,31 +99,38 @@ module Dashboard
       Date.current
     end
 
-    def day_for(entry, trip_dates, date)
+    def day_for(entry, trip_dates, date, vacation_dates)
       if entry
         Day.new(date:, status: entry.kind_type.to_sym, city: entry.city, leave_reason_type: entry.leave_reason_type, entry:)
+      elsif vacation_dates.include?(date)
+        Day.new(date:, status: :vacation, city: nil, leave_reason_type: nil, entry: nil)
       else
         Day.new(date:, status: trip_dates&.include?(date) ? :trip : :work, city: nil, leave_reason_type: nil, entry: nil)
       end
     end
 
-    def alerts_for(employee, days, sunday, days_off, next_week_entries)
+    def alerts_for(employee, days, sunday, days_off, next_week_entries, vacation_dates)
       trip_week = trip_week_without_day_off?(days)
 
       {
         few_days_off: !trip_week && few_days_off?(days),
         trip_week_without_day_off: trip_week,
-        sunday_overdue: sunday.status == :overdue,
-        accumulated_days_off: accumulated_days_off?(employee, days_off),
-        next_week_missing: next_week_missing?(employee, next_week_entries),
+        sunday_overdue: sunday.status == :overdue && days.none?(&:vacation?),
+        accumulated_days_off: accumulated_days_off?(employee, days_off, vacation_dates),
+        next_week_missing: next_week_missing?(employee, next_week_entries, vacation_dates),
       }.select { |_kind, alert| alert }.keys
     end
 
-    def next_week_missing?(employee, next_week_entries)
+    def next_week_missing?(employee, next_week_entries, vacation_dates)
       return false unless next_week_deadline?
 
+      vacation_days = next_week_dates.count { |date| vacation_dates.include?(date) }
       leaves = next_week_entries.fetch([employee.id, 'leave'], 0)
-      next_week_entries.fetch([employee.id, 'day_off'], 0) < [DAYS_OFF_PER_WEEK, WEEK_LENGTH - leaves].min
+      next_week_entries.fetch([employee.id, 'day_off'], 0) < [DAYS_OFF_PER_WEEK, WEEK_LENGTH - leaves].min - vacation_days
+    end
+
+    def next_week_dates
+      next_week..(next_week + (WEEK_LENGTH - 1))
     end
 
     def next_week_deadline?
@@ -127,15 +139,18 @@ module Dashboard
     end
 
     def trip_week_without_day_off?(days)
-      return false if days.none? { |day| day.status == :trip } || days.any?(&:day_off?)
+      return false if days.none? { |day| day.status == :trip } || days.any?(&:day_off?) || days.any?(&:vacation?)
 
       days.count { |day| day.status == :work } < DAYS_OFF_PER_WEEK && few_days_off?(days)
     end
 
-    def accumulated_days_off?(employee, days_off)
+    def accumulated_days_off?(employee, days_off, vacation_dates)
       return false unless dates.any? { |date| days_off_block_start?(days_off, date) }
 
-      lookback_weeks(employee).any? { |week| (week..(week + (WEEK_LENGTH - 1))).none? { |date| days_off.include?(date) } }
+      lookback_weeks(employee).any? do |week|
+        week_dates = week..(week + (WEEK_LENGTH - 1))
+        week_dates.none? { |date| days_off.include?(date) || vacation_dates.include?(date) }
+      end
     end
 
     def days_off_block_start?(days_off, date)
@@ -158,7 +173,7 @@ module Dashboard
     end
 
     def few_days_off?(days)
-      owed = [DAYS_OFF_PER_WEEK - days.count(&:day_off?), 0].max
+      owed = [DAYS_OFF_PER_WEEK - days.count(&:day_off?) - days.count(&:vacation?), 0].max
       today = Date.current
       return false if owed.zero? || week_start > today
 
@@ -196,8 +211,16 @@ module Dashboard
     def next_week_entries_for(employees)
       return {} unless next_week_deadline?
 
-      tenant.work_schedule_days.where(employee_id: employees.map(&:id)).by_period(next_week..(next_week + (WEEK_LENGTH - 1)))
-        .group(:employee_id, :kind_type).count
+      tenant.work_schedule_days.where(employee_id: employees.map(&:id)).by_period(next_week_dates).group(:employee_id, :kind_type).count
+    end
+
+    def vacation_dates_for(employees)
+      period = (week_start - (ACCUMULATED_LOOKBACK_WEEKS * WEEK_LENGTH))..(next_week + (WEEK_LENGTH - 1))
+
+      tenant.vacations.where(employee_id: employees.map(&:id)).overlapping(period).pluck(:employee_id, :start_on, :end_on)
+        .each_with_object(Hash.new { |hash, id| hash[id] = Set.new }) do |(employee_id, start_on, end_on), result|
+          result[employee_id].merge(start_on..end_on)
+        end
     end
 
     def entries_for(employees)
