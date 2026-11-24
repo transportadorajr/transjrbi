@@ -244,6 +244,12 @@ shared:
       url: /absences
       controllers:
         - absences
+    - name: vacation_balances
+      resource: vacations
+      icon: hourglass-split
+      url: /vacation_balances
+      controllers:
+        - vacation_balances
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

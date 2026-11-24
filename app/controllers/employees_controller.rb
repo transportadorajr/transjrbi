@@ -16,6 +16,8 @@ class EmployeesController < BaseController
 
   def show
     authorize!(:read, :employees)
+
+    @vacation_periods = listing_page(VacationPeriod.for_employee(@employee).reverse, param_name: :periods_page)
   end
 
   def new

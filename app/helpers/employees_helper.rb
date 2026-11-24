@@ -79,6 +79,24 @@ module EmployeesHelper
     end
   end
 
+  def employee_vacation_periods_card(employee, periods)
+    return unless can?(:read, :vacations)
+
+    render 'employees/vacation_periods', employee:, periods:
+  end
+
+  def employee_vacation_periods_subtitle(employee)
+    t("employees.vacation_periods.#{employee.admitted_on ? :subtitle : :without_admission}")
+  end
+
+  def employee_new_vacation_button(employee)
+    return unless can?(:create, :vacations) && employee.admitted_on
+
+    link_to new_vacation_path(employee_id: employee.id), class: 'btn btn-outline-secondary btn-round' do
+      safe_join([icon(:sun, class: 'me-2'), t('employees.vacation_periods.new_vacation')])
+    end
+  end
+
   private
 
   def employee_show_menu(employee)
