@@ -15,8 +15,7 @@ module VacationsHelper
   end
 
   def vacation_acquisition_text(vacation)
-    period = vacation.period
-    vacation_period_text(period.start_on, period.end_on)
+    vacation_period_text(vacation.acquisition_start_on, vacation.acquisition_end_on)
   end
 
   def vacation_employee_field(form, vacation_form)

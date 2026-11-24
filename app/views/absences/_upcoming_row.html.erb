@@ -1,0 +1,6 @@
+<tr>
+  <td class="fw-semibold text-break"><%= item.employee.name %></td>
+  <td class="d-none d-md-table-cell"><%= absence_kind_badge(item) %></td>
+  <td class="text-nowrap"><%= t('vacations.period', start: l(item.start_on), finish: l(item.end_on)) %></td>
+  <td class="d-none d-md-table-cell text-end"><%= item.days_count %></td>
+</tr>

@@ -5,6 +5,12 @@ module AbsencesHelper
     l(calendar.month, format: :month_name).capitalize
   end
 
+  def absence_upcoming_label(calendar)
+    t('absences.index.upcoming_subtitle', start: l(calendar.upcoming_dates.first, format: :month_name),
+                                          finish: l(calendar.upcoming_dates.last, format: :month_name),
+                                          count: calendar.upcoming_absences.size)
+  end
+
   def absence_month_path(month)
     absences_path(month: month.strftime('%Y-%m'))
   end

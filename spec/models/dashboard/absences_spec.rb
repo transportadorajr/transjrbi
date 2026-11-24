@@ -27,6 +27,27 @@ RSpec.describe Dashboard::Absences do
     expect(calendar.absences.map { |absence| calendar.days_in_month(absence) }).to eq([8, 2, 1])
   end
 
+  context 'when there are absences after the month' do
+    before do
+      create(:vacation, employee: bruno, acquisition_start_on: Date.new(2026, 1, 1), start_on: Date.new(2027, 2, 25), end_on: Date.new(2027, 3, 26))
+      create(:vacation, employee: bruno, acquisition_start_on: Date.new(2026, 1, 1), start_on: Date.new(2027, 3, 1), end_on: Date.new(2027, 3, 30))
+      create(:work_schedule_day, :leave, employee: bruno, date: Date.new(2026, 11, 30))
+      create(:work_schedule_day, :leave, employee: bruno, date: Date.new(2026, 12, 1))
+      create(:work_schedule_day, :leave, employee: bruno, date: Date.new(2027, 1, 4))
+    end
+
+    it 'lists the absences that start in the next three months' do
+      expect(calendar.upcoming_dates).to eq(Date.new(2026, 12, 1)..Date.new(2027, 2, 28))
+      expect(calendar.upcoming_absences.map { |absence| [absence.employee.name, absence.kind, absence.start_on, absence.end_on, absence.days_count] }).to eq(
+        [
+          ['ANA', :vacation, Date.new(2026, 12, 20), Date.new(2026, 12, 29), 10],
+          ['BRUNO', :leave, Date.new(2027, 1, 4), Date.new(2027, 1, 4), 1],
+          ['BRUNO', :vacation, Date.new(2027, 2, 25), Date.new(2027, 3, 26), 30],
+        ],
+      )
+    end
+  end
+
   it 'counts the employees out in the month' do
     expect(calendar.employees_count).to eq(2)
     expect(calendar.employees_count(:vacation)).to eq(1)

@@ -79,4 +79,5 @@ Tenant.find_each do |tenant|
   ProductGroups::BackfillCommand.call(tenant)
   Holidays::SeedNationalCommand.call(tenant)
   Employees::SeedCommand.call(tenant)
+  Vacations::SeedCommand.call(tenant)
 end

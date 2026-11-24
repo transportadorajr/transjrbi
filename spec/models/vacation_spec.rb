@@ -19,6 +19,20 @@ RSpec.describe Vacation do
     end
   end
 
+  describe '#acquisition_end_on' do
+    it 'ends the acquisition period one year after its start' do
+      vacation = build(:vacation, acquisition_start_on: Date.new(2024, 3, 10))
+
+      expect(vacation.acquisition_end_on).to eq(Date.new(2025, 3, 9))
+    end
+
+    it 'ends the acquisition period when the employee has no admission date' do
+      vacation = build(:vacation, employee: build(:employee, admitted_on: nil), acquisition_start_on: Date.new(2025, 2, 23))
+
+      expect(vacation.acquisition_end_on).to eq(Date.new(2026, 2, 22))
+    end
+  end
+
   describe 'scopes' do
     let(:tenant) { create(:tenant) }
     let!(:jose) { create(:employee, tenant:, name: 'JOSE SILVA', company_type: 'transjr', admitted_on: Date.new(2024, 3, 10)) }
