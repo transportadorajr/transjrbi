@@ -3090,6 +3090,7 @@ pt-BR:
       kind: Motivo
       period: Período
       days_in_month: Dias no mês
+      days_count: Dias
     index:
       title: Quem está fora
       employees_out: Funcionários fora no mês
@@ -3098,6 +3099,10 @@ pt-BR:
       calendar: Calendário do mês
       calendar_subtitle: Férias em azul e afastamentos em amarelo.
       absences: Férias e afastamentos do mês
+      upcoming: Próximos meses
+      upcoming_subtitle:
+        one: Saídas de %{start} a %{finish}, 1 registro.
+        other: Saídas de %{start} a %{finish}, %{count} registros.
   vacation_balances:
     status:
       overdue: Vencidas

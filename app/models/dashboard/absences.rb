@@ -1,5 +1,7 @@
 module Dashboard
   class Absences
+    UPCOMING_MONTHS = 3
+
     Absence = Data.define(:employee, :kind, :start_on, :end_on, :leave_reason_type) do
       def dates
         start_on..end_on
@@ -7,6 +9,10 @@ module Dashboard
 
       def vacation?
         kind == :vacation
+      end
+
+      def days_count
+        (end_on - start_on).to_i + 1
       end
     end
 
@@ -31,8 +37,16 @@ module Dashboard
 
     delegate :next_month, to: :month
 
+    def upcoming_dates
+      next_month..month.advance(months: UPCOMING_MONTHS).end_of_month
+    end
+
     def absences
-      @absences ||= (vacation_absences + leave_absences).sort_by { |absence| [absence.start_on, absence.employee.name, absence.kind] }
+      @absences ||= absences_in(dates)
+    end
+
+    def upcoming_absences
+      @upcoming_absences ||= absences_in(dates.first..upcoming_dates.last).select { |absence| upcoming_dates.cover?(absence.start_on) }
     end
 
     def days
@@ -56,13 +70,17 @@ module Dashboard
 
     attr_reader :tenant
 
-    def vacation_absences
+    def absences_in(dates)
+      (vacation_absences(dates) + leave_absences(dates)).sort_by { |absence| [absence.start_on, absence.employee.name, absence.kind] }
+    end
+
+    def vacation_absences(dates)
       tenant.vacations.overlapping(dates).preload(:employee).map do |vacation|
         Absence.new(employee: vacation.employee, kind: :vacation, start_on: vacation.start_on, end_on: vacation.end_on, leave_reason_type: nil)
       end
     end
 
-    def leave_absences
+    def leave_absences(dates)
       leaves = tenant.work_schedule_days.leave.by_period(dates).preload(:employee).order(:employee_id, :date).to_a
 
       leaves.slice_when { |previous, current| !same_leave?(previous, current) }.map do |block|
