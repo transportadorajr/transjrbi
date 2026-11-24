@@ -3065,7 +3065,9 @@ pt-BR:
       work: Trabalho
     alerts:
       few_days_off: Menos de %{total} folgas
+      trip_week_without_day_off: Semana em viagem sem folga
       sunday_overdue: Domingo atrasado
+      accumulated_days_off: Folgas acumuladas
     filters:
       alert: Aviso
       any_alert: Com qualquer aviso
@@ -3087,7 +3089,9 @@ pt-BR:
       alerts:
         any: Funcionários com aviso
         few_days_off: Menos de %{total} folgas na semana
+        trip_week_without_day_off: Semana em viagem sem folga
         sunday_overdue: Domingo de folga atrasado
+        accumulated_days_off: Folgas acumuladas após semanas sem folga
   employees:
     status:
       active: Ativo

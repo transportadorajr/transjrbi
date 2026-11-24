@@ -11,9 +11,13 @@
   <%= render 'week_navigation', schedule: @schedule %>
 
   <div class="row g-3 mb-4">
-    <%= counter_card(:dark, t('.alerts.any'), @alert_counts[:any]) %>
-    <%= counter_card(:warning, t('.alerts.few_days_off', total: Dashboard::WorkSchedule::DAYS_OFF_PER_WEEK), @alert_counts[:few_days_off]) %>
-    <%= counter_card(:danger, t('.alerts.sunday_overdue'), @alert_counts[:sunday_overdue]) %>
+    <%= counter_card(:dark, t('.alerts.any'), @alert_counts[:any], col_class: 'col-12 col-md-4') %>
+    <%= counter_card(:warning, t('.alerts.few_days_off', total: Dashboard::WorkSchedule::DAYS_OFF_PER_WEEK), @alert_counts[:few_days_off],
+                     col_class: 'col-12 col-md-4') %>
+    <%= counter_card(:warning, t('.alerts.trip_week_without_day_off'), @alert_counts[:trip_week_without_day_off],
+                     col_class: 'col-12 col-md-4') %>
+    <%= counter_card(:danger, t('.alerts.sunday_overdue'), @alert_counts[:sunday_overdue], col_class: 'col-12 col-md-6') %>
+    <%= counter_card(:primary, t('.alerts.accumulated_days_off'), @alert_counts[:accumulated_days_off], col_class: 'col-12 col-md-6') %>
   </div>
 
   <div class="card table-card">

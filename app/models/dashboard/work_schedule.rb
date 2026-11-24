@@ -3,7 +3,9 @@ module Dashboard
     DAYS_OFF_PER_WEEK = 2
     WEEK_START = :sunday
     WEEK_LENGTH = 7
-    ALERTS = %i[few_days_off sunday_overdue].freeze
+    ALERTS = %i[few_days_off trip_week_without_day_off sunday_overdue accumulated_days_off].freeze
+    ACCUMULATED_LOOKBACK_WEEKS = 4
+    ACCUMULATED_BLOCK_DAYS = 3
     ANY_ALERT = 'any'.freeze
 
     Day = Data.define(:date, :status, :city, :leave_reason_type, :entry) do
@@ -68,13 +70,13 @@ module Dashboard
       entries = entries_for(employees)
       trips = trip_dates_for(employees)
       last_sundays = last_sundays_off_for(employees)
+      days_off = days_off_history_for(employees)
 
       employees.map do |employee|
         days = dates.map { |date| day_for(entries[[employee.id, date]], trips[employee.driver_code], date) }
-
         sunday = sunday_for(employee, last_sundays[employee.id], days.first)
 
-        Row.new(employee:, days:, sunday:, alerts: alerts_for(days, sunday))
+        Row.new(employee:, days:, sunday:, alerts: alerts_for(employee, days, sunday, days_off[employee.id]))
       end
     end
 
@@ -96,13 +98,46 @@ module Dashboard
       end
     end
 
-    def alerts_for(days, sunday)
-      ALERTS.select do |kind|
-        case kind
-        when :few_days_off then few_days_off?(days)
-        when :sunday_overdue then sunday.status == :overdue
-        end
-      end
+    def alerts_for(employee, days, sunday, days_off)
+      trip_week = trip_week_without_day_off?(days)
+
+      {
+        few_days_off: !trip_week && few_days_off?(days),
+        trip_week_without_day_off: trip_week,
+        sunday_overdue: sunday.status == :overdue,
+        accumulated_days_off: accumulated_days_off?(employee, days_off),
+      }.select { |_kind, alert| alert }.keys
+    end
+
+    def trip_week_without_day_off?(days)
+      return false if days.none? { |day| day.status == :trip } || days.any?(&:day_off?)
+
+      days.count { |day| day.status == :work } < DAYS_OFF_PER_WEEK && few_days_off?(days)
+    end
+
+    def accumulated_days_off?(employee, days_off)
+      return false unless dates.any? { |date| days_off_block_start?(days_off, date) }
+
+      lookback_weeks(employee).any? { |week| (week..(week + (WEEK_LENGTH - 1))).none? { |date| days_off.include?(date) } }
+    end
+
+    def days_off_block_start?(days_off, date)
+      return false if days_off.include?(date - 1)
+
+      (date..(date + (ACCUMULATED_BLOCK_DAYS - 1))).all? { |day| days_off.include?(day) }
+    end
+
+    def lookback_weeks(employee)
+      first_day = [history_start, employee.admitted_on].compact.max
+      return [] if first_day.nil?
+
+      (1..ACCUMULATED_LOOKBACK_WEEKS).map { |count| week_start - (count * WEEK_LENGTH) }.select { |week| week >= first_day }
+    end
+
+    def history_start
+      return @history_start if defined?(@history_start)
+
+      @history_start = tenant.work_schedule_days.minimum(:date)
     end
 
     def few_days_off?(days)
@@ -132,6 +167,13 @@ module Dashboard
     def last_sundays_off_for(employees)
       tenant.work_schedule_days.day_off.on_sundays.where(employee_id: employees.map(&:id)).where(date: ..week_start)
         .group(:employee_id).maximum(:date)
+    end
+
+    def days_off_history_for(employees)
+      period = (week_start - (ACCUMULATED_LOOKBACK_WEEKS * WEEK_LENGTH))..(dates.last + (ACCUMULATED_BLOCK_DAYS - 1))
+
+      tenant.work_schedule_days.day_off.where(employee_id: employees.map(&:id)).by_period(period).pluck(:employee_id, :date)
+        .each_with_object(Hash.new { |hash, id| hash[id] = Set.new }) { |(employee_id, date), result| result[employee_id] << date }
     end
 
     def entries_for(employees)
