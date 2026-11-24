@@ -14,6 +14,7 @@
         <% end %>
         <th class="text-end"><%= t('work_schedules.index.days_off') %></th>
         <th class="text-end"><%= t('work_schedules.index.sunday') %></th>
+        <th class="text-end"><%= t('work_schedules.index.alerts_column') %></th>
         <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>
@@ -26,5 +27,5 @@
 </div>
 
 <div class="table-pagination">
-  <%= paginate collection %>
+  <%= paginate rows %>
 </div>

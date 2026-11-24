@@ -1,5 +1,6 @@
 module WorkSchedulesHelper
   WORK_SCHEDULE_SUNDAY_KINDS = { taken: :success, due: :warning, overdue: :danger, on_track: :info, unknown: :secondary }.freeze
+  WORK_SCHEDULE_ALERT_KINDS = { few_days_off: :warning, sunday_overdue: :danger }.freeze
 
   def work_schedule_week_label(schedule)
     t('work_schedules.index.week', start: l(schedule.dates.first), finish: l(schedule.dates.last))
@@ -54,6 +55,29 @@ module WorkSchedulesHelper
     t("work_schedules.sunday.#{sunday.status}", date: (l(sunday.due_on, format: :chart_week) if sunday.due_on))
   end
 
+  def work_schedule_alerts_tag(row, wrapper_class: 'd-flex flex-column align-items-end gap-1')
+    return if row.alerts.empty?
+
+    content_tag(:div, class: wrapper_class) do
+      safe_join(row.alerts.map { |kind| status_badge(work_schedule_alert_text(kind), kind: WORK_SCHEDULE_ALERT_KINDS.fetch(kind)) })
+    end
+  end
+
+  def work_schedule_alert_text(kind)
+    t("work_schedules.alerts.#{kind}", total: Dashboard::WorkSchedule::DAYS_OFF_PER_WEEK)
+  end
+
+  def work_schedule_alerts_text(row)
+    row.alerts.map { |kind| work_schedule_alert_text(kind) }.join(', ')
+  end
+
+  def work_schedule_alert_options
+    options = [[t('work_schedules.filters.any_alert'), Dashboard::WorkSchedule::ANY_ALERT],
+               *Dashboard::WorkSchedule::ALERTS.map { |kind| [work_schedule_alert_text(kind), kind] }]
+
+    options_for_select(options, params[:alert])
+  end
+
   def work_schedule_day_text(day)
     case day.status
     when :day_off then work_schedule_day_off_text(day)
@@ -68,9 +92,11 @@ module WorkSchedulesHelper
       subtitle: work_schedule_week_label(schedule),
       columns: [pdf_column(Employee.human_attribute_name(:name), '2fr'),
                 *schedule.dates.map { |date| pdf_column(work_schedule_day_label(date), '1fr') },
-                pdf_column(t('work_schedules.index.days_off'), align: :right), pdf_column(t('work_schedules.index.sunday'))],
+                pdf_column(t('work_schedules.index.days_off'), align: :right), pdf_column(t('work_schedules.index.sunday')),
+                pdf_column(t('work_schedules.index.alerts_column'))],
       rows: rows.map do |row|
-        [row.employee.name, *row.days.map { |day| work_schedule_day_text(day) }, row.days_off_count, work_schedule_sunday_text(row.sunday)]
+        [row.employee.name, *row.days.map { |day| work_schedule_day_text(day) }, row.days_off_count, work_schedule_sunday_text(row.sunday),
+         work_schedule_alerts_text(row)]
       end,
     )
   end
@@ -82,7 +108,8 @@ module WorkSchedulesHelper
                  xlsx_field(work_schedule_day_label(date)) { |row| work_schedule_day_text(row.days[index]) }
                end,
                xlsx_field(t('work_schedules.index.days_off'), :integer, &:days_off_count),
-               xlsx_field(t('work_schedules.index.sunday')) { |row| work_schedule_sunday_text(row.sunday) }]
+               xlsx_field(t('work_schedules.index.sunday')) { |row| work_schedule_sunday_text(row.sunday) },
+               xlsx_field(t('work_schedules.index.alerts_column')) { |row| work_schedule_alerts_text(row) }]
 
     [Export::Sheet.new(name: t('work_schedules.index.title'), columns:, rows:)]
   end

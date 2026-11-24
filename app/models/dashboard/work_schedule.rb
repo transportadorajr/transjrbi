@@ -3,6 +3,8 @@ module Dashboard
     DAYS_OFF_PER_WEEK = 2
     WEEK_START = :sunday
     WEEK_LENGTH = 7
+    ALERTS = %i[few_days_off sunday_overdue].freeze
+    ANY_ALERT = 'any'.freeze
 
     Day = Data.define(:date, :status, :city, :leave_reason_type, :entry) do
       def day_off?
@@ -12,7 +14,7 @@ module Dashboard
 
     Sunday = Data.define(:status, :last_on, :due_on)
 
-    Row = Data.define(:employee, :days, :sunday) do
+    Row = Data.define(:employee, :days, :sunday, :alerts) do
       def days_off_count
         days.count(&:day_off?)
       end
@@ -49,6 +51,18 @@ module Dashboard
       tenant.employees.scheduled_in(dates).preload(:driver)
     end
 
+    def with_alert(rows, kind)
+      case kind.to_s
+      when ANY_ALERT then rows.select { |row| row.alerts.any? }
+      when *ALERTS.map(&:to_s) then rows.select { |row| row.alerts.include?(kind.to_sym) }
+      else rows
+      end
+    end
+
+    def alert_counts(rows)
+      ALERTS.index_with { |kind| rows.count { |row| row.alerts.include?(kind) } }.merge(any: rows.count { |row| row.alerts.any? })
+    end
+
     def rows(employees)
       employees = employees.to_a
       entries = entries_for(employees)
@@ -58,7 +72,9 @@ module Dashboard
       employees.map do |employee|
         days = dates.map { |date| day_for(entries[[employee.id, date]], trips[employee.driver_code], date) }
 
-        Row.new(employee:, days:, sunday: sunday_for(employee, last_sundays[employee.id], days.first))
+        sunday = sunday_for(employee, last_sundays[employee.id], days.first)
+
+        Row.new(employee:, days:, sunday:, alerts: alerts_for(days, sunday))
       end
     end
 
@@ -78,6 +94,23 @@ module Dashboard
       else
         Day.new(date:, status: trip_dates&.include?(date) ? :trip : :work, city: nil, leave_reason_type: nil, entry: nil)
       end
+    end
+
+    def alerts_for(days, sunday)
+      ALERTS.select do |kind|
+        case kind
+        when :few_days_off then few_days_off?(days)
+        when :sunday_overdue then sunday.status == :overdue
+        end
+      end
+    end
+
+    def few_days_off?(days)
+      owed = [DAYS_OFF_PER_WEEK - days.count(&:day_off?), 0].max
+      today = Date.current
+      return false if owed.zero? || week_start > today
+
+      days.count { |day| day.date >= today && day.status == :work } < owed
     end
 
     def sunday_for(employee, last_on, week_sunday)

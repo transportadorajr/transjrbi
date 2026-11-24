@@ -3063,6 +3063,12 @@ pt-BR:
       day_off_away: Folga fora da base
       leave: Afastamento
       work: Trabalho
+    alerts:
+      few_days_off: Menos de %{total} folgas
+      sunday_overdue: Domingo atrasado
+    filters:
+      alert: Aviso
+      any_alert: Com qualquer aviso
     week_navigation:
       label: Navegação entre semanas
       previous: Semana anterior
@@ -3077,6 +3083,11 @@ pt-BR:
       employees: Funcionários na escala 5x2
       days_off: Folgas na semana
       sunday: Domingo de folga
+      alerts_column: Avisos
+      alerts:
+        any: Funcionários com aviso
+        few_days_off: Menos de %{total} folgas na semana
+        sunday_overdue: Domingo de folga atrasado
   employees:
     status:
       active: Ativo

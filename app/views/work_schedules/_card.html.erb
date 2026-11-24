@@ -6,6 +6,7 @@
       <%= work_schedule_sunday_tag(row.sunday) %>
     </div>
   </div>
+  <%= work_schedule_alerts_tag(row, wrapper_class: 'd-flex flex-wrap gap-1 mb-2') %>
   <ul class="list-unstyled mb-0">
     <% row.days.each do |day| %>
       <li class="d-flex justify-content-between align-items-start gap-2 py-1">

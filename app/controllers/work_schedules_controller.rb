@@ -6,8 +6,9 @@ class WorkSchedulesController < BaseController
     authorize!(:read, :work_schedules)
 
     @schedule = Dashboard::WorkSchedule.new(tenant: current_tenant, week: params[:week])
-    @employees = listing_page(apply_sort(apply_scopes(@schedule.employees), :name, :id))
-    @rows = @schedule.rows(@employees)
+    rows = @schedule.rows(apply_sort(apply_scopes(@schedule.employees), :name, :id))
+    @alert_counts = @schedule.alert_counts(rows)
+    @rows = listing_page(@schedule.with_alert(rows, params[:alert]))
 
     respond_with_listing(orientation: :landscape, xlsx: -> { helpers.work_schedule_xlsx_sheets(@schedule, @rows) })
   end
