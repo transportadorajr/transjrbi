@@ -1,7 +1,8 @@
 module WorkSchedulesHelper
   WORK_SCHEDULE_SUNDAY_KINDS = { taken: :success, due: :warning, overdue: :danger, on_track: :info, unknown: :secondary }.freeze
   WORK_SCHEDULE_ALERT_KINDS = {
-    few_days_off: :warning, trip_week_without_day_off: :warning, sunday_overdue: :danger, accumulated_days_off: :primary
+    few_days_off: :warning, trip_week_without_day_off: :warning, sunday_overdue: :danger, accumulated_days_off: :primary,
+    next_week_missing: :warning
   }.freeze
 
   def work_schedule_week_label(schedule)

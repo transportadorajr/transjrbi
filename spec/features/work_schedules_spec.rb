@@ -213,7 +213,7 @@ describe 'Work schedules', :hr do
       expect(Employee.count).to eq(3)
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(
         ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 2', 'Semana em viagem sem folga 0', 'Domingo de folga atrasado 1',
-         'Folgas acumuladas após semanas sem folga 0'],
+         'Folgas acumuladas após semanas sem folga 0', 'Escala da próxima semana não lançada 0'],
       )
       expect(html_table_to_rows.map { |row| [row.first, row[-2]] }).to eq(
         [
@@ -234,7 +234,7 @@ describe 'Work schedules', :hr do
       expect(Employee.count).to eq(3)
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(
         ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 2', 'Semana em viagem sem folga 0', 'Domingo de folga atrasado 1',
-         'Folgas acumuladas após semanas sem folga 0'],
+         'Folgas acumuladas após semanas sem folga 0', 'Escala da próxima semana não lançada 0'],
       )
       expect(html_table_to_rows.map(&:first)).to eq(['Nome', 'ANA PAULA'])
       expect(page).to have_text('1 registro')
@@ -278,7 +278,7 @@ describe 'Work schedules', :hr do
       expect(Employee.count).to eq(2)
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(
         ['Funcionários com aviso 2', 'Menos de 2 folgas na semana 0', 'Semana em viagem sem folga 1', 'Domingo de folga atrasado 0',
-         'Folgas acumuladas após semanas sem folga 1'],
+         'Folgas acumuladas após semanas sem folga 1', 'Escala da próxima semana não lançada 0'],
       )
       expect(html_table_to_rows.map { |row| [row.first, row[-2]] }).to eq(
         [
@@ -296,6 +296,45 @@ describe 'Work schedules', :hr do
 
       expect(Employee.count).to eq(2)
       expect(html_table_to_rows.map(&:first)).to eq(['Nome', 'JOSE SILVA'])
+    end
+  end
+
+  context 'when it is Thursday and the next week is not entered for everyone', flipper: :hr do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+    let!(:city) { create(:city, tenant:) }
+
+    before do
+      ana = create(:employee, tenant:, name: 'ANA PAULA', legal_id: '11144477735')
+      create(:employee, tenant:, name: 'JOSE SILVA', legal_id: '52998224725')
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 11, 30), city:)
+      create(:work_schedule_day, employee: ana, date: Date.new(2026, 12, 1), city:)
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'warns about the employees without the days off of next week' do
+      travel_to(Time.zone.local(2026, 11, 26, 10))
+
+      visit work_schedules_path
+
+      expect(Employee.count).to eq(2)
+      expect(all('.counter-card').map { |card| card.text.squish }.last).to eq('Escala da próxima semana não lançada 1')
+      expect(html_table_to_rows.map { |row| [row.first, row[-2]] }).to eq(
+        [
+          %w[Nome Avisos],
+          ['ANA PAULA', ''],
+          ['JOSE SILVA', 'Próxima semana não lançada'],
+        ],
+      )
+
+      select 'Próxima semana não lançada', from: 'Aviso'
+      click_on 'Aplicar Filtros'
+
+      expect(html_table_to_rows.map(&:first)).to eq(['Nome', 'JOSE SILVA'])
+
+      click_on 'Próxima semana'
+
+      expect(page).to have_css('.page-header', text: 'Semana de 29/11/2026 a 05/12/2026')
+      expect(page).to have_text('Nenhum registro encontrado')
     end
   end
 
