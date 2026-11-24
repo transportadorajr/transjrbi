@@ -2,8 +2,11 @@
 
 <div class="page-shell">
   <%= page_header_tag t('.title'), subtitle: t('.subtitle'), back_path: life_insurances_path, back_title: t('.back') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
     <%= life_insurance_policy_create_button(@available_company_types) %>
   <% end %>
+
+  <%= render 'filters' %>
 
   <div class="card table-card">
     <div class="table-card-header">

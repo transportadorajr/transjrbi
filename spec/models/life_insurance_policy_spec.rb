@@ -30,6 +30,13 @@ RSpec.describe LifeInsurancePolicy do
       .to eq(['TransJR', 'MME', 'MM Espinola'])
   end
 
+  it 'filters by company' do
+    mme = create(:life_insurance_policy, company_type: 'mme')
+    create(:life_insurance_policy, tenant: mme.tenant, company_type: 'transjr')
+
+    expect(described_class.by_company_type('mme')).to eq([mme])
+  end
+
   describe 'coverages' do
     let(:policy) { build(:life_insurance_policy) }
 

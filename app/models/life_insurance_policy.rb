@@ -15,6 +15,8 @@ class LifeInsurancePolicy < ApplicationRecord
   validates :premium_rate_per_mille, numericality: { greater_than: 0, less_than: PER_MILLE }
   validates :spouse_percentage, :children_percentage, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: PERCENT }
 
+  scope :by_company_type, ->(company_type) { where(company_type:) }
+
   def premium_cents(capital_cents)
     round_cents(capital_cents.to_d * premium_rate_per_mille / PER_MILLE)
   end

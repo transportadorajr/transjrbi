@@ -43,6 +43,16 @@ describe 'Life insurance policies', :hr do
         expect(page).to have_no_text('R$ 999.000,00')
       end
 
+      scenario 'filters the policies by company' do
+        visit life_insurance_policies_path
+        select 'MM Espinola', from: 'Empresa'
+        click_on 'Aplicar Filtros'
+
+        expect(page).to have_current_path(life_insurance_policies_path, ignore_query: true)
+        expect(LifeInsurancePolicy.count).to eq(3)
+        expect(html_table_to_rows.drop(1).map(&:first)).to eq(['MM Espinola'])
+      end
+
       scenario 'registers the policy of the company still without one' do
         visit life_insurance_policies_path
         click_on 'Cadastrar Apólice'
@@ -112,6 +122,28 @@ describe 'Life insurance policies', :hr do
         expect(page).to have_text('Nenhum registro encontrado')
         expect(page).to have_no_table
       end
+    end
+  end
+
+  context 'when the owner is signed in on a phone', :js, flipper: :hr do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+    let!(:mme_policy) { create(:life_insurance_policy, tenant:, company_type: 'mme', capital_cents: 11_500_000) }
+
+    before { login_as(owner, scope: :user) }
+
+    scenario 'keeps the company, the capital and the actions without scrolling sideways' do
+      visit life_insurance_policies_path
+      use_mobile_screen
+
+      expect(page).to have_css('th', text: 'EMPRESA')
+      expect(page).to have_css('th', text: 'CAPITAL SEGURADO')
+      expect(page).to have_no_css('th', text: 'TAXA DO PRÊMIO')
+      expect(page).to have_no_css('th', text: 'ASSISTÊNCIA FUNERAL FAMILIAR')
+
+      within("#life_insurance_policy_#{mme_policy.id}") { find("a[href='#{edit_life_insurance_policy_path(mme_policy)}']").click }
+
+      expect(page).to have_current_path(edit_life_insurance_policy_path(mme_policy))
+      expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
   end
 end

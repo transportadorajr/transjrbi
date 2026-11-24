@@ -1,10 +1,12 @@
 class LifeInsurancePoliciesController < BaseController
+  has_scope :by_company_type, as: :company_type
+
   before_action :set_life_insurance_policy, only: %i[edit update]
 
   def index
     authorize!(:read, :life_insurances)
 
-    @life_insurance_policies = listing_page(current_tenant.life_insurance_policies.order(:company_type, :id))
+    @life_insurance_policies = listing_page(apply_scopes(current_tenant.life_insurance_policies).order(:company_type, :id))
     @available_company_types = LifeInsurancePolicyForm.new(tenant: current_tenant).available_company_types
   end
 
