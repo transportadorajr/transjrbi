@@ -56,7 +56,13 @@ class RevenueGoal
     end
 
     def tractor_plates
-      @tractor_plates ||= fleet_plates - fleet_trailer_plates
+      @tractor_plates ||= (fleet_plates - fleet_trailer_plates) & known_tractor_plates
+    end
+
+    def known_tractor_plates
+      registered = tenant.atua_vehicles.by_category(Atua::Vehicle::TRACTOR_CATEGORY).where(plate: fleet_plates).pluck(:plate)
+
+      registered | tenant.billable_freights.where(plate: fleet_plates).distinct.pluck(:plate)
     end
 
     def plates_by_truck_group(plates, column)
@@ -94,7 +100,7 @@ class RevenueGoal
     end
 
     def fleet_plates
-      @fleet_plates ||= tenant.own_fleet&.plates.to_a
+      @fleet_plates ||= tenant.own_fleet&.goal_plates.to_a
     end
 
     def fleet_trailer_plates

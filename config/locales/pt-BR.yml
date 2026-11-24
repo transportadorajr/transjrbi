@@ -972,6 +972,7 @@ pt-BR:
       revenue_goals_form:
         month: Mês
         company: Meta da transportadora
+        excluded_plates: Placas fora das metas
       revenue_goals_form/line:
         key: Alvo
         name: Nome
@@ -3753,6 +3754,8 @@ pt-BR:
       title: Meta da transportadora
       text: Informe o faturamento bruto esperado. Deixe em branco para ficar sem meta.
       company_hint: Meta total de faturamento da transportadora no mês.
+      excluded_plates_hint: >-
+        Placas da frota própria que não recebem meta nem aparecem nas metas, uma por linha. Valem para todos os meses.
       targets_title: Metas por veículo, grupo de caminhões, carreta, grupo de clientes e região
       targets_text: >-
         Deixe em branco para ficar sem meta. O faturamento de %{month} aparece em cada linha como referência.

@@ -11,6 +11,7 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
   before do
     travel_to(Time.zone.local(2026, 11, 13, 10))
     create(:own_fleet, tenant:, plates: %w[RHJ5A50 AJR4391])
+    %w[RHJ5A50 AJR4391 BRA2E19].each { |plate| create(:atua_vehicle, tenant:, plate:) }
     create(:customer_group, tenant:, name: 'USIMINAS')
     create(:customer_group, tenant:, name: 'GERDAU', activated_at: nil)
   end
@@ -162,6 +163,33 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
       expect(goal.plate).to eq('AJR4391')
       expect(goal.amount_cents).to eq(5_000_000)
       expect(tenant.revenue_goals.company.sole.amount_cents).to eq(20_000_000)
+    end
+
+    context 'with a truck that does not bill for the company' do
+      before do
+        tenant.own_fleet.update!(plates: %w[RHJ5A50 AJR4391 AVC4E64 AUX8041])
+        create(:atua_vehicle, tenant:, plate: 'AVC4E64')
+        create(:revenue_goal, :vehicle, tenant:, month:, plate: 'AVC4E64', amount_cents: 13_000_000)
+      end
+
+      scenario 'takes the plate out of the goals and leaves out the plates not known as trucks' do
+        visit edit_revenue_goals_path(month: '2026-11')
+
+        expect(page).to have_field('AVC4E64')
+        expect(page).to have_no_field('AUX8041')
+
+        fill_in 'Placas fora das metas', with: 'avc-4e64'
+        expect { click_on 'Salvar Metas' }.to change(RevenueGoal, :count).by(-1)
+
+        expect(tenant.own_fleet.reload.goal_excluded_plates).to eq(%w[AVC4E64])
+        expect(tenant.revenue_goals.vehicle.where(plate: 'AVC4E64')).to be_empty
+
+        visit edit_revenue_goals_path(month: '2026-11')
+
+        expect(page).to have_field('Placas fora das metas', with: 'AVC4E64')
+        expect(page).to have_no_field('AVC4E64')
+        expect(page).to have_field('AJR4391')
+      end
     end
 
     context 'with truck groups' do

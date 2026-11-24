@@ -40,6 +40,7 @@ RSpec.describe RevenueGoal::Targets do
       create(:atua_vehicle, tenant:, plate: 'RHJ5A51', category: 'Carreta')
       create(:atua_vehicle, tenant:, plate: 'ZZZ1A99', category: 'Carreta')
       create(:atua_vehicle, tenant:, plate: 'AJR4391')
+      create(:atua_vehicle, tenant:, plate: 'QWE1A24')
       create(:atua_transport_document, tenant:, plate: 'AJR4391', trailer_plate: 'RHJ5A51', freight_cents: 300_000, issued_at: Time.zone.local(2026, 10, 8, 10))
       create(:revenue_goal, :trailer, tenant:, month:, plate: 'ZZZ1A99', amount_cents: 1_000_000)
     end

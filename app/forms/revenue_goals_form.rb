@@ -31,6 +31,7 @@ class RevenueGoalsForm < BaseForm
 
   attribute :month, :string
   attribute :company, :string
+  attribute :excluded_plates, :string
 
   attr_accessor :tenant
 
@@ -44,7 +45,8 @@ class RevenueGoalsForm < BaseForm
       targets = RevenueGoal::Targets.new(tenant, month)
       company = targets.goals.find(&:company?)
 
-      form = new(tenant:, month: month.strftime(RevenueGoal::MONTH_FORMAT), company: format_cents(company&.amount_cents))
+      form = new(tenant:, month: month.strftime(RevenueGoal::MONTH_FORMAT), company: format_cents(company&.amount_cents),
+                 excluded_plates: tenant.own_fleet&.goal_excluded_plates.to_a.join("\n"))
       SECTIONS.each_key { |section| form.assign_lines(section, listed_lines(targets, section)) }
       form
     end
@@ -98,13 +100,18 @@ class RevenueGoalsForm < BaseForm
     self.class.parse_cents(company)
   end
 
+  def excluded_plate_list
+    excluded_plates.to_s.upcase.scan(OwnFleetForm::PLATE_PATTERN).map { |plate| Atua::TransportDocument.normalize_plate(plate) }.uniq.sort
+  end
+
   def submit
     transaction do
+      save_excluded_plates
       save_goal({ target_type: 'company' }, company, company_cents)
       lines.each do |section, section_lines|
         target_type = SECTIONS.fetch(section)
         column = RevenueGoal::TARGET_COLUMNS.fetch(target_type)
-        section_lines.each { |line| save_goal({ target_type:, column => line.key }, line.amount, line.amount_cents) }
+        section_lines.each { |line| save_goal({ target_type:, column => line.key }, line.amount, line.amount_cents) unless excluded_line?(section, line) }
       end
       apply_truck_group_goals
     end
@@ -131,6 +138,17 @@ class RevenueGoalsForm < BaseForm
       targets.truck_group_plates.fetch(line.key, []).each { |plate| save_goal({ target_type: 'vehicle', plate: }, line.amount, line.amount_cents) }
       targets.truck_group_trailer_plates.fetch(line.key, []).each { |plate| save_goal({ target_type: 'trailer', plate: }, line.amount, line.amount_cents) }
     end
+  end
+
+  def save_excluded_plates
+    own_fleet = tenant.own_fleet || tenant.build_own_fleet
+    own_fleet.update!(goal_excluded_plates: excluded_plate_list)
+    tenant.revenue_goals.for_month(month_value).where(target_type: RevenueGoal::PLATE_TARGET_TYPES, plate: excluded_plate_list).delete_all
+    @targets = nil
+  end
+
+  def excluded_line?(section, line)
+    Dashboard::Goals.vehicle_section?(section) && excluded_plate_list.include?(line.key)
   end
 
   def save_goal(target, amount, cents)

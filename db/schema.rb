@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_23_211606) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_145546) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -1211,6 +1211,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_23_211606) do
     t.string "plates", default: [], null: false, array: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "goal_excluded_plates", default: [], null: false, array: true
     t.index ["tenant_id"], name: "index_own_fleets_on_tenant_id", unique: true
   end
 

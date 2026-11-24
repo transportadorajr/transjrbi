@@ -12,6 +12,15 @@ RSpec.describe OwnFleet do
     end
   end
 
+  describe '#goal_plates' do
+    it 'leaves the plates excluded from the goals out' do
+      own_fleet = build(:own_fleet, plates: %w[AJR4391 AVC4E64 BCN3I00], goal_excluded_plates: %w[AVC4E64])
+
+      expect(own_fleet.goal_plates).to eq(%w[AJR4391 BCN3I00])
+      expect(own_fleet.third_party?('AVC4E64')).to be(false)
+    end
+  end
+
   describe '#third_party?' do
     let(:own_fleet) { build(:own_fleet, plates: %w[AJR4391 BCN3I00]) }
 
