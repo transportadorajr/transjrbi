@@ -1,0 +1,42 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: absence_month_label(@calendar) %>
+
+  <%= render 'month_navigation', calendar: @calendar %>
+
+  <div class="row g-3 mb-4">
+    <%= counter_card(:dark, t('.employees_out'), @calendar.employees_count) %>
+    <%= counter_card(:primary, t('.on_vacation'), @calendar.employees_count(:vacation)) %>
+    <%= counter_card(:warning, t('.on_leave'), @calendar.employees_count(:leave)) %>
+  </div>
+
+  <div class="card table-card mb-4">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.calendar') %></p>
+        <p class="table-card-subtitle"><%= t('.calendar_subtitle') %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <%= render 'calendar', calendar: @calendar %>
+      <%= render 'day_list', calendar: @calendar %>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.absences') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @absences.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @absences.any? %>
+        <%= render 'table', collection: @absences, calendar: @calendar %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

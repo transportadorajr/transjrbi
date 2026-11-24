@@ -1,0 +1,8 @@
+<div class="absence-calendar d-none d-lg-grid p-3" id="absence_calendar">
+  <% absence_weekday_names.each do |name| %>
+    <div class="absence-calendar-weekday"><%= name %></div>
+  <% end %>
+  <% calendar.weeks.flatten.each do |day| %>
+    <%= absence_calendar_cell(day) %>
+  <% end %>
+</div>

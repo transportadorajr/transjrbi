@@ -1,0 +1,12 @@
+<ul class="list-unstyled mb-0 d-lg-none" id="absence_day_list">
+  <% calendar.days.select(&:any?).each do |day| %>
+    <li class="border-bottom p-3">
+      <p class="small fw-semibold text-body-secondary mb-2"><%= absence_day_label(day.date) %></p>
+      <div class="d-flex flex-wrap gap-1">
+        <% day.absences.each do |absence| %>
+          <%= absence_badge(absence) %>
+        <% end %>
+      </div>
+    </li>
+  <% end %>
+</ul>
