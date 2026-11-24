@@ -56,6 +56,7 @@ end
   'employees' => { name: 'Funcionários', writable: true },
   'job_positions' => { name: 'Cargos', writable: true },
   'work_schedules' => { name: 'Escala de folgas', writable: true },
+  'vacations' => { name: 'Férias', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)

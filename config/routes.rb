@@ -81,6 +81,7 @@ Rails.application.routes.draw do
     resources :job_positions, except: %i[show destroy], concerns: :activatable
     resources :work_schedules, only: :index
     resources :work_schedule_days, only: %i[show new create destroy]
+    resources :vacations, except: :show
     root 'hr_home#index', as: :hr_root
   end
 

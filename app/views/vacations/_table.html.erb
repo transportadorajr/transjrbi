@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <%= sortable_header(Vacation.human_attribute_name(:employee), :employee_name) %>
+        <%= sortable_header(Vacation.human_attribute_name(:start_on), :start_on, first_direction: :desc) %>
+        <th class="d-none d-md-table-cell"><%= Vacation.human_attribute_name(:returns_on) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= Vacation.human_attribute_name(:days_count) %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= Vacation.human_attribute_name(:sold_days) %></th>
+        <th class="d-none d-lg-table-cell"><%= Vacation.human_attribute_name(:acquisition_start_on) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

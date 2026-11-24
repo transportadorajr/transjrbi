@@ -14,7 +14,7 @@ describe HostModule do
       host_module = described_class.find_by_subdomain('rh')
 
       expect(host_module.key).to eq(:hr)
-      expect(host_module.resources).to eq(%i[hr employees job_positions work_schedules])
+      expect(host_module.resources).to eq(%i[hr employees job_positions work_schedules vacations])
       expect(host_module.feature).to eq(:hr)
     end
 

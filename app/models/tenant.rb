@@ -48,6 +48,7 @@ class Tenant < ApplicationRecord
   has_many :maintenance_parts, dependent: :delete_all
   has_many :maintenance_services, dependent: :delete_all
   has_many :work_schedule_days, dependent: :delete_all
+  has_many :vacations, dependent: :delete_all
   has_many :employees, dependent: :delete_all
   has_many :job_positions, dependent: :delete_all
 

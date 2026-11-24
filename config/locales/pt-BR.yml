@@ -106,6 +106,9 @@ pt-BR:
       work_schedule_day:
         one: Dia da escala
         other: Dias da escala
+      vacation:
+        one: Férias
+        other: Férias
       workshop_employee:
         one: Funcionário da oficina
         other: Funcionários da oficina
@@ -158,6 +161,17 @@ pt-BR:
         leave_reason_type: Motivo do afastamento
         city: Cidade
         notes: Observações
+      vacation:
+        employee: Funcionário
+        acquisition_start_on: Período aquisitivo
+        start_on: Saída
+        end_on: Último dia
+        returns_on: Retorno
+        days_count: Dias de férias
+        sold_days: Dias vendidos
+        notes: Observações
+        created_at: Criado em
+        updated_at: Atualizado em
       employee:
         name: Nome
         nickname: Apelido
@@ -1013,6 +1027,13 @@ pt-BR:
         city_id: Cidade da folga
         leave_reason_type: Motivo do afastamento
         notes: Observações
+      vacation_form:
+        employee: Funcionário
+        employee_id: Funcionário
+        start_on: Saída
+        end_on: Último dia de férias
+        sold_days: Dias vendidos
+        notes: Observações
       employee_form:
         name: Nome
         nickname: Apelido
@@ -1265,6 +1286,31 @@ pt-BR:
             end_on:
               before_start_on: deve ser igual ou posterior à data inicial
               too_long: não pode passar de %{count} dias
+        vacation_form:
+          attributes:
+            employee_id:
+              without_admission: precisa ter a data de admissão cadastrada para calcular o período aquisitivo
+            start_on:
+              before_admission: deve ser posterior à data de admissão
+              not_acquired: 'cai antes de completar o período aquisitivo: só a partir de %{date}'
+              too_many_parts: 'já tem %{count} períodos de férias lançados no período aquisitivo'
+              overlaps_vacation: 'já tem férias lançadas em: %{dates}'
+              taken: 'já tem folga ou afastamento na escala em: %{dates}'
+              on_trip: 'cai em dia de viagem do motorista: %{dates}'
+            end_on:
+              before_start_on: deve ser igual ou posterior à saída
+              too_short:
+                one: deve deixar pelo menos %{count} dia de férias
+                other: deve deixar pelo menos %{count} dias de férias
+              exceeds_balance:
+                one: 'passa do saldo do período aquisitivo %{period}: resta %{count} dia, contando os vendidos'
+                other: 'passa do saldo do período aquisitivo %{period}: restam %{count} dias, contando os vendidos'
+              main_part_missing: >-
+                não deixa espaço para um período de pelo menos %{count} dias, obrigatório quando as férias são divididas
+            sold_days:
+              exceeds_period:
+                one: 'passa do limite de venda do período aquisitivo: resta %{count} dia'
+                other: 'passa do limite de venda do período aquisitivo: restam %{count} dias'
         employee_form:
           attributes:
             legal_id:
@@ -1698,6 +1744,9 @@ pt-BR:
         update: Salvar Alterações
       work_schedule_day:
         create: Lançar
+      vacation:
+        create: Lançar Férias
+        update: Salvar Alterações
       workshop_employee:
         create: Cadastrar Funcionário
         update: Salvar Alterações
@@ -1733,6 +1782,9 @@ pt-BR:
       revenue_goals:
         update: Salvar Metas
     tooltips:
+      vacation:
+        edit: Alterar
+        destroy: Excluir
       admin/http_request:
         show: Visualizar
       dashboard/revenue_projection_history/day_row:
@@ -2060,6 +2112,7 @@ pt-BR:
         title: Sem acesso à manutenção
         description: Seu usuário ainda não tem acesso às telas da manutenção. Peça a liberação ao responsável pela sua empresa.
   resource_names:
+    vacations: Férias
     hr: Módulo de RH
     maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
@@ -3022,6 +3075,42 @@ pt-BR:
         Emenda é o dia útil entre um feriado e o fim de semana. Ponto facultativo é um dia em que parte das empresas
         não funciona (ex.: Carnaval).
       active_hint: Feriados inativos deixam de ser considerados nas metas e na projeção de faturamento, que passam a contar o dia como útil.
+  vacations:
+    period: '%{start} a %{finish}'
+    index:
+      title: Férias
+      subtitle: Saídas e retornos de férias dos funcionários, com os dias vendidos e o período aquisitivo de cada lançamento.
+      new_vacation: Lançar Férias
+      confirm_destroy: Tem certeza que deseja excluir estas férias?
+      pdf:
+        header: Relatório de Férias
+        filename: ferias_%{time}.pdf
+    filters:
+      name: Nome do funcionário
+      month: Mês
+    new:
+      title: Lançar Férias
+      back: Voltar para férias
+    create:
+      success: Férias lançadas com sucesso.
+    edit:
+      title: Alterar Férias
+      back: Voltar para férias
+    update:
+      success: Férias atualizadas com sucesso.
+    destroy:
+      success: Férias excluídas com sucesso.
+    form:
+      vacation_data: Dados das Férias
+      vacation_data_text: >-
+        As férias entram no período aquisitivo mais antigo com saldo, calculado a partir da data de admissão, e aparecem
+        sozinhas na escala de folgas.
+      employee_placeholder: Selecione o funcionário
+      end_on_hint: O retorno é o dia seguinte ao último dia de férias.
+      sold_days_hint: Abono pecuniário. Até %{count} dias por período aquisitivo.
+      rules_hint: >-
+        As férias podem ser divididas em até %{parts} períodos: um deles com pelo menos %{main} dias e os demais com pelo
+        menos %{minimum} dias cada.
   work_schedule_days:
     form:
       title: Lançar folga ou afastamento
@@ -4391,6 +4480,7 @@ pt-BR:
       date_time: '%d/%m/%Y %H:%M'
       hour_minute: '%H:%M'
   menus:
+    vacations: Férias
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários
