@@ -82,4 +82,5 @@ Tenant.find_each do |tenant|
   Employees::SeedCommand.call(tenant)
   Vacations::SeedCommand.call(tenant)
   RiskAssessments::SeedCommand.call(tenant)
+  LifeInsurances::SeedCommand.call(tenant)
 end

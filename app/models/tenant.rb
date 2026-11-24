@@ -50,6 +50,8 @@ class Tenant < ApplicationRecord
   has_many :work_schedule_days, dependent: :delete_all
   has_many :vacations, dependent: :delete_all
   has_many :risk_assessments, dependent: :delete_all
+  has_many :life_insurances, dependent: :delete_all
+  has_many :life_insurance_policies, dependent: :delete_all
   has_many :employees, dependent: :delete_all
   has_many :job_positions, dependent: :delete_all
 

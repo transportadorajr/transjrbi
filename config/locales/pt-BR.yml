@@ -112,6 +112,12 @@ pt-BR:
       risk_assessment:
         one: Pesquisa de gerenciadora de risco
         other: Pesquisas de gerenciadoras de risco
+      life_insurance_policy:
+        one: Apólice de seguro de vida
+        other: Apólices de seguro de vida
+      life_insurance:
+        one: Seguro de vida
+        other: Seguros de vida
       workshop_employee:
         one: Funcionário da oficina
         other: Funcionários da oficina
@@ -182,6 +188,30 @@ pt-BR:
         score: Score
         valid_until: Validade
         notes: Observações
+        created_at: Criado em
+        updated_at: Atualizado em
+      life_insurance_policy:
+        company_type: Empresa
+        capital: Capital segurado
+        premium_rate_per_mille: Taxa do prêmio (‰)
+        spouse_percentage: Cônjuge (% do capital)
+        children_percentage: Filhos (% do capital)
+        funeral_assistance: Assistência funeral familiar
+        created_at: Criado em
+        updated_at: Atualizado em
+      life_insurance:
+        employee: Funcionário
+        life_insurance_policy: Apólice
+        capital: Capital segurado
+        included_on: Inclusão
+        excluded_on: Exclusão
+        premium: Prêmio
+        accidental_death: Morte acidental
+        accidental_permanent_disability: Invalidez permanente por acidente
+        functional_permanent_disability: Invalidez funcional por doença
+        spouse_death: Morte do cônjuge
+        children_death: Morte de filhos
+        funeral_assistance: Assistência funeral familiar
         created_at: Criado em
         updated_at: Atualizado em
       employee:
@@ -811,6 +841,15 @@ pt-BR:
         creates: Leitura e Edição
     errors:
       models:
+        life_insurance:
+          attributes:
+            excluded_on:
+              before_included_on: não pode ser anterior à inclusão
+            life_insurance_policy:
+              other_company: deve ser da empresa do funcionário
+        life_insurance_policy:
+          restrict_dependent_destroy:
+            has_many: Não é possível excluir uma apólice com seguros vinculados.
         maintenance_order:
           attributes:
             base:
@@ -1520,6 +1559,11 @@ pt-BR:
         recommended: Recomendado
         not_recommended: Não recomendado
         in_progress: Em andamento
+    life_insurance_policy:
+      company_type:
+        transjr: TransJR
+        mme: MME
+        mm_espinola: MM Espinola
     employee:
       company_type:
         transjr: TransJR

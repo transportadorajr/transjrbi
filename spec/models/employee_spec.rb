@@ -87,6 +87,26 @@ RSpec.describe Employee do
     end
   end
 
+  describe '.without_life_insurance' do
+    let!(:insured) { create(:employee, tenant:, legal_id: '52998224725') }
+    let!(:uninsured) { create(:employee, tenant:, legal_id: '11144477735') }
+    let!(:excluded) { create(:employee, tenant:, legal_id: '39053344705') }
+    let!(:included_later) { create(:employee, tenant:, legal_id: '86288366757') }
+
+    before do
+      create(:life_insurance, employee: insured)
+      create(:life_insurance, employee: excluded, excluded_on: Date.new(2026, 11, 1))
+      create(:life_insurance, employee: included_later, included_on: Date.new(2026, 12, 1))
+      create(:employee, tenant:, legal_id: '71428793860', activated: false)
+    end
+
+    it 'lists the active employees not covered on the date' do
+      expect(described_class.without_life_insurance(Date.new(2026, 11, 24))).to contain_exactly(uninsured, excluded, included_later)
+      expect(described_class.without_life_insurance(Date.new(2026, 10, 31))).to contain_exactly(uninsured, included_later)
+      expect(described_class.without_life_insurance(Date.new(2026, 12, 1))).to contain_exactly(uninsured, excluded)
+    end
+  end
+
   describe '#sunday_off_interval' do
     it 'gives a Sunday off every 15 days to women and every 28 days to men' do
       expect(build(:employee, gender_type: 'female').sunday_off_interval).to eq(15.days)

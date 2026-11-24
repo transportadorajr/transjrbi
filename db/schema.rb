@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_194500) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_204848) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -974,6 +974,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_194500) do
     t.index ["tenant_id"], name: "index_job_positions_on_tenant_id"
   end
 
+  create_table "life_insurance_policies", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.enum "company_type", null: false, enum_type: "employee_company_type"
+    t.bigint "capital_cents", null: false
+    t.decimal "premium_rate_per_mille", precision: 8, scale: 4, null: false
+    t.decimal "spouse_percentage", precision: 5, scale: 2, default: "50.0", null: false
+    t.decimal "children_percentage", precision: 5, scale: 2, default: "10.0", null: false
+    t.bigint "funeral_assistance_cents", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "company_type"], name: "index_life_insurance_policies_on_tenant_id_and_company_type", unique: true
+  end
+
+  create_table "life_insurances", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "employee_id", null: false
+    t.bigint "life_insurance_policy_id", null: false
+    t.bigint "capital_cents"
+    t.date "included_on"
+    t.date "excluded_on"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id", "included_on"], name: "index_life_insurances_on_employee_id_and_included_on"
+    t.index ["employee_id"], name: "index_life_insurances_on_employee_id_not_excluded", unique: true, where: "(excluded_on IS NULL)"
+    t.index ["life_insurance_policy_id"], name: "index_life_insurances_on_life_insurance_policy_id"
+    t.index ["tenant_id"], name: "index_life_insurances_on_tenant_id"
+  end
+
   create_table "locations", force: :cascade do |t|
     t.string "lookup_key", null: false
     t.string "street"
@@ -1582,6 +1610,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_194500) do
   add_foreign_key "holidays", "tenants"
   add_foreign_key "insurance_rates", "tenants"
   add_foreign_key "job_positions", "tenants"
+  add_foreign_key "life_insurance_policies", "tenants"
+  add_foreign_key "life_insurances", "employees"
+  add_foreign_key "life_insurances", "life_insurance_policies"
+  add_foreign_key "life_insurances", "tenants"
   add_foreign_key "macro_regions", "tenants"
   add_foreign_key "maintenance_order_items", "maintenance_orders"
   add_foreign_key "maintenance_order_items", "tenants"
