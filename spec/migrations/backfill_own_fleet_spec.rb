@@ -13,10 +13,15 @@ RSpec.describe BackfillOwnFleet do
       expect(tenant.reload.own_fleet.plates.size).to eq(127)
     end
 
-    it 'lists the plates on the revenue goals of the month' do
-      migration.up
+    context 'with the plates registered as trucks' do
+      before do
+        migration.up
+        tenant.reload.own_fleet.plates.each { |plate| create(:atua_vehicle, tenant:, plate:) }
+      end
 
-      expect(RevenueGoal::Targets.new(tenant, Date.new(2026, 11, 1)).options(:vehicles).size).to eq(127)
+      it 'lists the plates on the revenue goals of the month' do
+        expect(RevenueGoal::Targets.new(tenant, Date.new(2026, 11, 1)).options(:vehicles).size).to eq(127)
+      end
     end
 
     it 'can run again without duplicating the own fleet' do
