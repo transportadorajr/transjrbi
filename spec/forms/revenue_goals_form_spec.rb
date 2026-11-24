@@ -119,6 +119,17 @@ RSpec.describe RevenueGoalsForm do
       expect(saved.total_cents(:truck_groups)).to eq(43_000_000)
     end
 
+    it 'gives a truck the goal of the axles it ran the most in the month, not of its latest trip' do
+      six_axles = create(:truck_group, tenant:, name: '6 EIXOS', axles: [6])
+      tenant.own_fleet.update!(plates: %w[EXU0F72])
+      [3, 5, 8].each { |day| create(:atua_transport_document, tenant:, plate: 'EXU0F72', axles: 6, issued_at: Time.zone.local(2026, 11, day, 10)) }
+      create(:atua_transport_document, tenant:, plate: 'EXU0F72', axles: 9, issued_at: Time.zone.local(2026, 11, 15, 10))
+      saved = form(truck_groups_attributes: { '0' => { key: nine_axles.id.to_s, amount: '130.000,00' }, '1' => { key: six_axles.id.to_s, amount: '110.000,00' } })
+
+      expect { expect(saved.save).to be(true) }.to change(RevenueGoal, :count).by(3)
+      expect(tenant.revenue_goals.vehicle.pluck(:plate, :amount_cents)).to eq([['EXU0F72', 11_000_000]])
+    end
+
     it 'keeps the goals of the trucks when the goal of the truck group is blank' do
       create(:revenue_goal, :truck_group, tenant:, month:, truck_group: nine_axles, amount_cents: 16_000_000)
       create(:revenue_goal, :vehicle, tenant:, month:, plate: 'BRA2E19', amount_cents: 16_000_000)

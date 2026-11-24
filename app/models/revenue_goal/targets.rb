@@ -71,10 +71,15 @@ class RevenueGoal
 
     def latest_axles(plates, column)
       documents = tenant.billable_freights.active.not_canceled.where(column => plates).where.not(axles: nil)
-        .where(issued_at: ..month.end_of_month.end_of_day)
+      latest = documents.where(issued_at: ..month.end_of_month.end_of_day).reorder(column, issued_at: :desc).pluck(column, :axles)
+        .each_with_object({}) { |(plate, axles), found| found[plate] ||= axles }
 
-      documents.reorder(column, issued_at: :desc).pluck(column, :axles).each_with_object({}) do |(plate, axles), latest|
-        latest[plate] ||= axles
+      latest.merge(predominant_axles(documents.where(issued_at: month.beginning_of_day..month.end_of_month.end_of_day), column))
+    end
+
+    def predominant_axles(documents, column)
+      documents.reorder(issued_at: :desc).pluck(column, :axles).group_by(&:first).transform_values do |rows|
+        rows.map(&:last).tally.max_by { |_axles, trips| trips }.first
       end
     end
 
