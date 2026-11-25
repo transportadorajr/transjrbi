@@ -2287,6 +2287,7 @@ pt-BR:
         title: Sem acesso à manutenção
         description: Seu usuário ainda não tem acesso às telas da manutenção. Peça a liberação ao responsável pela sua empresa.
   resource_names:
+    hr_pendencies: Pendências do RH
     vacations: Férias
     risk_assessments: Gerenciadoras de risco
     life_insurances: Seguro de vida
@@ -3391,6 +3392,24 @@ pt-BR:
         spouse_death: IC-M5
         children_death: IF-M6
         funeral_assistance: Ass Fun Fam7
+  hr_pendencies:
+    kinds:
+      uninsured: Sem seguro de vida
+      missing_emergency_contact: Sem contato de emergência
+      risk_assessment_expired: Pesquisa vencida
+      risk_assessment_expiring: Pesquisa vence em até %{days} dias
+      vacation_overdue: Férias vencidas
+      vacation_due_soon: Férias vencem em até %{days} dias
+      irregular_days_off: Folgas irregulares
+    table:
+      pendencies: Pendências
+    filters:
+      name: Nome ou apelido do funcionário
+      pendency: Pendência
+    index:
+      title: Pendências do RH
+      subtitle: Funcionários ativos com algo a resolver. Toque na pendência para abrir a tela onde ela é resolvida.
+      employees: Funcionários com pendências
   uninsured_employees:
     index:
       title: Sem seguro de vida
@@ -4911,6 +4930,7 @@ pt-BR:
       date_time: '%d/%m/%Y %H:%M'
       hour_minute: '%H:%M'
   menus:
+    hr_pendencies: Pendências
     vacations: Férias
     absences: Quem está fora
     vacation_balances: Férias a vencer

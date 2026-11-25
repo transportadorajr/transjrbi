@@ -53,6 +53,7 @@ end
   'maintenance_services' => { name: 'Serviços da manutenção', writable: true },
   'vehicle_availability' => { name: 'Disponibilidade da frota', writable: false },
   'hr' => { name: 'Módulo de RH', writable: false },
+  'hr_pendencies' => { name: 'Pendências do RH', writable: false },
   'employees' => { name: 'Funcionários', writable: true },
   'job_positions' => { name: 'Cargos', writable: true },
   'work_schedules' => { name: 'Escala de folgas', writable: true },

@@ -1,0 +1,8 @@
+<tr id="<%= dom_id(item.employee) %>">
+  <td class="fw-semibold text-break"><%= item.employee.name %></td>
+  <td class="d-none d-md-table-cell text-nowrap"><%= item.employee.company_type_name %></td>
+  <td><%= hr_pendency_badges(item) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(hr_pendencies_menu(item.employee)) %>
+  </td>
+</tr>
