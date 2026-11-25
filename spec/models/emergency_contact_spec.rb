@@ -59,11 +59,11 @@ RSpec.describe EmergencyContact do
   end
 
   describe 'employee contacts' do
-    it 'lists the contacts by priority' do
-      employee = create(:employee)
-      second = create(:emergency_contact, employee:, position: 2, name: 'Segundo')
-      first = create(:emergency_contact, employee:, position: 1, name: 'Primeiro')
+    let!(:employee) { create(:employee) }
+    let!(:second) { create(:emergency_contact, employee:, position: 2, name: 'Segundo') }
+    let!(:first) { create(:emergency_contact, employee:, position: 1, name: 'Primeiro') }
 
+    it 'lists the contacts by priority' do
       expect(employee.emergency_contacts).to eq([first, second])
     end
   end

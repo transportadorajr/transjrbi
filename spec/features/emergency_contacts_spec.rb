@@ -40,6 +40,7 @@ describe 'Emergency contacts', :hr do
 
         expect(page).to have_current_path(emergency_contacts_path)
         expect(EmergencyContact.count).to eq(3)
+        expect(Employee.count).to eq(4)
         expect(html_table_to_rows).to eq(
           [
             %w[Nome Empresa Contatos],
@@ -137,12 +138,14 @@ describe 'Emergency contacts', :hr do
       expect(page).to have_text('Nome do contato não pode ficar em branco e Telefone deve ter o DDD e o número, ou o código do país antes')
     end
 
-    scenario 'does not reach the emergency contact of another tenant' do
-      stranger = create(:emergency_contact, employee: create(:employee, tenant: other_tenant, name: 'FUNCIONÁRIO DE OUTRA'))
+    context 'when another tenant has an emergency contact' do
+      let!(:stranger) { create(:emergency_contact, employee: create(:employee, tenant: other_tenant, name: 'FUNCIONÁRIO DE OUTRA')) }
 
-      visit edit_emergency_contact_path(stranger)
+      scenario 'does not reach the emergency contact of another tenant' do
+        visit edit_emergency_contact_path(stranger)
 
-      expect(page.status_code).to eq(404)
+        expect(page.status_code).to eq(404)
+      end
     end
   end
 
@@ -188,6 +191,8 @@ describe 'Emergency contacts', :hr do
     scenario 'looks up the contacts without the employee link and the actions' do
       visit emergency_contacts_path
 
+      expect(Employee.count).to eq(2)
+      expect(EmergencyContact.count).to eq(1)
       expect(html_table_to_rows).to eq(
         [
           %w[Nome Empresa Contatos],
