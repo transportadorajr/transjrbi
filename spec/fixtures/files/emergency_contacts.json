@@ -1,0 +1,53 @@
+{
+  "emergency_contacts": [
+    {
+      "company_type": "mme",
+      "registration": "00901",
+      "employee": "JOSE DA SILVA",
+      "contacts": [
+        { "name": "Maria da Silva", "relationship_type": "spouse", "phone": "45999990001", "secondary_phone": null, "notes": null },
+        { "name": "Ana da Silva", "relationship_type": "mother", "phone": "45999990002", "secondary_phone": null, "notes": null }
+      ]
+    },
+    {
+      "company_type": "mme",
+      "registration": "00902",
+      "employee": "PABLO GOMEZ",
+      "contacts": [
+        { "name": "Lucía Gomez", "relationship_type": "spouse", "phone": "+5493750000000", "secondary_phone": "45999990003", "notes": null }
+      ]
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": "00903",
+      "employee": "CARLOS SOUZA",
+      "contacts": [
+        { "name": "Paula Souza", "relationship_type": "spouse", "phone": null, "secondary_phone": null, "notes": "Conferir o telefone da planilha: (45)9.99999-0004" }
+      ]
+    },
+    {
+      "company_type": "mme",
+      "registration": null,
+      "employee": "MARCOS PEREIRA",
+      "contacts": [
+        { "name": "Julia Pereira", "relationship_type": "sibling", "phone": "45999990005", "secondary_phone": null, "notes": null }
+      ]
+    },
+    {
+      "company_type": "mme",
+      "registration": null,
+      "employee": "ROBERTO ALMEIDA DOS SANTOS FERREIRA",
+      "contacts": [
+        { "name": "Clara Ferreira", "relationship_type": null, "phone": "45999990006", "secondary_phone": null, "notes": null }
+      ]
+    },
+    {
+      "company_type": "mm_espinola",
+      "registration": null,
+      "employee": "PEDRO LIMA",
+      "contacts": [
+        { "name": "Rosa Lima", "relationship_type": "mother", "phone": "45999990007", "secondary_phone": null, "notes": null }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <%= form_with url: emergency_contacts_path, method: :get, class: 'mb-3', id: 'emergency_contacts_search' do |f| %>
+    <%= sort_fields %>
+    <%= emergency_contacts_search_hidden_fields %>
+    <div class="input-group">
+      <%= f.search_field :name, value: params[:name], class: 'form-control', autocomplete: :off, inputmode: :search,
+                                placeholder: t('emergency_contacts.filters.name'), aria: { label: t('emergency_contacts.filters.name') } %>
+      <%= f.button icon(:search), class: 'btn btn-primary', title: t('emergency_contacts.index.search'), aria: { label: t('emergency_contacts.index.search') } %>
+    </div>
+  <% end %>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.employees') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @employees.total_count) %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @employees.any? %>
+        <%= render 'table', collection: @employees %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

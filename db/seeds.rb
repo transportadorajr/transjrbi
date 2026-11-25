@@ -59,6 +59,7 @@ end
   'vacations' => { name: 'Férias', writable: true },
   'risk_assessments' => { name: 'Gerenciadoras de risco', writable: true },
   'life_insurances' => { name: 'Seguro de vida', writable: true },
+  'emergency_contacts' => { name: 'Contatos de emergência', writable: true },
 }.each do |slug, attributes|
   Resource.find_or_create_by!(slug:) do |resource|
     resource.assign_attributes(attributes)
@@ -85,4 +86,5 @@ Tenant.find_each do |tenant|
   Vacations::SeedCommand.call(tenant)
   RiskAssessments::SeedCommand.call(tenant)
   LifeInsurances::SeedCommand.call(tenant)
+  EmergencyContacts::SeedCommand.call(tenant)
 end
