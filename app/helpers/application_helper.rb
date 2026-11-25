@@ -86,12 +86,12 @@ module ApplicationHelper
     t(key, model: model.confirmation_name) if I18n.exists?(key)
   end
 
-  def counter_card(kind, label, value, col_class: 'col-12 col-md-4')
+  def counter_card(kind, label, value, col_class: 'col-12 col-md-4', icon: COUNTER_ICONS.fetch(kind.to_sym, 'circle'))
     content_tag :div, class: "counter-card #{col_class}" do
       content_tag :div, class: 'card h-100' do
         content_tag :div, class: 'counter-card-body' do
           concat content_tag(:div, class: "counter-icon-wrap icon-#{kind}") {
-            content_tag(:i, nil, class: "bi bi-#{COUNTER_ICONS.fetch(kind.to_sym, 'circle')}")
+            content_tag(:i, nil, class: "bi bi-#{icon}")
           }
           concat content_tag(:div, class: 'counter-card-info') {
             concat content_tag(:p, label, class: 'counter-label')

@@ -60,7 +60,7 @@ describe 'Uninsured employees', :hr do
 
     scenario 'opens the uninsured employees from the life insurance screen' do
       visit life_insurances_path
-      within('.page-header') { click_on 'Sem seguro de vida' }
+      within('#life_insurance_related_links') { click_on 'Sem seguro de vida' }
 
       expect(page).to have_current_path(uninsured_employees_path)
     end

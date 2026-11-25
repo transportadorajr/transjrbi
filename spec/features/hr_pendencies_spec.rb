@@ -58,6 +58,9 @@ describe 'HR pendencies', :hr do
           ['EDSON ROCHA', 'MM Espinola', 'Férias vencidas', ''],
         ],
       )
+      expect(page).to have_css('.badge.bg-purple-subtle.text-purple', text: 'Sem seguro de vida')
+      expect(page).to have_css('.badge.bg-cyan-subtle.text-cyan', text: 'Sem contato de emergência')
+      expect(page).to have_css('.badge.bg-pink-subtle.text-pink', text: 'Férias vencidas')
       expect(page).to have_no_text('ANA PAULA')
       expect(page).to have_no_text('INATIVO SEM SEGURO')
       expect(page).to have_no_text('FUNCIONÁRIO DE OUTRA')
@@ -72,7 +75,13 @@ describe 'HR pendencies', :hr do
           'Férias vencidas 1', 'Férias vencem em até 60 dias 0', 'Folgas irregulares 0'
         ],
       )
-      expect(page).to have_css('.counter-value.value-warning', count: 7)
+      expect(all('.counter-value').map { |value| value[:class].split.grep(/\Avalue-/) }).to eq(
+        [['value-purple'], ['value-cyan'], ['value-danger'], ['value-orange'], ['value-pink'], ['value-primary'], ['value-warning']],
+      )
+      expect(all('.counter-icon-wrap i').pluck(:class)).to eq(
+        ['bi bi-shield-x', 'bi bi-telephone-x', 'bi bi-file-earmark-x', 'bi bi-hourglass-split', 'bi bi-calendar-x', 'bi bi-calendar-event',
+         'bi bi-calendar2-week'],
+      )
     end
 
     scenario 'filters the employees by pendency, name and company' do

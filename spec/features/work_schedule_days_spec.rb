@@ -43,7 +43,47 @@ describe 'Work schedule days', :hr do
         end
 
         expect(page).to have_text('Lançamento salvo na escala.')
-        expect(page).to have_css("#employee_#{jose.id}", text: 'Folga na base')
+        expect(page).to have_current_path(work_schedules_path)
+        expect(page).to have_css("#employee_#{jose.id}", text: '1 de 2 folgas')
+        expect(WorkScheduleDay.last).to have_attributes(tenant:, employee: jose, date: Date.new(2026, 11, 25), kind_type: 'day_off',
+                                                        city: ipatinga)
+      end
+
+      scenario 'moves the end date along with the start date and blocks an end before the start' do
+        visit work_schedules_path
+        within("#employee_#{jose.id}") { click_on 'Lançar folga ou afastamento' }
+
+        within('#work_schedule_day_modal') do
+          fill_in 'De', with: '2026-11-27'
+
+          expect(page).to have_field('Até', with: '2026-11-27')
+          expect(find_field('Até')[:min]).to eq('2026-11-27')
+
+          fill_in 'Até', with: '2026-11-28'
+          fill_in 'De', with: '2026-11-26'
+
+          expect(page).to have_field('Até', with: '2026-11-28')
+
+          fill_in 'Até', with: '2026-11-25'
+
+          expect { click_on 'Lançar' }.not_to change(WorkScheduleDay, :count)
+          expect(page.evaluate_script("document.getElementById('work_schedule_day_end_on').validity.rangeUnderflow")).to be(true)
+        end
+      end
+
+      scenario 'enters a day off from the week of the employee and stays on it' do
+        visit work_schedule_path(jose, week: '2026-11-22')
+        click_on 'Lançar folga ou afastamento'
+
+        within('#work_schedule_day_modal') do
+          expect(page).to have_text('Lançar para JOSE SILVA')
+
+          expect { click_on 'Lançar' }.to change(WorkScheduleDay, :count).by(1)
+        end
+
+        expect(page).to have_text('Lançamento salvo na escala.')
+        expect(page).to have_current_path(work_schedule_path(jose, week: '2026-11-22'))
+        expect(page).to have_css('#work_schedule_days li', text: %r{25/11/2026 \(quarta-feira\)\s*Folga na base\s*Ipatinga/MG})
         expect(WorkScheduleDay.last).to have_attributes(tenant:, employee: jose, date: Date.new(2026, 11, 25), kind_type: 'day_off',
                                                         city: ipatinga)
       end
@@ -133,7 +173,7 @@ describe 'Work schedule days', :hr do
       let!(:entry) { create(:work_schedule_day, employee: jose, date: Date.new(2026, 11, 26), city: cubatao, notes: 'Folga combinada') }
 
       scenario 'shows the entry and removes it after the confirmation' do
-        visit work_schedules_path
+        visit work_schedule_path(jose, week: '2026-11-22')
         click_on 'Ver o lançamento de 26/11/2026'
 
         within('#work_schedule_day_entry_modal') do
@@ -145,6 +185,8 @@ describe 'Work schedule days', :hr do
         end
 
         expect(page).to have_text('Lançamento excluído da escala.')
+        expect(page).to have_current_path(work_schedule_path(jose, week: '2026-11-22'))
+        expect(page).to have_no_link('Ver o lançamento de 26/11/2026')
         expect(WorkScheduleDay.count).to eq(0)
       end
     end
@@ -160,7 +202,10 @@ describe 'Work schedule days', :hr do
 
     scenario 'enters a day off from the card of the employee' do
       visit work_schedules_path
-      within("#card_employee_#{jose.id}") { click_on 'Lançar folga ou afastamento' }
+      within("#card_employee_#{jose.id}") do
+        click_button 'Opções'
+        click_on 'Lançar folga ou afastamento'
+      end
 
       within('#work_schedule_day_modal') do
         select_day_off_city('ipa', 'Ipatinga/MG (base)')
@@ -168,7 +213,7 @@ describe 'Work schedule days', :hr do
         expect { click_on 'Lançar' }.to change(WorkScheduleDay, :count).by(1)
       end
 
-      expect(page).to have_css("#card_employee_#{jose.id}", text: 'Folga na base')
+      expect(page).to have_css("#card_employee_#{jose.id}", text: '1 de 2 folgas')
       expect(WorkScheduleDay.last).to have_attributes(tenant:, employee: jose, date: Date.new(2026, 11, 25), kind_type: 'day_off',
                                                       city: ipatinga, leave_reason_type: nil)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
@@ -188,7 +233,12 @@ describe 'Work schedule days', :hr do
     scenario 'sees the grid without the entry actions and cannot change it through forged requests' do
       visit work_schedules_path
 
-      expect(page).to have_css("#employee_#{jose.id}", text: 'Folga fora da base')
+      expect(page).to have_css("#employee_#{jose.id}", text: '1 de 2 folgas')
+      expect(page).to have_no_link('Lançar folga ou afastamento')
+
+      visit work_schedule_path(jose, week: '2026-11-22')
+
+      expect(page).to have_css('#work_schedule_days', text: 'Folga fora da base')
       expect(page).to have_no_link('Lançar folga ou afastamento')
 
       expect do

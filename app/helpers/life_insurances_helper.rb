@@ -32,6 +32,14 @@ module LifeInsurancesHelper
     create_button(t('life_insurances.index.new_life_insurance')) if can?(:create, :life_insurances)
   end
 
+  def life_insurance_related_links
+    links = [life_insurance_movements_button, uninsured_employees_button, life_insurance_policies_button].compact
+    return if links.empty?
+
+    content_tag(:nav, safe_join(links), class: 'd-flex flex-wrap gap-2 mb-4', id: 'life_insurance_related_links',
+                                        aria: { label: t('life_insurances.index.related_links') })
+  end
+
   def life_insurance_employee_status_options
     options_for_select(Employee.statuses, params[:employee_status])
   end

@@ -1,10 +1,12 @@
+<%# locals: (schedule:, employee: nil) %>
+
 <nav class="d-flex flex-wrap gap-2 mb-3" aria-label="<%= t('work_schedules.week_navigation.label') %>">
-  <%= link_to work_schedule_week_path(schedule.previous_week), class: 'btn btn-outline-secondary btn-round' do %>
+  <%= link_to work_schedule_week_path(schedule.previous_week, employee:), class: 'btn btn-outline-secondary btn-round' do %>
     <%= icon(:'chevron-left', class: 'me-1') %>
     <%= t('work_schedules.week_navigation.previous') %>
   <% end %>
-  <%= link_to t('work_schedules.week_navigation.current'), work_schedule_week_path(Date.current), class: 'btn btn-outline-secondary btn-round' %>
-  <%= link_to work_schedule_week_path(schedule.next_week), class: 'btn btn-outline-secondary btn-round' do %>
+  <%= link_to t('work_schedules.week_navigation.current'), work_schedule_week_path(Date.current, employee:), class: 'btn btn-outline-secondary btn-round' %>
+  <%= link_to work_schedule_week_path(schedule.next_week, employee:), class: 'btn btn-outline-secondary btn-round' do %>
     <%= t('work_schedules.week_navigation.next') %>
     <%= icon(:'chevron-right', class: 'ms-1') %>
   <% end %>

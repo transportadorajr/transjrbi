@@ -5,11 +5,10 @@
     <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
     <%= pdf_export_button %>
     <%= xlsx_export_button %>
-    <%= life_insurance_movements_button %>
-    <%= uninsured_employees_button %>
-    <%= life_insurance_policies_button %>
     <%= life_insurance_create_button %>
   <% end %>
+
+  <%= life_insurance_related_links %>
 
   <%= render 'filters' %>
 

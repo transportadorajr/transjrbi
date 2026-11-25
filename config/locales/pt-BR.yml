@@ -3314,6 +3314,7 @@ pt-BR:
       premium: Prêmio mensal
       company_premium: Prêmio %{company} (%{count})
       policies: Apólices
+      related_links: Telas relacionadas ao seguro
       pdf:
         header: Relatório do Seguro de Vida
         filename: seguro_de_vida_%{time}.pdf
@@ -3614,6 +3615,9 @@ pt-BR:
         sunday_overdue: Domingo de folga atrasado
         accumulated_days_off: Folgas acumuladas após semanas sem folga
         next_week_missing: Escala da próxima semana não lançada
+    show:
+      back: Voltar para a escala
+      summary: Resumo da semana
   employees:
     status:
       active: Ativo

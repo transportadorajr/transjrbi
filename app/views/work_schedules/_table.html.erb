@@ -9,9 +9,6 @@
     <thead>
       <tr>
         <%= sortable_header(Employee.human_attribute_name(:name), :name) %>
-        <% schedule.dates.each do |date| %>
-          <th class="text-center"><%= work_schedule_day_label(date) %></th>
-        <% end %>
         <th class="text-end"><%= t('work_schedules.index.days_off') %></th>
         <th class="text-end"><%= t('work_schedules.index.sunday') %></th>
         <th class="text-end"><%= t('work_schedules.index.alerts_column') %></th>

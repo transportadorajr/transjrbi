@@ -1,20 +1,12 @@
 <div class="border-bottom p-3" id="<%= dom_id(row.employee, :card) %>">
   <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-    <p class="fw-semibold text-break mb-0"><%= row.employee.name %></p>
+    <%= link_to row.employee.name, work_schedule_path(row.employee, week: schedule.week_start.iso8601), class: 'fw-semibold text-reset text-break' %>
     <div class="d-flex flex-column align-items-end gap-1">
       <%= work_schedule_days_off_tag(row) %>
       <%= work_schedule_sunday_tag(row.sunday) %>
     </div>
   </div>
   <%= work_schedule_alerts_tag(row, wrapper_class: 'd-flex flex-wrap gap-1 mb-2') %>
-  <ul class="list-unstyled mb-0">
-    <% row.days.each do |day| %>
-      <li class="d-flex justify-content-between align-items-start gap-2 py-1">
-        <span class="small text-body-secondary"><%= work_schedule_day_label(day.date) %></span>
-        <span class="text-end"><%= work_schedule_day_cell(day) %></span>
-      </li>
-    <% end %>
-  </ul>
   <div class="d-flex justify-content-end mt-2">
     <%= responsive_actions_menu(work_schedule_menu(row.employee, schedule)) %>
   </div>
