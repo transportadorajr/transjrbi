@@ -90,5 +90,5 @@ gem 'flipper'
 gem 'flipper-active_record'
 gem 'flipper-ui'
 
-gem 'sentry-ruby', '~> 7.2'
+gem 'sentry-ruby', '~> 7.3'
 gem 'sentry-rails', '~> 7.2'
