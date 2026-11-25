@@ -39,7 +39,10 @@ describe 'Risk assessments', :hr do
 
       scenario 'lists the risk assessments from the HR menu by employee name' do
         visit risk_assessments_path
-        within('.sidebar-desktop') { click_on 'Gerenciadoras de risco' }
+        within('.sidebar-desktop') do
+          click_on 'Seguros'
+          click_on 'Gerenciadoras de risco'
+        end
 
         expect(page).to have_current_path(risk_assessments_path)
         expect(RiskAssessment.count).to eq(4)
