@@ -23,6 +23,16 @@ export default class extends Controller {
     }
   }
 
+  followStart() {
+    this.limitEnd();
+
+    if (!COMPLETE_DATE.test(this.startTarget.value)) return;
+    if (this.endTarget.value && this.endTarget.value >= this.startTarget.value) return;
+
+    this.endTarget.value = this.startTarget.value;
+    this.endTarget.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
   limitEnd() {
     if (!this.hasStartTarget || !this.hasEndTarget) return;
 

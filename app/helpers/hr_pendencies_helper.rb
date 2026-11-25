@@ -1,7 +1,12 @@
 module HrPendenciesHelper
-  HR_PENDENCY_KINDS = {
-    uninsured: :danger, missing_emergency_contact: :warning, risk_assessment_expired: :danger, risk_assessment_expiring: :warning,
-    vacation_overdue: :danger, vacation_due_soon: :warning, irregular_days_off: :warning
+  HR_PENDENCY_STYLES = {
+    uninsured: { color: :purple, icon: :'shield-x' },
+    missing_emergency_contact: { color: :cyan, icon: :'telephone-x' },
+    risk_assessment_expired: { color: :danger, icon: :'file-earmark-x' },
+    risk_assessment_expiring: { color: :orange, icon: :'hourglass-split' },
+    vacation_overdue: { color: :pink, icon: :'calendar-x' },
+    vacation_due_soon: { color: :primary, icon: :'calendar-event' },
+    irregular_days_off: { color: :warning, icon: :'calendar2-week' },
   }.freeze
 
   def hr_pendencies_menu(employee)
@@ -15,7 +20,7 @@ module HrPendenciesHelper
   def hr_pendency_badges(row)
     badges = row.pendencies.map do |kind|
       link_to hr_pendency_path(kind, row.employee), class: 'text-decoration-none' do
-        status_badge(hr_pendency_label(kind), kind: HR_PENDENCY_KINDS.fetch(kind))
+        status_badge(hr_pendency_label(kind), kind: HR_PENDENCY_STYLES.fetch(kind).fetch(:color))
       end
     end
 
@@ -28,7 +33,9 @@ module HrPendenciesHelper
 
   def hr_pendency_counter_cards(dashboard, counts)
     safe_join(dashboard.kinds.map do |kind|
-      counter_card(:warning, hr_pendency_label(kind), counts.fetch(kind), col_class: 'col-12 col-md-6 col-xl-3')
+      style = HR_PENDENCY_STYLES.fetch(kind)
+      counter_card(style.fetch(:color), hr_pendency_label(kind), counts.fetch(kind), col_class: 'col-12 col-md-6 col-xl-3 counter-card-wrap',
+                                                                                     icon: style.fetch(:icon))
     end)
   end
 

@@ -235,6 +235,10 @@ describe 'Life insurances', :hr do
       visit life_insurances_path
       use_mobile_screen
 
+      expect(page).to have_css('.page-header .page-title', text: 'Seguro de vida')
+      expect(page).to have_no_css('.page-header', text: 'Movimentos do seguro')
+      expect(all('#life_insurance_related_links a').map { |link| link.text.squish }).to eq(['Movimentos do seguro', 'Sem seguro de vida', 'Apólices'])
+      expect(page.evaluate_script("document.querySelector('.page-title').getBoundingClientRect().width > 200")).to be(true)
       expect(page).to have_css('th', text: 'FUNCIONÁRIO')
       expect(page).to have_css('th', text: 'PRÊMIO')
       expect(page).to have_no_css('th', text: 'CAPITAL SEGURADO')

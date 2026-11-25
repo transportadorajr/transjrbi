@@ -21,7 +21,7 @@ class WorkScheduleDaysController < BaseController
     @day_form = WorkScheduleDayForm.new(tenant: current_tenant, **day_params)
 
     if @day_form.save
-      redirect_to work_schedules_path(week: @day_form.start_on.iso8601), notice: t('.success'), status: :see_other
+      redirect_back_or_to work_schedules_path(week: @day_form.start_on.iso8601), notice: t('.success'), status: :see_other
     else
       render formats: :turbo_stream, status: :unprocessable_content
     end
@@ -32,7 +32,7 @@ class WorkScheduleDaysController < BaseController
 
     @work_schedule_day.destroy!
 
-    redirect_to work_schedules_path(week: @work_schedule_day.date.iso8601), notice: t('.success'), status: :see_other
+    redirect_back_or_to work_schedules_path(week: @work_schedule_day.date.iso8601), notice: t('.success'), status: :see_other
   end
 
   private

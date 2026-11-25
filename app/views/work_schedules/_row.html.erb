@@ -1,8 +1,5 @@
 <tr id="<%= dom_id(row.employee) %>">
-  <td class="fw-semibold text-break"><%= row.employee.name %></td>
-  <% row.days.each do |day| %>
-    <td class="text-center"><%= work_schedule_day_cell(day) %></td>
-  <% end %>
+  <td class="fw-semibold"><%= link_to row.employee.name, work_schedule_path(row.employee, week: schedule.week_start.iso8601), class: 'text-reset' %></td>
   <td class="text-end text-nowrap"><%= work_schedule_days_off_tag(row) %></td>
   <td class="text-end text-nowrap"><%= work_schedule_sunday_tag(row.sunday) %></td>
   <td class="text-end"><%= work_schedule_alerts_tag(row) %></td>

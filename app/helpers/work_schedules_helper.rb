@@ -9,7 +9,9 @@ module WorkSchedulesHelper
     t('work_schedules.index.week', start: l(schedule.dates.first), finish: l(schedule.dates.last))
   end
 
-  def work_schedule_week_path(week_start)
+  def work_schedule_week_path(week_start, employee: nil)
+    return work_schedule_path(employee, week: week_start.iso8601) if employee
+
     work_schedules_path(request.query_parameters.except('page').merge('week' => week_start.iso8601))
   end
 
@@ -39,9 +41,23 @@ module WorkSchedulesHelper
   def work_schedule_menu(employee, schedule)
     menus = []
 
+    menus << work_schedule_show_menu(employee, schedule) if can?(:read, :work_schedules)
     menus << work_schedule_entry_menu(employee, schedule) if can?(:create, :work_schedules)
 
     menus
+  end
+
+  def work_schedule_entry_button(employee, schedule)
+    return unless can?(:create, :work_schedules)
+
+    link_to new_work_schedule_day_path(employee_id: employee.id, date: schedule.entry_date.iso8601),
+            class: 'btn btn-primary btn-primary-action btn-round', data: { turbo_stream: true } do
+      safe_join([icon(:'calendar-plus', class: 'me-2'), t('helpers.tooltips.employee.schedule')])
+    end
+  end
+
+  def work_schedule_alerts_detail(row)
+    work_schedule_alerts_tag(row, wrapper_class: 'd-flex flex-wrap gap-1') || tax_value(nil)
   end
 
   def work_schedule_days_off_tag(row)
@@ -123,6 +139,10 @@ module WorkSchedulesHelper
   end
 
   private
+
+  def work_schedule_show_menu(employee, schedule)
+    Menu.new(name: :show, record: employee, url: work_schedule_path(employee, week: schedule.week_start.iso8601), icon: :eye)
+  end
 
   def work_schedule_entry_menu(employee, schedule)
     Menu.new(name: :schedule, record: employee, url: new_work_schedule_day_path(employee_id: employee.id, date: schedule.entry_date.iso8601),

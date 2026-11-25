@@ -12,4 +12,11 @@ class WorkSchedulesController < BaseController
 
     respond_with_listing(orientation: :landscape, xlsx: -> { helpers.work_schedule_xlsx_sheets(@schedule, @rows) })
   end
+
+  def show
+    authorize!(:read, :work_schedules)
+
+    @schedule = Dashboard::WorkSchedule.new(tenant: current_tenant, week: params[:week])
+    @row = @schedule.rows([@schedule.employees.find(params.expect(:id))]).first
+  end
 end
