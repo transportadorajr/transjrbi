@@ -154,6 +154,30 @@ describe 'Employees', :hr do
         end
       end
 
+      context 'when the employee was admitted more than two years ago' do
+        let!(:vacation_resource) { create(:resource, name: 'Férias', slug: 'vacations') }
+
+        around { |example| travel_to(Time.zone.local(2026, 11, 24, 10)) { example.run } }
+
+        before { jose.update!(admitted_on: Date.new(2022, 11, 1)) }
+
+        scenario 'shows only the acquisition periods that ended in the last two years' do
+          visit employee_path(jose)
+
+          expect(Vacation.count).to eq(0)
+          within('#vacation_periods') do
+            expect(html_table_to_rows).to eq(
+              [
+                ['Período aquisitivo', 'Gozar até', 'Gozados + vendidos', 'Saldo (dias)', 'Situação'],
+                ['01/11/2026 a 31/10/2027', '31/10/2028', '0 + 0', '30', 'Em aquisição'],
+                ['01/11/2025 a 31/10/2026', '31/10/2027', '0 + 0', '30', 'Em dia'],
+                ['01/11/2024 a 31/10/2025', '31/10/2026', '0 + 0', '30', 'Vencidas'],
+              ],
+            )
+          end
+        end
+      end
+
       context 'when the employee has no CPF' do
         before { jose.update!(legal_id: nil) }
 

@@ -3294,8 +3294,9 @@ pt-BR:
     index:
       title: Férias a vencer
       subtitle: >-
-        Períodos aquisitivos completos com saldo de férias. Ficam a vencer %{days} dias antes do fim do prazo para gozar,
-        e vencidas depois dele, quando a empresa paga as férias em dobro.
+        Períodos aquisitivos completos com saldo de férias, encerrados nos últimos %{years} anos: os mais antigos já foram
+        gozados. Ficam a vencer %{days} dias antes do fim do prazo para gozar, e vencidas depois dele, quando a empresa paga
+        as férias em dobro.
       overdue: Férias vencidas
       due_soon: A vencer em até %{days} dias
       open: Em dia, com saldo
@@ -3633,7 +3634,9 @@ pt-BR:
       new_risk_assessment: Cadastrar pesquisa
     vacation_periods:
       title: Férias por período aquisitivo
-      subtitle: Cada período aquisitivo dá 30 dias de férias, que precisam ser gozados até o fim do ano seguinte.
+      subtitle: >-
+        Cada período aquisitivo dá 30 dias de férias, que precisam ser gozados até o fim do ano seguinte. Mostra os
+        períodos encerrados nos últimos %{years} anos: os mais antigos já foram gozados.
       without_admission: Cadastre a data de admissão para calcular os períodos aquisitivos.
       new_vacation: Lançar férias
       taken: Gozados + vendidos

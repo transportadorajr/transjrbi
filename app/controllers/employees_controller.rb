@@ -17,7 +17,7 @@ class EmployeesController < BaseController
   def show
     authorize!(:read, :employees)
 
-    @vacation_periods = listing_page(VacationPeriod.for_employee(@employee).reverse, param_name: :periods_page)
+    @vacation_periods = listing_page(VacationPeriod.recent_for_employee(@employee).reverse, param_name: :periods_page)
     @risk_assessments = listing_page(@employee.risk_assessments.order(:provider_type), param_name: :risk_assessments_page)
     @emergency_contacts = listing_page(@employee.emergency_contacts, param_name: :emergency_contacts_page)
     @life_insurance = @employee.life_insurances.covered_on(Date.current).preload(:life_insurance_policy).first

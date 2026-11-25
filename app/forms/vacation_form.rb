@@ -84,7 +84,7 @@ class VacationForm < BaseForm
   end
 
   def oldest_open_period
-    periods = VacationPeriod.for_employee(employee, vacations: other_vacations.to_a, until_on: start_on)
+    periods = VacationPeriod.recent_for_employee(employee, vacations: other_vacations.to_a, until_on: start_on)
 
     periods.find { |candidate| candidate.balance.positive? } || periods.last
   end

@@ -86,7 +86,9 @@ module EmployeesHelper
   end
 
   def employee_vacation_periods_subtitle(employee)
-    t("employees.vacation_periods.#{employee.admitted_on ? :subtitle : :without_admission}")
+    return t('employees.vacation_periods.without_admission') unless employee.admitted_on
+
+    t('employees.vacation_periods.subtitle', years: VacationPeriod::LOOKBACK_YEARS)
   end
 
   def employee_new_vacation_button(employee)

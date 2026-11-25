@@ -8,7 +8,7 @@ module Dashboard
 
     def periods(employees)
       periods = employees.activated.where.not(admitted_on: nil).preload(:vacations).flat_map do |employee|
-        VacationPeriod.for_employee(employee, vacations: employee.vacations.to_a, until_on: today)
+        VacationPeriod.recent_for_employee(employee, vacations: employee.vacations.to_a, until_on: today)
           .select { |period| STATUSES.include?(period.status(today)) }
       end
 
