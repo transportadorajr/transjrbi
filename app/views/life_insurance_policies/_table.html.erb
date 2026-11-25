@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= LifeInsurancePolicy.human_attribute_name(:company_type) %></th>
+        <th class="text-end"><%= LifeInsurancePolicy.human_attribute_name(:capital) %></th>
+        <th class="d-none d-md-table-cell text-end"><%= LifeInsurancePolicy.human_attribute_name(:premium_rate_per_mille) %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= LifeInsurancePolicy.human_attribute_name(:spouse_percentage) %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= LifeInsurancePolicy.human_attribute_name(:children_percentage) %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= LifeInsurancePolicy.human_attribute_name(:funeral_assistance) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

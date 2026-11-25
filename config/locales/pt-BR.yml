@@ -1078,6 +1078,13 @@ pt-BR:
         city_id: Cidade da folga
         leave_reason_type: Motivo do afastamento
         notes: Observações
+      life_insurance_policy_form:
+        company_type: Empresa
+        capital: Capital segurado
+        premium_rate_per_mille: Taxa do prêmio (‰)
+        spouse_percentage: Cônjuge (% do capital)
+        children_percentage: Filhos (% do capital)
+        funeral_assistance: Assistência funeral familiar
       risk_assessment_form:
         employee: Funcionário
         employee_id: Funcionário
@@ -1350,6 +1357,16 @@ pt-BR:
           attributes:
             provider_type:
               taken: já tem uma pesquisa cadastrada para este funcionário
+        life_insurance_policy_form:
+          attributes:
+            company_type:
+              taken: já tem uma apólice cadastrada
+            premium_rate_per_mille:
+              out_of_range: deve ser maior que 0 e menor que 1000
+            spouse_percentage:
+              out_of_range: deve estar entre 0 e 100
+            children_percentage:
+              out_of_range: deve estar entre 0 e 100
         vacation_form:
           attributes:
             employee_id:
@@ -1824,6 +1841,9 @@ pt-BR:
       risk_assessment:
         create: Cadastrar Pesquisa
         update: Salvar Alterações
+      life_insurance_policy:
+        create: Cadastrar Apólice
+        update: Salvar Alterações
       vacation:
         create: Lançar Férias
         update: Salvar Alterações
@@ -1865,6 +1885,8 @@ pt-BR:
       risk_assessment:
         edit: Alterar
         destroy: Excluir
+      life_insurance_policy:
+        edit: Alterar
       vacation:
         edit: Alterar
         destroy: Excluir
@@ -2198,6 +2220,7 @@ pt-BR:
   resource_names:
     vacations: Férias
     risk_assessments: Gerenciadoras de risco
+    life_insurances: Seguro de vida
     hr: Módulo de RH
     maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
@@ -3206,6 +3229,42 @@ pt-BR:
       due_soon: A vencer em até %{days} dias
       open: Em dia, com saldo
       periods: Períodos com saldo
+  life_insurances:
+    index:
+      title: Seguro de vida
+      subtitle: Coberturas e prêmio mensal de cada funcionário segurado, separados por empresa.
+      insured_employees: Funcionários segurados
+      insured: Segurados
+      premium: Prêmio mensal
+      company_premium: Prêmio %{company} (%{count})
+      policies: Apólices
+      pdf:
+        header: Relatório do Seguro de Vida
+        filename: seguro_de_vida_%{time}.pdf
+    filters:
+      name: Nome do funcionário
+  life_insurance_policies:
+    rate: '%{value} ‰'
+    index:
+      title: Apólices de seguro de vida
+      subtitle: Capital, taxa do prêmio e coberturas da apólice de cada empresa.
+      back: Voltar para seguro de vida
+      new_life_insurance_policy: Cadastrar Apólice
+    new:
+      title: Cadastrar Apólice
+      back: Voltar para apólices
+    create:
+      success: Apólice cadastrada com sucesso.
+    edit:
+      title: Alterar Apólice
+      back: Voltar para apólices
+    update:
+      success: Apólice atualizada com sucesso.
+    form:
+      policy_data: Dados da Apólice
+      policy_data_text: O capital vale para todos os segurados da empresa, menos os que têm capital próprio. As coberturas de morte acidental e invalidez são iguais ao capital.
+      capital_hint: Capital de morte por qualquer causa, em reais.
+      premium_rate_hint: 'Prêmio mensal por mil reais de capital. Ex.: 0,3185.'
   risk_assessments:
     index:
       title: Gerenciadoras de risco
@@ -4657,6 +4716,7 @@ pt-BR:
     absences: Quem está fora
     vacation_balances: Férias a vencer
     risk_assessments: Gerenciadoras de risco
+    life_insurances: Seguro de vida
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários

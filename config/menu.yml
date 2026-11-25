@@ -256,6 +256,13 @@ shared:
       url: /risk_assessments
       controllers:
         - risk_assessments
+    - name: life_insurances
+      resource: life_insurances
+      icon: heart-pulse
+      url: /life_insurances
+      controllers:
+        - life_insurances
+        - life_insurance_policies
   admin:
     - name: admin_imports
       icon: cloud-arrow-down
