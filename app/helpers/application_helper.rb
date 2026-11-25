@@ -28,8 +28,6 @@ module ApplicationHelper
   end
 
   def xlsx_export_button
-    return unless XlsxExport.enabled?(Current.tenant)
-
     path = url_for(request.query_parameters.symbolize_keys.except(:page).merge(format: :xlsx))
 
     link_to path, class: 'btn btn-outline-success btn-round', title: t('shared.export_xlsx'), data: { turbo: false } do

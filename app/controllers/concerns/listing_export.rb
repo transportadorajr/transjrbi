@@ -12,7 +12,7 @@ module ListingExport
     respond_to do |format|
       format.html
       format.pdf { render typst: nil, orientation:, filename: t('.pdf.filename', time: Time.current.to_i) } if pdf
-      format.xlsx { send_listing_xlsx(xlsx) } if xlsx && XlsxExport.enabled?(current_tenant)
+      format.xlsx { send_listing_xlsx(xlsx) } if xlsx
     end
   end
 

@@ -58,15 +58,20 @@ RSpec.describe GoalsHelper do
       allow(helper).to receive(:can?).with(:read, :revenue_projection).and_return(true)
     end
 
-    it 'links to the projection history of the row when the projection is enabled', flipper: { revenue_projection: :tenant } do
+    it 'links to the projection history of the row with access to the projection' do
       menu = helper.goal_row_menu(cut_row, Date.new(2026, 11, 1)).sole
 
       expect(menu.url).to eq('/revenue_projection_history?end_date=2026-11-30&plate=AJR4391&start_date=2026-11-01')
     end
 
-    it 'has no link while the projection is disabled or the row has no cut' do
-      expect(helper.goal_row_menu(cut_row, Date.new(2026, 11, 1))).to be_empty
+    it 'has no link when the row has no cut' do
       expect(helper.goal_row_menu(row(goal_cents: nil), Date.new(2026, 11, 1))).to be_empty
+    end
+
+    it 'has no link without access to the projection' do
+      allow(helper).to receive(:can?).with(:read, :revenue_projection).and_return(false)
+
+      expect(helper.goal_row_menu(cut_row, Date.new(2026, 11, 1))).to be_empty
     end
   end
 end

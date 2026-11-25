@@ -21,12 +21,11 @@ RSpec.describe EnableFeatureFlagsGlobally do
 
   it 'covers every feature flag checked by the product' do
     product_features = [
-      Dashboard::Trip::FEATURE, Dashboard::RevenueProjection::FEATURE, Dashboard::Goals::FEATURE,
-      Dashboard::Freight::COMPARISON_FEATURE, ExportPlant::FEATURE, MaintenanceOrder::FEATURE,
-      MaintenanceOrderSignature::FEATURE, Hr::FEATURE, XlsxExport::FEATURE
+      Dashboard::Trip::FEATURE, Dashboard::Freight::COMPARISON_FEATURE, ExportPlant::FEATURE,
+      MaintenanceOrder::FEATURE, MaintenanceOrderSignature::FEATURE, Hr::FEATURE
     ]
 
-    expect(described_class::FEATURES).to match_array(product_features)
+    expect(described_class::FEATURES).to include(*product_features)
   end
 
   it 'cannot be rolled back' do

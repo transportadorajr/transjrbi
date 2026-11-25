@@ -1,5 +1,4 @@
 module XlsxExport
-  FEATURE = :xlsx_export
   LOCAL_URL = 'http://localhost:4000'.freeze
 
   class Error < StandardError; end
@@ -7,10 +6,6 @@ module XlsxExport
   class RequestError < Error; end
 
   class << self
-    def enabled?(tenant)
-      Flipper.enabled?(FEATURE, tenant)
-    end
-
     def url
       configured_url || local_url || raise(ConfigurationError, I18n.t('xlsx_export.errors.missing_url'))
     end

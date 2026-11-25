@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Revenue projection history', flipper: { revenue_projection: :tenant } do
+describe 'Revenue projection history' do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
@@ -61,7 +61,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
 
         expect(page).to have_current_path(revenue_projection_history_path)
         expect(page).to have_css('h1.page-title', text: 'Histórico da projeção')
-        expect(page).to have_no_link('Exportar Excel')
+        expect(page).to have_link('Exportar Excel')
         expect(page).to have_css('.dashboard-segmented .btn-primary', text: 'Mês atual')
         expect(page).to have_select('Mês', selected: 'Novembro de 2026', options: ['Novembro de 2026', 'Outubro de 2026'])
         expect(all('#history_cards .counter-card').map { it.text.squish }).to eq(
@@ -276,7 +276,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           end
         end
 
-        context 'with the goals of the month', flipper: { revenue_projection: :tenant, revenue_goals: :tenant } do
+        context 'with the goals of the month' do
           let!(:goals_resource) { create(:resource, name: 'Painel de metas', slug: 'goals', writable: false) }
 
           before do
@@ -339,7 +339,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
           end
         end
 
-        scenario 'shows no goal without the goals flag' do
+        scenario 'shows no goal without the goals panel resource' do
           create(:revenue_goal, tenant:, month: Date.new(2026, 11, 1), amount_cents: 2_500_000)
 
           visit revenue_projection_history_path(start_date: '2026-11-04', end_date: '2026-11-04')
@@ -588,7 +588,7 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
       end
     end
 
-    scenario 'tells that there is no history yet', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
+    scenario 'tells that there is no history yet' do
       visit revenue_projection_history_path
 
       expect(page).to have_css('#no_history', text: 'Ainda não há histórico disponível para este período.')
@@ -690,22 +690,6 @@ describe 'Revenue projection history', flipper: { revenue_projection: :tenant } 
 
       expect(page).to have_text('Você não possui acesso a esta funcionalidade.')
       expect(RevenueProjection::DayNote.pluck(:body)).to eq(['Greve no porto'])
-    end
-  end
-
-  context 'when the feature is turned off for the tenant' do
-    let!(:owner) { create(:user, tenant: other_tenant, user_type: :owner) }
-
-    before { login_as(owner, scope: :user) }
-
-    scenario 'does not show the menu nor the screen' do
-      visit root_path
-
-      within('.sidebar-desktop') { expect(page).to have_no_link('Histórico da projeção') }
-
-      visit revenue_projection_history_path
-
-      expect(page.status_code).to eq(404)
     end
   end
 

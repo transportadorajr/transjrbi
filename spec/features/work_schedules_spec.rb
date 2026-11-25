@@ -124,7 +124,7 @@ describe 'Work schedules', :hr do
         expect(text).not_to include('FORA DA ESCALA', 'FUNCIONÁRIO DE OUTRA')
       end
 
-      scenario 'exports the week to Excel', :xlsx_service, flipper: { hr: :tenant, xlsx_export: :tenant } do
+      scenario 'exports the week to Excel', :xlsx_service, flipper: { hr: :tenant } do
         visit work_schedules_path(name: 'silva')
         click_on 'Exportar Excel'
 

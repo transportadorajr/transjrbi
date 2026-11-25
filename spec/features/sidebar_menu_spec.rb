@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Sidebar menu', flipper: %i[trips_dashboard revenue_projection revenue_goals maintenance] do
+describe 'Sidebar menu', flipper: %i[trips_dashboard maintenance] do
   let!(:tenant) { create(:tenant) }
   let!(:resources) do
     %w[

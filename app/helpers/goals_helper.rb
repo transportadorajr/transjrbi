@@ -246,7 +246,7 @@ module GoalsHelper
   private
 
   def goal_projection_allowed?
-    Dashboard::RevenueProjection.enabled?(Current.tenant) && can?(:read, :revenue_projection)
+    can?(:read, :revenue_projection)
   end
 
   def goal_projection_menu(row, month)

@@ -141,7 +141,7 @@ describe 'Risk assessments', :hr do
         expect(text).not_to include('FUNCIONÁRIO DE OUTRA')
       end
 
-      scenario 'exports the risk assessments to Excel', :xlsx_service, flipper: { hr: :tenant, xlsx_export: :tenant } do
+      scenario 'exports the risk assessments to Excel', :xlsx_service, flipper: { hr: :tenant } do
         visit risk_assessments_path(provider_type: 'apisul', name: 'jose')
         click_on 'Exportar Excel'
 

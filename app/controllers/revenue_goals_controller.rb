@@ -1,5 +1,4 @@
 class RevenueGoalsController < BaseController
-  before_action :require_revenue_goals
   before_action :load_filter_form, only: %i[show edit replicate]
 
   def show
@@ -41,10 +40,6 @@ class RevenueGoalsController < BaseController
   end
 
   private
-
-  def require_revenue_goals
-    raise ActionController::RoutingError, 'Not Found' unless Dashboard::Goals.enabled?(current_tenant)
-  end
 
   def load_filter_form
     filter_form = GoalFilterForm.new(month: params[:month])

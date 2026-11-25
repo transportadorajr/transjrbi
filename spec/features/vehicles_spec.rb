@@ -142,7 +142,7 @@ describe 'Vehicles' do
         expect(page.status_code).to eq(404)
       end
 
-      context 'with the Excel export enabled', :xlsx_service, flipper: { xlsx_export: :tenant } do
+      context 'with the Excel export enabled', :xlsx_service do
         before { truck.update_columns(imported_at: Time.zone.local(2026, 10, 1, 8, 30), created_at: Time.zone.local(2026, 10, 1, 8, 30), updated_at: Time.zone.local(2026, 10, 2, 17, 45)) }
 
         scenario 'exports every column but the ids of the vehicles listed' do
@@ -195,19 +195,6 @@ describe 'Vehicles' do
 
           expect(page).to have_current_path(vehicles_path(category: 'Carreta'))
           expect(page).to have_text('Não foi possível gerar a planilha do Excel agora. Tente novamente em alguns minutos.')
-        end
-      end
-
-      context 'with the Excel export disabled' do
-        scenario 'neither shows the button nor exports the spreadsheet' do
-          visit vehicles_path
-
-          expect(page).to have_link('Exportar PDF')
-          expect(page).to have_no_link('Exportar Excel')
-
-          visit vehicles_path(format: :xlsx)
-
-          expect(page.status_code).to eq(406)
         end
       end
     end
@@ -492,7 +479,7 @@ describe 'Vehicles' do
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
     end
 
-    context 'with the Excel export enabled', flipper: { xlsx_export: :tenant } do
+    context 'with the Excel export enabled' do
       scenario 'shows both export buttons as icons without horizontal scroll on a narrow phone' do
         use_mobile_screen(width: 360, height: 780)
         visit vehicles_path

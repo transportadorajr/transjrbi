@@ -145,7 +145,7 @@ describe 'Vacations', :hr do
         expect(text).not_to include('FUNCIONÁRIO DE OUTRA')
       end
 
-      scenario 'exports the vacations to Excel', :xlsx_service, flipper: { hr: :tenant, xlsx_export: :tenant } do
+      scenario 'exports the vacations to Excel', :xlsx_service, flipper: { hr: :tenant } do
         visit vacations_path(name: 'jose')
         click_on 'Exportar Excel'
 
