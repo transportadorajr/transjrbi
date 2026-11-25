@@ -32,6 +32,21 @@ RSpec.describe Dashboard::VacationBalances do
     )
   end
 
+  context 'when an employee has periods that ended more than two years ago' do
+    let!(:veteran) { create(:employee, tenant:, name: 'GILSON', legal_id: '00000000057', admitted_on: Date.new(2021, 11, 25)) }
+
+    it 'lists only the periods that ended in the last two years' do
+      veteran_periods = periods.select { |period| period.employee == veteran }
+
+      expect(veteran_periods.map { |period| [period.start_on, period.end_on, period.status(Date.new(2026, 11, 24))] }).to eq(
+        [
+          [Date.new(2023, 11, 25), Date.new(2024, 11, 24), :overdue],
+          [Date.new(2024, 11, 25), Date.new(2025, 11, 24), :due_soon],
+        ],
+      )
+    end
+  end
+
   it 'filters and counts the periods by status' do
     expect(balances.with_status(periods, 'due_soon').map { |period| period.employee.name }).to eq(['BRUNO'])
     expect(balances.with_status(periods, 'anything').size).to eq(3)

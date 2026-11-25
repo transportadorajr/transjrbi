@@ -33,6 +33,22 @@ RSpec.describe VacationPeriod do
     end
   end
 
+  describe '.recent_for_employee' do
+    it 'keeps only the periods that ended in the last two years' do
+      employee.update!(admitted_on: Date.new(2021, 11, 25))
+
+      periods = described_class.recent_for_employee(employee, until_on: Date.new(2026, 11, 24))
+
+      expect(periods.map { |period| [period.start_on, period.end_on] }).to eq(
+        [
+          [Date.new(2023, 11, 25), Date.new(2024, 11, 24)],
+          [Date.new(2024, 11, 25), Date.new(2025, 11, 24)],
+          [Date.new(2025, 11, 25), Date.new(2026, 11, 24)],
+        ],
+      )
+    end
+  end
+
   describe '#balance and #status' do
     let(:period) { described_class.find(employee, Date.new(2024, 3, 10)) }
 

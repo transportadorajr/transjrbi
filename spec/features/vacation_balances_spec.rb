@@ -6,6 +6,7 @@ describe 'Vacation balances', :hr do
   let!(:resource) { create(:resource, name: 'Férias', slug: 'vacations') }
   let!(:ana) { create(:employee, tenant:, name: 'ANA PAULA', legal_id: '11144477735', admitted_on: Date.new(2024, 10, 1)) }
   let!(:bruno) { create(:employee, tenant:, name: 'BRUNO COSTA', legal_id: '52998224725', admitted_on: Date.new(2025, 1, 10)) }
+  let!(:carlos) { create(:employee, tenant:, name: 'CARLOS LIMA', legal_id: '39053344705', admitted_on: Date.new(2022, 11, 1)) }
 
   around { |example| travel_to(Time.zone.local(2026, 11, 24, 10)) { example.run } }
 
@@ -26,18 +27,21 @@ describe 'Vacation balances', :hr do
         click_on 'Férias a vencer'
       end
 
-      expect(page).to have_css('.card', text: "Férias vencidas\n1")
+      expect(page).to have_css('.card', text: "Férias vencidas\n2")
       expect(page).to have_css('.card', text: "A vencer em até 60 dias\n1")
-      expect(page).to have_css('.card', text: "Em dia, com saldo\n1")
+      expect(page).to have_css('.card', text: "Em dia, com saldo\n2")
       expect(Vacation.count).to eq(1)
       expect(html_table_to_rows).to eq(
         [
           ['Funcionário', 'Período aquisitivo', 'Gozar até', 'Saldo (dias)', 'Situação', 'Ações'],
           ['ANA PAULA', '01/10/2024 a 30/09/2025', '30/09/2026', '10', 'Vencidas', ''],
+          ['CARLOS LIMA', '01/11/2024 a 31/10/2025', '31/10/2026', '30', 'Vencidas', ''],
           ['BRUNO COSTA', '10/01/2025 a 09/01/2026', '09/01/2027', '30', 'A vencer', ''],
           ['ANA PAULA', '01/10/2025 a 30/09/2026', '30/09/2027', '30', 'Em dia', ''],
+          ['CARLOS LIMA', '01/11/2025 a 31/10/2026', '31/10/2027', '30', 'Em dia', ''],
         ],
       )
+      expect(page).to have_no_text('01/11/2023 a 31/10/2024')
       expect(page).to have_link('Lançar férias', href: new_vacation_path(employee_id: bruno.id))
       expect(page).to have_no_text('FUNCIONÁRIO DE OUTRA')
     end
@@ -49,10 +53,13 @@ describe 'Vacation balances', :hr do
         [
           ['Funcionário', 'Período aquisitivo', 'Gozar até', 'Saldo (dias)', 'Situação', 'Ações'],
           ['ANA PAULA', '01/10/2024 a 30/09/2025', '30/09/2026', '10', 'Vencidas', ''],
+          ['CARLOS LIMA', '01/11/2024 a 31/10/2025', '31/10/2026', '30', 'Vencidas', ''],
         ],
       )
 
-      click_on 'Lançar férias'
+      within('tbody tr', text: 'ANA PAULA') do
+        click_on 'Lançar férias'
+      end
 
       expect(page).to have_current_path(new_vacation_path(employee_id: ana.id))
     end
@@ -72,7 +79,7 @@ describe 'Vacation balances', :hr do
       expect(page).to have_css('th', text: /situação/i)
       expect(page).to have_no_css('th', text: /gozar até/i)
       expect(page).to have_no_css('th', text: /saldo/i)
-      expect(page).to have_css('tbody tr', count: 3)
+      expect(page).to have_css('tbody tr', count: 5)
       expect(page).to have_css('tbody tr', text: /ANA PAULA\s*Vencidas/i)
     end
   end

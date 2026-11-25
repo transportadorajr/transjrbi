@@ -1,7 +1,7 @@
 <% content_for :title, t('.title') %>
 
 <div class="page-shell">
-  <%= page_header_tag t('.title'), subtitle: t('.subtitle', days: VacationPeriod::DUE_SOON_DAYS) do %>
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle', days: VacationPeriod::DUE_SOON_DAYS, years: VacationPeriod::LOOKBACK_YEARS) do %>
     <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
   <% end %>
 

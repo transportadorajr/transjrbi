@@ -5,6 +5,7 @@ class VacationPeriod
   MIN_MAIN_PART_DAYS = 14
   MIN_PART_DAYS = 5
   DUE_SOON_DAYS = 60
+  LOOKBACK_YEARS = 2
 
   attr_reader :employee, :start_on, :vacations
 
@@ -13,6 +14,10 @@ class VacationPeriod
       start_dates(employee, until_on).map do |start_on|
         new(employee:, start_on:, vacations: vacations.select { |vacation| vacation.acquisition_start_on == start_on })
       end
+    end
+
+    def recent_for_employee(employee, vacations: employee.vacations.to_a, until_on: Date.current)
+      for_employee(employee, vacations:, until_on:).select { |period| period.end_on >= until_on.years_ago(LOOKBACK_YEARS) }
     end
 
     def start_dates(employee, until_on)
