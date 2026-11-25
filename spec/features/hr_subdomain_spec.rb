@@ -84,6 +84,42 @@ describe 'HR subdomain', :hr do
     end
   end
 
+  context 'when the owner is signed in and the HR screens are registered', flipper: :hr do
+    let!(:owner) { create(:user, tenant:, user_type: :owner) }
+
+    before do
+      %w[employees job_positions work_schedules vacations risk_assessments life_insurances emergency_contacts]
+        .each { |slug| create(:resource, slug:) }
+      login_as(owner, scope: :user)
+    end
+
+    scenario 'groups the absences and the insurances screens into submenus' do
+      visit '/'
+
+      expect(sidebar_items).to eq(
+        [
+          'Funcionários',
+          'Cargos',
+          'Ausências',
+          'Escala de folgas',
+          'Férias a vencer',
+          'Quem está fora',
+          'Férias',
+          'Seguros',
+          'Gerenciadoras de risco',
+          'Seguro de vida',
+          'Movimentos do seguro',
+          'Sem seguro de vida',
+          'Contatos de emergência',
+        ],
+      )
+      within('#sidebar') do
+        expect(page).to have_css('#ausencias .sidebar-sublink', count: 4)
+        expect(page).to have_css('#seguros .sidebar-sublink', count: 5)
+      end
+    end
+  end
+
   context 'when the HR access resource is not registered', flipper: :hr do
     let!(:owner) { create(:user, tenant:, user_type: :owner, name: 'Ana Dona') }
 

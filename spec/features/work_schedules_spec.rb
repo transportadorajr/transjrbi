@@ -85,7 +85,10 @@ describe 'Work schedules', :hr do
 
       scenario 'shows the week from the HR menu' do
         visit employees_path
-        within('.sidebar-desktop') { click_on 'Escala de folgas' }
+        within('.sidebar-desktop') do
+          click_on 'Ausências'
+          click_on 'Escala de folgas'
+        end
 
         expect(page).to have_current_path(work_schedules_path)
         expect(page).to have_css('.page-header', text: 'Semana de 22/11/2026 a 28/11/2026')

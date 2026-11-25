@@ -62,6 +62,13 @@ class Menu < SimpleDelegator
     feature_enabled? && authorized?(ability) && (menus.empty? || menus.any? { |menu| menu.show?(ability) })
   end
 
+  def landing(ability)
+    return unless show?(ability)
+    return self if menus.empty?
+
+    menus.lazy.filter_map { |menu| menu.landing(ability) }.first
+  end
+
   private
 
   def authorized?(ability)

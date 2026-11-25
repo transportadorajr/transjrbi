@@ -76,5 +76,29 @@ RSpec.describe Menu do
       expect(menu).not_to be_show(ability)
       expect(menu).to be_show(Ability.new(create(:user, tenant:, user_type: :admin)))
     end
+
+    it 'lands on the menu itself when it has no items' do
+      menu = described_class.new(name: :freight_billing, resource: 'freight_billing', url: '/freight_billing')
+
+      expect(menu.landing(ability).url).to eq('/freight_billing')
+    end
+
+    it 'lands on the first item of a group the user can read' do
+      menu = described_class.new(
+        name: :intelligence,
+        menus: [
+          { name: :customers, resource: 'customers', url: '/customers' },
+          { name: :freight_billing, resource: 'freight_billing', url: '/freight_billing' },
+        ],
+      )
+
+      expect(menu.landing(ability).url).to eq('/freight_billing')
+    end
+
+    it 'has no landing when the user cannot read the menu' do
+      menu = described_class.new(name: :registrations, menus: [{ name: :customers, resource: 'customers' }])
+
+      expect(menu.landing(ability)).to be_nil
+    end
   end
 end

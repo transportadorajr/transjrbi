@@ -39,7 +39,10 @@ describe 'Uninsured employees', :hr do
 
     scenario 'lists the active employees without life insurance from the HR menu' do
       visit life_insurances_path
-      within('.sidebar-desktop') { click_on 'Sem seguro de vida' }
+      within('.sidebar-desktop') do
+        click_on 'Seguros'
+        click_on 'Sem seguro de vida'
+      end
 
       expect(page).to have_current_path(uninsured_employees_path)
       expect(Employee.count).to eq(5)
