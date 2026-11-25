@@ -77,7 +77,10 @@ Rails.application.routes.draw do
   end
 
   constraints subdomain: Transjrbi::HR_SUBDOMAIN do
-    resources :employees, except: :destroy, concerns: :activatable
+    resources :employees, except: :destroy, concerns: :activatable do
+      resources :emergency_contacts, only: %i[new create edit update destroy], shallow: true
+    end
+    resources :emergency_contacts, only: :index
     resources :job_positions, except: %i[show destroy], concerns: :activatable
     resources :work_schedules, only: :index
     resources :work_schedule_days, only: %i[show new create destroy]

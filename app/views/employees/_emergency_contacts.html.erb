@@ -1,0 +1,16 @@
+<div class="card table-card mb-4" id="emergency_contacts">
+  <div class="table-card-header">
+    <div class="table-card-heading">
+      <p class="table-card-title"><%= t('employees.emergency_contacts.title') %></p>
+      <p class="table-card-subtitle"><%= t('employees.emergency_contacts.subtitle') %></p>
+    </div>
+    <%= employee_new_emergency_contact_button(employee) %>
+  </div>
+  <div class="table-card-body">
+    <% if emergency_contacts.any? %>
+      <%= render 'employees/emergency_contact_table', collection: emergency_contacts %>
+    <% else %>
+      <%= render 'shared/no_content' %>
+    <% end %>
+  </div>
+</div>

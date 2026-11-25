@@ -3,7 +3,7 @@ class Ability
 
   MAINTENANCE_RESOURCES = %i[maintenance maintenance_orders workshop_employees suppliers maintenance_parts maintenance_services vehicles].freeze
   MAINTENANCE_MODULE_RESOURCES = (MAINTENANCE_RESOURCES - %i[vehicles]).freeze
-  HR_RESOURCES = %i[hr employees job_positions work_schedules vacations risk_assessments life_insurances].freeze
+  HR_RESOURCES = %i[hr employees job_positions work_schedules vacations risk_assessments life_insurances emergency_contacts].freeze
 
   class << self
     def resources_outside_maintenance

@@ -20,6 +20,7 @@ class Employee < ApplicationRecord
   has_many :vacations, dependent: :delete_all
   has_many :risk_assessments, dependent: :delete_all
   has_many :life_insurances, dependent: :delete_all
+  has_many :emergency_contacts, -> { order(:position, :id) }, dependent: :delete_all, inverse_of: :employee
 
   enum :company_type, COMPANIES.index_with(&:to_s), validate: true
   enum :gender_type, GENDERS.index_with(&:to_s), validate: true
@@ -38,6 +39,8 @@ class Employee < ApplicationRecord
   scope :without_life_insurance, ->(date = Date.current) {
     activated.where.not(id: LifeInsurance.covered_on(date).select(:employee_id))
   }
+  scope :without_emergency_contact, -> { where.not(id: EmergencyContact.select(:employee_id)) }
+  scope :by_emergency_contact, ->(value) { value == 'missing' ? without_emergency_contact : where(id: EmergencyContact.select(:employee_id)) }
   scope :scheduled_in, ->(dates) {
     activated.five_two.where(admitted_on: nil).or(activated.five_two.where(admitted_on: ..dates.last))
   }

@@ -1,0 +1,9 @@
+<tr id="<%= dom_id(item) %>">
+  <td class="text-break"><%= item.name %></td>
+  <td class="d-none d-md-table-cell"><%= emergency_contact_relationship(item) %></td>
+  <td><%= emergency_contact_phones(item) %></td>
+  <td class="d-none d-lg-table-cell text-break"><%= tax_value(item.notes) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(emergency_contacts_menu(item)) %>
+  </td>
+</tr>

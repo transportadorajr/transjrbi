@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_213421) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_25_144119) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -26,6 +26,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_213421) do
   create_enum "atua_transport_document_cargo_destination_type", ["national", "export", "import"]
   create_enum "commission_rule_base_type", ["freight", "freight_without_icms"]
   create_enum "commission_rule_destination_type", ["national", "foreign"]
+  create_enum "emergency_contact_relationship_type", ["spouse", "partner", "fiance", "mother", "father", "child", "sibling", "godparent", "other"]
   create_enum "employee_company_type", ["transjr", "mme", "mm_espinola"]
   create_enum "employee_gender_type", ["female", "male"]
   create_enum "employee_work_schedule_type", ["five_two", "not_scheduled"]
@@ -669,6 +670,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_213421) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["tenant_id", "code"], name: "index_drivers_on_tenant_id_and_code", unique: true
+  end
+
+  create_table "emergency_contacts", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.bigint "employee_id", null: false
+    t.string "name", null: false
+    t.enum "relationship_type", enum_type: "emergency_contact_relationship_type"
+    t.string "phone"
+    t.string "secondary_phone"
+    t.text "notes"
+    t.integer "position", default: 1, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["employee_id"], name: "index_emergency_contacts_on_employee_id"
+    t.index ["tenant_id"], name: "index_emergency_contacts_on_tenant_id"
   end
 
   create_table "employees", force: :cascade do |t|
@@ -1586,6 +1602,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_213421) do
   add_foreign_key "customer_groups", "tenants"
   add_foreign_key "distance_adjustments", "tenants"
   add_foreign_key "drivers", "tenants"
+  add_foreign_key "emergency_contacts", "employees"
+  add_foreign_key "emergency_contacts", "tenants"
   add_foreign_key "employees", "drivers"
   add_foreign_key "employees", "job_positions"
   add_foreign_key "employees", "tenants"

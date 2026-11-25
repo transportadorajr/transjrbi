@@ -276,6 +276,12 @@ shared:
       url: /uninsured_employees
       controllers:
         - uninsured_employees
+    - name: emergency_contacts
+      resource: emergency_contacts
+      icon: telephone
+      url: /emergency_contacts
+      controllers:
+        - emergency_contacts
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

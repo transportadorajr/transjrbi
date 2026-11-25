@@ -118,6 +118,9 @@ pt-BR:
       life_insurance:
         one: Seguro de vida
         other: Seguros de vida
+      emergency_contact:
+        one: Contato de emergência
+        other: Contatos de emergência
       workshop_employee:
         one: Funcionário da oficina
         other: Funcionários da oficina
@@ -181,6 +184,14 @@ pt-BR:
         notes: Observações
         created_at: Criado em
         updated_at: Atualizado em
+      emergency_contact:
+        employee: Funcionário
+        name: Nome do contato
+        relationship_type: Parentesco
+        phone: Telefone
+        secondary_phone: Outro telefone
+        position: Prioridade
+        notes: Observações
       risk_assessment:
         employee: Funcionário
         provider_type: Gerenciadora
@@ -1093,6 +1104,13 @@ pt-BR:
         spouse_percentage: Cônjuge (% do capital)
         children_percentage: Filhos (% do capital)
         funeral_assistance: Assistência funeral familiar
+      emergency_contact_form:
+        name: Nome do contato
+        relationship_type: Parentesco
+        phone: Telefone
+        secondary_phone: Outro telefone
+        position: Prioridade
+        notes: Observações
       risk_assessment_form:
         employee: Funcionário
         employee_id: Funcionário
@@ -1361,6 +1379,12 @@ pt-BR:
             end_on:
               before_start_on: deve ser igual ou posterior à data inicial
               too_long: não pode passar de %{count} dias
+        emergency_contact_form:
+          attributes:
+            phone:
+              invalid: deve ter o DDD e o número, ou o código do país antes
+            secondary_phone:
+              invalid: deve ter o DDD e o número, ou o código do país antes
         risk_assessment_form:
           attributes:
             provider_type:
@@ -1589,6 +1613,17 @@ pt-BR:
       leave_reason_type:
         medical_appointment: Consulta médica
         medical_certificate: Atestado médico
+    emergency_contact:
+      relationship_type:
+        spouse: Cônjuge
+        partner: Companheiro(a)
+        fiance: Noivo(a)
+        mother: Mãe
+        father: Pai
+        child: Filho(a)
+        sibling: Irmão(ã)
+        godparent: Compadre/Comadre
+        other: Outro
     risk_assessment:
       provider_type:
         apisul: Apisul
@@ -1859,6 +1894,9 @@ pt-BR:
         update: Salvar Alterações
       work_schedule_day:
         create: Lançar
+      emergency_contact:
+        create: Cadastrar Contato
+        update: Salvar Alterações
       risk_assessment:
         create: Cadastrar Pesquisa
         update: Salvar Alterações
@@ -1906,6 +1944,9 @@ pt-BR:
       revenue_goals:
         update: Salvar Metas
     tooltips:
+      emergency_contact:
+        edit: Alterar
+        destroy: Excluir
       risk_assessment:
         edit: Alterar
         destroy: Excluir
@@ -2250,6 +2291,7 @@ pt-BR:
     risk_assessments: Gerenciadoras de risco
     life_insurances: Seguro de vida
     hr: Módulo de RH
+    emergency_contacts: Contatos de emergência
     maintenance: Módulo de manutenção
     maintenance_orders: Ordens de serviço
     employees: Funcionários
@@ -3379,6 +3421,39 @@ pt-BR:
       policy_data_text: O capital vale para todos os segurados da empresa, menos os que têm capital próprio. As coberturas de morte acidental e invalidez são iguais ao capital.
       capital_hint: Capital de morte por qualquer causa, em reais.
       premium_rate_hint: 'Prêmio mensal por mil reais de capital. Ex.: 0,3185.'
+  emergency_contacts:
+    index:
+      title: Contatos de emergência
+      subtitle: Para quem ligar em caso de acidente com um funcionário. Toque no telefone para ligar.
+      employees: Funcionários ativos
+      contacts: Contatos
+      contact: '%{name} (%{relationship})'
+      missing: Sem contato
+      search: Buscar
+      confirm_destroy: Tem certeza que deseja excluir este contato de emergência?
+    filters:
+      name: Nome ou apelido do funcionário
+      contact: Contato de emergência
+      contact_options:
+        registered: Com contato
+        missing: Sem contato
+    new:
+      title: Cadastrar Contato de Emergência
+      back: Voltar para o funcionário
+    create:
+      success: Contato de emergência cadastrado com sucesso.
+    edit:
+      title: Alterar Contato de Emergência
+      back: Voltar para o funcionário
+    update:
+      success: Contato de emergência atualizado com sucesso.
+    destroy:
+      success: Contato de emergência excluído com sucesso.
+    form:
+      emergency_contact_data: Dados do Contato
+      emergency_contact_data_text: Pessoa a avisar se acontecer um acidente com %{employee}. São dados pessoais, visíveis só para quem tem acesso aos contatos de emergência.
+      position_hint: O contato 1 é o primeiro a ser chamado.
+      phone_hint: 'Com DDD. Número de outro país: digite o código do país antes, ex.: 54 9 3772 57-3358.'
   risk_assessments:
     index:
       title: Gerenciadoras de risco
@@ -3529,6 +3604,10 @@ pt-BR:
       insured: Segurado
       uninsured: Sem seguro
       uninsured_text: O funcionário não está coberto pelo seguro de vida hoje. Inclua-o na próxima planilha da seguradora.
+    emergency_contacts:
+      title: Contatos de emergência
+      subtitle: Quem avisar em caso de acidente, na ordem de prioridade.
+      new_emergency_contact: Cadastrar contato
     risk_assessments:
       title: Gerenciadoras de risco
       subtitle: Pesquisas do funcionário na Apisul e na Opentech.
@@ -4839,6 +4918,7 @@ pt-BR:
     life_insurances: Seguro de vida
     life_insurance_movements: Movimentos do seguro
     uninsured_employees: Sem seguro de vida
+    emergency_contacts: Contatos de emergência
     tax: Fiscal
     maintenance_orders: Ordens de serviço
     employees: Funcionários
