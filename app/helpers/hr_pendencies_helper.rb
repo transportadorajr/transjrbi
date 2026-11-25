@@ -28,7 +28,7 @@ module HrPendenciesHelper
 
   def hr_pendency_counter_cards(dashboard, counts)
     safe_join(dashboard.kinds.map do |kind|
-      counter_card(HR_PENDENCY_KINDS.fetch(kind), hr_pendency_label(kind), counts.fetch(kind), col_class: 'col-12 col-md-6 col-xl-3')
+      counter_card(:warning, hr_pendency_label(kind), counts.fetch(kind), col_class: 'col-12 col-md-6 col-xl-3')
     end)
   end
 

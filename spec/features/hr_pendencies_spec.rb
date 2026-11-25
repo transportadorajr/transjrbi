@@ -72,26 +72,29 @@ describe 'HR pendencies', :hr do
           'Férias vencidas 1', 'Férias vencem em até 60 dias 0', 'Folgas irregulares 0'
         ],
       )
+      expect(page).to have_css('.counter-value.value-warning', count: 7)
     end
 
     scenario 'filters the employees by pendency, name and company' do
       visit hr_pendencies_path(pendency: 'risk_assessment_expired')
 
-      expect(html_table_to_rows.drop(1).map(&:first)).to eq(['CARLOS LIMA'])
+      expect(Employee.count).to eq(6)
+      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa vencida', '']])
 
       visit hr_pendencies_path(name: 'edson')
 
-      expect(html_table_to_rows.drop(1).map(&:first)).to eq(['EDSON ROCHA'])
+      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['EDSON ROCHA', 'MM Espinola', 'Férias vencidas', '']])
 
       visit hr_pendencies_path(company_type: 'mme')
 
-      expect(html_table_to_rows.drop(1).map(&:first)).to eq(['BRUNO COSTA'])
+      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['BRUNO COSTA', 'MME', 'Sem seguro de vida', '']])
     end
 
     scenario 'sorts the employees by name' do
       visit hr_pendencies_path(sort: 'name', direction: 'desc')
 
-      expect(html_table_to_rows.drop(1).map(&:first)).to eq(['EDSON ROCHA', 'CARLOS LIMA', 'BRUNO COSTA'])
+      expect(Employee.count).to eq(6)
+      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['EDSON ROCHA', 'MM Espinola', 'Férias vencidas', ''], ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa vencida', ''], ['BRUNO COSTA', 'MME', 'Sem seguro de vida', '']])
     end
 
     scenario 'opens the page of an employee with pendencies' do
@@ -143,6 +146,7 @@ describe 'HR pendencies', :hr do
     scenario 'sees only the pendencies of the screens the user can read' do
       visit hr_pendencies_path
 
+      expect(Employee.count).to eq(6)
       expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['BRUNO COSTA', 'MME', 'Sem seguro de vida', '']])
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Sem seguro de vida 1'])
     end
