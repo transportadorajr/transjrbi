@@ -261,15 +261,20 @@ module FreightBillingsHelper
     end
   end
 
+  def freight_billing_ranking_cards(dashboard)
+    cards = [freight_billing_comparison_ranking_card(dashboard), freight_billing_per_km_ranking_card(dashboard)].compact
+    return if cards.empty?
+
+    tag.div(class: 'row g-3 mb-4') { safe_join(cards) }
+  end
+
   def freight_billing_comparison_ranking_card(dashboard)
     return unless dashboard.comparison?
 
-    tag.div(class: 'row g-3 mb-4', id: 'freight_billing_comparison') do
-      tag.div(class: 'col-12 col-xl-7') do
-        render('freight_billings/chart_card', title: freight_billing_comparison_ranking_title(dashboard),
-                                              subtitle: freight_billing_comparison_ranking_subtitle(dashboard),
-                                              chart: freight_billing_comparison_ranking_chart(dashboard))
-      end
+    tag.div(class: 'col-12 col-xl-6', id: 'freight_billing_comparison') do
+      render('freight_billings/chart_card', title: freight_billing_comparison_ranking_title(dashboard),
+                                            subtitle: freight_billing_comparison_ranking_subtitle(dashboard),
+                                            chart: freight_billing_comparison_ranking_chart(dashboard))
     end
   end
 
@@ -278,10 +283,8 @@ module FreightBillingsHelper
 
     return if dashboard.per_km_ranking_data.first[:data].empty?
 
-    tag.div(class: 'row g-3 mb-4') do
-      tag.div(class: 'col-12 col-xl-7 d-flex flex-column', id: 'freight_billing_per_km', data: freight_billing_per_km_reveal_data) do
-        safe_join([freight_billing_per_km_order_filter, *PER_KM_ORDERS.map { |order| freight_billing_per_km_order_item(dashboard, order) }])
-      end
+    tag.div(class: 'col-12 col-xl-6 d-flex flex-column', id: 'freight_billing_per_km', data: freight_billing_per_km_reveal_data) do
+      safe_join([freight_billing_per_km_order_filter, *PER_KM_ORDERS.map { |order| freight_billing_per_km_order_item(dashboard, order) }])
     end
   end
 
