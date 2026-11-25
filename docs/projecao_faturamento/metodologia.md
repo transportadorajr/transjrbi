@@ -196,6 +196,5 @@ A correção do dia da semana praticamente corta pela metade o erro do mês. Na 
 | Atualização diária da memória | `app/command/revenue_projections/refresh_memory_command.rb` |
 | Consolidado diário, previsão do dia e aprendizado | `consolidate_days_command.rb`, `forecast_days_command.rb` e `learn_factors_command.rb` em `app/command/revenue_projections/` |
 | Resultado (totais e faixa) | `app/models/revenue_projection/result.rb` |
-| Flag da funcionalidade | `app/models/dashboard/revenue_projection.rb` |
 | Tela | `app/controllers/revenue_projection_histories_controller.rb` e `app/views/revenue_projection_histories/` |
 | Feriados nacionais | `app/command/holidays/seed_national_command.rb` |

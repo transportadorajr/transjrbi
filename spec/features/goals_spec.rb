@@ -215,6 +215,12 @@ describe 'Goals panel' do
       context 'with access to the revenue projection' do
         let!(:projection_resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 
+        scenario 'projects the closing of the month with the revenue projection' do
+          visit goals_path
+
+          expect(card_texts).to include('Projeção de fechamento R$ 56.000,00')
+        end
+
         scenario 'links each vehicle, customer group and region to its projection history' do
           visit goals_path(dimension: 'vehicle')
 
