@@ -54,7 +54,7 @@ describe 'HR pendencies', :hr do
         [
           ['Nome', 'Empresa', 'Pendências', 'Ações'],
           ['BRUNO COSTA', 'MME', 'Sem seguro de vida', ''],
-          ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa vencida', ''],
+          ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa de Ger. Risco vencida', ''],
           ['EDSON ROCHA', 'MM Espinola', 'Férias vencidas', ''],
         ],
       )
@@ -71,7 +71,7 @@ describe 'HR pendencies', :hr do
 
       expect(all('.counter-card').map { |card| card.text.squish }).to eq(
         [
-          'Sem seguro de vida 1', 'Sem contato de emergência 1', 'Pesquisa vencida 1', 'Pesquisa vence em até 30 dias 0',
+          'Sem seguro de vida 1', 'Sem contato de emergência 1', 'Pesquisa de Ger. Risco vencida 1', 'Pesquisa de Ger. Risco vence em até 30 dias 0',
           'Férias vencidas 1', 'Férias vencem em até 60 dias 0', 'Folgas irregulares 0'
         ],
       )
@@ -88,7 +88,7 @@ describe 'HR pendencies', :hr do
       visit hr_pendencies_path(pendency: 'risk_assessment_expired')
 
       expect(Employee.count).to eq(6)
-      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa vencida', '']])
+      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa de Ger. Risco vencida', '']])
 
       visit hr_pendencies_path(name: 'edson')
 
@@ -103,7 +103,7 @@ describe 'HR pendencies', :hr do
       visit hr_pendencies_path(sort: 'name', direction: 'desc')
 
       expect(Employee.count).to eq(6)
-      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['EDSON ROCHA', 'MM Espinola', 'Férias vencidas', ''], ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa vencida', ''], ['BRUNO COSTA', 'MME', 'Sem seguro de vida', '']])
+      expect(html_table_to_rows).to eq([['Nome', 'Empresa', 'Pendências', 'Ações'], ['EDSON ROCHA', 'MM Espinola', 'Férias vencidas', ''], ['CARLOS LIMA', 'MM Espinola', 'Sem contato de emergência Pesquisa de Ger. Risco vencida', ''], ['BRUNO COSTA', 'MME', 'Sem seguro de vida', '']])
     end
 
     scenario 'opens the page of an employee with pendencies' do
