@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_24_204848) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_24_213421) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -996,6 +996,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_24_204848) do
     t.date "excluded_on"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "capital_changed_on"
     t.index ["employee_id", "included_on"], name: "index_life_insurances_on_employee_id_and_included_on"
     t.index ["employee_id"], name: "index_life_insurances_on_employee_id_not_excluded", unique: true, where: "(excluded_on IS NULL)"
     t.index ["life_insurance_policy_id"], name: "index_life_insurances_on_life_insurance_policy_id"

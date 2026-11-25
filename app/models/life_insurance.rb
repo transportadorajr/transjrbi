@@ -30,6 +30,9 @@ class LifeInsurance < ApplicationRecord
   }
   scope :by_name, ->(name) { joins(:employee).merge(Employee.by_name(name)) }
   scope :by_company_type, ->(company_type) { joins(:employee).merge(Employee.by_company_type(company_type)) }
+  scope :by_employee_status, ->(status) { joins(:employee).merge(Employee.by_status(status)) }
+  scope :with_deactivated_employee, -> { joins(:employee).merge(Employee.not_activated) }
+  scope :moved_in, ->(dates) { where(included_on: dates).or(where(excluded_on: dates)).or(where(capital_changed_on: dates)) }
 
   class << self
     def capital_cents_expression
@@ -100,6 +103,7 @@ end
 #
 #  id                       :bigint           not null, primary key
 #  capital_cents            :bigint
+#  capital_changed_on       :date
 #  excluded_on              :date
 #  included_on              :date
 #  created_at               :datetime         not null

@@ -46,8 +46,8 @@ describe 'Uninsured employees', :hr do
       expect(html_table_to_rows).to eq(
         [
           ['Nome', 'Empresa', 'Cargo', 'Data de admissão', 'Ações'],
-          ['ANA PAULA', 'MM Espinola', 'MOTORISTA DE CARRETA', '10/02/2025', ''],
-          ['CARLOS LIMA', 'MME', 'Sem cargo', '-', ''],
+          ['ANA PAULA', 'MM Espinola', 'MOTORISTA DE CARRETA', '10/02/2025', 'Opções Visualizar Incluir no seguro'],
+          ['CARLOS LIMA', 'MME', 'Sem cargo', '-', 'Opções Visualizar Incluir no seguro'],
         ],
       )
       expect(page).to have_no_text('JOSE SILVA')
@@ -82,7 +82,7 @@ describe 'Uninsured employees', :hr do
 
     scenario 'opens the page of an uninsured employee' do
       visit uninsured_employees_path
-      within("#employee_#{ana.id}") { click_on 'Visualizar' }
+      within("#employee_#{ana.id}") { click_on 'Visualizar', match: :first }
 
       expect(page).to have_current_path(employee_path(ana))
       expect(dl_to_hash('#life_insurance dl')).to eq('Situação' => 'Sem seguro')
@@ -151,7 +151,10 @@ describe 'Uninsured employees', :hr do
       expect(page).to have_no_css('th', text: 'EMPRESA')
       expect(page).to have_no_css('th', text: 'CARGO')
 
-      within("#employee_#{ana.id}") { find("a[href='#{employee_path(ana)}']").click }
+      within("#employee_#{ana.id}") do
+        click_button 'Opções'
+        click_on 'Visualizar'
+      end
 
       expect(page).to have_current_path(employee_path(ana))
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)

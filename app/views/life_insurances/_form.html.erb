@@ -1,0 +1,31 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('life_insurances.form.life_insurance_data') %></p>
+    <p class="form-card-subtitle"><%= t('life_insurances.form.life_insurance_data_text') %></p>
+  </div>
+  <%= simple_form_for(life_insurance_form, url: life_insurance_form_url(life_insurance_form)) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <%= f.label :employee_id, for: nil, id: 'life_insurance_employee_select_label', class: 'form-label' %>
+          <%= life_insurance_employee_field(f, life_insurance_form) %>
+          <%= f.error :employee_id, class: 'invalid-feedback d-block' %>
+          <%= f.error :employee, class: 'invalid-feedback d-block' %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :included_on, as: :date, html5: true, required: life_insurance_form.new_record?, input_html: { class: 'form-control' } %>
+        </div>
+        <div class="col-12 col-lg-4">
+          <%= f.input :capital, as: :string, hint: t('life_insurances.form.capital_hint'),
+                                input_html: { class: 'form-control', inputmode: 'decimal', autocomplete: 'off' } %>
+        </div>
+        <%= life_insurance_capital_changed_on_field(f, life_insurance_form) %>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, life_insurance_form_submit_label(life_insurance_form), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), life_insurances_path, class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

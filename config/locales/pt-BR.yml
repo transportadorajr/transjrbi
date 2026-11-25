@@ -1078,6 +1078,14 @@ pt-BR:
         city_id: Cidade da folga
         leave_reason_type: Motivo do afastamento
         notes: Observações
+      life_insurance_form:
+        employee: Funcionário
+        employee_id: Funcionário
+        included_on: Data de inclusão
+        capital: Capital próprio
+        capital_changed_on: Vigência do novo capital
+      life_insurance_exclusion_form:
+        excluded_on: Data de exclusão
       life_insurance_policy_form:
         company_type: Empresa
         capital: Capital segurado
@@ -1357,6 +1365,19 @@ pt-BR:
           attributes:
             provider_type:
               taken: já tem uma pesquisa cadastrada para este funcionário
+        life_insurance_form:
+          attributes:
+            employee_id:
+              inactive: está inativo e não pode ser incluído no seguro
+              already_insured: já está incluído no seguro de vida
+              missing_insurer_data: precisa ter CPF e data de nascimento cadastrados para a seguradora
+              without_policy: 'é da empresa %{company}, que ainda não tem apólice cadastrada'
+            capital_changed_on:
+              before_included_on: não pode ser anterior à inclusão
+        life_insurance_exclusion_form:
+          attributes:
+            excluded_on:
+              before_included_on: não pode ser anterior à inclusão
         life_insurance_policy_form:
           attributes:
             company_type:
@@ -1844,6 +1865,9 @@ pt-BR:
       life_insurance_policy:
         create: Cadastrar Apólice
         update: Salvar Alterações
+      life_insurance:
+        create: Incluir no Seguro
+        update: Salvar Alterações
       vacation:
         create: Lançar Férias
         update: Salvar Alterações
@@ -1887,6 +1911,9 @@ pt-BR:
         destroy: Excluir
       life_insurance_policy:
         edit: Alterar
+      life_insurance:
+        edit: Alterar
+        exclude: Excluir do seguro
       vacation:
         edit: Alterar
         destroy: Excluir
@@ -1988,6 +2015,7 @@ pt-BR:
         deactivate: Inativar
       employee:
         show: Visualizar
+        include_life_insurance: Incluir no seguro
         edit: Alterar
         activate: Ativar
         deactivate: Inativar
@@ -3236,6 +3264,9 @@ pt-BR:
       insured_employees: Funcionários segurados
       insured: Segurados
       uninsured: Sem seguro
+      deactivated: Inativos com seguro
+      deactivated_employee: Inativo
+      new_life_insurance: Incluir no Seguro
       premium: Prêmio mensal
       company_premium: Prêmio %{company} (%{count})
       policies: Apólices
@@ -3244,6 +3275,80 @@ pt-BR:
         filename: seguro_de_vida_%{time}.pdf
     filters:
       name: Nome do funcionário
+      employee_status: Situação do funcionário
+    new:
+      title: Incluir no Seguro
+      back: Voltar para seguro de vida
+    create:
+      success: Funcionário incluído no seguro de vida.
+    edit:
+      title: Alterar Seguro
+      back: Voltar para seguro de vida
+    update:
+      success: Seguro de vida atualizado com sucesso.
+    form:
+      life_insurance_data: Dados do Seguro
+      life_insurance_data_text: A inclusão entra na planilha da seguradora do mês da data de inclusão. O funcionário precisa ter CPF e data de nascimento cadastrados.
+      employee_placeholder: Selecione o funcionário
+      capital_hint: Deixe em branco para usar o capital da apólice da empresa.
+      capital_changed_on_hint: Obrigatória quando o capital muda. A alteração entra na planilha do mês desta data.
+  life_insurance_exclusions:
+    new:
+      title: Excluir do Seguro
+      back: Voltar para seguro de vida
+      exclusion_data: Dados da Exclusão
+      exclusion_data_text: '%{employee} deixa de estar coberto a partir desta data, e a exclusão entra na planilha da seguradora do mês dela.'
+      submit: Excluir do Seguro
+      confirm: Tem certeza que deseja excluir este funcionário do seguro de vida?
+    create:
+      success: Funcionário excluído do seguro de vida.
+  life_insurance_movements:
+    kinds:
+      inclusion: Inclusão
+      exclusion: Exclusão
+      change: Alteração
+    index:
+      title: Movimentos do seguro
+      subtitle: Inclusões, exclusões e alterações de capital do mês, na planilha que vai para a seguradora.
+      month_format: '%B de %Y'
+      counters:
+        inclusion: Inclusões
+        exclusion: Exclusões
+        change: Alterações
+    month_navigation:
+      label: Navegação entre meses
+      previous: Mês anterior
+      current: Mês atual
+      next: Próximo mês
+    filters:
+      name: Nome do funcionário
+    table:
+      kind: Movimento
+      occurred_on: Data
+    insurer:
+      sheets:
+        mme: MME
+        transjr: TRANSJR
+        mm_espinola: MM
+      genders:
+        male: M
+        female: F
+      columns:
+        movement: tpmvto
+        registration: NR_Matricula
+        legal_id: CPF
+        name: Nome
+        born_on: Dtnasc
+        age: Idade
+        gender: Sexo
+        premium: Premio
+        capital: M1
+        accidental_death: MA2
+        accidental_permanent_disability: IPA3
+        functional_permanent_disability: IFPD4
+        spouse_death: IC-M5
+        children_death: IF-M6
+        funeral_assistance: Ass Fun Fam7
   uninsured_employees:
     index:
       title: Sem seguro de vida
@@ -3257,7 +3362,6 @@ pt-BR:
     rate: '%{value} ‰'
     index:
       title: Apólices de seguro de vida
-      subtitle: Capital, taxa do prêmio e coberturas da apólice de cada empresa.
       back: Voltar para seguro de vida
       new_life_insurance_policy: Cadastrar Apólice
     new:
@@ -4733,6 +4837,7 @@ pt-BR:
     vacation_balances: Férias a vencer
     risk_assessments: Gerenciadoras de risco
     life_insurances: Seguro de vida
+    life_insurance_movements: Movimentos do seguro
     uninsured_employees: Sem seguro de vida
     tax: Fiscal
     maintenance_orders: Ordens de serviço

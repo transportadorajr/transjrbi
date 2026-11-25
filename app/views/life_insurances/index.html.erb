@@ -5,14 +5,16 @@
     <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
     <%= pdf_export_button %>
     <%= xlsx_export_button %>
+    <%= life_insurance_movements_button %>
     <%= uninsured_employees_button %>
     <%= life_insurance_policies_button %>
+    <%= life_insurance_create_button %>
   <% end %>
 
   <%= render 'filters' %>
 
   <div class="row g-3 mb-4">
-    <%= life_insurance_counters(@premium_totals, @uninsured_count) %>
+    <%= life_insurance_counters(@premium_totals, @uninsured_count, @deactivated_count) %>
   </div>
 
   <div class="card table-card">

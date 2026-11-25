@@ -1,9 +1,12 @@
 <tr id="<%= dom_id(item) %>">
-  <td class="fw-semibold text-break"><%= item.employee.name %></td>
+  <td class="fw-semibold text-break"><%= item.employee.name %> <%= life_insurance_deactivated_badge(item) %></td>
   <td class="d-none d-md-table-cell text-nowrap"><%= item.life_insurance_policy.company_type_name %></td>
   <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(item.capital) %></td>
   <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(item.spouse_death) %></td>
   <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(item.children_death) %></td>
   <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(item.funeral_assistance) %></td>
   <td class="text-end text-nowrap"><%= tax_money(item.premium) %></td>
+  <td class="text-end text-nowrap">
+    <%= responsive_actions_menu(life_insurances_menu(item)) %>
+  </td>
 </tr>

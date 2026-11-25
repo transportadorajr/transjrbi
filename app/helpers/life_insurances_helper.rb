@@ -1,9 +1,10 @@
 module LifeInsurancesHelper
   LIFE_INSURANCE_COUNTER_COLUMNS = 'col-12 col-md-6 col-xl-3'.freeze
 
-  def life_insurance_counters(premium_totals, uninsured_count)
+  def life_insurance_counters(premium_totals, uninsured_count, deactivated_count)
     cards = [counter_card(:dark, t('life_insurances.index.insured'), premium_totals.sum(&:count), col_class: LIFE_INSURANCE_COUNTER_COLUMNS),
              counter_card(:warning, t('life_insurances.index.uninsured'), uninsured_count, col_class: LIFE_INSURANCE_COUNTER_COLUMNS),
+             counter_card(:warning, t('life_insurances.index.deactivated'), deactivated_count, col_class: LIFE_INSURANCE_COUNTER_COLUMNS),
              counter_card(:primary, t('life_insurances.index.premium'), tax_money(premium_totals.sum(Money.zero, &:premium)),
                           col_class: LIFE_INSURANCE_COUNTER_COLUMNS)]
     cards += premium_totals.map do |total|
@@ -12,6 +13,55 @@ module LifeInsurancesHelper
     end
 
     safe_join(cards)
+  end
+
+  def life_insurances_menu(life_insurance)
+    menus = []
+
+    menus << life_insurance_edit_menu(life_insurance) if can?(:update, :life_insurances)
+    menus << life_insurance_exclusion_menu(life_insurance) if can?(:update, :life_insurances)
+
+    menus
+  end
+
+  def life_insurance_deactivated_badge(life_insurance)
+    status_badge(t('life_insurances.index.deactivated_employee'), kind: :danger) unless life_insurance.employee.activated?
+  end
+
+  def life_insurance_create_button
+    create_button(t('life_insurances.index.new_life_insurance')) if can?(:create, :life_insurances)
+  end
+
+  def life_insurance_employee_status_options
+    options_for_select(Employee.statuses, params[:employee_status])
+  end
+
+  def life_insurance_form_url(life_insurance_form)
+    life_insurance_form.persisted? ? life_insurance_path(life_insurance_form.life_insurance) : life_insurances_path
+  end
+
+  def life_insurance_form_submit_label(life_insurance_form)
+    t("helpers.submit.life_insurance.#{life_insurance_form.persisted? ? :update : :create}")
+  end
+
+  def life_insurance_employee_field(form, life_insurance_form)
+    options = life_insurance_form.available_employees.map { |employee| [employee.name, employee.id] }
+
+    if life_insurance_form.persisted?
+      form.input_field :employee_id, as: :select, collection: options, disabled: true, class: 'form-select bg-light'
+    else
+      render 'components/select2', id: 'life_insurance_employee_select', name: "#{form.object_name}[employee_id]", options:,
+                                   selected: life_insurance_form.employee_id, placeholder: t('life_insurances.form.employee_placeholder')
+    end
+  end
+
+  def life_insurance_capital_changed_on_field(form, life_insurance_form)
+    return unless life_insurance_form.persisted?
+
+    content_tag :div, class: 'col-12 col-lg-4' do
+      form.input :capital_changed_on, as: :date, html5: true, hint: t('life_insurances.form.capital_changed_on_hint'),
+                                      input_html: { class: 'form-control' }
+    end
   end
 
   def life_insurance_company_type_options
@@ -89,6 +139,14 @@ module LifeInsurancesHelper
   end
 
   private
+
+  def life_insurance_edit_menu(life_insurance)
+    Menu.new(name: :edit, record: life_insurance, url: edit_life_insurance_path(life_insurance), icon: :pencil)
+  end
+
+  def life_insurance_exclusion_menu(life_insurance)
+    Menu.new(name: :exclude, record: life_insurance, url: new_life_insurance_exclusion_path(life_insurance), icon: :'person-dash')
+  end
 
   def life_insurance_policy_edit_menu(policy)
     Menu.new(name: :edit, record: policy, url: edit_life_insurance_policy_path(policy), icon: :pencil)

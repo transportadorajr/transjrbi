@@ -1,0 +1,23 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= LifeInsurance.human_attribute_name(:employee) %></th>
+        <th class="d-none d-md-table-cell"><%= LifeInsurancePolicy.human_attribute_name(:company_type) %></th>
+        <th><%= t('life_insurance_movements.table.kind') %></th>
+        <th class="d-none d-md-table-cell"><%= t('life_insurance_movements.table.occurred_on') %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= LifeInsurance.human_attribute_name(:capital) %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= LifeInsurance.human_attribute_name(:premium) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>
