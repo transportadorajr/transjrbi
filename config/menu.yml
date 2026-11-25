@@ -232,62 +232,59 @@ shared:
       url: /job_positions
       controllers:
         - job_positions
-    - name: work_schedules
-      resource: work_schedules
-      icon: calendar-week
-      url: /work_schedules
-      controllers:
-        - work_schedules
-    - name: vacations
-      resource: vacations
-      icon: sun
-      url: /vacations
-      controllers:
-        - vacations
-    - name: absences
-      resource: vacations
-      icon: calendar-month
-      url: /absences
-      controllers:
-        - absences
-    - name: vacation_balances
-      resource: vacations
-      icon: hourglass-split
-      url: /vacation_balances
-      controllers:
-        - vacation_balances
-    - name: risk_assessments
-      resource: risk_assessments
-      icon: shield-check
-      url: /risk_assessments
-      controllers:
-        - risk_assessments
-    - name: life_insurances
-      resource: life_insurances
-      icon: heart-pulse
-      url: /life_insurances
-      controllers:
-        - life_insurances
-        - life_insurance_policies
-        - life_insurance_exclusions
-    - name: life_insurance_movements
-      resource: life_insurances
-      icon: arrow-left-right
-      url: /life_insurance_movements
-      controllers:
-        - life_insurance_movements
-    - name: uninsured_employees
-      resource: life_insurances
-      icon: person-exclamation
-      url: /uninsured_employees
-      controllers:
-        - uninsured_employees
-    - name: emergency_contacts
-      resource: emergency_contacts
-      icon: telephone
-      url: /emergency_contacts
-      controllers:
-        - emergency_contacts
+    - name: hr_absences
+      icon: calendar-x
+      menus:
+        - name: work_schedules
+          resource: work_schedules
+          url: /work_schedules
+          controllers:
+            - work_schedules
+        - name: vacation_balances
+          resource: vacations
+          url: /vacation_balances
+          controllers:
+            - vacation_balances
+        - name: absences
+          resource: vacations
+          url: /absences
+          controllers:
+            - absences
+        - name: vacations
+          resource: vacations
+          url: /vacations
+          controllers:
+            - vacations
+    - name: insurances
+      icon: umbrella
+      menus:
+        - name: risk_assessments
+          resource: risk_assessments
+          url: /risk_assessments
+          controllers:
+            - risk_assessments
+        - name: life_insurances
+          resource: life_insurances
+          url: /life_insurances
+          controllers:
+            - life_insurances
+            - life_insurance_policies
+            - life_insurance_exclusions
+        - name: life_insurance_movements
+          resource: life_insurances
+          url: /life_insurance_movements
+          controllers:
+            - life_insurance_movements
+        - name: uninsured_employees
+          resource: life_insurances
+          url: /uninsured_employees
+          controllers:
+            - uninsured_employees
+        - name: emergency_contacts
+          resource: emergency_contacts
+          url: /emergency_contacts
+          controllers:
+            - emergency_contacts
   admin:
     - name: admin_imports
       icon: cloud-arrow-down

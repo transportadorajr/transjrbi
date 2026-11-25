@@ -38,7 +38,10 @@ describe 'Vacations', :hr do
 
       scenario 'lists the vacations from the HR menu, the latest first' do
         visit vacations_path
-        within('.sidebar-desktop') { click_on 'Férias' }
+        within('.sidebar-desktop') do
+          click_on 'Ausências'
+          click_on 'Férias'
+        end
 
         expect(page).to have_current_path(vacations_path)
         expect(Vacation.count).to eq(3)

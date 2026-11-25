@@ -44,7 +44,10 @@ describe 'Life insurance movements', :hr do
 
     scenario 'lists the movements of the current month from the HR menu' do
       visit life_insurances_path
-      within('.sidebar-desktop') { click_on 'Movimentos do seguro' }
+      within('.sidebar-desktop') do
+        click_on 'Seguros'
+        click_on 'Movimentos do seguro'
+      end
 
       expect(page).to have_current_path(life_insurance_movements_path)
       expect(LifeInsurance.count).to eq(5)

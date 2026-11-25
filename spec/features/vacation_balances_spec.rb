@@ -21,7 +21,10 @@ describe 'Vacation balances', :hr do
 
     scenario 'lists the periods with balance by deadline from the HR menu' do
       visit vacation_balances_path
-      within('.sidebar-desktop') { click_on 'Férias a vencer' }
+      within('.sidebar-desktop') do
+        click_on 'Ausências'
+        click_on 'Férias a vencer'
+      end
 
       expect(page).to have_css('.card', text: "Férias vencidas\n1")
       expect(page).to have_css('.card', text: "A vencer em até 60 dias\n1")

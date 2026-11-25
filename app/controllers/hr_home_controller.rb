@@ -1,6 +1,6 @@
 class HrHomeController < BaseController
   def index
-    menu = Menu.find_and_wrap(:hr).find { |item| item.show?(current_ability) }
+    menu = Menu.find_and_wrap(:hr).lazy.filter_map { |item| item.landing(current_ability) }.first
 
     redirect_to menu.url if menu
   end

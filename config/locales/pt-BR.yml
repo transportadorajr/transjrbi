@@ -4931,6 +4931,8 @@ pt-BR:
       hour_minute: '%H:%M'
   menus:
     hr_pendencies: Pendências
+    hr_absences: Ausências
+    insurances: Seguros
     vacations: Férias
     absences: Quem está fora
     vacation_balances: Férias a vencer

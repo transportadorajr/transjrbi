@@ -24,7 +24,10 @@ describe 'Absences', :hr do
 
     scenario 'shows who is out in the month from the HR menu' do
       visit absences_path
-      within('.sidebar-desktop') { click_on 'Quem está fora' }
+      within('.sidebar-desktop') do
+        click_on 'Ausências'
+        click_on 'Quem está fora'
+      end
 
       expect(page).to have_css('.page-header', text: 'Novembro de 2026')
       expect(Vacation.count).to eq(2)

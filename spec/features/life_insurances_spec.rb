@@ -41,7 +41,10 @@ describe 'Life insurances', :hr do
 
       scenario 'lists the coverages of the insured employees from the HR menu' do
         visit life_insurances_path
-        within('.sidebar-desktop') { click_on 'Seguro de vida' }
+        within('.sidebar-desktop') do
+          click_on 'Seguros'
+          click_on 'Seguro de vida'
+        end
 
         expect(page).to have_current_path(life_insurances_path)
         expect(LifeInsurance.count).to eq(5)

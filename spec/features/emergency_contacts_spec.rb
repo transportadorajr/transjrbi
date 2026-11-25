@@ -36,7 +36,10 @@ describe 'Emergency contacts', :hr do
 
       scenario 'looks up the contacts of the active employees from the HR menu' do
         visit emergency_contacts_path
-        within('.sidebar-desktop') { click_on 'Contatos de emergência' }
+        within('.sidebar-desktop') do
+          click_on 'Seguros'
+          click_on 'Contatos de emergência'
+        end
 
         expect(page).to have_current_path(emergency_contacts_path)
         expect(EmergencyContact.count).to eq(3)
