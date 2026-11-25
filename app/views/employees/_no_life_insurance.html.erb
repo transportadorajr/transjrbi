@@ -1,0 +1,12 @@
+<div class="card detail-card mt-4" id="life_insurance">
+  <div class="detail-card-header">
+    <p class="detail-card-title"><%= t('employees.life_insurance.title') %></p>
+  </div>
+  <div class="detail-card-body">
+    <dl class="row detail-list mb-0">
+      <dt class="col-12 col-md-3"><%= t('employees.life_insurance.status') %></dt>
+      <dd class="col-12 col-md-9"><%= status_badge(t('employees.life_insurance.uninsured'), kind: :warning) %></dd>
+    </dl>
+    <p class="text-muted small mb-0 mt-3"><%= t('employees.life_insurance.uninsured_text') %></p>
+  </div>
+</div>

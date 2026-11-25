@@ -53,7 +53,7 @@ describe 'Life insurances', :hr do
           ],
         )
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Segurados 2', 'Prêmio mensal R$ 90,78', 'Prêmio MME (1) R$ 36,63', 'Prêmio MM Espinola (1) R$ 54,15'],
+          ['Segurados 2', 'Sem seguro 2', 'Prêmio mensal R$ 90,78', 'Prêmio MME (1) R$ 36,63', 'Prêmio MM Espinola (1) R$ 54,15'],
         )
         expect(page).to have_no_text('CARLOS LIMA')
         expect(page).to have_no_text('PEDRO NOVO')
@@ -70,7 +70,7 @@ describe 'Life insurances', :hr do
 
         expect(html_table_to_rows.drop(1).map(&:first)).to eq(['ANA PAULA'])
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
-          ['Segurados 1', 'Prêmio mensal R$ 54,15', 'Prêmio MM Espinola (1) R$ 54,15'],
+          ['Segurados 1', 'Sem seguro 1', 'Prêmio mensal R$ 54,15', 'Prêmio MM Espinola (1) R$ 54,15'],
         )
       end
 
@@ -113,7 +113,7 @@ describe 'Life insurances', :hr do
         expect(LifeInsurance.count).to eq(0)
         expect(page).to have_text('Nenhum registro encontrado')
         expect(page).to have_no_table
-        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Segurados 0', 'Prêmio mensal R$ 0,00'])
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(['Segurados 0', 'Sem seguro 3', 'Prêmio mensal R$ 0,00'])
       end
     end
   end

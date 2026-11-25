@@ -1,8 +1,9 @@
 module LifeInsurancesHelper
   LIFE_INSURANCE_COUNTER_COLUMNS = 'col-12 col-md-6 col-xl-3'.freeze
 
-  def life_insurance_counters(premium_totals)
+  def life_insurance_counters(premium_totals, uninsured_count)
     cards = [counter_card(:dark, t('life_insurances.index.insured'), premium_totals.sum(&:count), col_class: LIFE_INSURANCE_COUNTER_COLUMNS),
+             counter_card(:warning, t('life_insurances.index.uninsured'), uninsured_count, col_class: LIFE_INSURANCE_COUNTER_COLUMNS),
              counter_card(:primary, t('life_insurances.index.premium'), tax_money(premium_totals.sum(Money.zero, &:premium)),
                           col_class: LIFE_INSURANCE_COUNTER_COLUMNS)]
     cards += premium_totals.map do |total|

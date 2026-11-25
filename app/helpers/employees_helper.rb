@@ -103,6 +103,13 @@ module EmployeesHelper
     render 'employees/risk_assessments', employee:, risk_assessments:
   end
 
+  def employee_life_insurance_card(life_insurance)
+    return unless can?(:read, :life_insurances)
+    return render('employees/no_life_insurance') if life_insurance.nil?
+
+    render 'employees/life_insurance', life_insurance:
+  end
+
   def employee_new_risk_assessment_button(employee)
     return unless can?(:create, :risk_assessments)
 
