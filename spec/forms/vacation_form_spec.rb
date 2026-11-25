@@ -27,11 +27,13 @@ RSpec.describe VacationForm do
       expect(Vacation.last.acquisition_start_on).to eq(Date.new(2025, 3, 10))
     end
 
-    it 'skips the periods that ended more than two years before the vacation' do
-      employee.update!(admitted_on: Date.new(2020, 3, 10))
+    context 'when the employee was admitted more than two years before the vacation' do
+      before { employee.update!(admitted_on: Date.new(2020, 3, 10)) }
 
-      expect(build_form(start_on: '2026-04-01', end_on: '2026-04-20').save).to be(true)
-      expect(Vacation.last.acquisition_start_on).to eq(Date.new(2024, 3, 10))
+      it 'skips the periods that ended more than two years before the vacation' do
+        expect { expect(build_form(start_on: '2026-04-01', end_on: '2026-04-20').save).to be(true) }.to change(Vacation, :count).by(1)
+        expect(Vacation.last.acquisition_start_on).to eq(Date.new(2024, 3, 10))
+      end
     end
 
     it 'updates a vacation keeping its period' do
