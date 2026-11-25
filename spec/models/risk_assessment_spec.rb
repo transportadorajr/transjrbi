@@ -55,4 +55,24 @@ RSpec.describe RiskAssessment do
       expect(described_class.by_status_type('not_recommended')).to contain_exactly(ana_opentech)
     end
   end
+
+  describe 'validity scopes' do
+    let(:today) { Date.new(2026, 11, 25) }
+    let!(:expired) { create(:risk_assessment, valid_until: Date.new(2026, 11, 24)) }
+    let!(:expiring_today) { create(:risk_assessment, valid_until: today) }
+    let!(:expiring_last_day) { create(:risk_assessment, valid_until: Date.new(2026, 12, 25)) }
+
+    before do
+      create(:risk_assessment, valid_until: Date.new(2026, 12, 26))
+      create(:risk_assessment, valid_until: nil)
+    end
+
+    it 'lists the risk assessments valid until before the date' do
+      expect(described_class.expired(today)).to contain_exactly(expired)
+    end
+
+    it 'lists the risk assessments that expire in the next 30 days' do
+      expect(described_class.expiring(today)).to contain_exactly(expiring_today, expiring_last_day)
+    end
+  end
 end

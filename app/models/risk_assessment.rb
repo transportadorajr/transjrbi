@@ -5,6 +5,7 @@ class RiskAssessment < ApplicationRecord
   PROVIDERS = %i[apisul opentech].freeze
   STATUSES = %i[recommended not_recommended in_progress].freeze
   APISUL_MIN_SCORE = 60
+  EXPIRING_SOON_DAYS = 30
 
   sortable :employee_name, -> { sort_text(Employee.arel_table[:name]) }
   sortable :valid_until, -> { arel_table[:valid_until] }
@@ -26,6 +27,8 @@ class RiskAssessment < ApplicationRecord
   scope :by_company_type, ->(company_type) { joins(:employee).merge(Employee.by_company_type(company_type)) }
   scope :by_provider_type, ->(provider_type) { where(provider_type:) }
   scope :by_status_type, ->(status_type) { where(status_type:) }
+  scope :expired, ->(date = Date.current) { where(valid_until: ...date) }
+  scope :expiring, ->(date = Date.current) { where(valid_until: date..(date + EXPIRING_SOON_DAYS)) }
 
   private
 
