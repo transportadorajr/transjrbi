@@ -2021,6 +2021,43 @@ describe 'Freight billing' do
       expect(ranking_bottom).to be <= comparison_top
     end
 
+    context 'when the customer groups have km driven' do
+      before do
+        create(:atua_manifest, tenant:, code: 42_001, plate: 'RVR3D45', trip_started_at: Time.zone.local(2026, 11, 2, 8))
+        create(:atua_transport_document, tenant:, number: '75001', taker_code: 7101, freight_cents: 1_000_000, plate: 'RVR3D45',
+                                         posted_on: Date.new(2026, 11, 2), issued_at: Time.zone.local(2026, 11, 2, 10))
+        create(:atua_manifest_document, tenant:, manifest_code: 42_001, transport_document_number: '75001', calculated_distance_km: 1_000)
+      end
+
+      def card_box(selector)
+        page.evaluate_script("(() => { const box = document.querySelector('#{selector}').getBoundingClientRect(); return [box.left, box.top]; })()")
+      end
+
+      scenario 'plots the month comparison and the freight per km side by side on a wide screen', :js do
+        page.driver.resize(1600, 900)
+        visit freight_billing_path(november)
+
+        expect(page).to have_css('#freight_billing_comparison canvas')
+        expect(page).to have_css('#freight_billing_per_km canvas')
+        comparison_left, comparison_top = card_box('#freight_billing_comparison')
+        per_km_left, per_km_top = card_box('#freight_billing_per_km')
+        expect(per_km_left).to be > comparison_left
+        expect(per_km_top).to eq(comparison_top)
+      end
+
+      scenario 'stacks the month comparison above the freight per km on a phone', :js do
+        use_mobile_screen(width: 360)
+        visit freight_billing_path(november)
+
+        expect(page).to have_css('#freight_billing_per_km canvas')
+        comparison_left, comparison_top = card_box('#freight_billing_comparison')
+        per_km_left, per_km_top = card_box('#freight_billing_per_km')
+        expect(per_km_left).to eq(comparison_left)
+        expect(per_km_top).to be > comparison_top
+        expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
+    end
+
     scenario 'keeps the variation on a phone without scrolling sideways', :js do
       use_mobile_screen(width: 360)
       visit freight_billing_path(november)
