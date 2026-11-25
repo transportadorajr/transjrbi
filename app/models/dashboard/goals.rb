@@ -1,6 +1,5 @@
 module Dashboard
   class Goals
-    FEATURE = :revenue_goals
     ON_TRACK_RATIO = 1
     ATTENTION_RATIO = BigDecimal('0.9')
     COMPANY_KEY = 'company'.freeze
@@ -70,10 +69,6 @@ module Dashboard
     }.freeze
 
     class << self
-      def enabled?(tenant)
-        Flipper.enabled?(FEATURE, tenant)
-      end
-
       def vehicle_section?(section)
         PLATE_SECTIONS.include?(section)
       end

@@ -28,7 +28,7 @@ describe 'Listing Excel exports' do
     expect(downloaded_xlsx_rows.first).not_to include('ID', 'Id')
   end
 
-  context 'with the Excel export enabled', :xlsx_service, flipper: { xlsx_export: :tenant } do
+  context 'with the Excel export enabled', :xlsx_service do
     scenario 'shows the Excel export button with the applied filters on every listing' do
       listings.each do |path, filters|
         visit send(path, **filters, page: 2)
@@ -330,22 +330,7 @@ describe 'Listing Excel exports' do
     end
   end
 
-  context 'with the Excel export disabled' do
-    scenario 'neither shows the button nor exports the spreadsheet of any listing' do
-      listings.each do |path, filters|
-        visit send(path, **filters)
-
-        expect(page).to have_link('Exportar PDF') unless path == :holidays_path
-        expect(page).to have_no_link('Exportar Excel')
-      end
-
-      visit transport_documents_path(format: :xlsx)
-
-      expect(page.status_code).to eq(406)
-    end
-  end
-
-  context 'when an operator cannot read the listing', :xlsx_service, flipper: { xlsx_export: :tenant } do
+  context 'when an operator cannot read the listing', :xlsx_service do
     let!(:operator) { create(:user, tenant:, name: 'Carla Operadora') }
 
     before { login_as(operator, scope: :user) }

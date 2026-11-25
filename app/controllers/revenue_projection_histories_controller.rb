@@ -3,8 +3,6 @@ class RevenueProjectionHistoriesController < BaseController
 
   CACHE_TTL = 1.hour
 
-  before_action :require_revenue_projection
-
   def show
     authorize!(:read, :revenue_projection)
 
@@ -49,10 +47,6 @@ class RevenueProjectionHistoriesController < BaseController
 
   private
 
-  def require_revenue_projection
-    raise ActionController::RoutingError, 'Not Found' unless Dashboard::RevenueProjection.enabled?(current_tenant)
-  end
-
   def load_day
     @date = Date.iso8601(params[:date].to_s)
     @filter_form = RevenueProjectionHistoryFilterForm.new(filter_params)
@@ -80,7 +74,7 @@ class RevenueProjectionHistoriesController < BaseController
   end
 
   def today_goal
-    return unless Dashboard::Goals.enabled?(current_tenant) && can?(:read, :goals)
+    return unless can?(:read, :goals)
 
     current_tenant.revenue_goals.for_month(Date.current).for_cut(@filter_form.cut_params)
   end

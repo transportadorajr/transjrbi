@@ -94,7 +94,7 @@ describe 'Life insurances', :hr do
         expect(text).not_to include('CARLOS LIMA', 'FUNCIONÁRIO DE OUTRA')
       end
 
-      scenario 'exports the insured employees to Excel', :xlsx_service, flipper: { hr: :tenant, xlsx_export: :tenant } do
+      scenario 'exports the insured employees to Excel', :xlsx_service, flipper: { hr: :tenant } do
         visit life_insurances_path(company_type: 'mm_espinola')
         click_on 'Exportar Excel'
 

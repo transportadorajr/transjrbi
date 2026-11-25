@@ -85,20 +85,6 @@ RSpec.describe 'db/seeds.rb' do
     expect(Flipper.enabled?(:maintenance, tenant)).to be(false)
   end
 
-  it 'registers the revenue projection flag turned off' do
-    run_seeds
-
-    expect(Flipper.features.map(&:key)).to include('revenue_projection')
-    expect(Flipper.enabled?(:revenue_projection, tenant)).to be(false)
-  end
-
-  it 'registers the revenue goals flag turned off' do
-    run_seeds
-
-    expect(Flipper.features.map(&:key)).to include('revenue_goals')
-    expect(Flipper.enabled?(:revenue_goals, tenant)).to be(false)
-  end
-
   it 'does not duplicate the access resources when run again' do
     run_seeds
 

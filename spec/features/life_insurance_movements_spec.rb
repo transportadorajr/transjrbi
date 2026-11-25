@@ -92,7 +92,7 @@ describe 'Life insurance movements', :hr do
       expect(page).to have_no_table
     end
 
-    scenario 'exports the month in the insurer spreadsheet layout', :xlsx_service, flipper: { hr: :tenant, xlsx_export: :tenant } do
+    scenario 'exports the month in the insurer spreadsheet layout', :xlsx_service, flipper: { hr: :tenant } do
       visit life_insurance_movements_path
       click_on 'Exportar Excel'
 

@@ -1,5 +1,4 @@
 class RevenueProjectionDayNotesController < BaseController
-  before_action :require_revenue_projection
   before_action :set_date
 
   def edit
@@ -22,10 +21,6 @@ class RevenueProjectionDayNotesController < BaseController
   end
 
   private
-
-  def require_revenue_projection
-    raise ActionController::RoutingError, 'Not Found' unless Dashboard::RevenueProjection.enabled?(current_tenant)
-  end
 
   def set_date
     @date = Date.iso8601(params[:date])

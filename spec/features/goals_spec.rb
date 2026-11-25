@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Goals panel', flipper: { revenue_goals: :tenant } do
+describe 'Goals panel' do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Painel de metas', slug: 'goals', writable: false) }
@@ -212,8 +212,14 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
         end
       end
 
-      context 'with the revenue projection enabled', flipper: { revenue_goals: :tenant, revenue_projection: :tenant } do
+      context 'with access to the revenue projection' do
         let!(:projection_resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
+
+        scenario 'projects the closing of the month with the revenue projection' do
+          visit goals_path
+
+          expect(card_texts).to include('Projeção de fechamento R$ 56.000,00')
+        end
 
         scenario 'links each vehicle, customer group and region to its projection history' do
           visit goals_path(dimension: 'vehicle')
@@ -362,18 +368,6 @@ describe 'Goals panel', flipper: { revenue_goals: :tenant } do
 
       expect(page).to have_css('h1.page-title', text: 'Metas')
       expect(page).to have_no_link('Cadastrar metas')
-    end
-  end
-
-  context 'when the flag is off for the tenant' do
-    let!(:other_owner) { create(:user, tenant: other_tenant, user_type: :owner) }
-
-    before { login_as(other_owner, scope: :user) }
-
-    scenario 'answers not found' do
-      visit goals_path
-
-      expect(page.status_code).to eq(404)
     end
   end
 

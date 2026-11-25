@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
+describe 'Revenue goals registration' do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Metas de faturamento', slug: 'revenue_goals') }
@@ -440,18 +440,6 @@ describe 'Revenue goals registration', flipper: { revenue_goals: :tenant } do
       create(:revenue_goal, tenant:, month: month.prev_month)
 
       expect { page.driver.submit :post, replicate_revenue_goals_path(month: '2026-11'), {} }.not_to change(RevenueGoal, :count)
-    end
-  end
-
-  context 'when the flag is off for the tenant' do
-    let!(:other_owner) { create(:user, tenant: other_tenant, user_type: :owner) }
-
-    before { login_as(other_owner, scope: :user) }
-
-    scenario 'answers not found' do
-      visit revenue_goals_path
-
-      expect(page.status_code).to eq(404)
     end
   end
 end

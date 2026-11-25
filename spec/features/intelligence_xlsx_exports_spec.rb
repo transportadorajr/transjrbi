@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :tenant } do
+describe 'Intelligence Excel exports', :xlsx_service do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:owner) { create(:user, tenant:, name: 'Bruna Dona', user_type: :owner) }
@@ -59,7 +59,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
       end
     end
 
-    context 'when the month comparison is turned on', flipper: { xlsx_export: :tenant, freight_month_comparison: :tenant } do
+    context 'when the month comparison is turned on', flipper: { freight_month_comparison: :tenant } do
       before do
         create(:atua_customer, tenant:, code: 7101, customer_group: create(:customer_group, tenant:, name: 'ARCELOR'))
         create(:atua_transport_document, tenant:, taker_code: 7101, freight_cents: 1_500_000, issued_at: Time.zone.local(2026, 10, 2, 10))
@@ -88,7 +88,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
-  context 'with access to the trips', flipper: { trips_dashboard: :tenant, xlsx_export: :tenant } do
+  context 'with access to the trips', flipper: { trips_dashboard: :tenant } do
     let!(:resource) { create(:resource, name: 'Viagens', slug: 'trips', writable: false) }
 
     before do
@@ -120,7 +120,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
-  context 'with access to the export summary', flipper: { export_summary: :tenant, xlsx_export: :tenant } do
+  context 'with access to the export summary', flipper: { export_summary: :tenant } do
     let!(:resource) { create(:resource, name: 'Resumo da exportação', slug: 'export_summary', writable: false) }
 
     before do
@@ -150,7 +150,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
-  context 'with the documents of two trucks in the revenue projection history', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
+  context 'with the documents of two trucks in the revenue projection history' do
     let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 
     before do
@@ -198,7 +198,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
-  context 'with access to the revenue projection history', flipper: { revenue_projection: :tenant, xlsx_export: :tenant } do
+  context 'with access to the revenue projection history' do
     let!(:resource) { create(:resource, name: 'Projeção de faturamento', slug: 'revenue_projection', writable: false) }
 
     before do
@@ -292,7 +292,7 @@ describe 'Intelligence Excel exports', :xlsx_service, flipper: { xlsx_export: :t
     end
   end
 
-  context 'with access to the goals panel', flipper: { revenue_goals: :tenant, xlsx_export: :tenant } do
+  context 'with access to the goals panel' do
     let!(:resource) { create(:resource, name: 'Painel de metas', slug: 'goals', writable: false) }
     let(:month) { Date.new(2026, 11, 1) }
 

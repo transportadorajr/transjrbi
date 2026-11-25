@@ -1,8 +1,6 @@
 class GoalsController < BaseController
   CACHE_TTL = 1.hour
 
-  before_action :require_revenue_goals
-
   def show
     authorize!(:read, :goals)
 
@@ -42,10 +40,6 @@ class GoalsController < BaseController
                                           holidays: holidays(period.first.beginning_of_month..period.last.end_of_month))
   end
 
-  def require_revenue_goals
-    raise ActionController::RoutingError, 'Not Found' unless Dashboard::Goals.enabled?(current_tenant)
-  end
-
   def pace
     RevenueGoal::Pace.new(month, reference_date:, holidays: holidays(month.all_month), projection: (projection if @filter_form.current_month?))
   end
@@ -59,7 +53,7 @@ class GoalsController < BaseController
   end
 
   def projection
-    return unless Dashboard::RevenueProjection.enabled?(current_tenant)
+    return unless can?(:read, :revenue_projection)
 
     Rails.cache.fetch(projection_cache_key, expires_in: CACHE_TTL) do
       RevenueProjections::CalculateCommand.call(current_tenant, period_type: :month)

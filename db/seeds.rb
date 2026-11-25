@@ -68,8 +68,6 @@ end
 end
 
 Flipper.add(Dashboard::Trip::FEATURE)
-Flipper.add(Dashboard::RevenueProjection::FEATURE)
-Flipper.add(Dashboard::Goals::FEATURE)
 Flipper.add(MaintenanceOrder::FEATURE)
 Flipper.add(Hr::FEATURE)
 Flipper.add(ExportPlant::FEATURE)

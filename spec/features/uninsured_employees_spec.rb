@@ -112,7 +112,7 @@ describe 'Uninsured employees', :hr do
       expect(text).not_to include('JOSE SILVA', 'INATIVO SEM SEGURO', 'FUNCIONÁRIO DE OUTRA')
     end
 
-    scenario 'exports the uninsured employees to Excel', :xlsx_service, flipper: { hr: :tenant, xlsx_export: :tenant } do
+    scenario 'exports the uninsured employees to Excel', :xlsx_service, flipper: { hr: :tenant } do
       visit uninsured_employees_path(company_type: 'mm_espinola')
       click_on 'Exportar Excel'
 

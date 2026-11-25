@@ -26,13 +26,11 @@ shared:
         - name: revenue_projection_history
           resource: revenue_projection
           url: /revenue_projection_history
-          feature: revenue_projection
           controllers:
             - revenue_projection_histories
         - name: goals
           resource: goals
           url: /goals
-          feature: revenue_goals
           controllers:
             - goals
             - revenue_goals
