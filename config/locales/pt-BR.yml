@@ -3398,8 +3398,8 @@ pt-BR:
     kinds:
       uninsured: Sem seguro de vida
       missing_emergency_contact: Sem contato de emergência
-      risk_assessment_expired: Pesquisa vencida
-      risk_assessment_expiring: Pesquisa vence em até %{days} dias
+      risk_assessment_expired: Pesquisa de Ger. Risco vencida
+      risk_assessment_expiring: Pesquisa de Ger. Risco vence em até %{days} dias
       vacation_overdue: Férias vencidas
       vacation_due_soon: Férias vencem em até %{days} dias
       irregular_days_off: Folgas irregulares
