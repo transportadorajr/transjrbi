@@ -125,6 +125,7 @@ Rails.application.routes.draw do
     resources :product_groups, concerns: :activatable
     resources :drivers, only: %i[index show edit update destroy]
     resources :expenses, only: %i[index show]
+    resources :advance_icms, only: %i[index]
     resources :commission_rules, concerns: :activatable
     resources :export_plants, concerns: :activatable
     resources :export_shortcuts, concerns: :activatable

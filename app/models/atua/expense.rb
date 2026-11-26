@@ -12,6 +12,7 @@ module Atua
     }.freeze
     UNLOADING_HISTORY_CODES = [72, 474, 476].freeze
     FUEL_HISTORY_CODES = [11, 396, 482].freeze
+    ADVANCE_ICMS_HISTORY_CODES = [503].freeze
     UNLOADING_DOCUMENT_NUMBER = /\A\s*(?:(\d{3,7})(?:\.0)?\s*|(\d{4,7})(?:\.0)?\D.*)\z/im
 
     export_field(:allocation, &:allocation_name)
@@ -55,6 +56,7 @@ module Atua
     scope :by_headquarters, ->(name) { where(headquarters_name: name) }
     scope :unloading, -> { where(history_code: UNLOADING_HISTORY_CODES) }
     scope :fuel, -> { where(history_code: FUEL_HISTORY_CODES) }
+    scope :advance_icms, -> { where(history_code: ADVANCE_ICMS_HISTORY_CODES) }
     scope :by_spent_period, ->(period) { where(spent_on.between(period)) }
 
     class << self

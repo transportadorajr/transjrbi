@@ -1,0 +1,47 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= pdf_export_button %>
+    <%= xlsx_export_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="row g-3 mb-4" id="advance_icms_counters">
+    <%= advance_icms_counter_cards(@totals) %>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @transport_documents.total_count) %></p>
+      </div>
+      <%= sort_menu([[Atua::TransportDocument.human_attribute_name(:customer_name), :customer_name],
+                     [Atua::TransportDocument.human_attribute_name(:icms), :icms, :desc],
+                     [Atua::TransportDocument.human_attribute_name(:advance_icms_guide), :advance_icms_guide, :desc]]) %>
+    </div>
+    <div class="table-card-body">
+      <% if @transport_documents.any? %>
+        <%= render 'table', collection: @transport_documents %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card detail-card mt-4">
+    <div class="detail-card-body">
+      <dl class="row detail-list mb-0" id="advance_icms_totals">
+        <dt class="col-12 col-md-6"><%= t('.icms_total') %></dt>
+        <dd class="col-12 col-md-6 text-md-end fw-semibold"><%= tax_money(@totals[:icms]) %></dd>
+        <dt class="col-12 col-md-6"><%= t('.guide_total') %></dt>
+        <dd class="col-12 col-md-6 text-md-end fw-semibold"><%= tax_money(@totals[:guide]) %></dd>
+        <dt class="col-12 col-md-6"><%= t('.difference_total') %></dt>
+        <dd class="col-12 col-md-6 text-md-end fw-semibold"><%= tax_money(@totals[:guide] - @totals[:icms]) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>

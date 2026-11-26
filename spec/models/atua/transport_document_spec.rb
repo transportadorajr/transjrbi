@@ -609,4 +609,96 @@ RSpec.describe Atua::TransportDocument do
       end
     end
   end
+
+  describe 'advance ICMS' do
+    let!(:paid) do
+      create(:atua_transport_document, tenant:, number: '75830', cfop: 6932, origin_state: 'SP', freight_cents: 170_395, icms_cents: 20_447)
+    end
+    let!(:divergent) do
+      create(:atua_transport_document, tenant:, number: '75831', cfop: 5932, origin_state: 'SP', freight_cents: 41_598, icms_cents: 4_992)
+    end
+    let!(:missing) do
+      create(:atua_transport_document, tenant:, number: '75845', cfop: 6932, origin_state: 'SP', freight_cents: 72_343, icms_cents: 8_681)
+    end
+    let!(:guide_on_local_service) do
+      create(:atua_transport_document, tenant:, number: '73180', cfop: 6353, origin_state: 'PR', freight_cents: 563_410, icms_cents: 56_341)
+    end
+    let!(:local_service) do
+      create(:atua_transport_document, tenant:, number: '73181', cfop: 6353, origin_state: 'PR', freight_cents: 100_000, icms_cents: 12_000)
+    end
+    let!(:exempt) { create(:atua_transport_document, tenant:, number: '73182', cfop: 6932, origin_state: 'SP', icms_cents: 0) }
+    let!(:canceled) do
+      create(:atua_transport_document, tenant:, number: '73183', cfop: 6932, origin_state: 'SP', icms_cents: 9_000, canceled_at: Time.current)
+    end
+    let!(:removed) do
+      create(:atua_transport_document, tenant:, number: '73184', cfop: 6932, origin_state: 'SP', icms_cents: 9_000,
+                                       removed_from_atua_at: Time.current)
+    end
+    let!(:ce) { create(:atua_transport_document, tenant:, number: '73185', document_kind: 'ce', cfop: 6932, origin_state: 'SP', icms_cents: 9_000) }
+    let!(:stranger) { create(:atua_transport_document, tenant: other_tenant, number: '73186', cfop: 6932, origin_state: 'SP', icms_cents: 9_000) }
+
+    before do
+      create(:atua_expense, tenant:, history_code: 503, history_name: 'ICMS ANTECIPADO', cost_object: paid, total_cents: 20_447)
+      create(:atua_expense, tenant:, history_code: 503, history_name: 'ICMS ANTECIPADO', cost_object: divergent, total_cents: 4_000)
+      create(:atua_expense, tenant:, history_code: 503, history_name: 'ICMS ANTECIPADO', cost_object: guide_on_local_service, total_cents: 12_600)
+      create(:atua_expense, tenant:, history_code: 503, history_name: 'ICMS ANTECIPADO', cost_object: missing, total_cents: 8_681,
+                            removed_from_atua_at: Time.current)
+      create(:atua_expense, tenant:, history_code: 434, history_name: 'COMBUSTIVEL - DIESEL', cost_object: missing, total_cents: 50_000)
+    end
+
+    it 'lists the active CT-es started outside the carrier state with ICMS and the ones with an advance ICMS guide' do
+      expect(tenant.atua_transport_documents.advance_icms).to contain_exactly(paid, divergent, missing, guide_on_local_service)
+    end
+
+    it 'sums the active advance ICMS guides of each CT-e' do
+      guides = tenant.atua_transport_documents.advance_icms.with_advance_icms_guide.to_h { |document| [document.number, document.advance_icms_guide.cents] }
+
+      expect(guides).to eq('75830' => 20_447, '75831' => 4_000, '75845' => 0, '73180' => 12_600)
+    end
+
+    it 'tells whether the guide was paid, diverges from the ICMS or is missing' do
+      documents = tenant.atua_transport_documents.advance_icms.with_advance_icms_guide.index_by(&:number)
+
+      expect(documents.transform_values(&:advance_icms_status)).to eq('75830' => :paid, '75831' => :divergent, '75845' => :missing, '73180' => :divergent)
+      expect(documents.transform_values { |document| document.advance_icms_difference.cents }).to eq(
+        '75830' => 0, '75831' => -992, '75845' => -8_681, '73180' => -43_741,
+      )
+    end
+
+    it 'filters the CT-es by the status of the guide' do
+      documents = tenant.atua_transport_documents.advance_icms
+
+      expect(documents.by_advance_icms_status(:paid)).to contain_exactly(paid)
+      expect(documents.by_advance_icms_status(:divergent)).to contain_exactly(divergent, guide_on_local_service)
+      expect(documents.by_advance_icms_status(:missing)).to contain_exactly(missing)
+    end
+
+    it 'totals the CT-es by status, the ICMS and the guides' do
+      expect(tenant.atua_transport_documents.advance_icms.advance_icms_totals).to eq(
+        count: 4, counts: { paid: 1, divergent: 2, missing: 1 },
+        icms: Money.from_cents(90_461), guide: Money.from_cents(37_047)
+      )
+    end
+
+    it 'sorts the CT-es by the guide' do
+      sorted = tenant.atua_transport_documents.advance_icms.with_advance_icms_guide.sorted_by(:advance_icms_guide, :desc)
+
+      expect(sorted.map(&:number)).to eq(%w[75830 73180 75831 75845])
+    end
+  end
+
+  describe '.advance_icms_statuses' do
+    it 'maps the translated statuses to their keys' do
+      expect(described_class.advance_icms_statuses).to eq('Guia paga' => :paid, 'Guia divergente' => :divergent, 'Sem guia' => :missing)
+    end
+  end
+
+  describe '.by_origin_state' do
+    let!(:from_sao_paulo) { create(:atua_transport_document, tenant:, origin_state: 'SP') }
+    let!(:from_parana) { create(:atua_transport_document, tenant:, origin_state: 'PR') }
+
+    it 'keeps the CT-es started in the given state' do
+      expect(tenant.atua_transport_documents.by_origin_state(' sp ')).to contain_exactly(from_sao_paulo)
+    end
+  end
 end

@@ -1,0 +1,27 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= Atua::TransportDocument.human_attribute_name(:number) %></th>
+        <th class="d-none d-md-table-cell"><%= Atua::TransportDocument.human_attribute_name(:issued_at) %></th>
+        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:taker), :customer_name, class: 'd-none d-lg-table-cell') %>
+        <th class="d-none d-lg-table-cell"><%= Atua::TransportDocument.human_attribute_name(:origin) %></th>
+        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:icms), :icms, first_direction: :desc, class: 'd-none d-md-table-cell text-end') %>
+        <%= sortable_header(Atua::TransportDocument.human_attribute_name(:advance_icms_guide), :advance_icms_guide,
+                            first_direction: :desc, class: 'd-none d-md-table-cell text-end') %>
+        <th class="d-none d-lg-table-cell text-end"><%= Atua::TransportDocument.human_attribute_name(:advance_icms_difference) %></th>
+        <th><%= Atua::TransportDocument.human_attribute_name(:advance_icms_status) %></th>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |item| %>
+        <%= render 'row', item: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>
