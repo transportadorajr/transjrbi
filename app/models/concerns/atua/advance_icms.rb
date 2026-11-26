@@ -3,7 +3,7 @@ module Atua
     extend ActiveSupport::Concern
 
     ADVANCE_ICMS_CFOPS = [5932, 6932].freeze
-    ADVANCE_ICMS_STATUSES = %i[paid divergent missing].freeze
+    ADVANCE_ICMS_STATUSES = %i[paid divergent pending not_expected].freeze
 
     included do
       sortable :icms, -> { arel_table[:icms_cents] }
@@ -12,7 +12,10 @@ module Atua
       scope :advance_icms, -> {
         active.not_canceled.freights.where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC']).where(advance_icms_condition)
       }
-      scope :with_advance_icms_guide, -> { select(arel_table[Arel.star], advance_icms_guide_total.as('advance_icms_guide_cents')) }
+      scope :with_advance_icms_guide, -> {
+        select(arel_table[Arel.star], advance_icms_guide_total.as('advance_icms_guide_cents'),
+               Arel::Nodes::Grouping.new(advance_icms_paid_by_taker).as('advance_icms_paid_by_taker'))
+      }
       scope :by_advance_icms_status, ->(status) { where(advance_icms_status.eq(status.to_s)) }
       scope :by_origin_state, ->(state) { where(origin_state: state.to_s.strip.upcase) }
     end
@@ -46,9 +49,17 @@ module Atua
         icms = Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:icms_cents], 0])
 
         Arel::Nodes::Case.new
-          .when(guide.eq(0)).then(Arel::Nodes.build_quoted('missing'))
+          .when(guide.eq(0).and(advance_icms_paid_by_taker)).then(Arel::Nodes.build_quoted('pending'))
+          .when(guide.eq(0)).then(Arel::Nodes.build_quoted('not_expected'))
           .when(guide.eq(icms)).then(Arel::Nodes.build_quoted('paid'))
           .else(Arel::Nodes.build_quoted('divergent'))
+      end
+
+      def advance_icms_paid_by_taker
+        customers = Customer.arel_table
+
+        Customer.joins(:customer_group).where(customers[:tenant_id].eq(arel_table[:tenant_id]))
+          .where(customers[:code].eq(arel_table[:taker_code])).merge(CustomerGroup.pays_advance_icms).arel.exists
       end
 
       def advance_icms_condition
@@ -68,7 +79,7 @@ module Atua
     end
 
     def advance_icms_status
-      return :missing if advance_icms_guide.zero?
+      return self[:advance_icms_paid_by_taker] ? :pending : :not_expected if advance_icms_guide.zero?
 
       advance_icms_difference.zero? ? :paid : :divergent
     end

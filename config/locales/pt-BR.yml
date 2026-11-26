@@ -467,6 +467,8 @@ pt-BR:
         activated_at: Ativado em
         customers: Clientes
         toll_reimbursed: Pedágio recobrado
+        pays_advance_icms: Guia de ICMS antecipado
+        pays_advance_icms_at: Paga guia de ICMS antecipado desde
       product_group:
         name: Nome
         parent: Grupo
@@ -1009,6 +1011,7 @@ pt-BR:
         terms: Termos
         active: Ativo
         toll_reimbursed: Pedágio recobrado do cliente
+        pays_advance_icms: JR paga a guia de ICMS antecipado
       product_group_form:
         name: Nome
         parent_id: Grupo
@@ -2534,6 +2537,9 @@ pt-BR:
       toll:
         reimbursed: Sim, não descontado do frete líquido
         discounted: Não, descontado do frete líquido
+      advance_icms:
+        paid: Paga pela JR, CT-e sem guia fica pendente
+        not_paid: Não paga pela JR
     new:
       title: Novo Grupo
       back: Voltar para grupos de clientes
@@ -2561,6 +2567,9 @@ pt-BR:
       toll_reimbursed_hint: >-
         Marque quando o pedágio pago pela JR é cobrado do cliente depois, em CT-e de complemento. O pedágio dos CT-es
         deste grupo deixa de ser descontado do frete líquido.
+      pays_advance_icms_hint: >-
+        Marque quando a JR recolhe em guia o ICMS dos CT-es com prestação iniciada fora do PR (o frete é cobrado com o
+        ICMS). Na tela ICMS antecipado, os CT-es deste grupo sem guia aparecem como pendentes.
   product_groups:
     unclassified_alert:
       title:
@@ -4697,7 +4706,8 @@ pt-BR:
       title: ICMS antecipado
       subtitle: >-
         CT-es com prestação iniciada fora da UF da transportadora (CFOP 5932 e 6932) e as guias de ICMS antecipado lançadas na
-        Atua para cada um. Somente consulta.
+        Atua para cada um. Fica pendente o CT-e sem guia de um grupo de clientes marcado como "JR paga a guia de ICMS
+        antecipado". Somente consulta.
       total: CT-es
       icms_total: ICMS dos CT-es
       guide_total: Guias de ICMS lançadas
@@ -4716,7 +4726,8 @@ pt-BR:
     statuses:
       paid: Guia paga
       divergent: Guia divergente
-      missing: Sem guia
+      pending: Guia pendente
+      not_expected: Sem guia esperada
   freight_expenses:
     index:
       title: Despesas de frete

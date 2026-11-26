@@ -3,6 +3,7 @@ class CustomerGroupForm < BaseForm
   attribute :terms, :string
   attribute :active, :boolean, default: true
   attribute :toll_reimbursed, :boolean, default: false
+  attribute :pays_advance_icms, :boolean, default: false
 
   before_validation :normalize_fields
 
@@ -18,7 +19,8 @@ class CustomerGroupForm < BaseForm
   class << self
     def for_customer_group(customer_group)
       form = new(name: customer_group.name, terms: customer_group.terms.join("\n"), active: customer_group.activated?,
-                 toll_reimbursed: customer_group.toll_reimbursed, tenant: customer_group.tenant)
+                 toll_reimbursed: customer_group.toll_reimbursed, pays_advance_icms: customer_group.pays_advance_icms?,
+                 tenant: customer_group.tenant)
       form.customer_group = customer_group
       form
     end
@@ -33,7 +35,7 @@ class CustomerGroupForm < BaseForm
   end
 
   def submit
-    customer_group.update!(name:, terms: term_list, activated: active, toll_reimbursed:)
+    customer_group.update!(name:, terms: term_list, activated: active, toll_reimbursed:, pays_advance_icms:)
   end
 
   private

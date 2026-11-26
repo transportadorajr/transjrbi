@@ -5,7 +5,7 @@ describe 'Advance ICMS' do
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'ICMS antecipado', slug: 'advance_icms', writable: false) }
   let!(:transport_documents_resource) { create(:resource, name: 'CT-es', slug: 'transport_documents', writable: false) }
-  let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU', terms: ['GERDAU']) }
+  let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU', terms: ['GERDAU'], pays_advance_icms_at: Time.zone.local(2026, 11, 1)) }
   let!(:arcelor) { create(:customer_group, tenant:, name: 'ARCELOR', terms: ['ARCELOR']) }
   let!(:gerdau_customer) { create(:atua_customer, tenant:, code: 601, name: 'GERDAU ACOS LONGOS S.A', customer_group: gerdau) }
   let!(:arcelor_customer) { create(:atua_customer, tenant:, code: 602, name: 'ARCELORMITTAL BRASIL S.A', customer_group: arcelor) }
@@ -49,7 +49,7 @@ describe 'Advance ICMS' do
                                          origin_city: 'SAO PAULO', origin_state: 'SP', issued_at: Time.zone.local(2026, 11, 24, 8),
                                          posted_on: Date.new(2026, 11, 24), freight_cents: 170_395, icms_cents: 20_447)
       end
-      let!(:missing) do
+      let!(:pending) do
         create(:atua_transport_document, tenant:, number: '75845', cfop: 6932, taker_code: 601, taker_name: 'GERDAU ACOS LONGOS S.A',
                                          origin_city: 'SAO PAULO', origin_state: 'SP', issued_at: Time.zone.local(2026, 11, 25, 13, 15),
                                          posted_on: Date.new(2026, 11, 25), freight_cents: 72_343, icms_cents: 8_681)
@@ -85,11 +85,11 @@ describe 'Advance ICMS' do
         expect(page).to have_css('.counter-card', text: "CT-es\n3")
         expect(page).to have_css('.counter-card', text: "Guia paga\n1")
         expect(page).to have_css('.counter-card', text: "Guia divergente\n1")
-        expect(page).to have_css('.counter-card', text: "Sem guia\n1")
+        expect(page).to have_css('.counter-card', text: "Guia pendente\n1")
         expect(html_table_to_rows).to eq(
           [
             ['Número', 'Emitido em', 'Tomador', 'Origem', 'ICMS', 'Guia de ICMS', 'Diferença', 'Situação da guia', 'Ações'],
-            ['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81', 'Sem guia', ''],
+            ['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81', 'Guia pendente', ''],
             ['75830', '24/11/2026 08:00', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 204,47', 'R$ 204,47', 'R$ 0,00', 'Guia paga', ''],
             ['75410', '10/11/2026 09:00', 'ARCELORMITTAL BRASIL S.A', 'RESENDE/RJ', 'R$ 360,00', 'R$ 300,00', '-R$ 60,00',
              'Guia divergente', ''],
@@ -98,6 +98,17 @@ describe 'Advance ICMS' do
         expect(dl_to_hash('#advance_icms_totals')).to eq(
           'ICMS dos CT-es' => 'R$ 651,28', 'Guias de ICMS lançadas' => 'R$ 504,47', 'Diferença entre guias e ICMS' => '-R$ 146,81',
         )
+      end
+
+      scenario 'stops listing the CT-e without a guide as pending once the group no longer has the guides paid by the carrier' do
+        gerdau.update!(pays_advance_icms: false)
+
+        visit advance_icms_path(status: 'not_expected')
+
+        expect(html_table_to_rows.drop(1)).to eq(
+          [['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81', 'Sem guia esperada', '']],
+        )
+        expect(page).to have_css('.counter-card', text: "Guia pendente\n0")
       end
 
       scenario 'opens the CT-e from its number' do
@@ -112,7 +123,7 @@ describe 'Advance ICMS' do
         visit advance_icms_path
 
         within('#filtersModal') do
-          select 'Sem guia', from: 'Situação da guia'
+          select 'Guia pendente', from: 'Situação da guia'
           click_on 'Aplicar Filtros'
         end
 
@@ -168,7 +179,7 @@ describe 'Advance ICMS' do
         )
         expect(downloaded_xlsx_records.map { |record| record.slice('Número', 'Grupo de clientes', 'ICMS', 'Guia de ICMS', 'Situação da guia') })
           .to eq(
-            [{ 'Número' => '75845', 'Grupo de clientes' => 'GERDAU', 'ICMS' => 86.81, 'Guia de ICMS' => 0, 'Situação da guia' => 'Sem guia' },
+            [{ 'Número' => '75845', 'Grupo de clientes' => 'GERDAU', 'ICMS' => 86.81, 'Guia de ICMS' => 0, 'Situação da guia' => 'Guia pendente' },
              { 'Número' => '75830', 'Grupo de clientes' => 'GERDAU', 'ICMS' => 204.47, 'Guia de ICMS' => 204.47,
                'Situação da guia' => 'Guia paga' }],
           )
@@ -221,7 +232,7 @@ describe 'Advance ICMS' do
       visit advance_icms_path
 
       expect(page).to have_link('75830')
-      expect(page).to have_css('td', text: 'Sem guia')
+      expect(page).to have_css('td', text: 'Sem guia esperada')
       expect(page).to have_no_css('th', text: 'Tomador')
       expect(page).to have_no_css('th', text: 'Guia de ICMS')
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)

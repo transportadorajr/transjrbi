@@ -1,5 +1,5 @@
 module AdvanceIcmsHelper
-  ADVANCE_ICMS_STATUS_KINDS = { paid: :success, divergent: :danger, missing: :warning }.freeze
+  ADVANCE_ICMS_STATUS_KINDS = { paid: :success, divergent: :danger, pending: :warning, not_expected: :secondary }.freeze
 
   def advance_icms_menu(transport_document)
     menus = []
@@ -36,7 +36,7 @@ module AdvanceIcmsHelper
     safe_join([counter_card(:dark, t('advance_icms.index.total'), totals[:count], col_class:),
                counter_card(:success, t('advance_icms.statuses.paid'), totals[:counts][:paid], col_class:),
                counter_card(:danger, t('advance_icms.statuses.divergent'), totals[:counts][:divergent], col_class:),
-               counter_card(:warning, t('advance_icms.statuses.missing'), totals[:counts][:missing], col_class:)])
+               counter_card(:warning, t('advance_icms.statuses.pending'), totals[:counts][:pending], col_class:)])
   end
 
   def advance_icms_status_options
