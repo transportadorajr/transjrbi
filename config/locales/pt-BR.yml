@@ -4377,6 +4377,9 @@ pt-BR:
         reconhecidas e o restante é ignorado. Com a lista vazia, nenhum veículo aparece como Terceiro.
       plates_hint: 'Uma placa por linha ou separadas por espaço, vírgula ou ponto e vírgula. Ex.: ALC-6D72/PR, AJR4391.'
   dashboards:
+    advance_icms:
+      guides: Guias lançadas
+      pending: ICMS com guia pendente
     export:
       total: Total
       no_customer_group: Sem grupo de clientes
@@ -4742,6 +4745,8 @@ pt-BR:
       icms_total: ICMS dos CT-es
       guide_total: Guias de ICMS lançadas
       difference_total: Diferença entre guias e ICMS
+      monthly_title: Guias de ICMS por mês
+      monthly_subtitle: Guias lançadas e ICMS com guia pendente, pelo mês de emissão dos CT-es.
       pdf:
         header: Relatório de ICMS antecipado
         filename: icms_antecipado_%{time}.pdf
@@ -4749,10 +4754,30 @@ pt-BR:
     filters:
       number: Número do CT-e
       status: Situação da guia
+      overdue: Somente guias pendentes há mais de 5 dias
       customer_group: Grupo de clientes
       origin_state: UF de origem
       start_date: CT-es lançados a partir de
       end_date: CT-es lançados até
+    overdue: Guia pendente há mais de 5 dias
+    overdue_alert:
+      title:
+        one: 1 guia de ICMS pendente há mais de 5 dias
+        other: '%{count} guias de ICMS pendentes há mais de 5 dias'
+      text: >-
+        O CT-e foi emitido há mais de 5 dias e a guia ainda não foi lançada na Atua. Enquanto isso, o ICMS dele fica
+        provisionado no frete líquido.
+      link: Ver os CT-es com a guia atrasada
+    groups:
+      title: Guias por grupo de clientes
+      subtitle: Guias lançadas e o quanto elas representam do faturamento bruto do grupo no período.
+      customer_group: Grupo de clientes
+      count: CT-es
+      icms: ICMS
+      guide: Guias lançadas
+      pending: ICMS pendente
+      gross: Faturamento bruto
+      share: Guias / faturamento
     statuses:
       paid: Guia paga
       divergent: Guia divergente

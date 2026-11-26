@@ -1,0 +1,9 @@
+<tr>
+  <td class="fw-semibold text-break"><%= row.label %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= row.count %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.icms) %></td>
+  <td class="text-end text-nowrap"><%= tax_money(row.guide) %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= tax_money(row.pending) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= tax_money(row.gross) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= advance_icms_share(row) %></td>
+</tr>

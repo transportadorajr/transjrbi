@@ -78,13 +78,14 @@ Corrige o líquido inflado enquanto a guia não é lançada. Segue o critério q
 - O comando roda no `FreightExpenses::CalculateJob`, no `Atua::LinkExpensesJob` (depois de vincular as despesas importadas, que é quando a guia chega) e, pelo `CalculateJob`, quando a regra do grupo muda no cadastro.
 - O frete líquido em SQL já soma todas as `freight_expenses`; o quadro do frete líquido do CT-e e do MDF-e (`NetFreight`) ganhou a linha "(−) ICMS antecipado com guia pendente". A provisão aparece também na tela Despesas de frete, com o tipo "Provisão de ICMS antecipado".
 
-### Fase 4 — Indicadores no BI
+### Fase 4 — Indicadores
 
-Depende da resposta 2.
+Feita na própria tela ICMS antecipado (e não no dashboard de faturamento), respeitando os filtros dela:
 
-- Dashboard de frete: total de ICMS recolhido em guia no período e % sobre o faturamento, por grupo de clientes (dados em `app/models/dashboard/`, gráfico em helper, cor conforme a seção Charts).
-- Se o tomador retém o ICMS em alguns clientes: avaliar a visão "faturamento sem ICMS retido" para o bruto não ficar acima do recebido.
-- Alerta de guia pendente fora do prazo (resposta 4), no mesmo formato dos avisos já existentes.
+- **Alerta de guia atrasada**: guia pendente de CT-e emitido há mais de **5 dias** (`ADVANCE_ICMS_GUIDE_DEADLINE`), com link que filtra só esses CT-es (`overdue=1`, também no modal de filtros). Na tabela, o CT-e aparece como "Guia pendente há mais de 5 dias".
+- **Gráfico mensal** (`Dashboard::AdvanceIcms#monthly_data`): guias lançadas (azul) e ICMS com guia pendente (laranja), pelo mês de emissão.
+- **Guias por grupo de clientes** (tabela paginada com `groups_page`, e segunda aba do Excel): CT-es, ICMS, guias lançadas, ICMS pendente, faturamento bruto do grupo no período (o mesmo da tela de CT-es agrupada por grupo) e a razão guias / faturamento.
+- **Fica para depois** (pergunta 2): a visão de faturamento sem o ICMS retido pelo tomador. Sem a confirmação do financeiro, qualquer regra mudaria o faturamento exibido no chute.
 
 ## 4. Ordem sugerida e tamanho
 

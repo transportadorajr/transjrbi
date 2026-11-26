@@ -16,6 +16,13 @@
       </div>
 
       <div class="col-12">
+        <div class="form-check">
+          <%= f.check_box :overdue, { checked: params[:overdue].present?, class: 'form-check-input' }, '1', nil %>
+          <%= f.label :overdue, t('advance_icms.filters.overdue'), class: 'form-check-label fw-medium' %>
+        </div>
+      </div>
+
+      <div class="col-12">
         <%= f.label :customer_group_id, t('advance_icms.filters.customer_group'), class: 'form-label fw-medium' %>
         <%= f.select :customer_group_id, advance_icms_customer_group_options(@customer_groups), { include_blank: t('shared.all') },
                      { class: 'form-select bg-light' } %>
