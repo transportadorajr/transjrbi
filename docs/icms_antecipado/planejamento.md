@@ -63,12 +63,12 @@ Objetivo: mostrar, CT-e a CT-e, o ICMS que deveria ter guia e o que foi pago. Re
 
 ### Fase 2 — Regra de quem paga a guia (cadastro)
 
-Depende das respostas 1 e 5. Sugestão: configuração no **grupo de clientes**, como já existe `toll_reimbursed`.
+Configuração no **grupo de clientes**, como já existe `toll_reimbursed`. Só a GERDAU foi marcada, porque o card confirma que a JR paga as guias dela; os demais grupos (ArcelorMittal, Rudolf…) ficam para quem responder as perguntas 1 e 5 marcar no cadastro.
 
-- Coluna nova `advance_icms_paid_at` (datetime nulo, **nunca boolean**, conforme a seção Database) em `customer_groups`, exposta com `time_based_flag`; o `CustomerGroupForm` ganha o checkbox virtual `advance_icms` (`attribute :advance_icms, :boolean`).
-- Marcar GERDAU (e os demais confirmados) no `CustomerGroups::BackfillCommand`, de forma idempotente.
-- A tela da Fase 1 passa a usar a regra para separar **pendente** de **sem guia esperada**.
-- Aproveitar para migrar `toll_reimbursed` (boolean legado) para `toll_reimbursed_at` com expand/contract, se for tocado.
+- Coluna nova `pays_advance_icms_at` (datetime nulo, **nunca boolean**, conforme a seção Database) em `customer_groups`, exposta com `time_based_flag :pays_advance_icms`; o `CustomerGroupForm` ganha o checkbox virtual `pays_advance_icms` ("JR paga a guia de ICMS antecipado"), e a tela do grupo mostra a regra.
+- A migração de dados `MarkAdvanceIcmsCustomerGroups` marca a GERDAU já existente; o `CustomerGroups::BackfillCommand` marca a GERDAU criada para um tenant novo.
+- A tela da Fase 1 separa o CT-e sem guia em **Guia pendente** (tomador de grupo marcado) e **Sem guia esperada**. Os contadores mostram total, pagas, divergentes e pendentes; "Sem guia esperada" fica no filtro.
+- A migração de `toll_reimbursed` (boolean legado) para `toll_reimbursed_at` não foi feita aqui: a coluna não foi alterada, e ela pede um expand/contract próprio.
 
 ### Fase 3 — Frete líquido estável (provisão da guia pendente)
 

@@ -123,6 +123,7 @@ describe 'Customer groups' do
           'Termos' => '2JM, TERRINHA ALIMENTOS',
           'Status' => 'Ativo',
           'Pedágio recobrado' => 'Não, descontado do frete líquido',
+          'Guia de ICMS antecipado' => 'Não paga pela JR',
           'Clientes' => '2',
         )
         expect(html_table_to_rows).to eq(
@@ -251,6 +252,7 @@ describe 'Customer groups' do
         fill_in 'Termos', with: "2JM\nTERRAFEC"
         uncheck 'Ativo'
         check 'Pedágio recobrado do cliente'
+        check 'JR paga a guia de ICMS antecipado'
 
         expect { click_on 'Salvar Alterações' }.not_to change(CustomerGroup, :count)
 
@@ -262,7 +264,11 @@ describe 'Customer groups' do
         expect(customer_group.terms).to eq(%w[2JM TERRAFEC])
         expect(customer_group.activated_at).to be_nil
         expect(customer_group.toll_reimbursed).to be(true)
-        expect(dl_to_hash('#customer_group_data')).to include('Pedágio recobrado' => 'Sim, não descontado do frete líquido')
+        expect(customer_group.pays_advance_icms_at).to be_present
+        expect(dl_to_hash('#customer_group_data')).to include(
+          'Pedágio recobrado' => 'Sim, não descontado do frete líquido',
+          'Guia de ICMS antecipado' => 'Paga pela JR, CT-e sem guia fica pendente',
+        )
       end
 
       scenario 'shows the errors when the name is removed' do

@@ -14,6 +14,7 @@ class CustomerGroup < ApplicationRecord
   has_many :revenue_goals, inverse_of: :customer_group, dependent: :delete_all
 
   time_based_flag :activated
+  time_based_flag :pays_advance_icms, scheduled: false
 
   validates :name, presence: true, uniqueness: { scope: :tenant_id }
 
@@ -55,14 +56,15 @@ end
 #
 # Table name: customer_groups
 #
-#  id              :bigint           not null, primary key
-#  activated_at    :datetime
-#  name            :string           not null
-#  terms           :string           default([]), not null, is an Array
-#  toll_reimbursed :boolean          default(FALSE), not null
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  tenant_id       :bigint           not null
+#  id                   :bigint           not null, primary key
+#  activated_at         :datetime
+#  name                 :string           not null
+#  pays_advance_icms_at :datetime
+#  terms                :string           default([]), not null, is an Array
+#  toll_reimbursed      :boolean          default(FALSE), not null
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  tenant_id            :bigint           not null
 #
 # Indexes
 #

@@ -20,6 +20,10 @@ module CustomerGroupsHelper
     t(customer_group.toll_reimbursed? ? :reimbursed : :discounted, scope: 'customer_groups.show.toll')
   end
 
+  def customer_group_pays_advance_icms(customer_group)
+    t(customer_group.pays_advance_icms? ? :paid : :not_paid, scope: 'customer_groups.show.advance_icms')
+  end
+
   def customer_group_customers_count(customer_group, customer_counts)
     customer_counts.fetch(customer_group.id, 0)
   end

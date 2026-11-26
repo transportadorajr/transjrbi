@@ -69,6 +69,7 @@ RSpec.describe CustomerGroupForm do
       expect(form.terms).to eq("2JM\nTERRAFEC")
       expect(form.active).to be(true)
       expect(form.toll_reimbursed).to be(false)
+      expect(form.pays_advance_icms).to be(false)
       expect(form).to be_persisted
     end
 
@@ -79,6 +80,21 @@ RSpec.describe CustomerGroupForm do
       expect(form.save).to be(true)
       expect(customer_group.reload.toll_reimbursed).to be(true)
       expect(described_class.for_customer_group(customer_group).toll_reimbursed).to be(true)
+    end
+
+    it 'marks that the carrier pays the advance ICMS guides of the group and unmarks it' do
+      form = described_class.for_customer_group(customer_group)
+      form.assign_attributes(pays_advance_icms: '1')
+
+      expect(form.save).to be(true)
+      expect(customer_group.reload.pays_advance_icms_at).to be_present
+      expect(described_class.for_customer_group(customer_group).pays_advance_icms).to be(true)
+
+      form = described_class.for_customer_group(customer_group)
+      form.assign_attributes(pays_advance_icms: '0')
+
+      expect(form.save).to be(true)
+      expect(customer_group.reload.pays_advance_icms_at).to be_nil
     end
 
     it 'updates the group keeping its own name available and the activation date' do
