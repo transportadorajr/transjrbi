@@ -87,6 +87,7 @@ describe 'Customer groups' do
           end
 
           expect(page).to have_current_path(customers_path(customer_group: 'none'))
+          expect(Atua::Customer.count).to eq(5)
           expect(html_table_to_rows).to eq(
             [
               ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],

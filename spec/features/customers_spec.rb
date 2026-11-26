@@ -114,25 +114,27 @@ describe 'Customers' do
         )
       end
 
-      scenario 'warns about the takers without a group and lists them' do
-        create(:atua_transport_document, tenant:, taker_code: warehouse.code)
-        create(:atua_transport_document, tenant: other_tenant, taker_code: stranger.code)
+      context 'when takers have no group' do
+        let!(:warehouse_document) { create(:atua_transport_document, tenant:, taker_code: warehouse.code) }
+        let!(:stranger_document) { create(:atua_transport_document, tenant: other_tenant, taker_code: stranger.code) }
 
-        visit customers_path
+        scenario 'warns about the takers without a group and lists them' do
+          visit customers_path
 
-        within('#ungrouped_customers_alert') do
-          expect(page).to have_text('1 cliente sem grupo')
-          click_on 'Ver clientes sem grupo'
+          within('#ungrouped_customers_alert') do
+            expect(page).to have_text('1 cliente sem grupo')
+            click_on 'Ver clientes sem grupo'
+          end
+
+          expect(page).to have_select('Grupo', selected: 'Sem grupo (com CT-e)', visible: :all)
+          expect(Atua::Customer.count).to eq(4)
+          expect(html_table_to_rows).to eq(
+            [
+              ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
+              ['TL ARMAZENS GERAIS LTDA. -', '-', '10.622.725/0001-75', 'IPATINGA/MG', '-', ''],
+            ],
+          )
         end
-
-        expect(page).to have_select('Grupo', selected: 'Sem grupo (com CT-e)', visible: :all)
-        expect(Atua::Customer.count).to eq(4)
-        expect(html_table_to_rows).to eq(
-          [
-            ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
-            ['TL ARMAZENS GERAIS LTDA. -', '-', '10.622.725/0001-75', 'IPATINGA/MG', '-', ''],
-          ],
-        )
       end
 
       scenario 'does not show a customer removed from Atua' do
