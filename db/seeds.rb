@@ -23,6 +23,7 @@ end
   'drivers' => { name: 'Motoristas', writable: true },
   'vehicles' => { name: 'Veículos', writable: false },
   'expenses' => { name: 'Despesas', writable: false },
+  'advance_icms' => { name: 'ICMS antecipado', writable: false },
   'customer_groups' => { name: 'Grupos de clientes', writable: true },
   'product_groups' => { name: 'Grupos de produtos', writable: true },
   'commission_rules' => { name: 'Regras de comissão', writable: true },

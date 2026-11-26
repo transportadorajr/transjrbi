@@ -47,6 +47,11 @@ shared:
           url: /manifests
           controllers:
             - manifests
+        - name: advance_icms
+          resource: advance_icms
+          url: /advance_icms
+          controllers:
+            - advance_icms
         - name: route_distances
           resource: route_distances
           url: /route_distances

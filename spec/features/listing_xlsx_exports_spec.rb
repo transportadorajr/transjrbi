@@ -9,13 +9,13 @@ describe 'Listing Excel exports' do
       cities_path: { name: 'Ipa' }, commission_rules_path: {}, customer_groups_path: {}, customers_path: {}, drivers_path: {},
       excluded_issuers_path: {}, expenses_path: {}, freight_expenses_path: {}, holidays_path: { year: 2026 }, macro_regions_path: {},
       manifests_path: {}, product_groups_path: {}, route_distances_path: {}, tonnage_rates_path: {}, truck_groups_path: {},
-      users_path: { name: 'Bruna' }, vehicles_path: {}, transport_documents_path: {}
+      users_path: { name: 'Bruna' }, vehicles_path: {}, transport_documents_path: {}, advance_icms_path: {}
     }
   end
 
   before do
     %w[cities commission_rules customer_groups customers drivers excluded_issuers expenses freight_expenses holidays macro_regions manifests
-       product_groups route_distances tonnage_rates truck_groups users vehicles transport_documents].each do |slug|
+       product_groups route_distances tonnage_rates truck_groups users vehicles transport_documents advance_icms].each do |slug|
       create(:resource, name: slug.humanize, slug:, writable: false)
     end
     login_as(owner, scope: :user)

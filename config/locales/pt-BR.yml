@@ -487,6 +487,9 @@ pt-BR:
         status_type: Situação
         calculated_at: Calculado em
       atua/transport_document:
+        advance_icms_guide: Guia de ICMS
+        advance_icms_difference: Diferença
+        advance_icms_status: Situação da guia
         complemented_transport_document: CT-e complementado
         customer_name: Cliente
         customer_group: Grupo de clientes
@@ -2292,6 +2295,7 @@ pt-BR:
         title: Sem acesso à manutenção
         description: Seu usuário ainda não tem acesso às telas da manutenção. Peça a liberação ao responsável pela sua empresa.
   resource_names:
+    advance_icms: ICMS antecipado
     hr_pendencies: Pendências do RH
     vacations: Férias
     risk_assessments: Gerenciadoras de risco
@@ -4717,6 +4721,31 @@ pt-BR:
       monthly_per_km_title: Evolução Mensal do R$/km
       weekly_per_km_title: Evolução Semanal do R$/km
       table_title: Detalhamento por %{dimension}
+  advance_icms:
+    index:
+      title: ICMS antecipado
+      subtitle: >-
+        CT-es com prestação iniciada fora da UF da transportadora (CFOP 5932 e 6932) e as guias de ICMS antecipado lançadas na
+        Atua para cada um. Somente consulta.
+      total: CT-es
+      icms_total: ICMS dos CT-es
+      guide_total: Guias de ICMS lançadas
+      difference_total: Diferença entre guias e ICMS
+      pdf:
+        header: Relatório de ICMS antecipado
+        filename: icms_antecipado_%{time}.pdf
+        total: Total
+    filters:
+      number: Número do CT-e
+      status: Situação da guia
+      customer_group: Grupo de clientes
+      origin_state: UF de origem
+      start_date: CT-es lançados a partir de
+      end_date: CT-es lançados até
+    statuses:
+      paid: Guia paga
+      divergent: Guia divergente
+      missing: Sem guia
   freight_expenses:
     index:
       title: Despesas de frete
@@ -4990,6 +5019,7 @@ pt-BR:
     maintenance_services: Serviços
     transport_documents: CT-es
     manifests: Manifestos
+    advance_icms: ICMS antecipado
     route_distances: Trechos de km
     intelligence: Inteligência
     vehicle_availability: Disponibilidade da frota

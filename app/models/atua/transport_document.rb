@@ -3,6 +3,7 @@ module Atua
     include Importable
     include Sortable
     include Exportable
+    include AdvanceIcms
 
     INACTIVITY_PERIOD = 12.months
     VALUE_COMPLEMENT = 'Complemento de Valores'.freeze

@@ -257,6 +257,15 @@ RSpec.describe Atua::Expense do
     end
   end
 
+  describe '.advance_icms' do
+    let!(:guide) { create(:atua_expense, tenant:, history_code: 503, history_name: 'ICMS ANTECIPADO') }
+    let!(:fuel) { create(:atua_expense, tenant:, history_code: 434, history_name: 'COMBUSTIVEL - DIESEL') }
+
+    it 'keeps only the advance ICMS guides' do
+      expect(described_class.advance_icms).to contain_exactly(guide)
+    end
+  end
+
   describe '.unloading_transport_document_number' do
     it 'reads the transport document number written in the document of an unloading expense' do
       expect(described_class.unloading_transport_document_number(72, '74158')).to eq(74_158)
