@@ -60,6 +60,27 @@ RSpec.describe EmptyLeg do
     end
   end
 
+  context 'with a leg that starts at a CE and one that ends at a CE' do
+    let!(:ce) do
+      create(:atua_transport_document, tenant:, code: 94_633, document_kind: 'ce', service_kind: 'Subcontratação',
+                                       issued_at: Time.zone.local(2026, 10, 5, 23, 30))
+    end
+    let!(:next_manifest) { create(:atua_manifest, tenant:, code: 41_200, trip_started_at: Time.zone.local(2026, 10, 8, 6)) }
+    let!(:to_ce) { create(:empty_leg, tenant:, previous_manifest_code: 41_100, next_manifest_code: nil, next_transport_document_code: 94_633) }
+    let!(:from_ce) do
+      create(:empty_leg, tenant:, previous_manifest_code: nil, previous_transport_document_code: 94_633, next_manifest_code: 41_200)
+    end
+
+    before { create(:atua_transport_document, tenant: other_tenant, code: 94_633) }
+
+    it 'reaches the CE inside the tenant and dates each leg by its next trip' do
+      expect(to_ce.next_transport_document).to eq(ce)
+      expect(ce.ce_empty_leg).to eq(to_ce)
+      expect(from_ce.previous_transport_document).to eq(ce)
+      expect([to_ce.trip_on, from_ce.trip_on]).to eq([Date.new(2026, 10, 5), Date.new(2026, 10, 8)])
+    end
+  end
+
   it 'translates the status and the precision' do
     leg = build(:empty_leg, status_type: 'unrouted', precision_type: 'city')
 

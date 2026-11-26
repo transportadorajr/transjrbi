@@ -167,13 +167,17 @@ RSpec.describe EmptyLegs::CalculateCommand do
       expect(EmptyLeg.count).to eq(2)
     end
 
-    it 'removes the leg of the CE once it is listed in an MDF-e' do
-      described_class.call(ce, client:)
-      create(:atua_manifest_document, tenant:, manifest_code: 41_200, transport_document_number: '4633', transport_document_series: 1,
-                                      branch_name: 'JR TRANSPORTES')
+    context 'when the CE is listed in an MDF-e after its leg was calculated' do
+      before do
+        described_class.call(ce, client:)
+        create(:atua_manifest_document, tenant:, manifest_code: 41_200, transport_document_number: '4633', transport_document_series: 1,
+                                        branch_name: 'JR TRANSPORTES')
+      end
 
-      expect { described_class.call(ce, client:) }.to change(EmptyLeg, :count).by(-1)
-      expect(described_class.call(next_trip, client:)).to have_attributes(previous_manifest_code: 41_100, previous_transport_document_code: nil)
+      it 'removes the leg of the CE and chains the next trip to the previous MDF-e' do
+        expect { described_class.call(ce, client:) }.to change(EmptyLeg, :count).by(-1)
+        expect(described_class.call(next_trip, client:)).to have_attributes(previous_manifest_code: 41_100, previous_transport_document_code: nil)
+      end
     end
   end
 end

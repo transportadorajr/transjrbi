@@ -426,21 +426,31 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard.per_km_base).to have_attributes(loaded_km: BigDecimal('2268'), excluded_count: 1, excluded_gross: Money.from_cents(400_000))
     end
 
-    it 'adds the empty km measured up to the pickup of the CE' do
-      create(:empty_leg, tenant:, plate: 'BEJ4G50', previous_manifest_code: 41_999, next_manifest_code: nil,
-                         next_transport_document_code: subcontracted.code, distance_km: 320)
+    context 'when the empty km up to the pickup of the CE was measured' do
+      before do
+        create(:empty_leg, tenant:, plate: 'BEJ4G50', previous_manifest_code: 41_999, next_manifest_code: nil,
+                           next_transport_document_code: subcontracted.code, distance_km: 320)
+      end
 
-      expect(dashboard.row_for('BEJ4G50')).to have_attributes(trips_count: 1, loaded_km: BigDecimal('1536'), empty_km: BigDecimal('320'))
+      it 'adds it to the empty km of the truck' do
+        expect(EmptyLeg.count).to eq(1)
+        expect(dashboard.row_for('BEJ4G50')).to have_attributes(trips_count: 1, loaded_km: BigDecimal('1536'), empty_km: BigDecimal('320'))
+      end
     end
 
-    it 'keeps a CE out of the trips once it is listed in an MDF-e' do
-      create(:atua_manifest, tenant:, code: 42_500, plate: 'BEJ4G50', trip_started_at: Time.zone.local(2026, 10, 25, 12))
-      create(:atua_manifest_document, tenant:, manifest_code: 42_500, transport_document_number: subcontracted.number,
-                                      transport_document_series: subcontracted.series, calculated_distance_km: 1500)
-      create(:atua_transport_document, tenant:, number: '75900', plate: 'BEJ4G50', freight_cents: 100_000, issued_at: Time.zone.local(2026, 10, 25, 12))
-      create(:atua_manifest_document, tenant:, manifest_code: 42_500, transport_document_number: '75900', calculated_distance_km: 1500)
+    context 'when the CE is listed in an MDF-e' do
+      before do
+        create(:atua_manifest, tenant:, code: 42_500, plate: 'BEJ4G50', trip_started_at: Time.zone.local(2026, 10, 25, 12))
+        create(:atua_manifest_document, tenant:, manifest_code: 42_500, transport_document_number: subcontracted.number,
+                                        transport_document_series: subcontracted.series, calculated_distance_km: 1500)
+        create(:atua_transport_document, tenant:, number: '75900', plate: 'BEJ4G50', freight_cents: 100_000,
+                                         issued_at: Time.zone.local(2026, 10, 25, 12))
+        create(:atua_manifest_document, tenant:, manifest_code: 42_500, transport_document_number: '75900', calculated_distance_km: 1500)
+      end
 
-      expect(dashboard.row_for('BEJ4G50')).to have_attributes(trips_count: 1, loaded_km: BigDecimal('1500'), gross: Money.from_cents(1_463_054))
+      it 'counts it only within the trip of the MDF-e' do
+        expect(dashboard.row_for('BEJ4G50')).to have_attributes(trips_count: 1, loaded_km: BigDecimal('1500'), gross: Money.from_cents(1_463_054))
+      end
     end
   end
 

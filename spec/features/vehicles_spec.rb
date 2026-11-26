@@ -353,8 +353,15 @@ describe 'Vehicles' do
             visit vehicle_path(vehicle)
 
             expect(EmptyLeg.where(tenant:, plate: 'EXU0F72').count).to eq(4)
-            expect(html_table_to_rows(table: find_by_id('vehicle_empty_legs')).map(&:first))
-              .to eq(['Data da viagem', '09/10/2026', '07/10/2026', '05/10/2026', '03/10/2026'])
+            expect(html_table_to_rows(table: find_by_id('vehicle_empty_legs'))).to eq(
+              [
+                ['Data da viagem', 'Saída (última entrega)', 'Chegada (coleta)', 'Precisão', 'KM vazio'],
+                ['09/10/2026', 'IPATINGA/MG', 'CONTAGEM/MG', 'Centro da cidade', '48,20 km'],
+                ['07/10/2026', 'CONTAGEM/MG', '-', '-', 'Endereço não localizado'],
+                ['05/10/2026', 'IPATINGA/MG', 'RUA DAS FLORES 10 - BETIM/MG', 'Centro da cidade', '210,00 km'],
+                ['03/10/2026', 'RUA DAS FLORES 10 - BETIM/MG', 'IPATINGA/MG', 'Centro da cidade', '217,44 km'],
+              ],
+            )
             expect(page).to have_css('#vehicle_empty_legs_total', text: 'Total de KM vazio 475,64 km')
           end
         end
