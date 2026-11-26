@@ -81,6 +81,8 @@ describe 'Advance ICMS' do
       scenario 'shows the guides of each customer group against its gross billing' do
         visit advance_icms_path
 
+        expect(tenant.atua_transport_documents.active.not_canceled.freights.count).to eq(4)
+        expect(tenant.atua_transport_documents.advance_icms.count).to eq(3)
         expect(html_table_to_rows(table: find_by_id('advance_icms_groups'))).to eq(
           [
             ['Grupo de clientes', 'CT-es', 'ICMS', 'Guias lançadas', 'ICMS pendente', 'Faturamento bruto', 'Guias / faturamento'],
@@ -102,6 +104,7 @@ describe 'Advance ICMS' do
         end
 
         expect(page).to have_current_path(advance_icms_path(customer_group_id: gerdau.id, overdue: '1'))
+        expect(tenant.atua_transport_documents.advance_icms.advance_icms_overdue.count).to eq(1)
         expect(documents_rows.drop(1)).to eq(
           [['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81',
             'Guia pendente há mais de 5 dias', '']],
