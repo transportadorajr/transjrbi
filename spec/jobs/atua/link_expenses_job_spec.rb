@@ -3,12 +3,17 @@ require 'rails_helper'
 RSpec.describe Atua::LinkExpensesJob do
   let!(:tenant) { create(:tenant) }
 
-  before { allow(Atua::LinkExpensesCommand).to receive(:call).and_return(0) }
+  before do
+    allow(Atua::LinkExpensesCommand).to receive(:call).and_return(0)
+    allow(FreightExpenses::CalculateAdvanceIcmsCommand).to receive(:call)
+      .and_return(FreightExpenses::CalculateAdvanceIcmsCommand::Result.new(saved: 0, removed: 0))
+  end
 
-  it 'links the expenses of the tenant' do
+  it 'links the expenses of the tenant and then recalculates the advance ICMS provisions' do
     described_class.perform_now(tenant.id)
 
-    expect(Atua::LinkExpensesCommand).to have_received(:call).with(tenant)
+    expect(Atua::LinkExpensesCommand).to have_received(:call).with(tenant).ordered
+    expect(FreightExpenses::CalculateAdvanceIcmsCommand).to have_received(:call).with(tenant).ordered
   end
 
   context 'with the GoodJob adapter' do

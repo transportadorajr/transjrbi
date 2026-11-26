@@ -723,6 +723,7 @@ describe 'Manifests' do
             '(−) Seguro internacional da carga (com IOF)' => 'R$ 0,00',
             '(−) Forro de lona' => 'R$ 0,00',
             '(−) Combustível' => 'R$ 0,00',
+            '(−) ICMS antecipado com guia pendente' => 'R$ 0,00',
             '(−) Despesas do frete na Atua' => 'R$ 350,00',
             '(−) Pedágio' => 'R$ 150,00',
             '(=) Frete líquido' => 'R$ 2.473,30',

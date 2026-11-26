@@ -2,7 +2,7 @@ class FreightExpense < ApplicationRecord
   include Sortable
   include Exportable
 
-  KINDS = %i[commission tonnage insurance tarp_lining fuel].freeze
+  KINDS = %i[commission tonnage insurance tarp_lining fuel advance_icms].freeze
 
   export_field(:transport_document) { |expense| expense.transport_document.number }
   export_field(:commission_rule) { |expense| expense.commission_rule&.name }
@@ -32,6 +32,7 @@ class FreightExpense < ApplicationRecord
   validates :insurance_rate, :base_cents, :percentage, :iof_percentage, presence: true, if: :insurance?
   validates :rate_cents, presence: true, if: :tarp_lining?
   validates :truck_group, :base_cents, :percentage, presence: true, if: :fuel?
+  validates :base_cents, presence: true, if: :advance_icms?
   validates :kind_type, uniqueness: { scope: :transport_document_id }
 
   scope :by_period, ->(start_date, end_date) {
@@ -43,7 +44,7 @@ class FreightExpense < ApplicationRecord
   scope :by_customer_group, ->(customer_group_id) {
     where(commission_rule_id: CommissionRule.where(customer_group_id:).select(:id))
       .or(where(tonnage_rate_id: TonnageRate.where(customer_group_id:).select(:id)))
-      .or(tarp_lining.where(transport_document_id: Atua::TransportDocument.joins(:taker)
+      .or(where(kind_type: %w[tarp_lining advance_icms]).where(transport_document_id: Atua::TransportDocument.joins(:taker)
         .where(atua_customers: { customer_group_id: }).select(:id)))
   }
   scope :by_kind, ->(kind) { where(kind_type: kind) }

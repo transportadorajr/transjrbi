@@ -16,6 +16,7 @@ module FreightExpenses
       CalculateInsuranceCommand.call(tenant)
       CalculateTarpLiningCommand.call(tenant)
       CalculateFuelCommand.call(tenant)
+      CalculateAdvanceIcmsCommand.call(tenant)
     end
   end
 end

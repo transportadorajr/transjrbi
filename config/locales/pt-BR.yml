@@ -1766,6 +1766,7 @@ pt-BR:
         insurance: Seguro da carga
         tarp_lining: Forro de lona
         fuel: Combustível
+        advance_icms: Provisão de ICMS antecipado
     location:
       precision_type:
         address: Endereço
@@ -4707,7 +4708,7 @@ pt-BR:
       subtitle: >-
         CT-es com prestação iniciada fora da UF da transportadora (CFOP 5932 e 6932) e as guias de ICMS antecipado lançadas na
         Atua para cada um. Fica pendente o CT-e sem guia de um grupo de clientes marcado como "JR paga a guia de ICMS
-        antecipado". Somente consulta.
+        antecipado", e o ICMS dele é descontado do frete líquido até a guia ser lançada. Somente consulta.
       total: CT-es
       icms_total: ICMS dos CT-es
       guide_total: Guias de ICMS lançadas
@@ -4735,7 +4736,9 @@ pt-BR:
         header: Relatório de Despesas de frete
         filename: despesas_de_frete_%{time}.pdf
         total: Total
-      subtitle: Comissões, custos por tonelada e seguro da carga calculados pelo sistema e descontados do frete. Somente consulta.
+      subtitle: >-
+        Comissões, custos por tonelada, seguro da carga e provisão do ICMS antecipado com guia pendente calculados pelo sistema e
+        descontados do frete. Somente consulta.
       recalculate: Recalcular despesas
       confirm_recalculate: Recalcular as despesas de todos os CT-es? O recálculo roda em segundo plano.
       amount_total: Total das despesas
@@ -4762,6 +4765,7 @@ pt-BR:
       text: Sem alíquota, o seguro da carga não é calculado nos CT-es.
     insurance_detail_html: '%{rate} (exportação, com seguro internacional de %{international} e IOF de %{iof})'
     tarp_lining_detail: Moinho Regio — valor fixo por CT-e
+    advance_icms_detail: ICMS do CT-e até a guia ser lançada na Atua
     per_transport_document: '%{rate} por CT-e'
     outdated_alert:
       title:
@@ -4779,6 +4783,7 @@ pt-BR:
       international_insurance: (−) Seguro internacional da carga (com IOF)
       tarp_lining: (−) Forro de lona
       fuel: (−) Combustível
+      advance_icms: (−) ICMS antecipado com guia pendente
       expenses: (−) Despesas do frete na Atua
       complement_credit: (+) Complementos de valores
       complement_transfer: (−) Complemento repassado ao CT-e original

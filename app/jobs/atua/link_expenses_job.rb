@@ -8,7 +8,10 @@ module Atua
     good_job_control_concurrency_with(perform_limit: 1, key: -> { "link-expenses:#{arguments.first}" })
 
     def perform(tenant_id)
-      LinkExpensesCommand.call(Tenant.find(tenant_id))
+      tenant = Tenant.find(tenant_id)
+
+      LinkExpensesCommand.call(tenant)
+      FreightExpenses::CalculateAdvanceIcmsCommand.call(tenant)
     end
   end
 end

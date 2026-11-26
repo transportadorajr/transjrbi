@@ -1,5 +1,5 @@
 class NetFreight
-  attr_reader :freight, :commission, :tonnage, :insurance, :international_insurance, :tarp_lining, :fuel, :expenses, :complement_credit, :complement_transfer, :toll
+  attr_reader :freight, :commission, :tonnage, :insurance, :international_insurance, :tarp_lining, :fuel, :advance_icms, :expenses, :complement_credit, :complement_transfer, :toll
 
   class << self
     def for(transport_documents, missing_documents_freight: Money.zero)
@@ -15,6 +15,7 @@ class NetFreight
         international_insurance:,
         tarp_lining: Money.from_cents(FreightExpense.tarp_lining.where(transport_document_id: document_ids).sum(:amount_cents)),
         fuel: Money.from_cents(FreightExpense.fuel.where(transport_document_id: document_ids).sum(:amount_cents)),
+        advance_icms: Money.from_cents(FreightExpense.advance_icms.where(transport_document_id: document_ids).sum(:amount_cents)),
         expenses: Money.from_cents(Atua::Expense.active.freight.where(cost_object_id: document_ids).sum(:total_cents)),
         complement_credit: Money.from_cents(complements_of(document_ids).sum(:freight_cents)),
         complement_transfer: Money.from_cents(documents.where.not(complemented_transport_document_id: nil).sum(:freight_cents)),
@@ -36,8 +37,8 @@ class NetFreight
     end
   end
 
-  def initialize(freight:, commission:, tonnage:, insurance:, international_insurance:, tarp_lining:, fuel:, expenses:, complement_credit:,
-                 complement_transfer:, toll:)
+  def initialize(freight:, commission:, tonnage:, insurance:, international_insurance:, tarp_lining:, fuel:, advance_icms:, expenses:,
+                 complement_credit:, complement_transfer:, toll:)
     @freight = freight
     @commission = commission
     @tonnage = tonnage
@@ -45,6 +46,7 @@ class NetFreight
     @international_insurance = international_insurance
     @tarp_lining = tarp_lining
     @fuel = fuel
+    @advance_icms = advance_icms
     @expenses = expenses
     @complement_credit = complement_credit
     @complement_transfer = complement_transfer
@@ -52,6 +54,7 @@ class NetFreight
   end
 
   def net
-    freight - commission - tonnage - insurance - international_insurance - tarp_lining - fuel - expenses + complement_credit - complement_transfer - toll
+    freight - commission - tonnage - insurance - international_insurance - tarp_lining - fuel - advance_icms - expenses + complement_credit -
+      complement_transfer - toll
   end
 end
