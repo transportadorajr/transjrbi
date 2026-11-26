@@ -23,6 +23,21 @@ RSpec.describe EmptyLeg do
       expect(build(:empty_leg, tenant: other_tenant, next_manifest_code: 41_300)).to be_valid
     end
 
+    it 'keeps a single leg per next CE of the tenant and accepts a CE in place of a manifest' do
+      create(:empty_leg, tenant:, previous_manifest_code: nil, previous_transport_document_code: 94_000, next_manifest_code: nil,
+                         next_transport_document_code: 94_633)
+
+      expect(build(:empty_leg, tenant:, next_manifest_code: nil, next_transport_document_code: 94_633)).not_to be_valid
+      expect(build(:empty_leg, tenant: other_tenant, next_manifest_code: nil, next_transport_document_code: 94_633)).to be_valid
+    end
+
+    it 'requires the previous and the next trip' do
+      leg = build(:empty_leg, tenant:, previous_manifest_code: nil, next_manifest_code: nil)
+
+      expect(leg).not_to be_valid
+      expect(leg.errors.attribute_names).to include(:previous_manifest_code, :next_manifest_code)
+    end
+
     it 'rejects an unknown status' do
       expect(build(:empty_leg, tenant:, status_type: 'pending')).not_to be_valid
     end

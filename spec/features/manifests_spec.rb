@@ -960,6 +960,41 @@ describe 'Manifests' do
         end
       end
     end
+
+    context 'when the previous trip of the truck was a subcontracted CE without an MDF-e' do
+      let!(:transport_documents_resource) { create(:resource, name: 'Conhecimentos', slug: 'transport_documents', writable: false) }
+      let!(:ce) do
+        create(:atua_transport_document, tenant:, code: 94_633, number: '4633', document_kind: 'ce', service_kind: 'Subcontratação',
+                                         plate: 'RHJ4E07', issued_at: Time.zone.local(2026, 10, 1, 11))
+      end
+      let!(:manifest) { create(:atua_manifest, :with_transport_document, tenant:, code: 41_200, number: '40772', plate: 'RHJ4E07') }
+      let!(:origin) { create(:location, lookup_key: '|GUARUJA|SP', city: 'GUARUJA', state: 'SP', precision_type: 'city') }
+      let!(:destination) { create(:location, lookup_key: '|CONTAGEM|MG', city: 'CONTAGEM', state: 'MG', precision_type: 'city') }
+
+      before do
+        create(:empty_leg, tenant:, plate: 'RHJ4E07', previous_manifest_code: nil, previous_transport_document_code: 94_633, next_manifest_code: 41_200,
+                           origin:, destination:, distance_km: BigDecimal('590'), precision_type: 'city',
+                           calculated_at: Time.zone.local(2026, 10, 3, 9, 15))
+      end
+
+      scenario 'shows the CE as the previous trip and opens it' do
+        visit manifest_path(manifest)
+
+        expect(EmptyLeg.count).to eq(1)
+        expect(dl_to_hash('#manifest_empty_leg')).to eq(
+          'Viagem anterior' => 'CE 4633',
+          'De' => 'GUARUJA/SP',
+          'Para' => 'CONTAGEM/MG',
+          'KM vazio' => '590,00 km',
+          'Precisão' => 'Centro da cidade',
+          'Calculado em' => '03/10/2026 09:15',
+        )
+
+        click_on 'CE 4633'
+
+        expect(page).to have_current_path(transport_document_path(ce))
+      end
+    end
   end
 
   context 'when an operator is signed in' do

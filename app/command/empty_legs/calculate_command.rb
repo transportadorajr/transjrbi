@@ -1,23 +1,23 @@
 module EmptyLegs
   class CalculateCommand
     class << self
-      def call(manifest, client: nil)
-        new(manifest, client:).call
+      def call(trip, client: nil)
+        new(trip, client:).call
       end
     end
 
-    def initialize(manifest, client: nil)
-      @manifest = manifest
+    def initialize(trip, client: nil)
+      @trip = trip
       @client = client
     end
 
     def call
-      previous_trip = manifest.trip? && manifest.previous_trip
+      previous_trip = trip_valid? && trip.previous_trip
       return remove_leg unless previous_trip
 
-      leg = EmptyLeg.find_or_initialize_by(tenant_id: manifest.tenant_id, next_manifest_code: manifest.code)
+      leg = EmptyLeg.find_or_initialize_by(tenant_id: trip.tenant_id, **leg_key(trip, :next))
       EmptyLeg.transaction do
-        leg.update!(plate: manifest.plate, previous_manifest_code: previous_trip.code, calculated_at: Time.current, **measure(previous_trip))
+        leg.update!(plate: trip.plate, **leg_key(previous_trip, :previous), calculated_at: Time.current, **measure(previous_trip))
         link_transport_documents(leg)
       end
       leg
@@ -25,15 +25,30 @@ module EmptyLegs
 
     private
 
-    attr_reader :manifest, :client
+    attr_reader :trip, :client
+
+    def trip_valid?
+      manifest? ? trip.trip? : Atua::TransportDocument.ce_trips.exists?(id: trip.id)
+    end
+
+    def manifest?
+      trip.is_a?(Atua::Manifest)
+    end
+
+    def leg_key(leg_trip, side)
+      kind = leg_trip.is_a?(Atua::Manifest) ? :manifest : :transport_document
+      codes = %i[manifest transport_document].to_h { |key| [:"#{side}_#{key}_code", key == kind ? leg_trip.code : nil] }
+
+      side == :next ? codes.compact : codes
+    end
 
     def remove_leg
-      EmptyLeg.where(tenant_id: manifest.tenant_id, next_manifest_code: manifest.code).delete_all
+      EmptyLeg.where(tenant_id: trip.tenant_id, **leg_key(trip, :next)).delete_all
       nil
     end
 
     def measure(previous_trip)
-      origin = locate(previous_trip.ordered_documents.last, :destination)
+      origin = locate(previous_trip.leg_documents.last, :destination)
       destination = locate(documents.first, :origin)
       return unmeasured(:unlocated, origin, destination) unless origin && destination
 
@@ -47,7 +62,7 @@ module EmptyLegs
     end
 
     def link_transport_documents(leg)
-      codes = documents.filter_map { |document| document.transport_document&.code }.uniq
+      codes = documents.filter_map { |document| transport_document_of(document)&.code }.uniq
       leg.empty_leg_transport_documents.where.not(transport_document_code: codes).delete_all
 
       rows = codes.map { |transport_document_code| { empty_leg_id: leg.id, tenant_id: leg.tenant_id, transport_document_code: } }
@@ -55,7 +70,11 @@ module EmptyLegs
     end
 
     def documents
-      @documents ||= manifest.ordered_documents
+      @documents ||= trip.leg_documents
+    end
+
+    def transport_document_of(document)
+      document.is_a?(Atua::TransportDocument) ? document : document.transport_document
     end
 
     def unmeasured(status_type, origin, destination)
@@ -76,13 +95,13 @@ module EmptyLegs
     end
 
     def place_of(document, side)
-      source = [document.transport_document, document].compact.find { |record| record.public_send(:"#{side}_city").present? } || document
+      source = [transport_document_of(document), document].compact.find { |record| record.public_send(:"#{side}_city").present? } || document
 
       [source.public_send(:"#{side}_city"), source.public_send(:"#{side}_state")]
     end
 
     def street_of(document, side, city, state)
-      customer = document.transport_document&.public_send(side == :origin ? :sender : :recipient)
+      customer = transport_document_of(document)&.public_send(side == :origin ? :sender : :recipient)
       return unless customer
       return unless Location.normalize(customer.city) == Location.normalize(city) && Location.normalize(customer.state) == Location.normalize(state)
 

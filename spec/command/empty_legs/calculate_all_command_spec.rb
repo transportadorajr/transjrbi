@@ -51,4 +51,22 @@ RSpec.describe EmptyLegs::CalculateAllCommand do
       expect(EmptyLeg.exists?(other_tenant_leg.id)).to be(true)
     end
   end
+
+  context 'when the truck carries a redispatched CE without an MDF-e' do
+    let!(:stale_ce_leg) { create(:empty_leg, tenant:, previous_manifest_code: 41_100, next_manifest_code: nil, next_transport_document_code: 94_000) }
+
+    before do
+      create(:atua_transport_document, tenant:, code: 94_634, number: '4634', document_kind: 'ce', service_kind: 'Redespacho', plate: 'RHJ4E07',
+                                       issued_at: Time.zone.local(2026, 10, 4, 8))
+    end
+
+    it 'chains the CE between the trips and removes the leg of a CE that is no longer a trip' do
+      described_class.call(tenant, start_date: '2026-10-01', client:)
+
+      expect(EmptyLeg.exists?(stale_ce_leg.id)).to be(false)
+      expect(EmptyLeg.where(tenant:).order(:id).pluck(:previous_manifest_code, :previous_transport_document_code, :next_manifest_code,
+                                                      :next_transport_document_code))
+        .to contain_exactly([41_100, nil, 41_200, nil], [41_200, nil, nil, 94_634], [nil, 94_634, 41_300, nil])
+    end
+  end
 end

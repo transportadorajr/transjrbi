@@ -340,6 +340,24 @@ describe 'Vehicles' do
           )
           expect(page).to have_css('#vehicle_empty_legs_total', text: 'Total de KM vazio 265,64 km')
         end
+
+        context 'when the truck carried a subcontracted CE without an MDF-e' do
+          before do
+            create(:atua_transport_document, tenant:, code: 94_633, number: '4633', document_kind: 'ce', service_kind: 'Subcontratação',
+                                             plate: 'EXU0F72', issued_at: Time.zone.local(2026, 10, 5, 11))
+            create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: nil, next_transport_document_code: 94_633, origin: ipatinga,
+                               destination: betim, distance_km: BigDecimal('210'), precision_type: 'city')
+          end
+
+          scenario 'lists the empty leg up to the pickup of the CE on the date it was issued' do
+            visit vehicle_path(vehicle)
+
+            expect(EmptyLeg.where(tenant:, plate: 'EXU0F72').count).to eq(4)
+            expect(html_table_to_rows(table: find_by_id('vehicle_empty_legs')).map(&:first))
+              .to eq(['Data da viagem', '09/10/2026', '07/10/2026', '05/10/2026', '03/10/2026'])
+            expect(page).to have_css('#vehicle_empty_legs_total', text: 'Total de KM vazio 475,64 km')
+          end
+        end
       end
 
       scenario 'tells that the vehicle has no expenses' do
