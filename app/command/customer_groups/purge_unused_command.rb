@@ -27,6 +27,7 @@ module CustomerGroups
     def unused_groups
       tenant.customer_groups.where(terms: [], id: tenant.atua_customers.where.not(customer_group_id: nil).select(:customer_group_id))
         .where.not(id: tenant.atua_customers.where(code: recent_taker_codes).where.not(customer_group_id: nil).select(:customer_group_id))
+        .where.not(id: tenant.atua_customers.customer_group_edited.select(:customer_group_id))
         .where.not(id: tenant.commission_rules.select(:customer_group_id))
         .where.not(id: tenant.tonnage_rates.select(:customer_group_id))
         .where.not(id: tenant.export_plants.select(:customer_group_id))

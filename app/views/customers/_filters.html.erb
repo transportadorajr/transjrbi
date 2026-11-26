@@ -25,9 +25,9 @@
 
       <div class="col-12">
         <%= f.label :customer_group, t('customers.filters.customer_group'), class: 'form-label fw-medium' %>
-        <%= f.collection_select :customer_group, @customer_groups, :id, :name,
-                                { include_blank: t('shared.all'), selected: params[:customer_group] },
-                                { class: 'form-select bg-light' } %>
+        <%= f.select :customer_group, customer_group_filter_options(@customer_groups),
+                     { include_blank: t('shared.all'), selected: params[:customer_group] },
+                     { class: 'form-select bg-light' } %>
       </div>
     </div>
 

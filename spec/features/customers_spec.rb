@@ -102,7 +102,7 @@ describe 'Customers' do
       scenario 'filters the customers by an active group' do
         visit customers_path
 
-        expect(page).to have_select('Grupo', options: %w[Todos ARCELORMITTAL])
+        expect(page).to have_select('Grupo', options: ['Todos', 'Sem grupo (com CT-e)', 'ARCELORMITTAL'])
         select 'ARCELORMITTAL', from: 'Grupo'
         click_on 'Aplicar Filtros'
 
@@ -110,6 +110,27 @@ describe 'Customers' do
           [
             ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
             ['ARCELORMITTAL BRASIL S.A. ARCELOR MONLEVADE', 'ARCELORMITTAL', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', 'INDUSTRIA METALURGICA', ''],
+          ],
+        )
+      end
+
+      scenario 'warns about the takers without a group and lists them' do
+        create(:atua_transport_document, tenant:, taker_code: warehouse.code)
+        create(:atua_transport_document, tenant: other_tenant, taker_code: stranger.code)
+
+        visit customers_path
+
+        within('#ungrouped_customers_alert') do
+          expect(page).to have_text('1 cliente sem grupo')
+          click_on 'Ver clientes sem grupo'
+        end
+
+        expect(page).to have_select('Grupo', selected: 'Sem grupo (com CT-e)', visible: :all)
+        expect(Atua::Customer.count).to eq(4)
+        expect(html_table_to_rows).to eq(
+          [
+            ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
+            ['TL ARMAZENS GERAIS LTDA. -', '-', '10.622.725/0001-75', 'IPATINGA/MG', '-', ''],
           ],
         )
       end

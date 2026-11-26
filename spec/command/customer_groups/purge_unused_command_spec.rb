@@ -24,6 +24,19 @@ RSpec.describe CustomerGroups::PurgeUnusedCommand do
     end
   end
 
+  context 'when a customer was put into the group by hand' do
+    before do
+      customer.update!(customer_group_edited_at: Time.current)
+      create(:atua_transport_document, tenant:, taker_code: 1, issued_at: 13.months.ago)
+    end
+
+    it 'keeps the group and the customer in it' do
+      expect(described_class.call(tenant)).to eq(0)
+
+      expect(customer.reload.customer_group).to eq(group)
+    end
+  end
+
   context 'when a customer of the group took a recent transport document' do
     before { create(:atua_transport_document, tenant:, taker_code: 1, issued_at: 1.month.ago) }
 

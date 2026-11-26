@@ -9,6 +9,7 @@ class CustomersController < BaseController
 
     @customers = listing_page(apply_sort(apply_scopes(current_tenant.atua_customers.active).preload(:customer_group), :name, :id))
     @customer_groups = current_tenant.customer_groups.activated.order(:name)
+    @ungrouped_count = current_tenant.atua_customers.active.ungrouped.count
 
     respond_with_listing(orientation: :landscape, xlsx: @customers)
   end

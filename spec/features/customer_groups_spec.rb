@@ -66,8 +66,34 @@ describe 'Customer groups' do
         expect(page).to have_css('.counter-card', text: "Total de grupos\n2")
         expect(page).to have_css('.counter-card', text: "Grupos ativos\n1")
         expect(page).to have_css('.counter-card', text: "Grupos inativos\n1")
+        expect(page).to have_css('.counter-card', text: "Clientes sem grupo\n0")
+        expect(page).to have_no_css('#ungrouped_customers_alert')
         expect(page).to have_link('Novo Grupo', href: new_customer_group_path)
         expect(page).to have_no_text('GRUPO DE OUTRA EMPRESA')
+      end
+
+      context 'when a customer has no group' do
+        let!(:ungrouped) { create(:atua_customer, tenant:, name: 'GERDAU ACOMINAS S.A.') }
+        let!(:supplier) { create(:atua_customer, tenant:, name: 'POSTO DE COMBUSTIVEL LTDA') }
+        let!(:document) { create(:atua_transport_document, tenant:, taker_code: ungrouped.code) }
+
+        scenario 'warns about the takers without a group' do
+          visit customer_groups_path
+
+          expect(page).to have_css('.counter-card', text: "Clientes sem grupo\n1")
+          within('#ungrouped_customers_alert') do
+            expect(page).to have_text('1 cliente sem grupo')
+            click_on 'Ver clientes sem grupo'
+          end
+
+          expect(page).to have_current_path(customers_path(customer_group: 'none'))
+          expect(html_table_to_rows).to eq(
+            [
+              ['Nome', 'Grupo', 'CPF/CNPJ', 'Cidade', 'Atividade', 'Ações'],
+              ['GERDAU ACOMINAS S.A. -', '-', '17.469.701/0066-12', 'JOAO MONLEVADE/MG', '-', ''],
+            ],
+          )
+        end
       end
 
       scenario 'filters the groups by name and status' do

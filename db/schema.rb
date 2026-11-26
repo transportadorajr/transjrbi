@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_26_130539) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_26_170420) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -188,6 +188,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_26_130539) do
     t.bigint "customer_group_id"
     t.enum "country_type", enum_type: "atua_customer_country_type"
     t.datetime "country_edited_at"
+    t.datetime "customer_group_edited_at"
     t.index ["atua_import_id"], name: "index_atua_customers_on_atua_import_id"
     t.index ["customer_group_id"], name: "index_atua_customers_on_customer_group_id"
     t.index ["tenant_id", "code"], name: "index_atua_customers_on_tenant_id_and_code", unique: true
