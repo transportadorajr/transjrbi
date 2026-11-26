@@ -110,7 +110,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
         expect(Atua::Manifest.count).to eq(4)
         expect(find_by_id('per_km_base').text.squish).to eq(
           'O R$/km considera R$ 9.000,00 de frete bruto e R$ 8.000,00 de frete líquido em 650 km. ' \
-          'Fica de fora 1 MDF-e sem km ou com km inválido (R$ 2.000,00 bruto e R$ 2.000,00 líquido).',
+          'Fica de fora 1 viagem sem km ou com km inválido (R$ 2.000,00 bruto e R$ 2.000,00 líquido).',
         )
       end
 
@@ -122,7 +122,7 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
           visit trips_path(october)
 
           within('#unmeasured_trips') do
-            expect(page).to have_text('1 MDF-e sem km ou com km inválido')
+            expect(page).to have_text('1 viagem sem km ou com km inválido')
             expect(page).to have_text('acima de 5.000 km')
             expect(all('li').map { |item| item.text.squish }).to eq(['41002 AAA1A11 · 20/10/2026 · 0 km'])
             click_on '41002'
@@ -327,6 +327,40 @@ describe 'Trips', flipper: { trips_dashboard: :tenant } do
               ['Total', 'R$ 2.000,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
             ],
           )
+        end
+      end
+
+      context 'when the own trucks carry subcontracted and redispatched CEs without an MDF-e' do
+        let!(:transport_documents_resource) { create(:resource, name: 'Conhecimentos', slug: 'transport_documents', writable: false) }
+
+        before do
+          create(:atua_transport_document, tenant:, number: '4633', document_kind: 'ce', service_kind: 'Subcontratação', plate: 'FFF6F66',
+                                           driver_code: 60, driver_name: 'PATRICK SOUZA', freight_cents: 1_536_000, distance_km: 1536,
+                                           issued_at: Time.zone.local(2026, 10, 25, 11))
+          create(:atua_transport_document, tenant:, number: '4634', document_kind: 'ce', service_kind: 'Redespacho', plate: 'FFF6F66',
+                                           driver_code: 60, driver_name: 'PATRICK SOUZA', freight_cents: 700_000,
+                                           issued_at: Time.zone.local(2026, 10, 27, 11))
+          create(:atua_transport_document, tenant:, number: '4635', document_kind: 'ce', service_kind: 'Normal', plate: 'FFF6F66',
+                                           driver_code: 60, driver_name: 'PATRICK SOUZA', freight_cents: 900_000, distance_km: 900,
+                                           issued_at: Time.zone.local(2026, 10, 28, 11))
+        end
+
+        scenario 'counts each CE as a trip of the truck and links the one without km to the CE' do
+          visit trips_path(october.merge(dimension: 'vehicle', plate: 'FFF6F66'))
+
+          expect(Atua::TransportDocument.where(plate: 'FFF6F66').count).to eq(3)
+          expect(html_table_to_rows(table: find('.trips-table')).drop(1)).to eq(
+            [
+              ['FFF6F66', 'R$ 22.360,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
+              ['Total', 'R$ 22.360,00', 'R$ 10,00', 'R$ 10,00', '-', ''],
+            ],
+          )
+          within('#unmeasured_trips') do
+            expect(all('li').map { |item| item.text.squish }).to eq(['CE 4634 FFF6F66 · 27/10/2026 · 0 km'])
+            click_on 'CE 4634'
+          end
+
+          expect(page).to have_current_path(transport_document_path(Atua::TransportDocument.find_by!(number: '4634')))
         end
       end
     end

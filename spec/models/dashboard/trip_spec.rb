@@ -55,6 +55,30 @@ RSpec.describe Dashboard::Trip do
     end
   end
 
+  context 'with a subcontracted CE carried without an MDF-e' do
+    subject(:dashboard) { described_class.new(tenant.atua_manifests, dimension:, period: october, ce_trips: tenant.atua_transport_documents.ce_trips) }
+
+    let(:dimension) { 'vehicle' }
+
+    before do
+      create_trip(code: 41_001, plate: 'AAA1A11', started_at: Time.zone.local(2026, 10, 2, 8), distance_km: 400,
+                  documents: [['74001', 300_000, 10, 'JOSE SILVA']])
+      create(:atua_transport_document, tenant:, number: '4633', document_kind: 'ce', service_kind: 'Subcontratação', plate: 'AAA1A11',
+                                       driver_code: 10, driver_name: 'JOSE SILVA', freight_cents: 600_000, distance_km: 600,
+                                       issued_at: Time.zone.local(2026, 10, 5, 11))
+      create(:atua_transport_document, tenant:, number: '4634', document_kind: 'ce', service_kind: 'Redespacho', plate: 'AAA1A11',
+                                       driver_code: 10, driver_name: 'JOSE SILVA', freight_cents: 200_000, issued_at: Time.zone.local(2026, 10, 7, 11))
+    end
+
+    it 'counts each CE as a trip of the truck measured by its own km' do
+      expect(Atua::TransportDocument.count).to eq(3)
+      expect(row_values(dashboard.rows)).to eq(
+        [['AAA1A11', 3, BigDecimal('1000'), 'R$ 11.000,00', 'R$ 11.000,00', 'R$ 3.666,67', 'R$ 3.666,67', 'R$ 9,00', 'R$ 9,00']],
+      )
+      expect(dashboard.unmeasured_trips.map { |trip| [trip.number, trip.ce_trip] }).to eq([['4634', true]])
+    end
+  end
+
   context 'without trips in the period' do
     it 'is empty with a zeroed total' do
       expect(dashboard).to be_empty

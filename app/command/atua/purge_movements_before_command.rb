@@ -40,6 +40,8 @@ module Atua
       tenant.freight_expenses.where(transport_document_id: documents.select(:id)).delete_all
       tenant.atua_transport_document_manifests.where(transport_document_code: documents.select(:code)).delete_all
       EmptyLegTransportDocument.where(tenant_id: tenant.id, transport_document_code: documents.select(:code)).delete_all
+      tenant.empty_legs.where(previous_transport_document_code: documents.select(:code))
+        .or(tenant.empty_legs.where(next_transport_document_code: documents.select(:code))).delete_all
       documents.delete_all
     end
 

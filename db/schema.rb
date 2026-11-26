@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_25_190852) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_26_130539) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -726,8 +726,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_190852) do
   create_table "empty_legs", force: :cascade do |t|
     t.bigint "tenant_id", null: false
     t.string "plate", null: false
-    t.bigint "previous_manifest_code", null: false
-    t.bigint "next_manifest_code", null: false
+    t.bigint "previous_manifest_code"
+    t.bigint "next_manifest_code"
     t.bigint "origin_id"
     t.bigint "destination_id"
     t.bigint "road_route_id"
@@ -737,12 +737,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_25_190852) do
     t.datetime "calculated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "previous_transport_document_code"
+    t.bigint "next_transport_document_code"
     t.index ["destination_id"], name: "index_empty_legs_on_destination_id"
     t.index ["origin_id"], name: "index_empty_legs_on_origin_id"
     t.index ["road_route_id"], name: "index_empty_legs_on_road_route_id"
     t.index ["tenant_id", "next_manifest_code"], name: "index_empty_legs_on_tenant_id_and_next_manifest_code", unique: true
+    t.index ["tenant_id", "next_transport_document_code"], name: "index_empty_legs_on_tenant_id_and_next_transport_document_code", unique: true
     t.index ["tenant_id", "plate"], name: "index_empty_legs_on_tenant_id_and_plate"
     t.index ["tenant_id", "previous_manifest_code"], name: "index_empty_legs_on_tenant_id_and_previous_manifest_code"
+    t.index ["tenant_id", "previous_transport_document_code"], name: "idx_on_tenant_id_previous_transport_document_code_d369482e16"
   end
 
   create_table "excluded_drivers", force: :cascade do |t|
