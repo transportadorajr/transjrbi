@@ -5,6 +5,7 @@ module Atua
     include Exportable
 
     CANCELED_STATUS = 'Cancelado'.freeze
+    OPEN_STATUS = 'Normal'.freeze
 
     belongs_to :vehicle, class_name: 'Atua::Vehicle', foreign_key: %i[tenant_id plate], primary_key: %i[tenant_id plate],
                          optional: true, inverse_of: :manifests
@@ -53,6 +54,7 @@ module Atua
     scope :by_status, ->(status) { where(status:) }
     scope :not_canceled, -> { where.not(status: CANCELED_STATUS).or(where(status: nil)) }
     scope :canceled, -> { where(status: CANCELED_STATUS) }
+    scope :opened, -> { where(status: OPEN_STATUS) }
     scope :with_transport_documents, -> {
       documents = ManifestDocument.arel_table
 
