@@ -118,6 +118,7 @@ Rails.application.routes.draw do
     end
     resources :customers, only: %i[index show] do
       resource :country, only: %i[edit update], controller: 'customer_countries'
+      resource :customer_group, only: %i[edit update], controller: 'customer_group_assignments'
     end
     resources :customer_groups, concerns: :activatable do
       patch :regroup, on: :member

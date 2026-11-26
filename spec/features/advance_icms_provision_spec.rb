@@ -35,6 +35,7 @@ describe 'Advance ICMS provision' do
   scenario 'lists the provision with the other freight expenses' do
     visit freight_expenses_path(kind: 'advance_icms')
 
+    expect(FreightExpense.count).to eq(1)
     expect(html_table_to_rows).to eq(
       [
         ['CT-e', 'Emitido em', 'Tomador', 'Tipo', 'Regra ou custo', 'Base de cálculo', 'Taxa', 'Valor', 'Ações'],
@@ -44,19 +45,24 @@ describe 'Advance ICMS provision' do
     )
   end
 
-  scenario 'replaces the provision by the guide once it is linked, keeping the net freight' do
-    create(:atua_expense, tenant:, code: 590_601, history_code: 503, history_name: 'ICMS ANTECIPADO', document_number: '75845',
-                          transport_document_code: transport_document.code, transport_document_number: '75845', total_cents: 8_681)
+  context 'when the guide of the CT-e is imported from Atua' do
+    let!(:guide) do
+      create(:atua_expense, tenant:, code: 590_601, history_code: 503, history_name: 'ICMS ANTECIPADO', document_number: '75845',
+                            transport_document_code: transport_document.code, transport_document_number: '75845', total_cents: 8_681)
+    end
 
-    Atua::LinkExpensesJob.perform_now(tenant.id)
-    visit transport_document_path(transport_document)
+    scenario 'replaces the provision by the guide once it is linked, keeping the net freight' do
+      Atua::LinkExpensesJob.perform_now(tenant.id)
+      visit transport_document_path(transport_document)
 
-    expect(FreightExpense.advance_icms.count).to eq(0)
-    expect(dl_to_hash('#transport_document_net_freight')).to include(
-      '(−) ICMS antecipado com guia pendente' => 'R$ 0,00',
-      '(−) Despesas do frete na Atua' => 'R$ 86,81',
-      '(=) Frete líquido' => 'R$ 636,62',
-    )
+      expect(guide.reload.cost_object).to eq(transport_document)
+      expect(FreightExpense.advance_icms.count).to eq(0)
+      expect(dl_to_hash('#transport_document_net_freight')).to include(
+        '(−) ICMS antecipado com guia pendente' => 'R$ 0,00',
+        '(−) Despesas do frete na Atua' => 'R$ 86,81',
+        '(=) Frete líquido' => 'R$ 636,62',
+      )
+    end
   end
 
   scenario 'recalculates the freight expenses when the group stops having the guides paid by the carrier' do
@@ -64,7 +70,8 @@ describe 'Advance ICMS provision' do
 
     uncheck 'JR paga a guia de ICMS antecipado'
 
-    expect { click_on 'Salvar Alterações' }.to have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id)
+    expect { click_on 'Salvar Alterações' }
+      .to have_enqueued_job(FreightExpenses::CalculateJob).with(tenant.id).and(change(CustomerGroup, :count).by(0))
     expect(gerdau.reload.pays_advance_icms_at).to be_nil
   end
 
@@ -74,6 +81,8 @@ describe 'Advance ICMS provision' do
     fill_in 'Nome', with: 'GERDAU SP'
 
     expect { click_on 'Salvar Alterações' }.not_to have_enqueued_job(FreightExpenses::CalculateJob)
+    expect(CustomerGroup.count).to eq(1)
     expect(gerdau.reload.name).to eq('GERDAU SP')
+    expect(gerdau.pays_advance_icms_at).to be_present
   end
 end

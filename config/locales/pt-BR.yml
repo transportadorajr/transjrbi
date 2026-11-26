@@ -675,6 +675,7 @@ pt-BR:
         simples_optant_at: Optante pelo Simples desde
         country_type: País
         country_edited_at: País alterado em
+        customer_group_edited_at: Grupo alterado em
       atua/vehicle:
         code: Código
         plate: Placa
@@ -1246,6 +1247,8 @@ pt-BR:
         distance_km: KM considerado
       customer_country_form:
         country_type: País
+      customer_group_assignment_form:
+        customer_group_id: Grupo
       driver_form:
         display_name: Nome de exibição
       truck_group_form:
@@ -1941,6 +1944,8 @@ pt-BR:
         update: Salvar KM
       customer_country:
         update: Salvar País
+      customer_group_assignment:
+        update: Salvar Grupo
       tonnage_rate:
         create: Cadastrar Custo
         update: Salvar Alterações
@@ -2487,10 +2492,20 @@ pt-BR:
       document: CPF/CNPJ
       city: Cidade
       customer_group: Grupo
+      ungrouped: Sem grupo (com CT-e)
+    ungrouped_alert:
+      title:
+        one: 1 cliente sem grupo
+        other: '%{count} clientes sem grupo'
+      text: >-
+        Estes clientes são tomadores de CT-es, mas não estão em nenhum grupo e aparecem como Sem grupo de clientes nos painéis e no faturamento.
+        Abra o cliente e use Alterar Grupo, ou cadastre um termo no grupo e clique em Reagrupar.
+      link: Ver clientes sem grupo
     show:
       back: Voltar para clientes
       customer_data: Dados do cliente
       contact_data: Endereço e contato
+      edit_customer_group: Alterar Grupo
       edit_country: Alterar País
       automatic_country: Identificado pela cidade e pelo endereço
       edited_country: Alterado manualmente
@@ -2509,6 +2524,19 @@ pt-BR:
       edited_hint: País alterado manualmente. Escolha "Identificar automaticamente" para voltar a usar a cidade e o endereço do cliente.
     update:
       success: País do cliente atualizado.
+  customer_group_assignments:
+    edit:
+      title: Alterar grupo de %{name}
+      breadcrumb: Alterar grupo
+      back: Voltar para o cliente
+    form:
+      customer_group_data: Grupo do cliente
+      customer_group_data_text: >-
+        Grupo usado para somar o faturamento, as comissões e os custos do cliente junto com as outras empresas do mesmo grupo.
+      select_group: Selecione o grupo
+      customer_group_hint: Só os grupos ativos aparecem. Para um grupo novo, cadastre-o em Grupos de clientes.
+    update:
+      success: Grupo do cliente atualizado.
   customer_groups:
     unnamed: 'Cliente %{code}'
     index:
@@ -2521,6 +2549,7 @@ pt-BR:
       total: Total de grupos
       active_groups: Grupos ativos
       deactivated_groups: Grupos inativos
+      ungrouped_customers: Clientes sem grupo
       active: Ativo
       deactivated: Inativo
       confirm_destroy: Tem certeza que deseja excluir este grupo?

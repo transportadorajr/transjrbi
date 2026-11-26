@@ -80,6 +80,33 @@ RSpec.describe Atua::Customer do
       end
     end
 
+    context 'with customers with and without a group' do
+      let!(:group) { create(:customer_group, tenant:, name: 'GERDAU') }
+      let!(:grouped) { create(:atua_customer, tenant:, code: 1, customer_group: group) }
+      let!(:ungrouped_taker) { create(:atua_customer, tenant:, code: 2) }
+      let!(:supplier) { create(:atua_customer, tenant:, code: 3) }
+      let!(:vehicle_buyer) { create(:atua_customer, tenant:, code: 4) }
+      let!(:canceled_taker) { create(:atua_customer, tenant:, code: 5) }
+      let!(:stranger) { create(:atua_customer, tenant: other_tenant, code: 2) }
+
+      before do
+        create(:atua_transport_document, tenant:, taker_code: 1)
+        create(:atua_transport_document, tenant:, taker_code: 2)
+        create(:atua_transport_document, tenant:, taker_code: 4, vehicle_sale: true)
+        create(:atua_transport_document, tenant:, taker_code: 5, removed_from_atua_at: Time.current)
+      end
+
+      it 'keeps only the customers without a group that took a freight transport document' do
+        expect(described_class.ungrouped).to eq([ungrouped_taker])
+        expect(described_class.count).to eq(6)
+      end
+
+      it 'filters the customers without a group through the group filter' do
+        expect(described_class.by_customer_group(described_class::UNGROUPED)).to eq([ungrouped_taker])
+        expect(described_class.by_customer_group(group.id)).to eq([grouped])
+      end
+    end
+
     context 'with foreign and domestic customers' do
       let!(:foreign) { create(:atua_customer, tenant:, state: 'EX', country_edited_at: nil) }
       let!(:edited_foreign) { create(:atua_customer, tenant:, state: 'EX', country_edited_at: Time.current) }

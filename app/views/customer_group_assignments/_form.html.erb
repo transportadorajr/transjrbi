@@ -1,0 +1,23 @@
+<div class="card form-card">
+  <div class="form-card-header">
+    <p class="form-card-title"><%= t('customer_group_assignments.form.customer_group_data') %></p>
+    <p class="form-card-subtitle"><%= t('customer_group_assignments.form.customer_group_data_text') %></p>
+  </div>
+  <%= simple_form_for(customer_group_assignment_form, url: customer_customer_group_path(customer_group_assignment_form.customer), method: :patch) do |f| %>
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <%= f.input :customer_group_id, collection: customer_group_assignment_form.customer_groups, label_method: :name, value_method: :id,
+                                          required: true, include_blank: t('customer_group_assignments.form.select_group'),
+                                          hint: t('customer_group_assignments.form.customer_group_hint'),
+                                          input_html: { class: 'form-select' } %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card-footer">
+      <%= f.button :submit, t('helpers.submit.customer_group_assignment.update'), class: 'btn btn-primary btn-primary-action px-4 btn-round' %>
+      <%= link_to t('helpers.links.cancel'), customer_path(customer_group_assignment_form.customer), class: 'btn btn-outline-secondary px-4 btn-round' %>
+    </div>
+  <% end %>
+</div>

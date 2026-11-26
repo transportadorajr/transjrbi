@@ -45,6 +45,25 @@ module CustomersHelper
     end
   end
 
+  def customer_edit_group_button(customer)
+    return unless can?(:update, :customers)
+
+    link_to edit_customer_customer_group_path(customer), class: 'btn btn-outline-secondary btn-round' do
+      concat icon(:people, class: 'me-2')
+      concat t('customers.show.edit_customer_group')
+    end
+  end
+
+  def customer_group_filter_options(customer_groups)
+    [[t('customers.filters.ungrouped'), Atua::Customer::UNGROUPED], *customer_groups.map { |group| [group.name, group.id] }]
+  end
+
+  def customers_ungrouped_alert(count)
+    return unless count.positive?
+
+    render 'customers/ungrouped_alert', count:
+  end
+
   def customers_pdf_report(customers)
     PdfReport.new(
       title: t('customers.index.pdf.header'),

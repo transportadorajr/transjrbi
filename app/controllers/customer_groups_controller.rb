@@ -18,6 +18,7 @@ class CustomerGroupsController < BaseController
     @total_count = counted_customer_groups.count
     @active_count = counted_customer_groups.activated.count
     @deactivated_count = counted_customer_groups.not_activated.count
+    @ungrouped_count = current_tenant.atua_customers.active.ungrouped.count
 
     respond_with_listing(xlsx: -> { helpers.customer_groups_xlsx_sheet(@customer_groups, @customer_counts) })
   end

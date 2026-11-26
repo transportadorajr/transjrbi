@@ -9,6 +9,7 @@
       </ol>
     </nav>
     <%= page_header_tag tax_value(@customer.name), back_path: customers_path, back_title: t('.back'), wrapper_class: 'mb-0' do %>
+      <%= customer_edit_group_button(@customer) %>
       <%= customer_edit_country_button(@customer) %>
     <% end %>
   </div>
