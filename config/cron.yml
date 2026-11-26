@@ -46,6 +46,10 @@ shared:
     cron: '30 5 * * * America/Sao_Paulo'
     class: 'Atua::ScheduleRegistriesJob'
     description: 'Imports the customers and vehicles of every enabled tenant'
+  atua_open_manifests:
+    cron: '45 5 * * * America/Sao_Paulo'
+    class: 'Atua::ScheduleOpenManifestsJob'
+    description: 'Imports again the manifests still open in the app that were issued before the last 7 days, so a closing done later reaches the app'
   atua_month_closing:
     cron: '0 4 3 * * America/Sao_Paulo'
     class: 'Atua::ScheduleMonthClosingJob'
