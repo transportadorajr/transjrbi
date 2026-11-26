@@ -10,6 +10,10 @@ describe 'Advance ICMS' do
   let!(:gerdau_customer) { create(:atua_customer, tenant:, code: 601, name: 'GERDAU ACOS LONGOS S.A', customer_group: gerdau) }
   let!(:arcelor_customer) { create(:atua_customer, tenant:, code: 602, name: 'ARCELORMITTAL BRASIL S.A', customer_group: arcelor) }
 
+  def documents_rows
+    html_table_to_rows(table: find_by_id('advance_icms_documents'))
+  end
+
   def create_guide(transport_document, total_cents)
     create(:atua_expense, tenant:, history_code: 503, history_name: 'ICMS ANTECIPADO', payee_name: 'SECRETARIA DE ESTADO DE SAO PAULO',
                           cost_object: transport_document, amount_cents: total_cents, total_cents:)
@@ -67,9 +71,42 @@ describe 'Advance ICMS' do
         create(:atua_transport_document, tenant: other_tenant, number: '75999', cfop: 6932, origin_state: 'SP', icms_cents: 9_000)
       end
 
+      around { |example| travel_to(Time.zone.local(2026, 11, 26, 9)) { example.run } }
+
       before do
         create_guide(paid, 20_447)
         create_guide(divergent, 30_000)
+      end
+
+      scenario 'shows the guides of each customer group against its gross billing' do
+        visit advance_icms_path
+
+        expect(html_table_to_rows(table: find_by_id('advance_icms_groups'))).to eq(
+          [
+            ['Grupo de clientes', 'CT-es', 'ICMS', 'Guias lançadas', 'ICMS pendente', 'Faturamento bruto', 'Guias / faturamento'],
+            ['ARCELOR', '1', 'R$ 360,00', 'R$ 300,00', 'R$ 0,00', 'R$ 3.555,04', '8,44%'],
+            ['GERDAU', '2', 'R$ 291,28', 'R$ 204,47', 'R$ 86,81', 'R$ 2.427,38', '8,42%'],
+          ],
+        )
+        expect(page).to have_css('#advance_icms_monthly', text: 'Guias de ICMS por mês')
+        expect(page).to have_no_css('#advance_icms_overdue')
+      end
+
+      scenario 'warns about the pending guides of CT-es issued more than 5 days ago and lists only them' do
+        travel 5.days
+        visit advance_icms_path(customer_group_id: gerdau.id)
+
+        within('#advance_icms_overdue') do
+          expect(page).to have_text('1 guia de ICMS pendente há mais de 5 dias')
+          click_on 'Ver os CT-es com a guia atrasada'
+        end
+
+        expect(page).to have_current_path(advance_icms_path(customer_group_id: gerdau.id, overdue: '1'))
+        expect(documents_rows.drop(1)).to eq(
+          [['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81',
+            'Guia pendente há mais de 5 dias', '']],
+        )
+        expect(page).to have_no_css('#advance_icms_overdue')
       end
 
       scenario 'lists the CT-es of the tenant from the tax menu with the counters and the totals at the bottom' do
@@ -86,7 +123,7 @@ describe 'Advance ICMS' do
         expect(page).to have_css('.counter-card', text: "Guia paga\n1")
         expect(page).to have_css('.counter-card', text: "Guia divergente\n1")
         expect(page).to have_css('.counter-card', text: "Guia pendente\n1")
-        expect(html_table_to_rows).to eq(
+        expect(documents_rows).to eq(
           [
             ['Número', 'Emitido em', 'Tomador', 'Origem', 'ICMS', 'Guia de ICMS', 'Diferença', 'Situação da guia', 'Ações'],
             ['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81', 'Guia pendente', ''],
@@ -105,7 +142,7 @@ describe 'Advance ICMS' do
 
         visit advance_icms_path(status: 'not_expected')
 
-        expect(html_table_to_rows.drop(1)).to eq(
+        expect(documents_rows.drop(1)).to eq(
           [['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81', 'Sem guia esperada', '']],
         )
         expect(page).to have_css('.counter-card', text: "Guia pendente\n0")
@@ -128,7 +165,7 @@ describe 'Advance ICMS' do
         end
 
         expect(page).to have_current_path(advance_icms_path, ignore_query: true)
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[75845])
+        expect(documents_rows.drop(1).map(&:first)).to eq(%w[75845])
         expect(page).to have_css('.counter-card', text: "CT-es\n1")
         expect(dl_to_hash('#advance_icms_totals')).to eq(
           'ICMS dos CT-es' => 'R$ 86,81', 'Guias de ICMS lançadas' => 'R$ 0,00', 'Diferença entre guias e ICMS' => '-R$ 86,81',
@@ -137,25 +174,25 @@ describe 'Advance ICMS' do
 
       scenario 'filters the CT-es by customer group, origin state, number and posting period' do
         visit advance_icms_path(customer_group_id: gerdau.id)
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[75845 75830])
+        expect(documents_rows.drop(1).map(&:first)).to eq(%w[75845 75830])
 
         visit advance_icms_path(origin_state: 'RJ')
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[75410])
+        expect(documents_rows.drop(1).map(&:first)).to eq(%w[75410])
 
         visit advance_icms_path(number: '75830')
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[75830])
+        expect(documents_rows.drop(1).map(&:first)).to eq(%w[75830])
 
         visit advance_icms_path(start_date: '2026-11-24', end_date: '2026-11-24')
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[75830])
+        expect(documents_rows.drop(1).map(&:first)).to eq(%w[75830])
       end
 
       scenario 'sorts the CT-es by the guide keeping the filters' do
         visit advance_icms_path(origin_state: 'SP')
 
-        within('thead') { click_on 'Guia de ICMS' }
+        within('#advance_icms_documents thead') { click_on 'Guia de ICMS' }
 
         expect(page).to have_current_path(advance_icms_path(origin_state: 'SP', sort: 'advance_icms_guide', direction: 'desc'))
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[75830 75845])
+        expect(documents_rows.drop(1).map(&:first)).to eq(%w[75830 75845])
       end
 
       scenario 'exports the CT-es with the totals to a landscape PDF' do
@@ -183,6 +220,10 @@ describe 'Advance ICMS' do
              { 'Número' => '75830', 'Grupo de clientes' => 'GERDAU', 'ICMS' => 204.47, 'Guia de ICMS' => 204.47,
                'Situação da guia' => 'Guia paga' }],
           )
+        expect(downloaded_xlsx_rows(1)).to eq(
+          [['Grupo de clientes', 'CT-es', 'ICMS', 'Guias lançadas', 'ICMS pendente', 'Faturamento bruto', 'Guias / faturamento'],
+           ['GERDAU', 2, 291.28, 204.47, 86.81, 2427.38, 0.0842]],
+        )
       end
     end
   end
@@ -210,7 +251,7 @@ describe 'Advance ICMS' do
       scenario 'lists the CT-es without linking them' do
         visit advance_icms_path
 
-        expect(html_table_to_rows.drop(1).map(&:first)).to eq(%w[75830])
+        expect(documents_rows.drop(1).map(&:first)).to eq(%w[75830])
         expect(page).to have_no_link('75830')
       end
     end

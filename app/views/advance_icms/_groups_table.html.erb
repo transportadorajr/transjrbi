@@ -1,0 +1,24 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="advance_icms_groups">
+    <thead>
+      <tr>
+        <th><%= t('advance_icms.groups.customer_group') %></th>
+        <th class="d-none d-md-table-cell text-end"><%= t('advance_icms.groups.count') %></th>
+        <th class="d-none d-md-table-cell text-end"><%= t('advance_icms.groups.icms') %></th>
+        <th class="text-end"><%= t('advance_icms.groups.guide') %></th>
+        <th class="d-none d-md-table-cell text-end"><%= t('advance_icms.groups.pending') %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= t('advance_icms.groups.gross') %></th>
+        <th class="d-none d-lg-table-cell text-end"><%= t('advance_icms.groups.share') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |row| %>
+        <%= render 'group_row', row: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection, param_name: :groups_page %>
+</div>

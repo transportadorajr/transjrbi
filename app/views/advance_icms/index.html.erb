@@ -13,6 +13,32 @@
     <%= advance_icms_counter_cards(@totals) %>
   </div>
 
+  <%= advance_icms_overdue_alert(@dashboard) %>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-xl-6" id="advance_icms_monthly">
+      <%= render 'freight_billings/chart_card', title: t('.monthly_title'), subtitle: t('.monthly_subtitle'),
+                                                chart: advance_icms_monthly_chart(@dashboard) %>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card table-card h-100">
+        <div class="table-card-header">
+          <div class="table-card-heading">
+            <p class="table-card-title"><%= t('advance_icms.groups.title') %></p>
+            <p class="table-card-subtitle"><%= t('advance_icms.groups.subtitle') %></p>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <% if @group_rows.any? %>
+            <%= render 'groups_table', collection: @group_rows %>
+          <% else %>
+            <%= render 'shared/no_content' %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="card table-card">
     <div class="table-card-header">
       <div class="table-card-heading">

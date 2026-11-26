@@ -4,6 +4,7 @@ module Atua
 
     ADVANCE_ICMS_CFOPS = [5932, 6932].freeze
     ADVANCE_ICMS_STATUSES = %i[paid divergent pending not_expected].freeze
+    ADVANCE_ICMS_GUIDE_DEADLINE = 5.days
 
     included do
       sortable :icms, -> { arel_table[:icms_cents] }
@@ -18,6 +19,7 @@ module Atua
       }
       scope :by_advance_icms_status, ->(status) { where(advance_icms_status.eq(status.to_s)) }
       scope :by_origin_state, ->(state) { where(origin_state: state.to_s.strip.upcase) }
+      scope :advance_icms_overdue, -> { by_advance_icms_status(:pending).where(issued_at: ...ADVANCE_ICMS_GUIDE_DEADLINE.ago) }
     end
 
     class_methods do
@@ -25,9 +27,16 @@ module Atua
         ADVANCE_ICMS_STATUSES.index_by { |status| I18n.t(status, scope: 'advance_icms.statuses') }
       end
 
+      def advance_icms_facts
+        documents = all.unscope(:order).select(arel_table[:issued_at], arel_table[:icms_cents], advance_icms_status.as('status'),
+                                               advance_icms_guide_total.as('guide_cents'),
+                                               advance_icms_customer_group_id.as('customer_group_id'))
+
+        unscoped.from(documents, :advance_icms_documents)
+      end
+
       def advance_icms_totals
-        documents = all.select(advance_icms_status.as('status'), arel_table[:icms_cents], advance_icms_guide_total.as('guide_cents'))
-        rows = unscoped.from(documents, :advance_icms_documents).group(Arel.sql('status'))
+        rows = advance_icms_facts.group(Arel.sql('status'))
           .pluck(Arel.sql('status'), Arel.sql('COUNT(*)'), Arel.sql('SUM(icms_cents)'), Arel.sql('SUM(guide_cents)'))
         counts = rows.to_h { |status, count| [status.to_sym, count] }
 
@@ -62,6 +71,15 @@ module Atua
           .where(customers[:code].eq(arel_table[:taker_code])).merge(CustomerGroup.pays_advance_icms).arel.exists
       end
 
+      def advance_icms_customer_group_id
+        customers = Customer.arel_table
+
+        Arel::Nodes::Grouping.new(
+          Customer.where(customers[:tenant_id].eq(arel_table[:tenant_id])).where(customers[:code].eq(arel_table[:taker_code]))
+            .select(:customer_group_id).limit(1).arel,
+        )
+      end
+
       def advance_icms_condition
         expenses = Expense.arel_table
         guide = Expense.active.freight.advance_icms.where(expenses[:cost_object_id].eq(arel_table[:id]))
@@ -76,6 +94,10 @@ module Atua
 
     def advance_icms_difference
       advance_icms_guide - Money.from_cents(icms_cents.to_i)
+    end
+
+    def advance_icms_overdue?
+      advance_icms_status == :pending && issued_at.present? && issued_at < ADVANCE_ICMS_GUIDE_DEADLINE.ago
     end
 
     def advance_icms_status

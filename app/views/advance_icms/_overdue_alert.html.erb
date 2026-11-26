@@ -1,0 +1,8 @@
+<%# locals: (count:) %>
+
+<div class="alert alert-danger mb-4" role="alert" id="advance_icms_overdue">
+  <p class="fw-semibold mb-1"><%= t('advance_icms.overdue_alert.title', count:) %></p>
+  <p class="mb-2"><%= t('advance_icms.overdue_alert.text') %></p>
+  <%= link_to t('advance_icms.overdue_alert.link'), advance_icms_path(request.query_parameters.except('page', 'groups_page').merge('overdue' => '1')),
+              class: 'alert-link' %>
+</div>

@@ -709,6 +709,33 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
+  describe '.advance_icms_overdue' do
+    let!(:gerdau) { create(:customer_group, tenant:, name: 'GERDAU', pays_advance_icms_at: Time.current) }
+    let!(:gerdau_customer) { create(:atua_customer, tenant:, code: 601, customer_group: gerdau) }
+    let!(:old_pending) do
+      create(:atua_transport_document, tenant:, number: '75845', taker_code: 601, cfop: 6932, icms_cents: 8_681,
+                                       issued_at: Time.zone.local(2026, 11, 19, 8))
+    end
+    let!(:recent_pending) do
+      create(:atua_transport_document, tenant:, number: '75846', taker_code: 601, cfop: 6932, icms_cents: 8_681,
+                                       issued_at: Time.zone.local(2026, 11, 22, 8))
+    end
+    let!(:old_not_expected) do
+      create(:atua_transport_document, tenant:, number: '75847', taker_code: 999, cfop: 6932, icms_cents: 8_681,
+                                       issued_at: Time.zone.local(2026, 11, 1, 8))
+    end
+
+    it 'keeps the pending guides of CT-es issued more than 5 days ago' do
+      travel_to Time.zone.local(2026, 11, 26, 9) do
+        documents = tenant.atua_transport_documents.advance_icms
+
+        expect(documents.advance_icms_overdue).to contain_exactly(old_pending)
+        expect(documents.with_advance_icms_guide.index_by(&:number).transform_values(&:advance_icms_overdue?))
+          .to eq('75845' => true, '75846' => false, '75847' => false)
+      end
+    end
+  end
+
   describe '.advance_icms_statuses' do
     it 'maps the translated statuses to their keys' do
       expect(described_class.advance_icms_statuses).to eq(
