@@ -7,6 +7,7 @@ module Atua
 
     COUNTRIES = %i[argentina paraguay uruguay chile bolivia united_states italy other].freeze
     FOREIGN_STATE = 'EX'.freeze
+    UNGROUPED = 'none'.freeze
 
     export_field(:customer_group) { |customer| customer.customer_group&.name }
 
@@ -34,8 +35,17 @@ module Atua
     }
     scope :by_document, ->(document) { where(document_digits: document.to_s.gsub(/\D/, '')) }
     scope :by_city, ->(city) { where(arel_table[:city].matches("%#{sanitize_sql_like(city.to_s.strip)}%")) }
-    scope :by_customer_group, ->(customer_group_id) { where(customer_group_id:) }
+    scope :by_customer_group, ->(customer_group_id) {
+      customer_group_id.to_s == UNGROUPED ? ungrouped : where(customer_group_id:)
+    }
     scope :without_customer_group, -> { where(customer_group_id: nil) }
+    scope :freight_takers, -> {
+      documents = TransportDocument.arel_table
+      where(TransportDocument.active.freights.where(documents[:tenant_id].eq(arel_table[:tenant_id]))
+        .where(documents[:taker_code].eq(arel_table[:code])).arel.exists)
+    }
+    scope :ungrouped, -> { without_customer_group.freight_takers }
+    scope :customer_group_edited, -> { where.not(customer_group_edited_at: nil) }
     scope :foreign, -> { where(state: FOREIGN_STATE) }
     scope :country_not_edited, -> { where(country_edited_at: nil) }
 
@@ -49,44 +59,45 @@ end
 #
 # Table name: atua_customers
 #
-#  id                   :bigint           not null, primary key
-#  activity             :string
-#  city                 :string
-#  city_code            :bigint
-#  code                 :bigint           not null
-#  complement           :string
-#  country_edited_at    :datetime
-#  country_type         :enum
-#  district             :string
-#  document             :string
-#  document_digits      :string
-#  emails               :string           default([]), not null, is an Array
-#  exporter_at          :datetime
-#  imported_at          :datetime         not null
-#  last_billed_on       :date
-#  name                 :string
-#  payment_method       :string
-#  payment_term         :string
-#  person_kind          :string
-#  phone                :string
-#  raw_data             :jsonb            not null
-#  registered_on        :date
-#  removed_from_atua_at :datetime
-#  simples_optant_at    :datetime
-#  state                :string
-#  state_code           :bigint
-#  state_registration   :string
-#  status               :string
-#  street               :string
-#  trade_name           :string
-#  updated_month_on     :date
-#  whatsapp_at          :datetime
-#  zip_code             :string
-#  created_at           :datetime         not null
-#  updated_at           :datetime         not null
-#  atua_import_id       :bigint
-#  customer_group_id    :bigint
-#  tenant_id            :bigint           not null
+#  id                       :bigint           not null, primary key
+#  activity                 :string
+#  city                     :string
+#  city_code                :bigint
+#  code                     :bigint           not null
+#  complement               :string
+#  country_edited_at        :datetime
+#  country_type             :enum
+#  customer_group_edited_at :datetime
+#  district                 :string
+#  document                 :string
+#  document_digits          :string
+#  emails                   :string           default([]), not null, is an Array
+#  exporter_at              :datetime
+#  imported_at              :datetime         not null
+#  last_billed_on           :date
+#  name                     :string
+#  payment_method           :string
+#  payment_term             :string
+#  person_kind              :string
+#  phone                    :string
+#  raw_data                 :jsonb            not null
+#  registered_on            :date
+#  removed_from_atua_at     :datetime
+#  simples_optant_at        :datetime
+#  state                    :string
+#  state_code               :bigint
+#  state_registration       :string
+#  status                   :string
+#  street                   :string
+#  trade_name               :string
+#  updated_month_on         :date
+#  whatsapp_at              :datetime
+#  zip_code                 :string
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  atua_import_id           :bigint
+#  customer_group_id        :bigint
+#  tenant_id                :bigint           not null
 #
 # Indexes
 #

@@ -72,6 +72,19 @@ RSpec.describe CustomerGroups::RegroupCommand do
     end
   end
 
+  context 'when a matching customer was put into a group without terms by hand' do
+    let!(:manual_group) { create(:customer_group, tenant:, name: 'ATACADISTAS') }
+    let!(:customer) do
+      create(:atua_customer, tenant:, name: '2JM ATACADO', customer_group: manual_group, customer_group_edited_at: Time.current)
+    end
+
+    it 'keeps the customer where it was put' do
+      expect(described_class.call(food)).to eq(0)
+
+      expect(customer.reload.customer_group).to eq(manual_group)
+    end
+  end
+
   context 'when a matching customer is in another group with terms' do
     let!(:other_group) { create(:customer_group, tenant:, name: 'DISTRIBUIDORES', terms: ['DISTRIBUIDORA']) }
     let!(:customer) { create(:atua_customer, tenant:, name: '2JM DISTRIBUIDORA', customer_group: other_group) }

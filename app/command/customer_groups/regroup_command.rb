@@ -34,7 +34,7 @@ module CustomerGroups
       return [] if customer_group.terms.empty?
 
       tenant.atua_customers.without_customer_group.or(tenant.atua_customers.where(customer_group_id: groups_without_terms))
-        .order(:id).to_a
+        .where(customer_group_edited_at: nil).order(:id).to_a
     end
 
     def taker_names
