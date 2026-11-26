@@ -100,15 +100,18 @@ describe 'Advance ICMS' do
         )
       end
 
-      scenario 'stops listing the CT-e without a guide as pending once the group no longer has the guides paid by the carrier' do
-        gerdau.update!(pays_advance_icms: false)
+      context 'when the group no longer has the guides paid by the carrier' do
+        before { gerdau.update!(pays_advance_icms: false) }
 
-        visit advance_icms_path(status: 'not_expected')
+        scenario 'stops listing the CT-e without a guide as pending' do
+          visit advance_icms_path(status: 'not_expected')
 
-        expect(html_table_to_rows.drop(1)).to eq(
-          [['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81', 'Sem guia esperada', '']],
-        )
-        expect(page).to have_css('.counter-card', text: "Guia pendente\n0")
+          expect(tenant.atua_transport_documents.advance_icms.count).to eq(3)
+          expect(html_table_to_rows.drop(1)).to eq(
+            [['75845', '25/11/2026 13:15', 'GERDAU ACOS LONGOS S.A', 'SAO PAULO/SP', 'R$ 86,81', 'R$ 0,00', '-R$ 86,81', 'Sem guia esperada', '']],
+          )
+          expect(page).to have_css('.counter-card', text: "Guia pendente\n0")
+        end
       end
 
       scenario 'opens the CT-e from its number' do
