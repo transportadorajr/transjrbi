@@ -18,6 +18,7 @@ module FreightExpensesHelper
     return freight_expense_insurance(freight_expense) if freight_expense.insurance?
     return t('freight_expenses.tarp_lining_detail') if freight_expense.tarp_lining?
     return freight_expense_truck_group(freight_expense.truck_group) if freight_expense.fuel?
+    return t('freight_expenses.advance_icms_detail') if freight_expense.advance_icms?
 
     freight_expense_rule(freight_expense)
   end
@@ -76,6 +77,7 @@ module FreightExpensesHelper
     return tonnage_rate_per_ton(freight_expense.rate) if freight_expense.tonnage?
     return insurance_percentage(freight_expense.percentage) if freight_expense.insurance?
     return truck_group_fuel_percentage(freight_expense.percentage) if freight_expense.fuel?
+    return t('tax.blank') if freight_expense.advance_icms?
     return t('freight_expenses.per_transport_document', rate: tax_money(freight_expense.rate)) if freight_expense.tarp_lining?
 
     commission_percentage(freight_expense.percentage)

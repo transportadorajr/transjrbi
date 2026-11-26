@@ -61,6 +61,7 @@ class CustomerGroupsController < BaseController
     @customer_group_form.assign_attributes(customer_group_params)
 
     if @customer_group_form.save
+      FreightExpenses::CalculateJob.perform_later(current_tenant.id) if @customer_group.saved_change_to_pays_advance_icms_at?
       redirect_to customer_group_path(@customer_group), notice: t('.success')
     else
       flash.now[:alert] = @customer_group_form.errors.full_messages.to_sentence

@@ -60,6 +60,18 @@ RSpec.describe NetFreight do
     expect(net_freight.net).to eq(Money.from_cents(976_018))
   end
 
+  context 'with the advance ICMS of a guide still pending' do
+    let!(:advance_icms) { create(:freight_expense, :advance_icms, tenant:, transport_document: document) }
+
+    it 'subtracts the provisioned ICMS from the net freight, the same way the net freight of the listings does' do
+      net_freight = described_class.for(tenant.atua_transport_documents.where(id: document.id))
+
+      expect(net_freight.advance_icms).to eq(Money.from_cents(120_000))
+      expect(net_freight.net).to eq(Money.from_cents(430_913))
+      expect(tenant.atua_transport_documents.with_freight_totals.find(document.id)[:net_cents]).to eq(430_913)
+    end
+  end
+
   context 'with value complements of the transport documents' do
     let!(:complement) do
       create(:atua_transport_document, tenant:, issue_kind: Atua::TransportDocument::VALUE_COMPLEMENT, freight_cents: 45_000,

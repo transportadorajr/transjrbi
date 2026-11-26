@@ -15,6 +15,7 @@ class FreightExpensesController < BaseController
     @customer_groups = current_tenant.customer_groups.where(id: current_tenant.commission_rules.select(:customer_group_id))
       .or(current_tenant.customer_groups.where(id: current_tenant.tonnage_rates.select(:customer_group_id)))
       .or(current_tenant.customer_groups.where(id: FreightExpenses::CalculateTarpLiningCommand.customer_group(current_tenant)))
+      .or(current_tenant.customer_groups.pays_advance_icms)
       .order(:name)
     @amount_total = Money.from_cents(freight_expenses.sum(:amount_cents))
     @unmatched_documents = CommissionRule.unmatched_foreign_documents(current_tenant)

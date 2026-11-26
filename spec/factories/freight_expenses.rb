@@ -41,6 +41,14 @@ FactoryBot.define do
       amount_cents { 5_500 }
     end
 
+    trait :advance_icms do
+      commission_rule { nil }
+      kind_type { 'advance_icms' }
+      base_cents { 120_000 }
+      percentage { nil }
+      amount_cents { 120_000 }
+    end
+
     trait :fuel do
       commission_rule { nil }
       truck_group { tenant.truck_groups.first || association(:truck_group, tenant:) }

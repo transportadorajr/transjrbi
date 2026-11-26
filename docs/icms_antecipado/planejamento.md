@@ -72,12 +72,11 @@ Configuração no **grupo de clientes**, como já existe `toll_reimbursed`. Só 
 
 ### Fase 3 — Frete líquido estável (provisão da guia pendente)
 
-Depende da resposta 3. Corrige o líquido inflado do mês corrente.
+Corrige o líquido inflado enquanto a guia não é lançada. Segue o critério que o BI já usava para esses CT-es: quando a guia é lançada, ela é descontada do líquido; a provisão só antecipa esse desconto. Não muda o líquido dos clientes cujo grupo não está marcado (pergunta 3 continua aberta para eles).
 
-- Novo tipo `advance_icms` em `FreightExpense::KINDS`, calculado por `FreightExpenses::CalculateAdvanceIcmsCommand` (idempotente, no padrão do `CalculateCommissionsCommand`): para CT-e de grupo que paga guia e **ainda sem guia 503 vinculada**, provisiona o ICMS do CT-e; quando a guia é vinculada, a provisão é apagada (a guia real passa a ser a despesa). Nunca os dois ao mesmo tempo.
-- Rodar o comando no `FreightExpenses::CalculateJob` e depois de cada `Atua::LinkExpensesCommand`.
-- Mostrar a provisão na aba de despesas do CT-e (`transport_documents/freight_expenses`) com o rótulo traduzido em `enums.freight_expense.kind_type`.
-- Specs: unit do comando (cria, não duplica, remove quando a guia chega, ignora grupo sem a regra e CT-e cancelado) e regressão de feature no frete líquido do CT-e e no dashboard de faturamento.
+- Novo tipo `advance_icms` em `FreightExpense::KINDS` (valor novo no enum `freight_expense_kind_type`), calculado por `FreightExpenses::CalculateAdvanceIcmsCommand`, idempotente, no padrão do `CalculateTarpLiningCommand`: para cada CT-e com a situação **Guia pendente** (Fase 2), grava o ICMS do CT-e como base e valor; quando a guia 503 é vinculada, o grupo é desmarcado ou o CT-e é cancelado, a provisão é apagada. A guia real e a provisão nunca existem ao mesmo tempo.
+- O comando roda no `FreightExpenses::CalculateJob`, no `Atua::LinkExpensesJob` (depois de vincular as despesas importadas, que é quando a guia chega) e, pelo `CalculateJob`, quando a regra do grupo muda no cadastro.
+- O frete líquido em SQL já soma todas as `freight_expenses`; o quadro do frete líquido do CT-e e do MDF-e (`NetFreight`) ganhou a linha "(−) ICMS antecipado com guia pendente". A provisão aparece também na tela Despesas de frete, com o tipo "Provisão de ICMS antecipado".
 
 ### Fase 4 — Indicadores no BI
 
