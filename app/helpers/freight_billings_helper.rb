@@ -91,7 +91,7 @@ module FreightBillingsHelper
   end
 
   def freight_billing_comparison_ranking_title(dashboard)
-    t('freight_billings.show.comparison_ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
+    t(dashboard.comparison_unit, scope: 'freight_billings.show.comparison_ranking_title', dimension: freight_billing_dimension_label(dashboard.dimension))
   end
 
   def freight_billing_comparison_ranking_subtitle(dashboard)
@@ -100,14 +100,14 @@ module FreightBillingsHelper
     subtitle = t('freight_billings.show.comparison_ranking_subtitle', from: l(period.first), to: l(period.last),
                                                                       previous_from: l(previous.first), previous_to: l(previous.last))
 
-    safe_join([subtitle, freight_billing_comparison_in_progress(period)].compact, ' ')
+    safe_join([subtitle, freight_billing_comparison_in_progress(dashboard)].compact, ' ')
   end
 
   def freight_billing_comparison_headers(dashboard)
     return unless dashboard.comparison?
 
-    safe_join([sortable_header(t('freight_billings.columns.previous_gross'), :previous_gross, first_direction: :desc, anchor: 'freight_billing_table',
-                                                                                              class: 'd-none d-lg-table-cell text-end'),
+    safe_join([sortable_header(freight_billing_previous_gross_label(dashboard), :previous_gross, first_direction: :desc, anchor: 'freight_billing_table',
+                                                                                                 class: 'd-none d-lg-table-cell text-end'),
                sortable_header(t('freight_billings.columns.variation'), :variation, anchor: 'freight_billing_table', class: 'text-end')])
   end
 
@@ -311,7 +311,7 @@ module FreightBillingsHelper
 
   def freight_billing_pdf_columns(dashboard)
     [pdf_column(freight_billing_dimension_label(dashboard.dimension), '3fr'),
-     *freight_billing_pdf_column_names(dashboard).map { |column| pdf_column(t(column, scope: 'freight_billings.columns'), align: :right) }]
+     *freight_billing_pdf_column_names(dashboard).map { |column| pdf_column(freight_billing_pdf_column_label(column, dashboard), align: :right) }]
   end
 
   def freight_billing_pdf_row(row, dashboard)
@@ -358,7 +358,7 @@ module FreightBillingsHelper
   def freight_billing_comparison_xlsx_fields(dashboard)
     return [] unless dashboard.comparison?
 
-    [xlsx_field(t('freight_billings.columns.previous_gross'), :money, &:previous_gross),
+    [xlsx_field(freight_billing_previous_gross_label(dashboard), :money, &:previous_gross),
      xlsx_field(t('freight_billings.columns.variation'), :percentage, &:variation)]
   end
 
@@ -428,10 +428,21 @@ module FreightBillingsHelper
               library: chart_bar_library(:y).deep_merge(plugins: { datalabels: RANKING_BAR_LABELS }))
   end
 
-  def freight_billing_comparison_in_progress(period)
+  def freight_billing_comparison_in_progress(dashboard)
+    period = dashboard.period
     return unless period.cover?(Date.current) && period.last > Date.current
 
-    t('freight_billings.show.comparison_in_progress', today: l(Date.current))
+    t(dashboard.comparison_unit, scope: 'freight_billings.show.comparison_in_progress', today: l(Date.current))
+  end
+
+  def freight_billing_previous_gross_label(dashboard)
+    t(dashboard.comparison_unit, scope: 'freight_billings.columns.previous_gross')
+  end
+
+  def freight_billing_pdf_column_label(column, dashboard)
+    return freight_billing_previous_gross_label(dashboard) if column == :previous_gross
+
+    t(column, scope: 'freight_billings.columns')
   end
 
   def freight_billing_variation_class(variation)

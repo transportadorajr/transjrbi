@@ -1964,6 +1964,40 @@ describe 'Freight billing' do
       )
     end
 
+    scenario 'names the comparison after the week and compares it with the previous week' do
+      travel_to(Time.zone.local(2026, 11, 4, 12)) do
+        visit freight_billing_path(start_date: '2026-11-01', end_date: '2026-11-07')
+      end
+
+      expect(Atua::TransportDocument.count).to eq(5)
+      within('#freight_billing_comparison') do
+        expect(page).to have_css('.chart-card-title', text: 'Frete bruto por Grupo de clientes: semana atual x semana passada')
+        expect(page).to have_css('.chart-card-subtitle', text: 'Os 15 maiores pelo frete bruto de 01/11/2026 a 07/11/2026, comparados com 25/10/2026 a 31/10/2026')
+        expect(page).to have_css('.chart-card-subtitle', text: 'Semana em andamento: CT-es até 04/11/2026.')
+      end
+      expect(html_table_to_rows).to eq(
+        [
+          ['Grupo de clientes', 'Frete bruto', 'Bruto semana passada', 'Variação', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
+          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '100,0%', ''],
+          ['Total', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '100,0%', ''],
+        ],
+      )
+    end
+
+    scenario 'names the comparison after a free interval and compares it with the days right before it' do
+      visit freight_billing_path(start_date: '2026-11-02', end_date: '2026-11-30')
+
+      within('#freight_billing_comparison') do
+        expect(page).to have_css('.chart-card-title', text: 'Frete bruto por Grupo de clientes: período atual x período anterior')
+        expect(page).to have_css('.chart-card-subtitle', text: 'comparados com 04/10/2026 a 01/11/2026')
+      end
+      expect(html_table_to_rows.first).to include('Bruto período anterior')
+      expect(html_table_to_rows.drop(1).map { |row| row.first(3) }).to eq(
+        [['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00'], ['PANORAMA', 'R$ 10.044,90', 'R$ 0,00'], ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00'],
+         ['Total', 'R$ 42.415,70', 'R$ 28.100,00']],
+      )
+    end
+
     scenario 'sorts the groups by the variation' do
       visit freight_billing_path(november.merge(sort: 'variation', direction: 'asc'))
 
@@ -1991,6 +2025,14 @@ describe 'Freight billing' do
 
       text = PDF::Inspector::Text.analyze(page.body).strings.join
       expect(text).to include('Bruto mês passado', 'Variação', 'R$ 25.100,00', '+29,0%', '-100,0%')
+    end
+
+    scenario 'names the previous gross after the week in the PDF' do
+      visit freight_billing_path(start_date: '2026-11-01', end_date: '2026-11-07', format: :pdf)
+
+      text = PDF::Inspector::Text.analyze(page.body).strings.join
+      expect(text).to include('Bruto semana passada', 'R$ 25.100,00', '+29,0%')
+      expect(text).not_to include('Bruto mês passado')
     end
 
     def chart_datasets(container)

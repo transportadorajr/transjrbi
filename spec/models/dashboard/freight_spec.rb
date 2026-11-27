@@ -855,17 +855,24 @@ RSpec.describe Dashboard::Freight do
 
     describe '#previous_period' do
       {
-        'a whole month of 30 days' => [Date.new(2026, 11, 1)..Date.new(2026, 11, 30), Date.new(2026, 10, 1)..Date.new(2026, 10, 31)],
-        'a whole month of 31 days' => [Date.new(2026, 10, 1)..Date.new(2026, 10, 31), Date.new(2026, 9, 1)..Date.new(2026, 9, 30)],
-        'march' => [Date.new(2026, 3, 1)..Date.new(2026, 3, 31), Date.new(2026, 2, 1)..Date.new(2026, 2, 28)],
-        'january' => [Date.new(2027, 1, 1)..Date.new(2027, 1, 31), Date.new(2026, 12, 1)..Date.new(2026, 12, 31)],
-        'a free interval' => [Date.new(2026, 11, 5)..Date.new(2026, 11, 18), Date.new(2026, 10, 5)..Date.new(2026, 10, 18)],
-        'a week across two months' => [Date.new(2026, 10, 25)..Date.new(2026, 10, 31), Date.new(2026, 9, 25)..Date.new(2026, 9, 30)],
-      }.each do |description, (current, previous)|
+        'a whole month of 30 days' => [Date.new(2026, 11, 1)..Date.new(2026, 11, 30), :month, Date.new(2026, 10, 1)..Date.new(2026, 10, 31)],
+        'a whole month of 31 days' => [Date.new(2026, 10, 1)..Date.new(2026, 10, 31), :month, Date.new(2026, 9, 1)..Date.new(2026, 9, 30)],
+        'march' => [Date.new(2026, 3, 1)..Date.new(2026, 3, 31), :month, Date.new(2026, 2, 1)..Date.new(2026, 2, 28)],
+        'january' => [Date.new(2027, 1, 1)..Date.new(2027, 1, 31), :month, Date.new(2026, 12, 1)..Date.new(2026, 12, 31)],
+        'the first days of a month' => [Date.new(2026, 10, 1)..Date.new(2026, 10, 15), :month, Date.new(2026, 9, 1)..Date.new(2026, 9, 15)],
+        'a week from sunday to saturday' => [Date.new(2026, 11, 22)..Date.new(2026, 11, 28), :week, Date.new(2026, 11, 15)..Date.new(2026, 11, 21)],
+        'a week across two months' => [Date.new(2026, 10, 25)..Date.new(2026, 10, 31), :week, Date.new(2026, 10, 18)..Date.new(2026, 10, 24)],
+        'a week across two years' => [Date.new(2026, 12, 27)..Date.new(2027, 1, 2), :week, Date.new(2026, 12, 20)..Date.new(2026, 12, 26)],
+        'a free interval' => [Date.new(2026, 11, 5)..Date.new(2026, 11, 18), :period, Date.new(2026, 10, 22)..Date.new(2026, 11, 4)],
+        'a single day' => [Date.new(2026, 11, 18)..Date.new(2026, 11, 18), :period, Date.new(2026, 11, 17)..Date.new(2026, 11, 17)],
+        'seven days that do not start on sunday' => [Date.new(2026, 11, 23)..Date.new(2026, 11, 29), :period,
+                                                     Date.new(2026, 11, 16)..Date.new(2026, 11, 22)],
+      }.each do |description, (current, unit, previous)|
         context "with #{description}" do
           let(:period) { current }
 
-          it 'is the same period one month before' do
+          it "compares with the previous #{unit}" do
+            expect(comparison.comparison_unit).to eq(unit)
             expect(comparison.previous_period).to eq(previous)
           end
         end
@@ -917,6 +924,22 @@ RSpec.describe Dashboard::Freight do
       it 'sorts by the previous gross and by the variation' do
         expect(comparison.sorted_rows('variation', 'asc').map(&:label)).to eq(%w[PERDIDA PANORAMA ARCELOR NOVA])
         expect(comparison.sorted_rows('previous_gross', 'desc').map(&:label)).to eq(%w[ARCELOR PANORAMA PERDIDA NOVA])
+      end
+
+      context 'when the period is a week' do
+        let(:period) { Date.new(2026, 11, 1)..Date.new(2026, 11, 7) }
+
+        before do
+          create_group_document(7101, Date.new(2026, 10, 25), 1_000_000)
+          create_group_document(7102, Date.new(2026, 10, 30), 2_000_000)
+        end
+
+        it 'compares the gross freight of each group with the previous week' do
+          expect(comparison.rows.map { |row| [row.label, row.gross.cents, row.previous_gross.cents] }).to eq(
+            [['ARCELOR', 3_237_080, 3_510_000], ['PANORAMA', 0, 2_000_000]],
+          )
+          expect(comparison.comparison_ranking_data.pluck(:name)).to eq(['Semana atual', 'Semana passada'])
+        end
       end
 
       context 'when the comparison is turned off' do

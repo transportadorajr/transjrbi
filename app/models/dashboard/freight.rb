@@ -123,10 +123,22 @@ module Dashboard
       @comparison && COMPARISON_DIMENSIONS.include?(dimension)
     end
 
-    def previous_period
-      last = period.last == period.last.end_of_month ? period.last.prev_month.end_of_month : period.last.prev_month
+    def comparison_unit
+      @comparison_unit ||= if week_period?
+                             :week
+                           elsif month_period?
+                             :month
+                           else
+                             :period
+                           end
+    end
 
-      period.first.prev_month..last
+    def previous_period
+      case comparison_unit
+      when :week then period.first.weeks_ago(1)..period.last.weeks_ago(1)
+      when :month then previous_month_period
+      else (period.first - period_length)..(period.first - 1)
+      end
     end
 
     def per_km_base
@@ -188,8 +200,8 @@ module Dashboard
       labels = ranking_rows.zip(ranking_labels).map { |row, label| comparison_label(row, label) }
 
       [
-        { name: I18n.t('dashboards.freight.current_period'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.gross.to_f] } },
-        { name: I18n.t('dashboards.freight.previous_period'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.previous_gross.to_f] } },
+        { name: I18n.t(comparison_unit, scope: 'dashboards.freight.current_period'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.gross.to_f] } },
+        { name: I18n.t(comparison_unit, scope: 'dashboards.freight.previous_period'), data: ranking_rows.zip(labels).to_h { |row, label| [label, row.previous_gross.to_f] } },
       ]
     end
 
@@ -251,6 +263,24 @@ module Dashboard
     private
 
     attr_reader :documents, :manifests
+
+    def week_period?
+      period.first == period.first.beginning_of_week(WEEK_START) && period.last == period.first.end_of_week(WEEK_START)
+    end
+
+    def month_period?
+      period.first == period.first.beginning_of_month && period.last <= period.first.end_of_month
+    end
+
+    def previous_month_period
+      last = period.last == period.last.end_of_month ? period.last.prev_month.end_of_month : period.last.prev_month
+
+      period.first.prev_month..last
+    end
+
+    def period_length
+      (period.last - period.first).to_i + 1
+    end
 
     def issued_months
       @issued_months ||= history_facts.map { |fact| fact.issued_on.beginning_of_month }.uniq
