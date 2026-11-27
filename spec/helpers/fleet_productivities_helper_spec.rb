@@ -15,10 +15,12 @@ RSpec.describe FleetProductivitiesHelper do
   end
 
   describe '#fleet_productivity_routes_chart_card' do
-    it 'shows no chart without a measured empty leg' do
-      create(:empty_leg, tenant:, status_type: 'unrouted', distance_km: nil)
+    context 'without a measured empty leg' do
+      before { create(:empty_leg, tenant:, status_type: 'unrouted', distance_km: nil) }
 
-      expect(helper.fleet_productivity_routes_chart_card(dashboard)).to be_nil
+      it 'shows no chart' do
+        expect(helper.fleet_productivity_routes_chart_card(dashboard)).to be_nil
+      end
     end
   end
 end

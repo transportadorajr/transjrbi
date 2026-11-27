@@ -1719,22 +1719,14 @@ describe 'Freight billing' do
       end
 
       context 'when the trucks ran empty before loading' do
-        let!(:vale_do_aco) { create(:macro_region, tenant:) }
-        let!(:ipatinga) { create(:location, lookup_key: '|IPATINGA|MG', city: 'IPATINGA', state: 'MG') }
-        let!(:belo_horizonte) { create(:location, lookup_key: '|BELO HORIZONTE|MG', city: 'BELO HORIZONTE', state: 'MG') }
         let!(:third_trip) { create(:atua_manifest, tenant:, code: 41_003, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 20, 6)) }
         let!(:september_trip) { create(:atua_manifest, tenant:, code: 41_004, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 9, 20, 6)) }
 
         before do
-          EmptyLeg.find_by!(tenant:, next_manifest_code: 41_001).update!(origin: belo_horizonte, destination: ipatinga)
-          create(:empty_leg, tenant:, plate: 'RVR8J90', previous_manifest_code: 41_000, next_manifest_code: 41_002, origin: ipatinga,
-                             destination: belo_horizonte, distance_km: BigDecimal('150'))
-          create(:empty_leg, tenant:, plate: 'RVR2C34', previous_manifest_code: 41_001, next_manifest_code: 41_003, origin: ipatinga,
-                             destination: belo_horizonte, distance_km: BigDecimal('160'))
-          create(:empty_leg, tenant:, plate: 'RVR2C34', previous_manifest_code: 40_998, next_manifest_code: 41_004, origin: ipatinga,
-                             destination: belo_horizonte, distance_km: BigDecimal('999'))
-          create(:empty_leg, tenant: other_tenant, plate: 'OUT1A11', next_manifest_code: 41_001, origin: ipatinga, destination: belo_horizonte,
-                             distance_km: BigDecimal('777'))
+          create(:empty_leg, tenant:, plate: 'RVR8J90', previous_manifest_code: 41_000, next_manifest_code: 41_002, distance_km: BigDecimal('150'))
+          create(:empty_leg, tenant:, plate: 'RVR2C34', previous_manifest_code: 41_001, next_manifest_code: 41_003, distance_km: BigDecimal('160'))
+          create(:empty_leg, tenant:, plate: 'RVR2C34', previous_manifest_code: 40_998, next_manifest_code: 41_004, distance_km: BigDecimal('999'))
+          create(:empty_leg, tenant: other_tenant, plate: 'OUT1A11', next_manifest_code: 41_001, distance_km: BigDecimal('777'))
           create(:atua_transport_document, tenant:, number: '74010', freight_cents: 300_000, plate: 'RVR2C34', taker_code: 7200,
                                            issued_at: Time.zone.local(2026, 10, 20, 7))
           create(:atua_transport_document, tenant:, number: '74011', freight_cents: 300_000, plate: 'RVR2C34', taker_code: 7200,
@@ -1746,6 +1738,8 @@ describe 'Freight billing' do
         scenario 'shows the empty km and the empty share of each row of the grouping' do
           visit freight_billing_path(october_by_truck)
 
+          expect(EmptyLeg.count).to eq(5)
+          expect(Atua::TransportDocument.count).to eq(7)
           expect(html_table_to_rows(table: find('.freight-billing-table')).map { |row| row.values_at(0, 3, 4) }).to eq(
             [
               ['Veículo', 'KM vazio', 'Rodou vazio'],

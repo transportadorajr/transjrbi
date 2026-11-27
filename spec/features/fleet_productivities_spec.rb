@@ -123,6 +123,7 @@ describe 'Fleet productivity' do
       scenario 'filters the empty legs by the plate' do
         visit fleet_productivity_path(october.merge(plate: 'rvr8j90'))
 
+        expect(EmptyLeg.count).to eq(6)
         expect(html_table_to_rows(table: find('#fleet_productivity_routes table')).drop(1))
           .to eq([['IPATINGA/MG → BELO HORIZONTE/MG', '1', '150 km', '150 km']])
       end
@@ -134,6 +135,7 @@ describe 'Fleet productivity' do
           click_on 'Aplicar Filtros'
         end
 
+        expect(EmptyLeg.count).to eq(6)
         expect(first('.counter-card').text.squish).to eq('Trechos vazios 1')
         expect(html_table_to_rows(table: find('#fleet_productivity_routes table')).drop(1))
           .to eq([['IPATINGA/MG → BELO HORIZONTE/MG', '1', '150 km', '150 km']])
@@ -149,6 +151,7 @@ describe 'Fleet productivity' do
       scenario 'exports the empty routes and the unloading regions to their own sheets', :xlsx_service do
         visit fleet_productivity_path(october.merge(format: :xlsx))
 
+        expect(EmptyLeg.count).to eq(6)
         expect(downloaded_xlsx_sheet_names).to eq(['Trechos rodados vazios', 'Regiões da descarga'])
         expect(downloaded_xlsx_records(0)).to eq(
           [{ 'Trecho' => 'IPATINGA/MG → BELO HORIZONTE/MG', 'Trechos' => 2, 'KM médio' => 155, 'KM vazio' => 310 },
@@ -160,32 +163,38 @@ describe 'Fleet productivity' do
         )
       end
 
-      scenario 'pages each table on its own keeping the filters', :js do
-        26.times do |index|
-          location = create(:location, lookup_key: "|CIDADE #{index}|SP", city: "CIDADE #{index}", state: 'SP')
-          create(:atua_manifest, tenant:, code: 50_000 + index, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 21, 6) + index.minutes)
-          create(:empty_leg, tenant:, plate: 'RVR2C34', next_manifest_code: 50_000 + index, origin: location, destination: ipatinga, distance_km: 10 + index)
-        end
-
-        visit fleet_productivity_path(october)
-        within('#fleet_productivity_routes .table-pagination') { click_on '3' }
-
-        expect(page).to have_current_path(fleet_productivity_path(october.merge(empty_routes_page: 3)))
-        expect(html_table_to_rows(table: find('#fleet_productivity_routes table')).drop(1).map(&:first))
-          .to eq((0..7).reverse_each.map { |index| "CIDADE #{index}/SP → IPATINGA/MG" })
-        expect(html_table_to_rows(table: find('#fleet_productivity_regions table')).drop(1).map(&:first))
-          .to eq(['Sem macro região', 'VALE DO AÇO/MG'])
-      end
-
       scenario 'keeps the tables inside a phone screen', :js do
         use_mobile_screen(width: 360)
         visit fleet_productivity_path(october)
 
+        expect(EmptyLeg.count).to eq(6)
         within('#fleet_productivity_routes') do
           expect(page).to have_css('td', text: 'IPATINGA/MG → BELO HORIZONTE/MG')
           expect(page).to have_no_css('th', text: 'KM médio')
         end
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+      end
+
+      context 'when there are more empty routes than fit on a page' do
+        before do
+          26.times do |index|
+            location = create(:location, lookup_key: "|CIDADE #{index}|SP", city: "CIDADE #{index}", state: 'SP')
+            create(:atua_manifest, tenant:, code: 50_000 + index, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 21, 6) + index.minutes)
+            create(:empty_leg, tenant:, plate: 'RVR2C34', next_manifest_code: 50_000 + index, origin: location, destination: ipatinga, distance_km: 10 + index)
+          end
+        end
+
+        scenario 'pages each table on its own keeping the filters', :js do
+          visit fleet_productivity_path(october)
+          within('#fleet_productivity_routes .table-pagination') { click_on '3' }
+
+          expect(page).to have_current_path(fleet_productivity_path(october.merge(empty_routes_page: 3)))
+          expect(EmptyLeg.count).to eq(32)
+          expect(html_table_to_rows(table: find('#fleet_productivity_routes table')).drop(1).map(&:first))
+            .to eq((0..7).reverse_each.map { |index| "CIDADE #{index}/SP → IPATINGA/MG" })
+          expect(html_table_to_rows(table: find('#fleet_productivity_regions table')).drop(1).map(&:first))
+            .to eq(['Sem macro região', 'VALE DO AÇO/MG'])
+        end
       end
     end
   end
