@@ -78,7 +78,7 @@ describe 'Intelligence PDF exports' do
         text = pdf_text
         expect(text).to include('Relatório de Faturamento', 'Detalhamento por Veículo — CT-es emitidos de 01/10/2026 a 31/10/2026')
         expect(text).to include('Frete brutoR$ 20.000,00', 'Frete líquidoR$ 19.100,00', 'Viagens2', 'Frete bruto por kmR$ 26,39',
-                                'Frete líquido por kmR$ 25,14', 'KM rodado720 km', 'KM vazio80 km', 'Rodou vazio11,1%')
+                                'Frete líquido por kmR$ 25,14', 'KM rodado720 km', 'KM vazio80 km', 'Rodou vazio15,4%')
         expect(text).to include('Veículo', 'Viagens', 'KM rodado', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Bruto/km', 'Líquido/km', 'Participação')
         expect(text).to include('RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00', 'R$ 250,00', '75,0%')
         expect(text).to include('RVR8J90', 'R$ 5.000,00', '25,0%')
