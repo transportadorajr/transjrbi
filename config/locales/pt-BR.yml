@@ -4481,6 +4481,7 @@ pt-BR:
       net_per_hour: Líquido/hora
   freight_billings:
     km: '%{distance} km'
+    awaiting_manifest: Aguardando MDF-e
     detail:
       row_not_found: Esta linha não está mais disponível. Confira os dados atualizados.
       sections:
@@ -4536,6 +4537,7 @@ pt-BR:
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
       share: Participação
+      empty_share_status: Situação do KM vazio
       previous_gross:
         week: Bruto semana passada
         month: Bruto mês passado

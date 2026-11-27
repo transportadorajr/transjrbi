@@ -23,10 +23,10 @@ module Dashboard
     CHART_RENAMED_DRIVERS = { 'JECI FERREIRA DE SOUZA' => 'dashboards.freight.without_admission' }.freeze
     COLUMNS = %i[id manifest_code issued_at loaded_km empty_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city
-                 origin_state origin_macro_region_id export_origin].freeze
+                 origin_state origin_macro_region_id export_origin document_kind].freeze
     ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight loaded_km empty_km freight_cents freight_expenses_cents expenses_cents toll_cents
                           undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city origin_state
-                          origin_macro_region_id export_origin].freeze
+                          origin_macro_region_id export_origin document_kind].freeze
 
     Fact = Data.define(*COLUMNS) do
       def trip?
@@ -43,6 +43,15 @@ module Dashboard
         trip? && loaded_km.positive?
       end
 
+      def empty_measured?
+        trip? && !empty_km.nil?
+      end
+
+      def awaiting_manifest?
+        !trip? && document_kind == Atua::MapTransportDocumentsCommand::DOCUMENT_KINDS['CTRC'] && plate.present? &&
+          plate != Atua::MapTransportDocumentsCommand::INTERNATIONAL_PLATE
+      end
+
       def net_cents
         freight_cents - freight_expenses_cents - expenses_cents - toll_cents
       end
@@ -52,11 +61,15 @@ module Dashboard
     HistoryRow = Data.define(:period, :label, :gross, :net)
 
     Row = Data.define(:key, :label, :trips_count, :loaded_km, :empty_km, :empty_share, :gross, :freight_expenses, :expenses, :toll, :undiscounted_toll, :net, :gross_per_km,
-                      :net_per_km, :share, :previous_gross) do
+                      :net_per_km, :share, :previous_gross, :awaiting_manifest) do
       extend ActiveModel::Naming
 
       def toll_total
         toll + undiscounted_toll
+      end
+
+      def awaiting_manifest?
+        awaiting_manifest && empty_share.nil?
       end
 
       def variation
@@ -452,7 +465,7 @@ module Dashboard
     end
 
     def document_entry(fact)
-      Entry.new(document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), empty_km: BigDecimal('0'),
+      Entry.new(document_ids: [fact.id], manifest_code: nil, weight: BigDecimal('0'), loaded_km: BigDecimal('0'), empty_km: nil,
                 **money_of([fact]),
                 **attributes_of(fact))
     end
@@ -462,7 +475,7 @@ module Dashboard
 
       slices_of(trip_facts).map do |slice, weight|
         Entry.new(document_ids: slice.map(&:id), manifest_code: trip.manifest_code, weight:, loaded_km: trip.loaded_km.to_d * weight,
-                  empty_km: trip.empty_km.to_d * weight, **money_of(slice), **attributes_of(slice.first))
+                  empty_km: trip.empty_km&.to_d&.*(weight), **money_of(slice), **attributes_of(slice.first))
       end
     end
 
@@ -470,7 +483,8 @@ module Dashboard
       {
         plate: fact.plate, driver_code: fact.driver_code, driver_name: fact.driver_name, customer_group_id: fact.customer_group_id,
         product_group_id: fact.product_group_id, product_subgroup_id: fact.product_subgroup_id, origin_city: fact.origin_city,
-        origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin
+        origin_state: fact.origin_state, origin_macro_region_id: fact.origin_macro_region_id, export_origin: fact.export_origin,
+        document_kind: fact.document_kind
       }
     end
 
@@ -525,6 +539,7 @@ module Dashboard
         table[:origin_state],
         table[:origin_macro_region_id],
         Atua::TransportDocument.export_origin,
+        table[:document_kind],
       ]
     end
 
@@ -557,15 +572,16 @@ module Dashboard
       expenses_cents = grouped.sum(&:expenses_cents)
       toll_cents = grouped.sum(&:toll_cents)
       loaded_km = grouped.sum(BigDecimal('0'), &:loaded_km)
-      empty_km = grouped.sum(BigDecimal('0'), &:empty_km)
+      empty_measured = grouped.select(&:empty_measured?)
+      empty_km = empty_measured.sum(BigDecimal('0'), &:empty_km) if empty_measured.any?
 
       Row.new(
         key:,
         label:,
         trips_count: grouped.sum(BigDecimal('0'), &:weight).round(2),
         loaded_km: loaded_km.round(2),
-        empty_km: empty_km.round(2),
-        empty_share: empty_share_of(empty_km, loaded_km),
+        empty_km: empty_km&.round(2),
+        empty_share: empty_share_of(empty_km, empty_measured.sum(BigDecimal('0'), &:loaded_km)),
         gross: Money.from_cents(gross_cents),
         freight_expenses: Money.from_cents(freight_expenses_cents),
         expenses: Money.from_cents(expenses_cents),
@@ -576,6 +592,7 @@ module Dashboard
         net_per_km: per_km(measured.sum(&:net_cents), measured_km),
         share: share_of(gross_cents),
         previous_gross: previous_cents && Money.from_cents(previous_cents),
+        awaiting_manifest: grouped.any?(&:awaiting_manifest?),
       )
     end
 
@@ -584,7 +601,7 @@ module Dashboard
     end
 
     def empty_share_of(empty_km, loaded_km)
-      (empty_km * 100 / loaded_km).round(1) if loaded_km.positive?
+      (empty_km * 100 / loaded_km).round(1) if empty_km && loaded_km.positive?
     end
 
     def share_of(cents)

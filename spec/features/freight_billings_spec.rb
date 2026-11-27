@@ -99,7 +99,7 @@ describe 'Freight billing' do
         expect(page).to have_no_table
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
           ['Frete bruto R$ 0,00', 'Frete líquido R$ 0,00',
-           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km', 'KM vazio 0 km', 'Rodou vazio -'],
+           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km', 'KM vazio -', 'Rodou vazio -'],
         )
       end
     end
@@ -116,7 +116,7 @@ describe 'Freight billing' do
         expect(Atua::TransportDocument.count).to eq(1)
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
           ['Frete bruto R$ 15.360,00', 'Frete líquido R$ 15.360,00',
-           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km', 'KM vazio 0 km', 'Rodou vazio -'],
+           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km', 'KM vazio -', 'Rodou vazio -'],
         )
         expect(html_table_to_rows(table: find('.freight-billing-table'))).to eq(
           [
@@ -125,6 +125,36 @@ describe 'Freight billing' do
             ['Total', 'R$ 15.360,00', 'R$ 15.360,00', 'R$ 0,00', '100,0%', ''],
           ],
         )
+      end
+    end
+
+    context 'when some CT-es are not in an MDF-e yet and a trip has no measured empty km', :xlsx_service do
+      before do
+        create(:atua_manifest, tenant:, code: 43_001, plate: 'RVR3A11', trip_started_at: Time.zone.local(2026, 10, 5, 6))
+        create(:atua_manifest, tenant:, code: 43_002, plate: 'RVR3A11', trip_started_at: Time.zone.local(2026, 10, 12, 6))
+        create(:atua_transport_document, tenant:, number: '76001', freight_cents: 500_000, plate: 'RVR3A11')
+        create(:atua_transport_document, tenant:, number: '76002', freight_cents: 400_000, plate: 'RVR3A11')
+        create(:atua_transport_document, tenant:, number: '76004', freight_cents: 300_000, plate: 'RVR5A33')
+        create(:atua_transport_document, tenant:, number: '76005', document_kind: 'ce', freight_cents: 200_000, plate: 'INT6R00')
+        create(:atua_manifest_document, tenant:, manifest_code: 43_001, transport_document_number: '76001', calculated_distance_km: 400)
+        create(:atua_manifest_document, tenant:, manifest_code: 43_002, transport_document_number: '76002', calculated_distance_km: 600)
+        create(:empty_leg, tenant:, plate: 'RVR3A11', next_manifest_code: 43_001, distance_km: 100)
+      end
+
+      scenario 'exports the empty share of the measured trips only and marks the rows awaiting their MDF-e' do
+        visit freight_billing_path(october_by_truck.merge(format: :xlsx))
+
+        expect(Atua::TransportDocument.count).to eq(4)
+        expect(downloaded_xlsx_records.map { |row| row.slice('Veículo', 'Viagens', 'KM rodado', 'KM vazio', 'Rodou vazio', 'Situação do KM vazio') })
+          .to eq(
+            [
+              { 'Veículo' => 'RVR3A11', 'Viagens' => 2, 'KM rodado' => 1000, 'KM vazio' => 100, 'Rodou vazio' => 0.25, 'Situação do KM vazio' => nil },
+              { 'Veículo' => 'RVR5A33', 'Viagens' => 0, 'KM rodado' => 0, 'KM vazio' => nil, 'Rodou vazio' => nil,
+                'Situação do KM vazio' => 'Aguardando MDF-e' },
+              { 'Veículo' => 'INT6R00', 'Viagens' => 0, 'KM rodado' => 0, 'KM vazio' => nil, 'Rodou vazio' => nil, 'Situação do KM vazio' => nil },
+              { 'Veículo' => 'Total', 'Viagens' => 2, 'KM rodado' => 1000, 'KM vazio' => 100, 'Rodou vazio' => 0.25, 'Situação do KM vazio' => nil },
+            ],
+          )
       end
     end
 
@@ -266,7 +296,7 @@ describe 'Freight billing' do
         expect(Atua::TransportDocument.count).to eq(5)
         expect(all('.counter-card').map { |card| card.text.squish }).to eq(
           ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
-           'KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 11,1%'],
+           'KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 15,4%'],
         )
         expect(page).to have_text('Frete por Veículo')
         expect(page).to have_text('Evolução Mensal')
@@ -1325,7 +1355,7 @@ describe 'Freight billing' do
           expect(Atua::TransportDocument.where(tenant:).count).to eq(7)
           expect(all('.counter-card').map { |card| card.text.squish }).to eq(
             ['Frete bruto R$ 20.000,00', 'Frete líquido R$ 19.100,00', 'Viagens 2', 'Frete bruto por km R$ 26,39', 'Frete líquido por km R$ 25,14',
-             'KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 11,1%'],
+             'KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 15,4%'],
           )
           expect(html_table_to_rows.map { |row| row.values_at(0, 1, 2) }).to eq(
             [
@@ -1680,11 +1710,11 @@ describe 'Freight billing' do
                              status_type: 'unrouted', distance_km: nil)
         end
 
-        scenario 'leaves the trip out of the empty km and still divides the empty km by every loaded km' do
+        scenario 'leaves the trip out of the empty km and divides the empty km only by the loaded km of the measured trips' do
           visit freight_billing_path(october)
 
           expect(EmptyLeg.count).to eq(2)
-          expect(all('.counter-card').last(3).map { |card| card.text.squish }).to eq(['KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 11,1%'])
+          expect(all('.counter-card').last(3).map { |card| card.text.squish }).to eq(['KM rodado 720 km', 'KM vazio 80 km', 'Rodou vazio 15,4%'])
         end
       end
 
