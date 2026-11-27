@@ -4406,8 +4406,14 @@ pt-BR:
       gross: Frete bruto
       net: Frete líquido
       gross_per_km: Frete bruto por km
-      current_period: Mês atual
-      previous_period: Mês passado
+      current_period:
+        week: Semana atual
+        month: Mês atual
+        period: Período atual
+      previous_period:
+        week: Semana passada
+        month: Mês passado
+        period: Período anterior
       comparison_label:
         variation: '%{label} (%{variation})'
         new: '%{label} (novo)'
@@ -4531,7 +4537,10 @@ pt-BR:
       gross_per_km: Bruto/km
       net_per_km: Líquido/km
       share: Participação
-      previous_gross: Bruto mês passado
+      previous_gross:
+        week: Bruto semana passada
+        month: Bruto mês passado
+        period: Bruto período anterior
       variation: Variação
     show:
       title: Faturamento
@@ -4563,10 +4572,16 @@ pt-BR:
       empty_share: Rodou vazio
       ranking_title: Frete por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto, pela data de emissão do CT-e
-      comparison_ranking_title: 'Frete bruto por %{dimension}: mês atual x mês passado'
+      comparison_ranking_title:
+        week: 'Frete bruto por %{dimension}: semana atual x semana passada'
+        month: 'Frete bruto por %{dimension}: mês atual x mês passado'
+        period: 'Frete bruto por %{dimension}: período atual x período anterior'
       comparison_ranking_subtitle: >-
         Os 15 maiores pelo frete bruto de %{from} a %{to}, comparados com %{previous_from} a %{previous_to}, pela data de emissão do CT-e
-      comparison_in_progress: 'Mês em andamento: CT-es até %{today}.'
+      comparison_in_progress:
+        week: 'Semana em andamento: CT-es até %{today}.'
+        month: 'Mês em andamento: CT-es até %{today}.'
+        period: 'Período em andamento: CT-es até %{today}.'
       per_km_ranking_title: Frete bruto por km por %{dimension}
       per_km_ranking_subtitle: Os mesmos 15 do gráfico de frete, pelo frete bruto dividido pelo km rodado das viagens
       per_km_order_label: Ordem
