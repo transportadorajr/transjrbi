@@ -141,7 +141,7 @@ describe 'Intelligence Excel exports', :xlsx_service do
     let!(:resource) { create(:resource, name: 'Resumo da exportação', slug: 'export_summary', writable: false) }
 
     before do
-      arcelor = create(:customer_group, tenant:, name: 'ARCELORMITTAL')
+      arcelor = create(:customer_group, tenant:, name: 'ARCELORMITTAL', in_export_summary_at: Time.current)
       create(:atua_customer, tenant:, code: 100, customer_group: arcelor)
       create(:atua_customer, tenant:, code: 300, name: 'ACEROS ASUNCION SA', state: 'EX', country_type: 'paraguay')
       create(:atua_manifest, tenant:, code: 41_001, number: '41001', plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 2, 8))
