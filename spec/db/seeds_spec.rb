@@ -35,7 +35,7 @@ RSpec.describe 'db/seeds.rb' do
   end
 
   it 'creates every access resource' do
-    expect { run_seeds }.to change(Resource, :count).by(47)
+    expect { run_seeds }.to change(Resource, :count).by(48)
 
     expect(Resource.find_by!(slug: 'users')).to have_attributes(name: 'Usuários', writable: true)
     expect(Resource.find_by!(slug: 'excluded_issuers')).to have_attributes(name: 'Emissores desconsiderados', writable: true)
@@ -49,6 +49,7 @@ RSpec.describe 'db/seeds.rb' do
     expect(Resource.find_by!(slug: 'export_shortcuts')).to have_attributes(name: 'Atalhos da exportação', writable: true)
     expect(Resource.find_by!(slug: 'freight_billing')).to have_attributes(name: 'Faturamento', writable: false)
     expect(Resource.find_by!(slug: 'trips')).to have_attributes(name: 'Viagens', writable: false)
+    expect(Resource.find_by!(slug: 'fleet_productivity')).to have_attributes(name: 'Produtividade de frota', writable: false)
     expect(Resource.find_by!(slug: 'holidays')).to have_attributes(name: 'Feriados', writable: true)
     expect(Resource.find_by!(slug: 'own_fleet')).to have_attributes(name: 'Frota própria', writable: true)
     expect(Resource.find_by!(slug: 'empty_legs')).to have_attributes(name: 'Deslocamento vazio', writable: false)
@@ -97,7 +98,7 @@ RSpec.describe 'db/seeds.rb' do
     let!(:resource) { create(:resource, slug: 'users', name: 'Usuários do sistema', writable: false) }
 
     it 'keeps the registered resource unchanged' do
-      expect { run_seeds }.to change(Resource, :count).by(46)
+      expect { run_seeds }.to change(Resource, :count).by(47)
 
       expect(resource.reload).to have_attributes(name: 'Usuários do sistema', writable: false)
     end

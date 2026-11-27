@@ -120,9 +120,9 @@ describe 'Freight billing' do
         )
         expect(html_table_to_rows(table: find('.freight-billing-table'))).to eq(
           [
-            ['Veículo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
-            ['BEJ4G50', 'R$ 15.360,00', 'R$ 15.360,00', 'R$ 0,00', '100,0%', ''],
-            ['Total', 'R$ 15.360,00', 'R$ 15.360,00', 'R$ 0,00', '100,0%', ''],
+            ['Veículo', 'Frete bruto', 'Frete líquido', 'KM vazio', 'Rodou vazio', 'Pedágio', 'Participação', 'Ações'],
+            ['BEJ4G50', 'R$ 15.360,00', 'R$ 15.360,00', '-', '-', 'R$ 0,00', '100,0%', ''],
+            ['Total', 'R$ 15.360,00', 'R$ 15.360,00', '-', '-', 'R$ 0,00', '100,0%', ''],
           ],
         )
       end
@@ -303,10 +303,10 @@ describe 'Freight billing' do
         expect(page).to have_text('Frete bruto e líquido por mês de emissão do CT-e, de Mai/2026 a Out/2026')
         expect(html_table_to_rows).to eq(
           [
-            ['Veículo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
-            ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00', 'R$ 250,00', '75,0%', ''],
-            ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', 'R$ 0,00', '25,0%', ''],
-            ['Total', 'R$ 20.000,00', 'R$ 19.100,00', 'R$ 250,00', '100,0%', ''],
+            ['Veículo', 'Frete bruto', 'Frete líquido', 'KM vazio', 'Rodou vazio', 'Pedágio', 'Participação', 'Ações'],
+            ['RVR2C34', 'R$ 15.000,00', 'R$ 14.100,00', '80 km', '15,4%', 'R$ 250,00', '75,0%', ''],
+            ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', '-', '-', 'R$ 0,00', '25,0%', ''],
+            ['Total', 'R$ 20.000,00', 'R$ 19.100,00', '80 km', '15,4%', 'R$ 250,00', '100,0%', ''],
           ],
         )
         expect(page).to have_no_text('OUT1A11')
@@ -321,10 +321,10 @@ describe 'Freight billing' do
           expect(Atua::TollVoucher.count).to eq(1)
           expect(html_table_to_rows).to eq(
             [
-              ['Veículo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
-              ['RVR2C34', 'R$ 15.000,00', 'R$ 14.350,00', 'R$ 250,00', '75,0%', ''],
-              ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', 'R$ 0,00', '25,0%', ''],
-              ['Total', 'R$ 20.000,00', 'R$ 19.350,00', 'R$ 250,00', '100,0%', ''],
+              ['Veículo', 'Frete bruto', 'Frete líquido', 'KM vazio', 'Rodou vazio', 'Pedágio', 'Participação', 'Ações'],
+              ['RVR2C34', 'R$ 15.000,00', 'R$ 14.350,00', '80 km', '15,4%', 'R$ 250,00', '75,0%', ''],
+              ['RVR8J90', 'R$ 5.000,00', 'R$ 5.000,00', '-', '-', 'R$ 0,00', '25,0%', ''],
+              ['Total', 'R$ 20.000,00', 'R$ 19.350,00', '80 km', '15,4%', 'R$ 250,00', '100,0%', ''],
             ],
           )
           within('.freight-billing-table tr', text: 'RVR2C34') do
@@ -633,7 +633,7 @@ describe 'Freight billing' do
       scenario 'groups the freight by origin' do
         visit freight_billing_path(october.merge(dimension: 'origin'))
 
-        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
+        expect(html_table_to_rows.map { |row| row.values_at(0, 1, 6) }).to eq(
           [
             ['Origem', 'Frete bruto', 'Participação'],
             ['IPATINGA/MG', 'R$ 15.000,00', '75,0%'],
@@ -1149,7 +1149,7 @@ describe 'Freight billing' do
           click_on 'Região'
 
           expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'macro_region')))
-          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 6) }).to eq(
             [
               ['Macro região', 'Frete bruto', 'Participação'],
               ['Outras Regiões', 'R$ 15.000,00', '75,0%'],
@@ -1196,7 +1196,7 @@ describe 'Freight billing' do
           click_on 'Produtos'
 
           expect(page).to have_current_path(freight_billing_path(october.merge(dimension: 'product_group')))
-          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 6) }).to eq(
             [
               ['Grupo de produtos', 'Frete bruto', 'Participação'],
               ['SIDERÚRGICO', 'R$ 15.000,00', '75,0%'],
@@ -1209,7 +1209,7 @@ describe 'Freight billing' do
         scenario 'splits a trip with products of different subgroups by their share of its freight' do
           visit freight_billing_path(october.merge(dimension: 'product_subgroup'))
 
-          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 4) }).to eq(
+          expect(html_table_to_rows.map { |row| row.values_at(0, 1, 6) }).to eq(
             [
               ['Subgrupo de produtos', 'Frete bruto', 'Participação'],
               ['VERGALHÃO', 'R$ 10.000,00', '50,0%'],
@@ -1718,6 +1718,52 @@ describe 'Freight billing' do
         end
       end
 
+      context 'when the trucks ran empty before loading' do
+        let!(:vale_do_aco) { create(:macro_region, tenant:) }
+        let!(:ipatinga) { create(:location, lookup_key: '|IPATINGA|MG', city: 'IPATINGA', state: 'MG') }
+        let!(:belo_horizonte) { create(:location, lookup_key: '|BELO HORIZONTE|MG', city: 'BELO HORIZONTE', state: 'MG') }
+        let!(:third_trip) { create(:atua_manifest, tenant:, code: 41_003, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 10, 20, 6)) }
+        let!(:september_trip) { create(:atua_manifest, tenant:, code: 41_004, plate: 'RVR2C34', trip_started_at: Time.zone.local(2026, 9, 20, 6)) }
+
+        before do
+          EmptyLeg.find_by!(tenant:, next_manifest_code: 41_001).update!(origin: belo_horizonte, destination: ipatinga)
+          create(:empty_leg, tenant:, plate: 'RVR8J90', previous_manifest_code: 41_000, next_manifest_code: 41_002, origin: ipatinga,
+                             destination: belo_horizonte, distance_km: BigDecimal('150'))
+          create(:empty_leg, tenant:, plate: 'RVR2C34', previous_manifest_code: 41_001, next_manifest_code: 41_003, origin: ipatinga,
+                             destination: belo_horizonte, distance_km: BigDecimal('160'))
+          create(:empty_leg, tenant:, plate: 'RVR2C34', previous_manifest_code: 40_998, next_manifest_code: 41_004, origin: ipatinga,
+                             destination: belo_horizonte, distance_km: BigDecimal('999'))
+          create(:empty_leg, tenant: other_tenant, plate: 'OUT1A11', next_manifest_code: 41_001, origin: ipatinga, destination: belo_horizonte,
+                             distance_km: BigDecimal('777'))
+          create(:atua_transport_document, tenant:, number: '74010', freight_cents: 300_000, plate: 'RVR2C34', taker_code: 7200,
+                                           issued_at: Time.zone.local(2026, 10, 20, 7))
+          create(:atua_transport_document, tenant:, number: '74011', freight_cents: 300_000, plate: 'RVR2C34', taker_code: 7200,
+                                           issued_at: Time.zone.local(2026, 9, 20, 7))
+          create(:atua_manifest_document, tenant:, manifest_code: 41_003, transport_document_number: '74010', calculated_distance_km: 100)
+          create(:atua_manifest_document, tenant:, manifest_code: 41_004, transport_document_number: '74011', calculated_distance_km: 100)
+        end
+
+        scenario 'shows the empty km and the empty share of each row of the grouping' do
+          visit freight_billing_path(october_by_truck)
+
+          expect(html_table_to_rows(table: find('.freight-billing-table')).map { |row| row.values_at(0, 3, 4) }).to eq(
+            [
+              ['Veículo', 'KM vazio', 'Rodou vazio'],
+              ['RVR2C34', '240 km', '38,7%'],
+              ['RVR8J90', '150 km', '75,0%'],
+              ['Total', '390 km', '47,6%'],
+            ],
+          )
+        end
+
+        scenario 'lists the empty km and the empty share in the PDF' do
+          visit freight_billing_path(october_by_truck.merge(format: :pdf))
+
+          text = PDF::Inspector::Text.analyze(page.body).strings.join
+          expect(text).to include('KM vazio', 'Rodou vazio', '240 km', '38,7%')
+        end
+      end
+
       scenario 'rejects a period that ends before it starts' do
         visit freight_billing_path(start_date: '2026-10-31', end_date: '2026-10-01')
 
@@ -1867,13 +1913,13 @@ describe 'Freight billing' do
 
       expect(Atua::TransportDocument.count).to eq(12)
       expect(listed_plates).to eq(%w[RVR4D00 RVR4D01 RVR4D02 RVR4D03 RVR4D04 RVR4D05 RVR4D06 RVR4D07 RVR4D08 RVR4D09 Total])
-      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', 'R$ 0,00', '100,0%', ''])
+      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', '-', '-', 'R$ 0,00', '100,0%', ''])
 
       within('.table-pagination') { click_on '2' }
 
       expect(page).to have_current_path(freight_billing_path(october_by_truck.merge(page: 2)))
       expect(listed_plates).to eq(%w[RVR4D10 RVR4D11 Total])
-      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', 'R$ 0,00', '100,0%', ''])
+      expect(html_table_to_rows.last).to eq(['Total', 'R$ 17.400,00', 'R$ 17.400,00', '-', '-', 'R$ 0,00', '100,0%', ''])
     end
 
     scenario 'goes back to the first page when the grouping changes' do
@@ -2009,11 +2055,11 @@ describe 'Freight billing' do
       end
       expect(html_table_to_rows).to eq(
         [
-          ['Grupo de clientes', 'Frete bruto', 'Bruto mês passado', 'Variação', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
-          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '76,3%', ''],
-          ['PANORAMA', 'R$ 10.044,90', 'R$ 15.800,00', '-36,4%', 'R$ 10.044,90', 'R$ 0,00', '23,7%', ''],
-          ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00', '-100,0%', 'R$ 0,00', 'R$ 0,00', '0,0%', ''],
-          ['Total', 'R$ 42.415,70', 'R$ 43.900,00', '-3,4%', 'R$ 42.415,70', 'R$ 0,00', '100,0%', ''],
+          ['Grupo de clientes', 'Frete bruto', 'Bruto mês passado', 'Variação', 'Frete líquido', 'KM vazio', 'Rodou vazio', 'Pedágio', 'Participação', 'Ações'],
+          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', '-', '-', 'R$ 0,00', '76,3%', ''],
+          ['PANORAMA', 'R$ 10.044,90', 'R$ 15.800,00', '-36,4%', 'R$ 10.044,90', '-', '-', 'R$ 0,00', '23,7%', ''],
+          ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00', '-100,0%', 'R$ 0,00', '-', '-', 'R$ 0,00', '0,0%', ''],
+          ['Total', 'R$ 42.415,70', 'R$ 43.900,00', '-3,4%', 'R$ 42.415,70', '-', '-', 'R$ 0,00', '100,0%', ''],
         ],
       )
     end
@@ -2031,9 +2077,9 @@ describe 'Freight billing' do
       end
       expect(html_table_to_rows).to eq(
         [
-          ['Grupo de clientes', 'Frete bruto', 'Bruto semana passada', 'Variação', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
-          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '100,0%', ''],
-          ['Total', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '100,0%', ''],
+          ['Grupo de clientes', 'Frete bruto', 'Bruto semana passada', 'Variação', 'Frete líquido', 'KM vazio', 'Rodou vazio', 'Pedágio', 'Participação', 'Ações'],
+          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', '-', '-', 'R$ 0,00', '100,0%', ''],
+          ['Total', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', '-', '-', 'R$ 0,00', '100,0%', ''],
         ],
       )
     end
@@ -2048,11 +2094,11 @@ describe 'Freight billing' do
       expect(Atua::TransportDocument.count).to eq(5)
       expect(html_table_to_rows).to eq(
         [
-          ['Grupo de clientes', 'Frete bruto', 'Bruto período anterior', 'Variação', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
-          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '76,3%', ''],
-          ['PANORAMA', 'R$ 10.044,90', 'R$ 0,00', '-', 'R$ 10.044,90', 'R$ 0,00', '23,7%', ''],
-          ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00', '-100,0%', 'R$ 0,00', 'R$ 0,00', '0,0%', ''],
-          ['Total', 'R$ 42.415,70', 'R$ 28.100,00', '+50,9%', 'R$ 42.415,70', 'R$ 0,00', '100,0%', ''],
+          ['Grupo de clientes', 'Frete bruto', 'Bruto período anterior', 'Variação', 'Frete líquido', 'KM vazio', 'Rodou vazio', 'Pedágio', 'Participação', 'Ações'],
+          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', '-', '-', 'R$ 0,00', '76,3%', ''],
+          ['PANORAMA', 'R$ 10.044,90', 'R$ 0,00', '-', 'R$ 10.044,90', '-', '-', 'R$ 0,00', '23,7%', ''],
+          ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00', '-100,0%', 'R$ 0,00', '-', '-', 'R$ 0,00', '0,0%', ''],
+          ['Total', 'R$ 42.415,70', 'R$ 28.100,00', '+50,9%', 'R$ 42.415,70', '-', '-', 'R$ 0,00', '100,0%', ''],
         ],
       )
     end

@@ -168,6 +168,7 @@ Rails.application.routes.draw do
     resource :export_summary, only: :show do
       get :documents
     end
+    resource :fleet_productivity, only: :show
     resources :freight_expenses, only: %i[index] do
       post :recalculate, on: :collection
     end
