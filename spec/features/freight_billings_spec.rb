@@ -1991,10 +1991,15 @@ describe 'Freight billing' do
         expect(page).to have_css('.chart-card-title', text: 'Frete bruto por Grupo de clientes: período atual x período anterior')
         expect(page).to have_css('.chart-card-subtitle', text: 'comparados com 04/10/2026 a 01/11/2026')
       end
-      expect(html_table_to_rows.first).to include('Bruto período anterior')
-      expect(html_table_to_rows.drop(1).map { |row| row.first(3) }).to eq(
-        [['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00'], ['PANORAMA', 'R$ 10.044,90', 'R$ 0,00'], ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00'],
-         ['Total', 'R$ 42.415,70', 'R$ 28.100,00']],
+      expect(Atua::TransportDocument.count).to eq(5)
+      expect(html_table_to_rows).to eq(
+        [
+          ['Grupo de clientes', 'Frete bruto', 'Bruto período anterior', 'Variação', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
+          ['ARCELOR', 'R$ 32.370,80', 'R$ 25.100,00', '+29,0%', 'R$ 32.370,80', 'R$ 0,00', '76,3%', ''],
+          ['PANORAMA', 'R$ 10.044,90', 'R$ 0,00', '-', 'R$ 10.044,90', 'R$ 0,00', '23,7%', ''],
+          ['PERDIDA', 'R$ 0,00', 'R$ 3.000,00', '-100,0%', 'R$ 0,00', 'R$ 0,00', '0,0%', ''],
+          ['Total', 'R$ 42.415,70', 'R$ 28.100,00', '+50,9%', 'R$ 42.415,70', 'R$ 0,00', '100,0%', ''],
+        ],
       )
     end
 

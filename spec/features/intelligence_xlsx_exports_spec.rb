@@ -77,17 +77,21 @@ describe 'Intelligence Excel exports', :xlsx_service do
         )
       end
 
-      scenario 'names the previous gross after the week' do
-        create(:atua_transport_document, tenant:, taker_code: 7101, freight_cents: 500_000, issued_at: Time.zone.local(2026, 9, 22, 10))
+      context 'with freight in the previous week' do
+        before do
+          create(:atua_transport_document, tenant:, taker_code: 7101, freight_cents: 500_000, issued_at: Time.zone.local(2026, 9, 22, 10))
+        end
 
-        visit freight_billing_path(start_date: '2026-09-27', end_date: '2026-10-03', format: :xlsx)
+        scenario 'names the previous gross after the week' do
+          visit freight_billing_path(start_date: '2026-09-27', end_date: '2026-10-03', format: :xlsx)
 
-        expect(Atua::TransportDocument.count).to eq(3)
-        expect(downloaded_xlsx_rows.first.last(2)).to eq(['Bruto semana passada', 'Variação'])
-        expect(downloaded_xlsx_records.map { |record| record.slice('Grupo de clientes', 'Frete bruto', 'Bruto semana passada') }).to eq(
-          [{ 'Grupo de clientes' => 'ARCELOR', 'Frete bruto' => 15_000, 'Bruto semana passada' => 5_000 },
-           { 'Grupo de clientes' => 'Total', 'Frete bruto' => 15_000, 'Bruto semana passada' => 5_000 }],
-        )
+          expect(Atua::TransportDocument.count).to eq(3)
+          expect(downloaded_xlsx_rows.first.last(2)).to eq(['Bruto semana passada', 'Variação'])
+          expect(downloaded_xlsx_records.map { |record| record.slice('Grupo de clientes', 'Frete bruto', 'Bruto semana passada') }).to eq(
+            [{ 'Grupo de clientes' => 'ARCELOR', 'Frete bruto' => 15_000, 'Bruto semana passada' => 5_000 },
+             { 'Grupo de clientes' => 'Total', 'Frete bruto' => 15_000, 'Bruto semana passada' => 5_000 }],
+          )
+        end
       end
     end
 
