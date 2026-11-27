@@ -1,4 +1,12 @@
 module EmptyLegsHelper
+  def empty_legs_menu(empty_leg)
+    menus = []
+
+    menus << empty_leg_show_menu(empty_leg) if can?(:read, :empty_legs)
+
+    menus
+  end
+
   def empty_leg_manifest_link(manifest, code)
     return code.to_s unless manifest
     return manifest.number unless manifest.active? && can?(:read, :manifests)
@@ -40,5 +48,11 @@ module EmptyLegsHelper
     return empty_leg.status_type_name unless empty_leg.calculated?
 
     t('empty_legs.distance', distance: number_with_precision(empty_leg.distance_km, precision: 2))
+  end
+
+  private
+
+  def empty_leg_show_menu(empty_leg)
+    Menu.new(name: :show, record: empty_leg, url: empty_leg_path(empty_leg, return_to: request.fullpath), icon: :eye)
   end
 end

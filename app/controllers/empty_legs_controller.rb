@@ -1,4 +1,6 @@
 class EmptyLegsController < BaseController
+  include ReturnPath
+
   has_scope :by_trip_start, as: :start_date, default: -> { Date.current.beginning_of_month.iso8601 }
   has_scope :by_trip_end, as: :end_date
   has_scope :by_plate, as: :plate
@@ -19,6 +21,13 @@ class EmptyLegsController < BaseController
     load_filter_options
 
     respond_with_listing(pdf: false, xlsx: -> { Export::Sheet.for(@empty_legs, name: t('.title'), except: EmptyLeg::EXPORT_EXCEPTIONS) })
+  end
+
+  def show
+    authorize!(:read, :empty_legs)
+
+    @empty_leg = current_tenant.empty_legs.with_loading_macro_region
+      .preload(:origin, :destination, :next_manifest, :previous_manifest).find(params.expect(:id))
   end
 
   private

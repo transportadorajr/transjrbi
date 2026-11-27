@@ -4,11 +4,9 @@
       <tr>
         <%= sortable_header(EmptyLeg.human_attribute_name(:trip_on), :trip_on, first_direction: :desc) %>
         <%= sortable_header(EmptyLeg.human_attribute_name(:plate), :plate) %>
-        <th class="d-none d-md-table-cell"><%= EmptyLeg.human_attribute_name(:next_manifest) %></th>
-        <th class="d-none d-lg-table-cell"><%= EmptyLeg.human_attribute_name(:departure_point) %></th>
-        <th class="d-none d-md-table-cell"><%= EmptyLeg.human_attribute_name(:arrival_point) %></th>
         <th class="d-none d-md-table-cell"><%= EmptyLeg.human_attribute_name(:loading_macro_region) %></th>
         <%= sortable_header(EmptyLeg.human_attribute_name(:distance_km), :distance_km, first_direction: :desc, class: 'text-end') %>
+        <th class="text-end"><%= t('shared.actions') %></th>
       </tr>
     </thead>
     <tbody>

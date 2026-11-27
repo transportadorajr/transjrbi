@@ -484,7 +484,7 @@ pt-BR:
         next_manifest: Manifesto
         plate: Placa
         loading_macro_region: Região da carga
-        trip_on: Data da viagem
+        trip_on: Dt. Viagem
         departure_point: Saída (última entrega)
         arrival_point: Chegada (coleta)
         origin: De
@@ -2124,6 +2124,8 @@ pt-BR:
         edit: Alterar
         destroy: Excluir
         show_vehicle: Ver veículo
+      empty_leg:
+        show: Visualizar
       atua/expense:
         show: Visualizar
       atua/import:
@@ -2497,6 +2499,12 @@ pt-BR:
       regions_title: Regiões com mais deslocamento vazio
       regions_subtitle: KM rodado vazio até a carga, por macro região de origem do frete.
       no_macro_region: Outras
+    show:
+      title: Deslocamento vazio %{plate}
+      subtitle: Viagem de %{date}
+      back: Voltar para o deslocamento vazio
+      trip_data: Viagem carregada
+      leg_data: Trecho rodado vazio
     regions:
       name: Região da carga
       legs_count: Viagens

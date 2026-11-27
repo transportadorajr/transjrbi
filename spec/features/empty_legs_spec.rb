@@ -41,6 +41,11 @@ describe 'Empty legs' do
       let!(:ipatinga) { create(:location, lookup_key: '|IPATINGA|MG', city: 'IPATINGA', state: 'MG') }
       let!(:contagem) { create(:location, lookup_key: '|CONTAGEM|MG', city: 'CONTAGEM', state: 'MG') }
       let!(:cascavel) { create(:location, lookup_key: '|CASCAVEL|PR', city: 'CASCAVEL', state: 'PR') }
+      let!(:loaded_in_vale) do
+        create(:empty_leg, tenant:, plate: 'EXU0F72', previous_manifest_code: 41_100, next_manifest_code: 41_200, origin: betim,
+                           destination: ipatinga, distance_km: BigDecimal('217.44'), precision_type: 'city')
+      end
+      let!(:stranger_leg) { create(:empty_leg, tenant: other_tenant, plate: 'EXU0F72', next_manifest_code: 41_600, distance_km: BigDecimal('999')) }
 
       before do
         create(:atua_manifest, tenant:, code: 41_100, number: '50100', plate: 'EXU0F72', trip_started_at: Time.zone.local(2026, 9, 25, 8))
@@ -53,8 +58,6 @@ describe 'Empty legs' do
         create(:atua_transport_document, tenant:, code: 90_001, taker_code: 7501, origin_macro_region: vale_do_aco)
         create(:atua_transport_document, tenant:, code: 90_002, origin_macro_region: oeste_parana)
 
-        loaded_in_vale = create(:empty_leg, tenant:, plate: 'EXU0F72', previous_manifest_code: 41_100, next_manifest_code: 41_200,
-                                            origin: betim, destination: ipatinga, distance_km: BigDecimal('217.44'), precision_type: 'city')
         loaded_in_parana = create(:empty_leg, tenant:, plate: 'QWE1A23', next_manifest_code: 41_300, origin: contagem, destination: cascavel,
                                               distance_km: BigDecimal('612.5'), precision_type: 'city')
         create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_400, origin: ipatinga, destination: contagem,
@@ -62,7 +65,6 @@ describe 'Empty legs' do
         create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_500, origin: contagem, destination: nil,
                            status_type: 'unlocated', distance_km: nil, precision_type: nil)
         create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_100, distance_km: BigDecimal('300'))
-        create(:empty_leg, tenant: other_tenant, plate: 'EXU0F72', next_manifest_code: 41_600, distance_km: BigDecimal('999'))
         create(:empty_leg_transport_document, empty_leg: loaded_in_vale, transport_document_code: 90_001)
         create(:empty_leg_transport_document, empty_leg: loaded_in_parana, transport_document_code: 90_002)
       end
@@ -78,10 +80,10 @@ describe 'Empty legs' do
         expect(EmptyLeg.count).to eq(6)
         expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
           [
-            ['Data da viagem', 'Placa', 'Manifesto', 'Saída (última entrega)', 'Chegada (coleta)', 'Região da carga', 'KM vazio'],
-            ['15/10/2026', 'QWE1A23', '50300', 'CONTAGEM/MG', 'CASCAVEL/PR', 'OESTE PARANA', '612,50 km'],
-            ['03/10/2026', 'EXU0F72', '50200', 'RUA DAS FLORES 10 - BETIM/MG', 'IPATINGA/MG', 'VALE DO AÇO/MG', '217,44 km'],
-            ['18/10/2026', 'EXU0F72', '50400', 'IPATINGA/MG', 'CONTAGEM/MG', 'Outras', '48,20 km'],
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['15/10/2026', 'QWE1A23', 'OESTE PARANA', '612,50 km', ''],
+            ['03/10/2026', 'EXU0F72', 'VALE DO AÇO/MG', '217,44 km', ''],
+            ['18/10/2026', 'EXU0F72', 'Outras', '48,20 km', ''],
           ],
         )
         expect(page).to have_text('3 registros')
@@ -111,11 +113,12 @@ describe 'Empty legs' do
           click_on 'Aplicar Filtros'
         end
 
+        expect(EmptyLeg.count).to eq(6)
         expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
           [
-            ['Data da viagem', 'Placa', 'Manifesto', 'Saída (última entrega)', 'Chegada (coleta)', 'Região da carga', 'KM vazio'],
-            ['25/09/2026', 'EXU0F72', '50100', '-', '-', 'Outras', '300,00 km'],
-            ['03/10/2026', 'EXU0F72', '50200', 'RUA DAS FLORES 10 - BETIM/MG', 'IPATINGA/MG', 'VALE DO AÇO/MG', '217,44 km'],
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['25/09/2026', 'EXU0F72', 'Outras', '300,00 km', ''],
+            ['03/10/2026', 'EXU0F72', 'VALE DO AÇO/MG', '217,44 km', ''],
           ],
         )
         within('#empty_legs_counters') do
@@ -126,22 +129,77 @@ describe 'Empty legs' do
       scenario 'filters by the loading region and by the customer group' do
         visit empty_legs_path(macro_region_id: oeste_parana.id)
 
-        expect(html_table_to_rows(table: find_by_id('empty_legs')).drop(1).map(&:first)).to eq(['15/10/2026'])
+        expect(EmptyLeg.count).to eq(6)
+        expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
+          [
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['15/10/2026', 'QWE1A23', 'OESTE PARANA', '612,50 km', ''],
+          ],
+        )
 
         visit empty_legs_path(macro_region_id: MacroRegion::OTHERS)
 
-        expect(html_table_to_rows(table: find_by_id('empty_legs')).drop(1).map(&:first)).to eq(['18/10/2026'])
+        expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
+          [
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['18/10/2026', 'EXU0F72', 'Outras', '48,20 km', ''],
+          ],
+        )
 
         visit empty_legs_path(customer_group_id: coamo.id)
 
-        expect(html_table_to_rows(table: find_by_id('empty_legs')).drop(1).map(&:first)).to eq(['03/10/2026'])
-        expect(html_table_to_rows(table: find_by_id('empty_leg_regions')).drop(1)).to eq([['VALE DO AÇO/MG', '1', '217,44 km', '217,44 km']])
+        expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
+          [
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['03/10/2026', 'EXU0F72', 'VALE DO AÇO/MG', '217,44 km', ''],
+          ],
+        )
+        expect(html_table_to_rows(table: find_by_id('empty_leg_regions'))).to eq(
+          [
+            ['Região da carga', 'Viagens', 'Média de KM vazio', 'KM vazio total'],
+            ['VALE DO AÇO/MG', '1', '217,44 km', '217,44 km'],
+          ],
+        )
       end
 
       scenario 'shows every period when the start date is cleared' do
         visit empty_legs_path(start_date: '', end_date: '2026-09-30')
 
-        expect(html_table_to_rows(table: find_by_id('empty_legs')).drop(1).map(&:first)).to eq(['25/09/2026'])
+        expect(EmptyLeg.count).to eq(6)
+        expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
+          [
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['25/09/2026', 'EXU0F72', 'Outras', '300,00 km', ''],
+          ],
+        )
+      end
+
+      scenario 'opens the details of a trip and goes back to the filtered listing' do
+        visit empty_legs_path(plate: 'EXU0F72')
+
+        expect(EmptyLeg.count).to eq(6)
+        within("#empty_leg_#{loaded_in_vale.id}") { click_on 'Visualizar', match: :first }
+
+        expect(page).to have_current_path(empty_leg_path(loaded_in_vale, return_to: empty_legs_path(plate: 'EXU0F72')))
+        expect(page).to have_css('h1', text: 'Deslocamento vazio EXU0F72')
+        expect(dl_to_hash('#empty_leg_trip')).to eq(
+          'Dt. Viagem' => '03/10/2026', 'Placa' => loaded_in_vale.plate, 'Manifesto' => '50200', 'Viagem anterior' => '50100',
+          'Região da carga' => 'VALE DO AÇO/MG'
+        )
+        expect(dl_to_hash('#empty_leg_data')).to eq(
+          'Saída (última entrega)' => 'RUA DAS FLORES 10 - BETIM/MG', 'Chegada (coleta)' => 'IPATINGA/MG', 'KM vazio' => '217,44 km',
+          'Precisão' => 'Centro da cidade', 'Situação' => 'Calculado', 'Calculado em' => I18n.l(loaded_in_vale.calculated_at, format: :date_time)
+        )
+
+        click_on 'Voltar para o deslocamento vazio'
+
+        expect(page).to have_current_path(empty_legs_path(plate: 'EXU0F72'))
+      end
+
+      scenario 'does not open the empty leg of another tenant' do
+        visit empty_leg_path(stranger_leg)
+
+        expect(page.status_code).to eq(404)
       end
 
       scenario 'sorts the trips by the plate' do
@@ -149,7 +207,15 @@ describe 'Empty legs' do
         within('#empty_legs') { click_on 'Placa' }
 
         expect(page).to have_current_path(empty_legs_path(sort: :plate, direction: :asc))
-        expect(html_table_to_rows(table: find_by_id('empty_legs')).drop(1).pluck(1)).to eq(%w[EXU0F72 EXU0F72 QWE1A23])
+        expect(EmptyLeg.count).to eq(6)
+        expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
+          [
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['03/10/2026', 'EXU0F72', 'VALE DO AÇO/MG', '217,44 km', ''],
+            ['18/10/2026', 'EXU0F72', 'Outras', '48,20 km', ''],
+            ['15/10/2026', 'QWE1A23', 'OESTE PARANA', '612,50 km', ''],
+          ],
+        )
       end
     end
 
@@ -168,13 +234,21 @@ describe 'Empty legs' do
         visit empty_legs_path(plate: 'EXU0F72')
 
         expect(EmptyLeg.count).to eq(12)
-        expect(html_table_to_rows(table: find_by_id('empty_legs')).size).to eq(11)
+        expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
+          [
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            *10.downto(1).map { |index| [format('%02d/10/2026', 2 + index), 'EXU0F72', 'Outras', "#{100 + index},00 km", ''] },
+          ],
+        )
 
         within('.table-pagination', match: :first) { click_on '2' }
 
         expect(page).to have_current_path(empty_legs_path(plate: 'EXU0F72', page: 2))
-        expect(html_table_to_rows(table: find_by_id('empty_legs')).drop(1)).to eq(
-          [['02/10/2026', 'EXU0F72', '60000', '-', '-', 'Outras', '100,00 km']],
+        expect(html_table_to_rows(table: find_by_id('empty_legs'))).to eq(
+          [
+            ['Dt. Viagem', 'Placa', 'Região da carga', 'KM vazio', 'Ações'],
+            ['02/10/2026', 'EXU0F72', 'Outras', '100,00 km', ''],
+          ],
         )
       end
     end
@@ -200,7 +274,7 @@ describe 'Empty legs' do
           [
             {
               'Placa' => 'EXU0F72', 'De' => 'BETIM/MG', 'Para' => 'IPATINGA/MG', 'KM vazio' => 217.44, 'Precisão' => 'Centro da cidade',
-              'Data da viagem' => Date.new(2026, 10, 3), 'Manifesto' => '50200', 'Região da carga' => 'VALE DO AÇO/MG'
+              'Dt. Viagem' => Date.new(2026, 10, 3), 'Manifesto' => '50200', 'Região da carga' => 'VALE DO AÇO/MG'
             },
           ],
         )
@@ -208,23 +282,28 @@ describe 'Empty legs' do
     end
 
     context 'when the screen is opened on a phone', :js do
+      let!(:empty_leg) { create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_200, distance_km: BigDecimal('217.44')) }
+
       before do
         create(:atua_manifest, tenant:, code: 41_200, plate: 'EXU0F72', trip_started_at: Time.zone.local(2026, 10, 3, 8))
-        create(:empty_leg, tenant:, plate: 'EXU0F72', next_manifest_code: 41_200, distance_km: BigDecimal('217.44'))
       end
 
-      scenario 'keeps the date, the plate and the empty km without scrolling sideways' do
+      scenario 'keeps the date, the plate and the empty km and opens the details from the actions menu' do
         visit empty_legs_path
         use_mobile_screen
 
+        expect(EmptyLeg.count).to eq(1)
         within('#empty_legs') do
-          expect(page).to have_css('th', text: 'DATA DA VIAGEM')
+          expect(page).to have_css('th', text: 'DT. VIAGEM')
           expect(page).to have_css('th', text: 'PLACA')
           expect(page).to have_css('th', text: 'KM VAZIO')
-          expect(page).to have_no_css('th', text: 'MANIFESTO')
-          expect(page).to have_no_css('th', text: 'CHEGADA (COLETA)')
+          expect(page).to have_no_css('th', text: 'REGIÃO DA CARGA')
         end
         expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
+
+        within("#empty_leg_#{empty_leg.id}") { click_on 'Visualizar' }
+
+        expect(page).to have_current_path(empty_leg_path(empty_leg, return_to: empty_legs_path))
       end
     end
   end

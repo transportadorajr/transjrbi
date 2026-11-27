@@ -1,0 +1,74 @@
+<% content_for :title, t('.title', plate: @empty_leg.plate) %>
+
+<div class="page-shell">
+  <div class="mb-3 page-breadcrumb">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><%= link_to t('empty_legs.index.title'), empty_legs_path %></li>
+        <li class="breadcrumb-item active" aria-current="page"><%= @empty_leg.plate %></li>
+      </ol>
+    </nav>
+    <%= page_header_tag t('.title', plate: @empty_leg.plate),
+                        subtitle: t('.subtitle', date: tax_date(@empty_leg.next_manifest&.trip_on)),
+                        back_path: return_path(empty_legs_path),
+                        back_title: t('.back'),
+                        wrapper_class: 'mb-0' %>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.trip_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="empty_leg_trip">
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:trip_on) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_date(@empty_leg.next_manifest&.trip_on) %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:plate) %></dt>
+            <dd class="col-12 col-md-7"><%= @empty_leg.plate %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:next_manifest) %></dt>
+            <dd class="col-12 col-md-7"><%= empty_leg_manifest_link(@empty_leg.next_manifest, @empty_leg.next_manifest_code) %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:previous_manifest) %></dt>
+            <dd class="col-12 col-md-7"><%= empty_leg_manifest_link(@empty_leg.previous_manifest, @empty_leg.previous_manifest_code) %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:loading_macro_region) %></dt>
+            <dd class="col-12 col-md-7"><%= empty_leg_loading_macro_region(@empty_leg) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <div class="card detail-card h-100">
+        <div class="detail-card-header">
+          <p class="detail-card-title"><%= t('.leg_data') %></p>
+        </div>
+        <div class="detail-card-body">
+          <dl class="row detail-list mb-0" id="empty_leg_data">
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:departure_point) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= empty_leg_location(@empty_leg.origin) %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:arrival_point) %></dt>
+            <dd class="col-12 col-md-7 text-break"><%= empty_leg_location(@empty_leg.destination) %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:distance_km) %></dt>
+            <dd class="col-12 col-md-7"><%= empty_leg_distance(@empty_leg) %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:precision_type) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_value(@empty_leg.precision_type_name) %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:status_type) %></dt>
+            <dd class="col-12 col-md-7"><%= @empty_leg.status_type_name %></dd>
+
+            <dt class="col-12 col-md-5"><%= EmptyLeg.human_attribute_name(:calculated_at) %></dt>
+            <dd class="col-12 col-md-7"><%= tax_time(@empty_leg.calculated_at) %></dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

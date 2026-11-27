@@ -134,7 +134,7 @@ Rails.application.routes.draw do
     resources :cities, concerns: :activatable
     resources :truck_groups, concerns: :activatable
     resource :own_fleet, only: %i[show edit update]
-    resources :empty_legs, only: :index
+    resources :empty_legs, only: %i[index show]
     resources :vehicle_availabilities, only: :index
     resources :vehicle_availability_orders, only: :show, path: 'vehicle_availabilities/maintenance_orders'
     resource :revenue_goals, only: %i[show edit update] do
