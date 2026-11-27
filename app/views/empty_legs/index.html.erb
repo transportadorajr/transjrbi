@@ -1,0 +1,51 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: t('.subtitle') do %>
+    <%= link_to_filters('#filtersModal', class: 'btn btn-outline-secondary btn-round') %>
+    <%= xlsx_export_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="row g-3 mb-4" id="empty_legs_counters">
+    <%= counter_card(:dark, t('.legs_count'), @dashboard.legs_count, col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.total_km'), empty_leg_total(@dashboard.total_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.average_km'), empty_leg_average(@dashboard.average_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:warning, t('.unmeasured_count'), @dashboard.unmeasured_count, col_class: 'col-6 col-xl-3') %>
+  </div>
+
+  <div class="card table-card mb-4">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.legs_title') %></p>
+        <p class="table-card-subtitle"><%= t('shared.total_records', count: @empty_legs.total_count) %></p>
+      </div>
+      <%= sort_menu([[EmptyLeg.human_attribute_name(:distance_km), :distance_km, :desc], [EmptyLeg.human_attribute_name(:trip_on), :trip_on, :desc],
+                     [EmptyLeg.human_attribute_name(:plate), :plate]]) %>
+    </div>
+    <div class="table-card-body">
+      <% if @empty_legs.any? %>
+        <%= render 'table', collection: @empty_legs %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card table-card">
+    <div class="table-card-header">
+      <div class="table-card-heading">
+        <p class="table-card-title"><%= t('.regions_title') %></p>
+        <p class="table-card-subtitle"><%= t('.regions_subtitle') %></p>
+      </div>
+    </div>
+    <div class="table-card-body">
+      <% if @regions.any? %>
+        <%= render 'regions_table', collection: @regions %>
+      <% else %>
+        <%= render 'shared/no_content' %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,22 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="empty_legs">
+    <thead>
+      <tr>
+        <%= sortable_header(EmptyLeg.human_attribute_name(:trip_on), :trip_on, first_direction: :desc) %>
+        <%= sortable_header(EmptyLeg.human_attribute_name(:plate), :plate) %>
+        <th class="d-none d-md-table-cell"><%= EmptyLeg.human_attribute_name(:loading_macro_region) %></th>
+        <%= sortable_header(EmptyLeg.human_attribute_name(:distance_km), :distance_km, first_direction: :desc, class: 'text-end') %>
+        <th class="text-end"><%= t('shared.actions') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |empty_leg| %>
+        <%= render 'row', empty_leg: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection %>
+</div>

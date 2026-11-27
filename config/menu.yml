@@ -75,6 +75,11 @@ shared:
           url: /own_fleet
           controllers:
             - own_fleets
+        - name: empty_legs
+          resource: empty_legs
+          url: /empty_legs
+          controllers:
+            - empty_legs
         - name: vehicle_availability
           resource: vehicle_availability
           url: /vehicle_availabilities
