@@ -110,6 +110,7 @@ RSpec.describe Dashboard::Goals do
   it 'splits the gauge in the status zones up to the end of the scale' do
     expect(described_class::GAUGE_ZONES).to eq(behind: BigDecimal('0.9'), attention: BigDecimal('0.1'), on_track: BigDecimal('0.2'))
     expect(described_class::GAUGE_ZONES.values.sum).to eq(described_class::GAUGE_MAX)
+    expect(described_class.gauge_data).to eq('Abaixo da meta' => 90.0, 'Atenção' => 10.0, 'No ritmo' => 20.0)
   end
 
   context 'with the customer group and region goals and the week' do

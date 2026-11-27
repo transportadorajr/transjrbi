@@ -78,6 +78,10 @@ module Dashboard
       def vehicle_section?(section)
         PLATE_SECTIONS.include?(section)
       end
+
+      def gauge_data
+        GAUGE_ZONES.to_h { |status, size| [I18n.t(status, scope: 'goals.statuses'), (size * 100).to_f] }
+      end
     end
 
     def initialize(documents, targets:, pace:, own_fleet: nil, week: nil)

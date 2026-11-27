@@ -158,10 +158,9 @@ module GoalsHelper
   end
 
   def goal_gauge_chart(ratio)
-    zones = Dashboard::Goals::GAUGE_ZONES
-    pie_chart(zones.to_h { |status, size| [t(status, scope: 'goals.statuses'), (size * 100).to_f] },
-              donut: true, legend: false, loading: '', height: GOAL_GAUGE_HEIGHT, colors: zones.keys.map { |status| GOAL_GAUGE_COLORS.fetch(status) },
-              library: GOAL_GAUGE_LIBRARY.deep_merge(plugins: { goalGauge: goal_gauge_needle(ratio) }))
+    pie_chart(Dashboard::Goals.gauge_data, donut: true, legend: false, loading: '', height: GOAL_GAUGE_HEIGHT,
+                                           colors: Dashboard::Goals::GAUGE_ZONES.keys.map { |status| GOAL_GAUGE_COLORS.fetch(status) },
+                                           library: GOAL_GAUGE_LIBRARY.deep_merge(plugins: { goalGauge: goal_gauge_needle(ratio) }))
   end
 
   def goal_gauge_needle(ratio)

@@ -116,17 +116,20 @@ describe 'Goals panel' do
 
         expect(page).to have_css('#goal_month_gauge')
         expect(page).to have_no_css('[id$="_gauges"].table-card')
+        expect(RevenueGoal.where(tenant:).count).to eq(5)
       end
 
-      scenario 'shows the goal reached when the billing passes the goal' do
-        freight(tenant, 'AJR4391', 9_000_000, issued_at: Time.zone.local(2026, 11, 9, 9))
+      context 'with the billing past the goal of the month' do
+        before { freight(tenant, 'AJR4391', 9_000_000, issued_at: Time.zone.local(2026, 11, 9, 9)) }
 
-        visit goals_path
+        scenario 'shows the goal reached when the billing passes the goal' do
+          visit goals_path
 
-        expect(find_by_id('goal_month_gauge').text.squish).to eq(
-          'Meta do mês Ponteiro na projeção de fechamento: 329,7% 105,5% Meta batida',
-        )
-        expect(page.html).to include('"goalGauge":{"value":3.296875,"max":1.2')
+          expect(find_by_id('goal_month_gauge').text.squish).to eq(
+            'Meta do mês Ponteiro na projeção de fechamento: 329,7% 105,5% Meta batida',
+          )
+          expect(page.html).to include('"goalGauge":{"value":3.296875,"max":1.2')
+        end
       end
 
       scenario 'shows the ranking of the vehicles when they are selected' do
@@ -338,15 +341,19 @@ describe 'Goals panel' do
       end
     end
 
-    scenario 'does not show the gauges without the goals of the month' do
-      create(:customer_group, tenant:, name: 'USIMINAS')
-      freight(tenant, 'AJR4391', 900_000)
+    context 'with the billing of the month and no goals' do
+      let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
 
-      visit goals_path
+      before { freight(tenant, 'AJR4391', 900_000, taker: taker(tenant, usiminas)) }
 
-      expect(page).to have_css('#goal_missing_note')
-      expect(page).to have_no_css('#goal_gauges')
-      expect(page).to have_no_css('#goal_customer_groups_gauges')
+      scenario 'does not show the gauges without the goals of the month' do
+        visit goals_path
+
+        expect(page).to have_css('#goal_missing_note')
+        expect(page).to have_no_css('#goal_gauges')
+        expect(page).to have_no_css('#goal_customer_groups_gauges')
+        expect(RevenueGoal.where(tenant:).count).to eq(0)
+      end
     end
 
     context 'with more customer groups with goals than a page' do
