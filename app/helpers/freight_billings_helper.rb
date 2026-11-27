@@ -162,7 +162,17 @@ module FreightBillingsHelper
   end
 
   def freight_billing_km(distance)
-    t('freight_billings.km', distance: number_with_delimiter(distance.round))
+    distance ? t('freight_billings.km', distance: number_with_delimiter(distance.round)) : t('tax.blank')
+  end
+
+  def freight_billing_empty_share(row)
+    return freight_billing_percentage(row.empty_share) unless row.awaiting_manifest?
+
+    t('freight_billings.awaiting_manifest')
+  end
+
+  def freight_billing_empty_share_status(row)
+    t('freight_billings.awaiting_manifest') if row.awaiting_manifest?
   end
 
   def freight_billing_per_km_base(dashboard)
@@ -329,7 +339,7 @@ module FreightBillingsHelper
      pdf_highlight(t('freight_billings.show.net_per_km'), tax_money(total.net_per_km)),
      pdf_highlight(t('freight_billings.show.loaded_km'), freight_billing_km(total.loaded_km)),
      pdf_highlight(t('freight_billings.show.empty_km'), freight_billing_km(total.empty_km)),
-     pdf_highlight(t('freight_billings.show.empty_share'), freight_billing_percentage(total.empty_share))]
+     pdf_highlight(t('freight_billings.show.empty_share'), freight_billing_empty_share(total))]
   end
 
   def freight_billing_xlsx_sheets(dashboard, rows)
@@ -338,6 +348,7 @@ module FreightBillingsHelper
                xlsx_field(t('freight_billings.columns.loaded_km'), :decimal, &:loaded_km),
                xlsx_field(t('freight_billings.show.empty_km'), :decimal, &:empty_km),
                xlsx_field(t('freight_billings.show.empty_share'), :percentage, &:empty_share),
+               xlsx_field(t('freight_billings.columns.empty_share_status')) { |row| freight_billing_empty_share_status(row) },
                *%i[gross freight_expenses expenses toll undiscounted_toll net gross_per_km net_per_km].map do |column|
                  xlsx_field(t(column, scope: 'freight_billings.columns'), :money, &column)
                end,
