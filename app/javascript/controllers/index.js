@@ -57,3 +57,6 @@ application.register('goal-lines', GoalLinesController);
 
 import SignaturePadController from './signature_pad_controller';
 application.register('signature-pad', SignaturePadController);
+
+import PaginationController from './pagination_controller';
+application.register('pagination', PaginationController);

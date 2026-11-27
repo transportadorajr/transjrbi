@@ -1,5 +1,5 @@
 <%= paginator.render do %>
-  <nav aria-label="<%= t('views.pagination.aria_label') %>">
+  <nav aria-label="<%= t('views.pagination.aria_label') %>" data-controller="pagination" data-action="click->pagination#remember">
     <ul class="pagination mb-0">
       <%= pagination_prev_tag(paginator, current_page) %>
       <% each_page do |page| %>
