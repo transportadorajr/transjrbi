@@ -4,14 +4,16 @@ describe 'Export summary', flipper: { export_summary: :tenant } do
   let!(:tenant) { create(:tenant) }
   let!(:other_tenant) { create(:tenant, name: 'Outra Transportadora Ltda', trade_name: 'Outra') }
   let!(:resource) { create(:resource, name: 'Resumo da exportação', slug: 'export_summary', writable: false) }
-  let!(:arcelor) { create(:customer_group, tenant:, name: 'ARCELORMITTAL') }
-  let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+  let!(:arcelor) { create(:customer_group, tenant:, name: 'ARCELORMITTAL', in_export_summary_at: Time.current) }
+  let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS', in_export_summary_at: Time.current) }
+  let!(:indemil) { create(:customer_group, tenant:, name: 'INDEMIL') }
   let!(:sul_fluminense) { create(:export_plant, tenant:, customer_group: arcelor, name: 'Sul Fluminense', cities: ['RESENDE', 'BARRA MANSA']) }
 
   before do
     travel_to Time.zone.local(2026, 11, 18, 10)
     create(:atua_customer, tenant:, code: 100, name: 'ARCELORMITTAL BRASIL S.A.', customer_group: arcelor)
     create(:atua_customer, tenant:, code: 200, name: 'USINAS SIDERURGICAS DE MINAS GERAIS', customer_group: usiminas)
+    create(:atua_customer, tenant:, code: 400, name: 'INDEMIL INDUSTRIA E COMERCIO S.A.', customer_group: indemil)
     create(:atua_customer, tenant:, code: 300, name: 'ACEROS ASUNCION SA', city: 'ASUNCION', state: 'EX', country_type: 'paraguay')
     create(:atua_customer, tenant:, code: 301, name: 'ACINDAR', city: 'BUENOS AIRES', state: 'EX', country_type: 'argentina')
     create(:atua_customer, tenant:, code: 302, name: 'FERROSIDER S/A', city: 'EXTERIOR', state: 'EX')
@@ -69,6 +71,9 @@ describe 'Export summary', flipper: { export_summary: :tenant } do
                        ])
         create_loading(code: 5, on: Date.new(2026, 10, 6), documents: [['74008', { weight_tons: 40 }]])
         create_loading(code: 6, on: Date.new(2026, 11, 2), target: other_tenant, documents: [['74009', { weight_tons: 99 }]])
+        create_loading(code: 7, on: Date.new(2026, 11, 12), documents: [
+                         ['74010', { weight_tons: 51, taker_code: 400, origin_city: 'GUAIRA', origin_state: 'PR' }],
+                       ])
       end
 
       scenario 'shows the tons of the month by plant and country from the intelligence menu' do
@@ -94,6 +99,22 @@ describe 'Export summary', flipper: { export_summary: :tenant } do
           ],
         )
         expect(page).to have_no_text('99,0 t')
+      end
+
+      scenario 'leaves out the loadings of customer groups that are not in the export summary' do
+        visit export_summary_path
+
+        expect(page).to have_css('.counter-card', text: "Toneladas carregadas\n144,5 t")
+        expect(html_table_to_rows).to eq(
+          [
+            ['Planta de origem', 'País de destino', 'Toneladas', 'Carregamentos', 'CT-es', '% do total', 'Ações'],
+            ['Sul Fluminense ARCELORMITTAL · Argentina', 'Argentina', '62,0 t', '2', '2', '42,9%', ''],
+            ['JUIZ DE FORA/MG ARCELORMITTAL · Paraguai', 'Paraguai', '57,5 t', '1', '2', '39,8%', ''],
+            ['IPATINGA/MG USIMINAS · País não identificado', 'País não identificado', '25,0 t', '1', '1', '17,3%', ''],
+            ['Total', '', '144,5 t', '4', '5', '100,0%', ''],
+          ],
+        )
+        expect(page).to have_select('Cliente', options: %w[Todos ARCELORMITTAL USIMINAS], visible: :all)
       end
 
       scenario 'compares the week and the month to date with the same days of the previous ones' do

@@ -34,6 +34,12 @@
                       hint: t('customer_groups.form.pays_advance_icms_hint'),
                       input_html: { class: 'form-check-input me-2' } %>
         </div>
+        <div class="col-12">
+          <%= f.input :in_export_summary,
+                      as: :boolean,
+                      hint: t('customer_groups.form.in_export_summary_hint'),
+                      input_html: { class: 'form-check-input me-2' } %>
+        </div>
       </div>
     </div>
 

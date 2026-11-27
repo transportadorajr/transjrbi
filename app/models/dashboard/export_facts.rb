@@ -7,20 +7,23 @@ module Dashboard
     Fact = Data.define(:document_id, :number, :trip_on, :manifest_code, :manifest_number, :plate, :customer_group_id,
                        :origin_city, :origin_state, :recipient_name, :country, :tons, :plant_key, :plant_label)
 
-    def initialize(documents:, manifests:, customers:, plants:)
+    def initialize(documents:, manifests:, customers:, plants:, customer_groups:)
       @documents = documents
       @manifests = manifests
       @customers = customers
       @plants = plants
+      @customer_groups = customer_groups
     end
 
     def call(range)
       rows = pluck(range)
       customer_data = customer_data_for(rows)
 
-      rows.map do |document_id, number, trip_on, manifest_code, manifest_number, plate, taker_code, recipient_code, recipient_name,
-                   origin_city, origin_state, tons|
+      rows.filter_map do |document_id, number, trip_on, manifest_code, manifest_number, plate, taker_code, recipient_code, recipient_name,
+                          origin_city, origin_state, tons|
         customer_group_id = customer_data.dig(taker_code, :customer_group_id)
+        next unless customer_group_ids.include?(customer_group_id)
+
         plant_key, plant_label = plant_for(customer_group_id, origin_city, origin_state)
 
         Fact.new(document_id:, number:, trip_on:, manifest_code:, manifest_number:, plate:, customer_group_id:, origin_city:, origin_state:,
@@ -31,7 +34,11 @@ module Dashboard
 
     private
 
-    attr_reader :documents, :manifests, :customers, :plants
+    attr_reader :documents, :manifests, :customers, :plants, :customer_groups
+
+    def customer_group_ids
+      @customer_group_ids ||= customer_groups.ids.to_set
+    end
 
     def pluck(range)
       manifests.trips

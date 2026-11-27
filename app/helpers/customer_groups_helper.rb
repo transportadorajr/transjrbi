@@ -24,6 +24,10 @@ module CustomerGroupsHelper
     t(customer_group.pays_advance_icms? ? :paid : :not_paid, scope: 'customer_groups.show.advance_icms')
   end
 
+  def customer_group_in_export_summary(customer_group)
+    t(customer_group.in_export_summary? ? :counted : :not_counted, scope: 'customer_groups.show.export_summary')
+  end
+
   def customer_group_customers_count(customer_group, customer_counts)
     customer_counts.fetch(customer_group.id, 0)
   end

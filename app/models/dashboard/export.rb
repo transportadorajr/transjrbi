@@ -31,11 +31,12 @@ module Dashboard
 
     attr_reader :period, :today
 
-    def initialize(documents:, manifests:, customers:, plants:, period:, filters: {}, shortcuts: [], today: Date.current)
-      @facts_source = ExportFacts.new(documents:, manifests:, customers:, plants:)
+    def initialize(documents:, manifests:, customers:, plants:, customer_groups:, period:, filters: {}, shortcuts: [], today: Date.current)
+      @facts_source = ExportFacts.new(documents:, manifests:, customers:, plants:, customer_groups:)
       @shortcuts = shortcuts
       @customers = customers
       @plants = plants
+      @customer_groups = customer_groups
       @period = period
       @filters = filters.to_h.symbolize_keys.compact_blank
       @today = today
@@ -110,7 +111,7 @@ module Dashboard
     end
 
     def plant_options
-      registered = plants.order(:name, :id).map { |plant| [plant.name, "#{ExportFacts::PLANT_PREFIX}-#{plant.id}"] }
+      registered = plants.where(customer_group_id: customer_groups.select(:id)).order(:name, :id).map { |plant| [plant.name, "#{ExportFacts::PLANT_PREFIX}-#{plant.id}"] }
 
       (registered + facts.map { |fact| [fact.plant_label, fact.plant_key] }).uniq(&:last).sort_by { |label, _key| I18n.transliterate(label).downcase }
     end
@@ -136,7 +137,7 @@ module Dashboard
 
     private
 
-    attr_reader :facts_source, :customers, :plants, :filters, :shortcuts
+    attr_reader :facts_source, :customers, :plants, :customer_groups, :filters, :shortcuts
 
     def all_facts
       @all_facts ||= facts_source.call(facts_range)

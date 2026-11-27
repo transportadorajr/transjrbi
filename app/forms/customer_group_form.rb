@@ -4,6 +4,7 @@ class CustomerGroupForm < BaseForm
   attribute :active, :boolean, default: true
   attribute :toll_reimbursed, :boolean, default: false
   attribute :pays_advance_icms, :boolean, default: false
+  attribute :in_export_summary, :boolean, default: false
 
   before_validation :normalize_fields
 
@@ -20,7 +21,7 @@ class CustomerGroupForm < BaseForm
     def for_customer_group(customer_group)
       form = new(name: customer_group.name, terms: customer_group.terms.join("\n"), active: customer_group.activated?,
                  toll_reimbursed: customer_group.toll_reimbursed, pays_advance_icms: customer_group.pays_advance_icms?,
-                 tenant: customer_group.tenant)
+                 in_export_summary: customer_group.in_export_summary?, tenant: customer_group.tenant)
       form.customer_group = customer_group
       form
     end
@@ -35,7 +36,8 @@ class CustomerGroupForm < BaseForm
   end
 
   def submit
-    customer_group.update!(name:, terms: term_list, activated: active, toll_reimbursed:, pays_advance_icms:)
+    customer_group.update!(name:, terms: term_list, activated: active, toll_reimbursed:, pays_advance_icms:,
+                           in_export_summary:)
   end
 
   private

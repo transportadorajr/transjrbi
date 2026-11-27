@@ -469,6 +469,8 @@ pt-BR:
         toll_reimbursed: Pedágio recobrado
         pays_advance_icms: Guia de ICMS antecipado
         pays_advance_icms_at: Paga guia de ICMS antecipado desde
+        in_export_summary: Resumo da exportação
+        in_export_summary_at: Entra no resumo da exportação desde
       product_group:
         name: Nome
         parent: Grupo
@@ -1013,6 +1015,7 @@ pt-BR:
         active: Ativo
         toll_reimbursed: Pedágio recobrado do cliente
         pays_advance_icms: JR paga a guia de ICMS antecipado
+        in_export_summary: Entra no resumo da exportação
       product_group_form:
         name: Nome
         parent_id: Grupo
@@ -2569,6 +2572,9 @@ pt-BR:
       advance_icms:
         paid: Paga pela JR, CT-e sem guia fica pendente
         not_paid: Não paga pela JR
+      export_summary:
+        counted: Sim, as exportações do grupo entram no resumo
+        not_counted: Não, as exportações do grupo ficam de fora do resumo
     new:
       title: Novo Grupo
       back: Voltar para grupos de clientes
@@ -2599,6 +2605,9 @@ pt-BR:
       pays_advance_icms_hint: >-
         Marque quando a JR recolhe em guia o ICMS dos CT-es com prestação iniciada fora do PR (o frete é cobrado com o
         ICMS). Na tela ICMS antecipado, os CT-es deste grupo sem guia aparecem como pendentes.
+      in_export_summary_hint: >-
+        Marque para contar as exportações deste grupo no Resumo da Exportação. Os CT-es de exportação dos grupos
+        desmarcados ficam de fora das toneladas, dos gráficos e dos atalhos.
   product_groups:
     unclassified_alert:
       title:
@@ -4664,8 +4673,8 @@ pt-BR:
       never_synced: Nenhuma sincronização com a Atua até o momento
       period_label: Período
       rules: >-
-        Conta cada CT-e de exportação uma vez, na data do primeiro MDF-e válido. CEs (peso zero), CT-es cancelados, complementos de
-        valores e CT-es sem MDF-e ficam de fora.
+        Conta cada CT-e de exportação dos grupos de clientes marcados para o resumo, uma vez, na data do primeiro MDF-e válido. CEs
+        (peso zero), CT-es cancelados, complementos de valores, CT-es sem MDF-e e os de outros grupos ficam de fora.
       tons: Toneladas carregadas
       loadings: Carregamentos
       documents: CT-es

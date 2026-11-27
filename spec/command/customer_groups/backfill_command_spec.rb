@@ -47,6 +47,7 @@ RSpec.describe CustomerGroups::BackfillCommand do
       expect(tenant.customer_groups.not_activated.count).to eq(0)
       expect(tenant.customer_groups.where(toll_reimbursed: true).pluck(:name)).to contain_exactly('INDEMIL', 'SOORO')
       expect(tenant.customer_groups.pays_advance_icms.pluck(:name)).to contain_exactly('GERDAU')
+      expect(tenant.customer_groups.in_export_summary.pluck(:name)).to contain_exactly('ARCELOR', 'USIMINAS')
       expect(jm.reload.customer_group.name).to eq('TERRAFEC')
       expect(terrinha.reload.customer_group.name).to eq('TERRAFEC')
       expect(steel.reload.customer_group.name).to eq('ARCELOR')

@@ -35,6 +35,9 @@
         <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:pays_advance_icms) %></dt>
         <dd class="col-12 col-md-9"><%= customer_group_pays_advance_icms(@customer_group) %></dd>
 
+        <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:in_export_summary) %></dt>
+        <dd class="col-12 col-md-9"><%= customer_group_in_export_summary(@customer_group) %></dd>
+
         <dt class="col-12 col-md-3"><%= CustomerGroup.human_attribute_name(:customers) %></dt>
         <dd class="col-12 col-md-9"><%= @customers.total_count %></dd>
       </dl>

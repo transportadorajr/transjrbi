@@ -40,6 +40,7 @@ class ExportSummariesController < BaseController
 
     @dashboard = Dashboard::Export.new(documents: current_tenant.atua_transport_documents, manifests: current_tenant.atua_manifests,
                                        customers: current_tenant.atua_customers, plants: current_tenant.export_plants.activated,
+                                       customer_groups: current_tenant.customer_groups.in_export_summary,
                                        period: @filter_form.period, filters: dashboard_filters,
                                        shortcuts: current_tenant.export_shortcuts.activated.ordered.to_a)
     @last_synced_at = current_tenant.last_synced_at
