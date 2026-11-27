@@ -44,7 +44,7 @@ describe 'Intelligence Excel exports', :xlsx_service do
         expect(Atua::TransportDocument.count).to eq(3)
         expect(downloaded_xlsx_sheet_names).to eq(['Detalhamento por Veículo'])
         expect(downloaded_xlsx_rows.first).to eq(
-          ['Veículo', 'Viagens', 'KM rodado', 'KM vazio', 'Rodou vazio', 'Frete bruto', 'Despesas de frete', 'Despesas', 'Pedágio pago pela JR',
+          ['Veículo', 'Viagens', 'KM rodado', 'KM vazio', 'Rodou vazio', 'Situação do KM vazio', 'Frete bruto', 'Despesas de frete', 'Despesas', 'Pedágio pago pela JR',
            'Pedágio pago ou recobrado do cliente', 'Frete líquido', 'Bruto/km', 'Líquido/km', 'Participação'],
         )
         expect(downloaded_xlsx_records.map { |record| record.slice('Veículo', 'Viagens', 'KM rodado', 'Frete bruto', 'Frete líquido', 'Bruto/km', 'Participação') })

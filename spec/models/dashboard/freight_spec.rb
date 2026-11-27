@@ -91,7 +91,7 @@ RSpec.describe Dashboard::Freight do
       expect(dashboard).to be_empty
       expect(dashboard.rows).to eq([])
       expect(dashboard.gross).to eq(Money.from_cents(0))
-      expect(dashboard.total).to have_attributes(trips_count: 0, loaded_km: 0, empty_km: 0, empty_share: nil, gross: Money.from_cents(0),
+      expect(dashboard.total).to have_attributes(trips_count: 0, loaded_km: 0, empty_km: nil, empty_share: nil, gross: Money.from_cents(0),
                                                  net: Money.from_cents(0), gross_per_km: nil, net_per_km: nil, share: BigDecimal('0'))
     end
   end
@@ -184,7 +184,7 @@ RSpec.describe Dashboard::Freight do
         trips_count: 3,
         loaded_km: BigDecimal('820'),
         empty_km: BigDecimal('80'),
-        empty_share: BigDecimal('9.8'),
+        empty_share: BigDecimal('15.4'),
         gross: Money.from_cents(4_490_000),
         freight_expenses: Money.from_cents(50_000),
         expenses: Money.from_cents(15_000),
@@ -255,11 +255,12 @@ RSpec.describe Dashboard::Freight do
             empty_share: BigDecimal('15.4'), gross: Money.from_cents(1_500_000),
             freight_expenses: Money.from_cents(50_000), expenses: Money.from_cents(15_000), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0),
             net: Money.from_cents(1_435_000), gross_per_km: Money.from_cents(2_885), net_per_km: Money.from_cents(2_760),
-            share: BigDecimal('33.4'), previous_gross: nil },
-          { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: BigDecimal('0'),
-            empty_share: BigDecimal('0'), gross: Money.from_cents(500_000),
+            share: BigDecimal('33.4'), previous_gross: nil, awaiting_manifest: false },
+          { key: 'RVR8J90', label: 'RVR8J90', trips_count: 1, loaded_km: BigDecimal('200'), empty_km: nil,
+            empty_share: nil, gross: Money.from_cents(500_000),
             freight_expenses: Money.from_cents(0), expenses: Money.from_cents(0), toll: Money.from_cents(0), undiscounted_toll: Money.from_cents(0), net: Money.from_cents(500_000),
-            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('11.1'), previous_gross: nil },
+            gross_per_km: Money.from_cents(2_000), net_per_km: Money.from_cents(2_000), share: BigDecimal('11.1'), previous_gross: nil,
+            awaiting_manifest: false },
         ],
       )
     end
@@ -505,6 +506,47 @@ RSpec.describe Dashboard::Freight do
         expect(dashboard.rows.map { |row| [row.label, row.trips_count, row.gross.cents] })
           .to eq([['PEDRO ROCHA', BigDecimal('0.6'), 900_000], ['ANA LIMA', BigDecimal('0.4'), 600_000]])
       end
+    end
+  end
+
+  context 'with trips with and without a measured empty km and CT-es still awaiting their MDF-e' do
+    before do
+      create(:atua_manifest, tenant:, code: 43_001, plate: 'RVR3A11', trip_started_at: Time.zone.local(2026, 10, 5, 6))
+      create(:atua_manifest, tenant:, code: 43_002, plate: 'RVR3A11', trip_started_at: Time.zone.local(2026, 10, 12, 6))
+      create(:atua_manifest, tenant:, code: 43_003, plate: 'RVR4A22', trip_started_at: Time.zone.local(2026, 10, 6, 6))
+      create(:atua_transport_document, tenant:, number: '76001', freight_cents: 500_000, plate: 'RVR3A11')
+      create(:atua_transport_document, tenant:, number: '76002', freight_cents: 500_000, plate: 'RVR3A11')
+      create(:atua_transport_document, tenant:, number: '76003', freight_cents: 400_000, plate: 'RVR4A22')
+      create(:atua_transport_document, tenant:, number: '76004', freight_cents: 300_000, plate: 'RVR5A33')
+      create(:atua_transport_document, tenant:, number: '76005', document_kind: 'ce', freight_cents: 200_000, plate: 'INT6R00')
+      create(:atua_manifest_document, tenant:, manifest_code: 43_001, transport_document_number: '76001', calculated_distance_km: 400)
+      create(:atua_manifest_document, tenant:, manifest_code: 43_002, transport_document_number: '76002', calculated_distance_km: 600)
+      create(:atua_manifest_document, tenant:, manifest_code: 43_003, transport_document_number: '76003', calculated_distance_km: 300)
+      create(:empty_leg, tenant:, plate: 'RVR3A11', next_manifest_code: 43_001, distance_km: 100)
+      create(:empty_leg, tenant:, plate: 'RVR4A22', next_manifest_code: 43_003, distance_km: 0)
+    end
+
+    it 'leaves the trips without a measured empty km out of the empty share instead of counting them as zero' do
+      expect(Atua::TransportDocument.count).to eq(5)
+      expect(dashboard.row_for('RVR3A11')).to have_attributes(trips_count: 2, loaded_km: BigDecimal('1000'), empty_km: BigDecimal('100'),
+                                                              empty_share: BigDecimal('25'))
+      expect(dashboard.total).to have_attributes(trips_count: 3, loaded_km: BigDecimal('1300'), empty_km: BigDecimal('100'),
+                                                 empty_share: BigDecimal('14.3'))
+    end
+
+    it 'keeps a zero empty share for a trip loaded where the previous one unloaded' do
+      expect(dashboard.row_for('RVR4A22')).to have_attributes(empty_km: BigDecimal('0'), empty_share: BigDecimal('0'))
+      expect(dashboard.row_for('RVR4A22')).not_to be_awaiting_manifest
+    end
+
+    it 'marks a row whose CT-es are not in an MDF-e yet as awaiting it' do
+      expect(dashboard.row_for('RVR5A33')).to have_attributes(trips_count: 0, empty_km: nil, empty_share: nil)
+      expect(dashboard.row_for('RVR5A33')).to be_awaiting_manifest
+    end
+
+    it 'does not mark the international CE, which never gets an MDF-e, as awaiting it' do
+      expect(dashboard.row_for('INT6R00')).to have_attributes(trips_count: 0, empty_share: nil)
+      expect(dashboard.row_for('INT6R00')).not_to be_awaiting_manifest
     end
   end
 
