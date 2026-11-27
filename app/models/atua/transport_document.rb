@@ -11,7 +11,6 @@ module Atua
     FREIGHT_PARTS = %i[weight_freight_cents ad_valorem_cents other_charges_cents toll_cents icms_cents].freeze
     INTERNAL_TAKER_DOCUMENTS = %w[10212838000100 10212838000283 10212838000364 51628145000172 27676883000100 39622838000152].freeze
     CARGO_DESTINATIONS = %i[national export import].freeze
-    TRIP_SERVICE_KINDS = %w[Subcontratação Redespacho].freeze
 
     with_options class_name: 'Atua::Customer', primary_key: %i[tenant_id code], optional: true, inverse_of: false do
       belongs_to :sender, foreign_key: %i[tenant_id sender_code]
@@ -47,8 +46,6 @@ module Atua
     has_many :empty_leg_transport_documents, foreign_key: %i[tenant_id transport_document_code], primary_key: %i[tenant_id code],
                                              inverse_of: :transport_document
     has_many :empty_legs, through: :empty_leg_transport_documents
-    has_one :ce_empty_leg, class_name: 'EmptyLeg', foreign_key: %i[tenant_id next_transport_document_code], primary_key: %i[tenant_id code],
-                           inverse_of: :next_transport_document
     has_many :freight_expenses, dependent: :delete_all, inverse_of: :transport_document
     has_many :toll_vouchers, class_name: 'Atua::TollVoucher', foreign_key: %i[tenant_id transport_document_number branch_code],
                              primary_key: %i[tenant_id number branch_code], inverse_of: :transport_document
@@ -147,7 +144,6 @@ module Atua
     }
 
     scope :with_freight_totals, -> { select(arel_table[Arel.star], net_freight.as('net_cents')) }
-    scope :ce_trips, -> { active.not_canceled.freights.where(ce_trip_condition) }
     scope :billing_only, -> {
       where(document_kind: MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'])
         .where(arel_table[:plate].eq(MapTransportDocumentsCommand::INTERNATIONAL_PLATE).or(billed_to_border))
@@ -169,35 +165,6 @@ module Atua
           .and(arel_table[:sender_document_digits].in(INTERNAL_TAKER_DOCUMENTS))
           .and(arel_table[:freight_cents].gt(0))
           .and(arel_table[:freight_cents].eq(arel_table[:goods_value_cents]))
-      end
-
-      def ce_trip_condition
-        arel_table[:document_kind].eq(MapTransportDocumentsCommand::DOCUMENT_KINDS['CE'])
-          .and(arel_table[:service_kind].in(TRIP_SERVICE_KINDS))
-          .and(arel_table[:plate].not_eq(nil)).and(arel_table[:plate].not_eq(''))
-          .and(arel_table[:plate].not_eq(MapTransportDocumentsCommand::INTERNATIONAL_PLATE))
-          .and(ManifestDocument.active.where(ManifestDocument.arel_table[:tenant_id].eq(arel_table[:tenant_id]))
-            .where(ManifestDocument.arel_table[:transport_document_number].eq(arel_table[:number]))
-            .where(ManifestDocument.arel_table[:transport_document_series].eq(arel_table[:series]))
-            .where(ManifestDocument.arel_table[:branch_name].eq(arel_table[:branch_name])).arel.exists.not)
-      end
-
-      def last_ce_trip_before(tenant_id, plate, time, code: nil)
-        issued_at = arel_table[:issued_at]
-        before = issued_at.lt(time)
-        before = before.or(issued_at.eq(time).and(arel_table[:code].lt(code))) if code
-
-        ce_trips.where(tenant_id:, plate:).where(before).order(issued_at: :desc, code: :desc).first
-      end
-
-      def ce_empty_km_sql
-        <<~SQL.squish
-          SELECT empty_legs.distance_km
-          FROM empty_legs
-          WHERE empty_legs.tenant_id = atua_transport_documents.tenant_id
-            AND empty_legs.next_transport_document_code = atua_transport_documents.code
-            AND empty_legs.status_type = 'calculated'
-        SQL
       end
 
       def international_vehicle(tenant)
@@ -378,19 +345,6 @@ module Atua
 
     def toll_voucher_issuer
       raw_data['nm_emissao_vale_pedagio'].presence
-    end
-
-    def previous_trip
-      [Manifest.last_trip_before(tenant_id, plate, issued_at), self.class.last_ce_trip_before(tenant_id, plate, issued_at, code:)]
-        .compact.max_by(&:trip_time)
-    end
-
-    def trip_time
-      issued_at
-    end
-
-    def leg_documents
-      [self]
     end
 
     def atua_distance_km

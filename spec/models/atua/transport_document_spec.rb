@@ -296,33 +296,6 @@ RSpec.describe Atua::TransportDocument do
     end
   end
 
-  describe '.ce_trips' do
-    let(:tenant) { create(:tenant) }
-
-    def create_ce(number, **attributes)
-      create(:atua_transport_document, tenant:, number:, document_kind: 'ce', service_kind: 'Subcontratação', plate: 'BEJ4G50', **attributes)
-    end
-
-    before do
-      create_ce('4633')
-      create_ce('4634', service_kind: 'Redespacho', plate: 'SFI0G78')
-      create_ce('4635', service_kind: 'Normal')
-      create_ce('4636', plate: 'INT6R00')
-      create_ce('4637', plate: nil)
-      create_ce('4638', canceled_at: Time.current)
-      create_ce('4639', removed_from_atua_at: Time.current)
-      create_ce('4640', vehicle_sale: true)
-      create_ce('4641')
-      create(:atua_manifest_document, tenant:, transport_document_number: '4641')
-      create(:atua_transport_document, tenant:, number: '75000', service_kind: 'Subcontratação', plate: 'BEJ4G50')
-    end
-
-    it 'keeps only the subcontracted and redispatched CEs carried by a truck without an MDF-e' do
-      expect(described_class.count).to eq(10)
-      expect(described_class.ce_trips.pluck(:number)).to contain_exactly('4633', '4634')
-    end
-  end
-
   describe '.by_product_group' do
     let(:tenant) { create(:tenant) }
     let!(:steel) { create(:product_group, tenant:) }

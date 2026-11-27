@@ -25,10 +25,8 @@ class VehiclesController < BaseController
     return redirect_to(vehicle_path(@vehicle, request.query_parameters.merge(return_to: referer_return_path))) if return_to_from_referer?
 
     empty_legs = current_tenant.empty_legs.where(plate: @vehicle.plate)
-    @empty_legs = empty_legs.left_joins(:next_manifest, :next_transport_document)
-      .where(Atua::Manifest.arel_table[:id].not_eq(nil).or(Atua::TransportDocument.arel_table[:id].not_eq(nil)))
-      .preload(:origin, :destination, :next_manifest, :next_transport_document)
-      .order(EmptyLeg.trip_at.desc, id: :desc).page(params[:page])
+    @empty_legs = empty_legs.joins(:next_manifest).preload(:origin, :destination, :next_manifest)
+      .order(Atua::Manifest.trip_at.desc, id: :desc).page(params[:page])
     @empty_legs_total = empty_legs.calculated.sum(:distance_km)
     load_expenses if can?(:read, :expenses)
   end

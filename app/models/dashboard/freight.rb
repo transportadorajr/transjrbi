@@ -24,7 +24,6 @@ module Dashboard
     COLUMNS = %i[id manifest_code issued_at loaded_km empty_km freight_cents freight_expenses_cents expenses_cents
                  toll_cents undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city
                  origin_state origin_macro_region_id export_origin document_kind].freeze
-    CE_TRIP_PREFIX = 'ce-'.freeze
     ENTRY_ATTRIBUTES = %i[document_ids manifest_code weight loaded_km empty_km freight_cents freight_expenses_cents expenses_cents toll_cents
                           undiscounted_toll_cents plate driver_code driver_name customer_group_id product_group_id product_subgroup_id origin_city origin_state
                           origin_macro_region_id export_origin document_kind].freeze
@@ -514,19 +513,8 @@ module Dashboard
       issued_documents(range)
         .left_joins(:taker, :product_group)
         .joins(first_trip_join)
-        .pluck(*fact_columns, *ce_trip_columns)
-        .map { |*values, ce_trip, distance_km, empty_km| ce_trip_fact(Fact.new(*values), ce_trip, distance_km, empty_km) }
-    end
-
-    def ce_trip_columns
-      [Arel::Nodes::Case.new.when(Atua::TransportDocument.ce_trip_condition).then(true).else(false), table[:distance_km],
-       Arel::Nodes::Grouping.new(Arel.sql(Atua::TransportDocument.ce_empty_km_sql))]
-    end
-
-    def ce_trip_fact(fact, ce_trip, distance_km, empty_km)
-      return fact unless ce_trip && fact.manifest_code.nil?
-
-      fact.with(manifest_code: "#{CE_TRIP_PREFIX}#{fact.id}", loaded_km: distance_km.to_d, empty_km: empty_km&.to_d)
+        .pluck(*fact_columns)
+        .map { |values| Fact.new(*values) }
     end
 
     def fact_columns

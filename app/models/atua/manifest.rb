@@ -183,14 +183,6 @@ module Atua
         Arel::Nodes::NamedFunction.new('COALESCE', [arel_table[:trip_started_at], arel_table[:departure_on], arel_table[:issued_on]])
       end
 
-      def last_trip_before(tenant_id, plate, time, code: nil)
-        before = trip_at.lt(time)
-        before = before.or(trip_at.eq(time).and(arel_table[:code].lt(code))) if code
-
-        trips.where(tenant_id:, plate:).where(before).select(arel_table[Arel.star], trip_at.as('trip_time'))
-          .order(trip_at.desc, code: :desc).first
-      end
-
       def trip_on_sql
         started_on = "(atua_manifests.trip_started_at AT TIME ZONE 'UTC' AT TIME ZONE #{connection.quote(Time.zone.tzinfo.name)})::date"
 
@@ -251,18 +243,11 @@ module Atua
     end
 
     def previous_trip
-      started_at = self.class.where(id:).pick(self.class.trip_at)
+      trip_at = self.class.trip_at
+      started_at = self.class.where(id:).pick(trip_at)
+      before = trip_at.lt(started_at).or(trip_at.eq(started_at).and(self.class.arel_table[:code].lt(code)))
 
-      [self.class.last_trip_before(tenant_id, plate, started_at, code:), TransportDocument.last_ce_trip_before(tenant_id, plate, started_at)]
-        .compact.max_by(&:trip_time)
-    end
-
-    def trip_time
-      self[:trip_time] || self.class.where(id:).pick(self.class.trip_at)
-    end
-
-    def leg_documents
-      ordered_documents
+      self.class.trips.where(tenant_id:, plate:).where(before).order(trip_at.desc, code: :desc).first
     end
 
     def origins

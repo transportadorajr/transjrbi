@@ -13,11 +13,10 @@ module EmptyLegs
     end
 
     def call
-      tenant.empty_legs.where.not(next_manifest_code: nil).where.not(next_manifest_code: tenant.atua_manifests.trips.select(:code)).delete_all
-      tenant.empty_legs.where.not(next_transport_document_code: nil)
-        .where.not(next_transport_document_code: tenant.atua_transport_documents.ce_trips.select(:code)).delete_all
+      tenant.empty_legs.where.not(previous_transport_document_code: nil).or(tenant.empty_legs.where.not(next_transport_document_code: nil)).delete_all
+      tenant.empty_legs.where.not(next_manifest_code: tenant.atua_manifests.trips.select(:code)).delete_all
 
-      (trips.find_each.to_a + ce_trips.find_each.to_a).filter_map { |trip| CalculateCommand.call(trip, client:) }
+      trips.find_each.filter_map { |manifest| CalculateCommand.call(manifest, client:) }
     end
 
     private
@@ -26,10 +25,6 @@ module EmptyLegs
 
     def trips
       start_date ? tenant.atua_manifests.trips.by_period_start(start_date) : tenant.atua_manifests.trips
-    end
-
-    def ce_trips
-      start_date ? tenant.atua_transport_documents.ce_trips.by_period(start_date, nil) : tenant.atua_transport_documents.ce_trips
     end
   end
 end

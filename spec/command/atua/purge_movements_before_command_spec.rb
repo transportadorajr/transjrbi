@@ -48,33 +48,6 @@ RSpec.describe Atua::PurgeMovementsBeforeCommand do
     end
   end
 
-  context 'with an old CE trip chained to a newer trip' do
-    let!(:old_ce) do
-      create(:atua_transport_document, tenant:, document_kind: 'ce', service_kind: 'Subcontratação', plate: 'BEJ4G50',
-                                       issued_at: Time.zone.local(2026, 3, 30, 10))
-    end
-    let!(:new_ce) do
-      create(:atua_transport_document, tenant:, document_kind: 'ce', service_kind: 'Redespacho', plate: 'BEJ4G50',
-                                       issued_at: Time.zone.local(2026, 4, 2, 10))
-    end
-    let!(:new_leg) do
-      create(:empty_leg, tenant:, plate: 'BEJ4G50', previous_manifest_code: 41_999, next_manifest_code: nil, next_transport_document_code: new_ce.code)
-    end
-
-    before do
-      create(:empty_leg, tenant:, plate: 'BEJ4G50', previous_manifest_code: 41_998, next_manifest_code: nil, next_transport_document_code: old_ce.code)
-      create(:empty_leg, tenant:, plate: 'BEJ4G50', previous_manifest_code: nil, previous_transport_document_code: old_ce.code,
-                         next_manifest_code: 42_000)
-    end
-
-    it 'deletes the legs that start or end at the old CE' do
-      described_class.call(tenant)
-
-      expect(Atua::TransportDocument.all).to eq([new_ce])
-      expect(EmptyLeg.all).to eq([new_leg])
-    end
-  end
-
   context 'with a cutoff given by the caller' do
     let!(:document) { create(:atua_transport_document, tenant:, issued_at: Time.zone.local(2026, 4, 15, 10)) }
 

@@ -46,7 +46,7 @@ class TripsController < BaseController
 
     load_filter_options
     @dashboard = Dashboard::Trip.new(manifests, dimension: @filter_form.dimension, period: @filter_form.period,
-                                                own_fleet: current_tenant.own_fleet, ce_trips:)
+                                                own_fleet: current_tenant.own_fleet)
   end
 
   def opened_detail_row
@@ -69,10 +69,6 @@ class TripsController < BaseController
 
   def manifests
     TruckGroupFilter.new(@truck_groups, @filter_form.truck_group_id).apply(apply_scopes(current_tenant.atua_manifests))
-  end
-
-  def ce_trips
-    TruckGroupFilter.new(@truck_groups, @filter_form.truck_group_id).apply(apply_scopes(current_tenant.billable_freights.ce_trips))
   end
 
   def filter_params

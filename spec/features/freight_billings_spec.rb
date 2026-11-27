@@ -104,6 +104,30 @@ describe 'Freight billing' do
       end
     end
 
+    context 'when an own truck carries a subcontracted CE without an MDF-e' do
+      before do
+        create(:atua_transport_document, tenant:, number: '4633', document_kind: 'ce', service_kind: 'Subcontratação', plate: 'BEJ4G50',
+                                         freight_cents: 1_536_000, distance_km: 1536, issued_at: Time.zone.local(2026, 10, 25, 11))
+      end
+
+      scenario 'bills the CE without counting it as a trip' do
+        visit freight_billing_path(october_by_truck)
+
+        expect(Atua::TransportDocument.count).to eq(1)
+        expect(all('.counter-card').map { |card| card.text.squish }).to eq(
+          ['Frete bruto R$ 15.360,00', 'Frete líquido R$ 15.360,00',
+           'Viagens 0', 'Frete bruto por km -', 'Frete líquido por km -', 'KM rodado 0 km', 'KM vazio -', 'Rodou vazio -'],
+        )
+        expect(html_table_to_rows(table: find('.freight-billing-table'))).to eq(
+          [
+            ['Veículo', 'Frete bruto', 'Frete líquido', 'Pedágio', 'Participação', 'Ações'],
+            ['BEJ4G50', 'R$ 15.360,00', 'R$ 15.360,00', 'R$ 0,00', '100,0%', ''],
+            ['Total', 'R$ 15.360,00', 'R$ 15.360,00', 'R$ 0,00', '100,0%', ''],
+          ],
+        )
+      end
+    end
+
     context 'when some CT-es are not in an MDF-e yet and a trip has no measured empty km', :xlsx_service do
       before do
         create(:atua_manifest, tenant:, code: 43_001, plate: 'RVR3A11', trip_started_at: Time.zone.local(2026, 10, 5, 6))
