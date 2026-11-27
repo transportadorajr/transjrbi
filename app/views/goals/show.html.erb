@@ -10,6 +10,8 @@
   <%= goal_dimension_bar(@filter_form) %>
   <%= goal_missing_note(@dashboard) %>
 
+  <%= goal_company_gauges(@dashboard) %>
+
   <div class="row g-2 g-md-3 mb-3 counter-grid-compact" id="goal_company_cards">
     <%= goal_company_cards(@dashboard) %>
   </div>
@@ -24,6 +26,8 @@
   <div class="mb-4" id="goal_chart">
     <%= render 'freight_billings/chart_card', title: t('.chart_title'), subtitle: t('.chart_subtitle'), chart: goal_chart(@dashboard) %>
   </div>
+
+  <%= goal_dimension_gauges(@filter_form.section, @gauge_rows) %>
 
   <%= render 'goals/dimension_card', dashboard: @dashboard, section: @filter_form.section, rows: @rows %>
 

@@ -4,8 +4,10 @@ import {
   barLabelAlign,
   barLabelColor,
   destroyChartsOnRender,
+  drawGaugeNeedle,
   fitsInsideBar,
   formatBarLabel,
+  gaugeNeedleAngle,
 } from '../../app/javascript/charts';
 
 const contextWith = (value, barLength, textWidth = 60) => ({
@@ -113,5 +115,55 @@ describe('destroyChartsOnRender', () => {
     destroyChartsOnRender(event);
 
     expect(event.detail.render).toBeUndefined();
+  });
+});
+
+describe('gaugeNeedleAngle', () => {
+  it('turns the needle along the half circle in proportion to the value', () => {
+    expect(gaugeNeedleAngle(0, 1.2, Math.PI)).toBe(Math.PI);
+    expect(gaugeNeedleAngle(0.6, 1.2, Math.PI)).toBe(Math.PI * 1.5);
+  });
+
+  it('stops the needle at the ends of the scale', () => {
+    expect(gaugeNeedleAngle(3, 1.2, Math.PI)).toBe(Math.PI * 2);
+    expect(gaugeNeedleAngle(-1, 1.2, Math.PI)).toBe(Math.PI);
+  });
+});
+
+describe('drawGaugeNeedle', () => {
+  const gaugeChart = () => {
+    const calls = [];
+    const ctx = new Proxy(
+      {},
+      {
+        get: (target, name) => (name in target ? target[name] : (...args) => calls.push([name, ...args])),
+        set: (target, name, value) => {
+          target[name] = value;
+          return true;
+        },
+      }
+    );
+    const arc = { getProps: () => ({ x: 100, y: 100, startAngle: Math.PI, outerRadius: 50 }) };
+
+    return { calls, chart: { ctx, getDatasetMeta: () => ({ data: [arc] }) } };
+  };
+
+  it('draws the needle from the center towards the value', () => {
+    const { calls, chart } = gaugeChart();
+
+    drawGaugeNeedle(chart, {}, { value: 0.6, max: 1.2, color: '#1a2a3a' });
+
+    const [, x, y] = calls.find(([name]) => name === 'lineTo');
+    expect(x).toBeCloseTo(100);
+    expect(y).toBeCloseTo(55);
+    expect(chart.ctx.strokeStyle).toBe('#1a2a3a');
+  });
+
+  it('draws nothing on a chart without a gauge value', () => {
+    const { calls, chart } = gaugeChart();
+
+    drawGaugeNeedle(chart, {}, {});
+
+    expect(calls).toEqual([]);
   });
 });

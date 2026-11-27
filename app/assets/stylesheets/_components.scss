@@ -990,6 +990,34 @@ $counter-accent-colors: (
   --goal-progress-color: var(--bs-danger);
 }
 
+.goal-gauge {
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.goal-gauge-title {
+  margin-bottom: 0;
+  font-weight: 600;
+}
+
+.goal-gauge-note {
+  margin-bottom: 0;
+  font-size: 0.8125rem;
+  color: var(--bs-secondary-color);
+}
+
+.goal-gauge-value {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.25rem;
+}
+
+.goal-gauge-missing {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+}
+
 .goal-progress-sm {
   --goal-progress-color: var(--bs-primary);
 

@@ -92,6 +92,46 @@ describe 'Goals panel' do
         expect(CustomerGroup.where(tenant:).count).to eq(3)
       end
 
+      scenario 'shows the gauges of the month, of the week and of each customer group with a goal' do
+        visit goals_path
+
+        expect(page).to have_css('#goal_month_gauge .goal-gauge-title', text: 'Meta do mês')
+        expect(find_by_id('goal_month_gauge').text.squish).to eq(
+          'Meta do mês Ponteiro na projeção de fechamento: 48,4% 15,5% Faltam R$ 84.500,00',
+        )
+        expect(find_by_id('goal_week_gauge').text.squish).to eq('Meta da semana 16,7% Faltam R$ 20.000,00')
+        expect(page).to have_css('#goal_customer_groups_gauges .table-card-title', text: 'Velocímetros por grupo de clientes')
+        expect(all('#goal_customer_groups_gauges .goal-gauge').map { it.text.squish }).to eq(
+          ['USIMINAS Ponteiro na projeção de fechamento: 46,9% 15,0% Faltam R$ 51.000,00'],
+        )
+        expect(page.html).to include('"goalGauge":{"value":0.484375,"max":1.2')
+
+        within('#goal_dimension_bar') { click_on 'Região' }
+
+        expect(all('#goal_regions_gauges .goal-gauge').map { it.text.squish }).to eq(
+          ['VALE DO AÇO/MG Ponteiro na projeção de fechamento: 56,3% 18,0% Faltam R$ 41.000,00'],
+        )
+
+        within('#goal_dimension_bar') { click_on 'Veículo' }
+
+        expect(page).to have_css('#goal_month_gauge')
+        expect(page).to have_no_css('[id$="_gauges"].table-card')
+        expect(RevenueGoal.where(tenant:).count).to eq(5)
+      end
+
+      context 'with the billing past the goal of the month' do
+        before { freight(tenant, 'AJR4391', 9_000_000, issued_at: Time.zone.local(2026, 11, 9, 9)) }
+
+        scenario 'shows the goal reached when the billing passes the goal' do
+          visit goals_path
+
+          expect(find_by_id('goal_month_gauge').text.squish).to eq(
+            'Meta do mês Ponteiro na projeção de fechamento: 329,7% 105,5% Meta batida',
+          )
+          expect(page.html).to include('"goalGauge":{"value":3.296875,"max":1.2')
+        end
+      end
+
       scenario 'shows the ranking of the vehicles when they are selected' do
         visit goals_path
         within('#goal_dimension_bar') { click_on 'Veículo' }
@@ -301,6 +341,45 @@ describe 'Goals panel' do
       end
     end
 
+    context 'with the billing of the month and no goals' do
+      let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+
+      before { freight(tenant, 'AJR4391', 900_000, taker: taker(tenant, usiminas)) }
+
+      scenario 'does not show the gauges without the goals of the month' do
+        visit goals_path
+
+        expect(page).to have_css('#goal_missing_note')
+        expect(page).to have_no_css('#goal_gauges')
+        expect(page).to have_no_css('#goal_customer_groups_gauges')
+        expect(RevenueGoal.where(tenant:).count).to eq(0)
+      end
+    end
+
+    context 'with more customer groups with goals than a page' do
+      let(:groups) { (1..12).map { create(:customer_group, tenant:, name: format('GRUPO %02d', it)) } }
+
+      before do
+        groups.each_with_index do |group, index|
+          create(:revenue_goal, :customer_group, tenant:, month:, customer_group: group, amount_cents: 1_000_000)
+          freight(tenant, 'AJR4391', (index + 1) * 10_000, taker: taker(tenant, group))
+        end
+      end
+
+      scenario 'pages the gauges and keeps the month and the grouping' do
+        visit goals_path(dimension: 'customer_group', month: '2026-11')
+
+        expect(all('#goal_customer_groups_gauges .goal-gauge-title').map(&:text)).to eq((3..12).to_a.reverse.map { format('GRUPO %02d', it) })
+
+        within('#goal_customer_groups_gauges .table-pagination') { click_on '2' }
+
+        expect(page).to have_current_path(goals_path(dimension: 'customer_group', month: '2026-11', gauges_page: 2))
+        expect(all('#goal_customer_groups_gauges .goal-gauge-title').map(&:text)).to eq(['GRUPO 02', 'GRUPO 01'])
+        expect(html_table_to_rows(table: find_by_id('goal_customer_groups_table')).second.first).to eq('GRUPO 12')
+        expect(RevenueGoal.where(tenant:).count).to eq(12)
+      end
+    end
+
     scenario 'shows an empty ranking without an own fleet' do
       visit goals_path(dimension: 'vehicle')
 
@@ -390,6 +469,7 @@ describe 'Goals panel' do
       expect(page).to have_css('#goal_customer_groups_table td', text: '30,0%', visible: :visible)
       expect(page).to have_no_css('#goal_customer_groups_table th', text: 'META DA SEMANA', visible: :visible)
       expect(page).to have_no_css('#goal_customer_groups .dropdown-toggle', text: 'Ordenar por')
+      expect(page).to have_css('#goal_customer_groups_gauges canvas', visible: :visible)
       expect(page.evaluate_script('document.documentElement.scrollWidth <= window.innerWidth')).to be(true)
 
       within('#goal_dimension_bar') { click_on 'Veículo' }

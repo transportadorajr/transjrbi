@@ -8,6 +8,11 @@ module GoalsHelper
                                      backgroundColor: RevenueProjectionHistoriesHelper::HISTORY_PROJECTED_ORANGE, borderDash: [6, 4] } }.freeze
   GOAL_CHART_SERIES = [GOAL_REALIZED_STYLE, GOAL_EXPECTED_STYLE].freeze
   GOAL_DATE_TICKS = 8
+  GOAL_GAUGE_HEIGHT = '140px'.freeze
+  GOAL_GAUGE_NEEDLE_COLOR = '#1a2a3a'.freeze
+  GOAL_GAUGE_COLORS = { behind: ChartsHelper::DANGER_RED, attention: ChartsHelper::WARNING_YELLOW, on_track: ChartsHelper::SUCCESS_GREEN }.freeze
+  GOAL_GAUGE_LIBRARY = { rotation: -90, circumference: 180, cutout: '70%', borderWidth: 0,
+                         plugins: { tooltip: { enabled: false } } }.freeze
 
   def goal_month_nav(month, path_name)
     tag.div(class: 'dashboard-filter-bar mb-4', id: 'goal_month_nav') do
@@ -120,6 +125,58 @@ module GoalsHelper
     line_chart(dashboard.chart_data.zip(GOAL_CHART_SERIES).map { |serie, style| serie.merge(style) },
                height: ChartsHelper::CHART_HEIGHT, legend: 'bottom', discrete: true, points: false, **chart_money_options,
                library: chart_bar_library(:x).deep_merge(scales: { x: { ticks: { autoSkip: true, maxTicksLimit: GOAL_DATE_TICKS, maxRotation: 0 } } }))
+  end
+
+  def goal_company_gauges(dashboard)
+    company = dashboard.company
+    return unless company.goal?
+
+    render 'goals/gauges', gauges: [goal_month_gauge(company, id: 'goal_month_gauge'), goal_week_gauge(company, id: 'goal_week_gauge')].compact
+  end
+
+  def goal_month_gauge(row, id:, title: t('goals.show.gauges.month'))
+    goal_gauge(title:, id:, needle: row.gauge_ratio, realized: row.ratio, missing_cents: row.missing_cents,
+               note: (t('goals.show.gauges.projected', ratio: goal_ratio(row.projected_ratio)) if row.projected_ratio))
+  end
+
+  def goal_week_gauge(row, id:)
+    return unless row.week_goal? && row.week_goal_cents.positive?
+
+    goal_gauge(title: t('goals.show.gauges.week'), id:, needle: row.week_ratio, realized: row.week_ratio, missing_cents: row.week_missing_cents)
+  end
+
+  def goal_gauge(title:, id:, needle:, realized:, missing_cents:, note: nil)
+    tag.div(class: 'card goal-gauge h-100', id:) do
+      safe_join([
+                  tag.p(title, class: 'goal-gauge-title'),
+                  (tag.p(note, class: 'goal-gauge-note') if note),
+                  goal_gauge_chart(needle),
+                  tag.strong(goal_ratio(realized), class: 'goal-gauge-value'),
+                  tag.p(goal_gauge_missing(missing_cents), class: 'goal-gauge-missing'),
+                ].compact)
+    end
+  end
+
+  def goal_gauge_chart(ratio)
+    pie_chart(Dashboard::Goals.gauge_data, donut: true, legend: false, loading: '', height: GOAL_GAUGE_HEIGHT,
+                                           colors: Dashboard::Goals::GAUGE_ZONES.keys.map { |status| GOAL_GAUGE_COLORS.fetch(status) },
+                                           library: GOAL_GAUGE_LIBRARY.deep_merge(plugins: { goalGauge: goal_gauge_needle(ratio) }))
+  end
+
+  def goal_gauge_needle(ratio)
+    { value: ratio.to_f, max: Dashboard::Goals::GAUGE_MAX.to_f, color: GOAL_GAUGE_NEEDLE_COLOR }
+  end
+
+  def goal_gauge_missing(missing_cents)
+    return t('goals.show.gauges.reached') if missing_cents.zero?
+
+    t('goals.show.gauges.missing', value: goal_money(missing_cents))
+  end
+
+  def goal_dimension_gauges(section, rows)
+    return if Dashboard::Goals.vehicle_section?(section) || rows.total_count.zero?
+
+    render 'goals/gauges_card', section:, rows:
   end
 
   def goal_tab_nav(prefix, tabs, active: tabs.keys.first)
