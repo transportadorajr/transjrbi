@@ -1,0 +1,21 @@
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0" id="empty_leg_regions">
+    <thead>
+      <tr>
+        <th><%= t('empty_legs.regions.name') %></th>
+        <th class="text-end"><%= t('empty_legs.regions.legs_count') %></th>
+        <th class="d-none d-md-table-cell text-end"><%= t('empty_legs.regions.average_km') %></th>
+        <th class="text-end"><%= t('empty_legs.regions.total_km') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% collection.each do |region| %>
+        <%= render 'region_row', region: %>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate collection, param_name: :regions_page %>
+</div>
