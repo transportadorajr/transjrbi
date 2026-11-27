@@ -14,7 +14,7 @@ module PaginationHelper
   end
 
   def pagination_page_item(page, url, remote)
-    return pagination_current_page_item(page, remote) if page.current?
+    return pagination_current_page_item(page) if page.current?
 
     content_tag :li, class: 'page-item' do
       link_to page, url, remote:, rel: page.rel, class: 'page-link text-primary'
@@ -23,9 +23,9 @@ module PaginationHelper
 
   private
 
-  def pagination_current_page_item(page, remote)
+  def pagination_current_page_item(page)
     content_tag :li, class: 'page-item active' do
-      link_to page, '#', class: 'page-link bg-primary border-primary', data: { remote: }, rel: page.rel, aria: { current: 'page' }
+      content_tag :span, page, class: 'page-link bg-primary border-primary', aria: { current: 'page' }
     end
   end
 end
