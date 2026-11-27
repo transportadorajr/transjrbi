@@ -128,22 +128,10 @@ module TripsHelper
   end
 
   def trips_unmeasured_item(trip)
-    number = trips_trip_link(trip)
+    number = can?(:read, :manifests) ? link_to(trip.number, manifest_path(trip.id), class: 'fw-semibold') : trip.number
 
     safe_join([number, content_tag(:span, t('trips.unmeasured_alert.item', plate: trip.plate, date: l(trip.trip_on), distance: trips_km(trip.loaded_km)),
                                    class: 'text-body-secondary')], ' ')
-  end
-
-  def trips_trip_link(trip)
-    return trips_ce_link(trip) if trip.ce_trip
-
-    can?(:read, :manifests) ? link_to(trip.number, manifest_path(trip.id), class: 'fw-semibold') : trip.number
-  end
-
-  def trips_ce_link(trip)
-    label = t('trips.unmeasured_alert.ce', number: trip.number)
-
-    can?(:read, :transport_documents) ? link_to(label, transport_document_path(trip.id), class: 'fw-semibold') : label
   end
 
   def trips_sort_columns(dashboard)

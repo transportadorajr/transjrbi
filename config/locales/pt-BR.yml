@@ -2479,7 +2479,6 @@ pt-BR:
         complement_transfer: Complemento repassado
   empty_legs:
     distance: '%{distance} km'
-    ce: CE %{number}
   customers:
     index:
       title: Clientes
@@ -4703,13 +4702,12 @@ pt-BR:
       worst: Pior
     unmeasured_alert:
       title:
-        one: 1 viagem sem km ou com km inválido
-        other: '%{count} viagens sem km ou com km inválido'
+        one: 1 MDF-e sem km ou com km inválido
+        other: '%{count} MDF-es sem km ou com km inválido'
       text: >-
-        O km rodado está vazio, zerado ou acima de %{max} km. Estas viagens ficam fora do ranking e do R$/km até a distância ser
+        O km rodado está vazio, zerado ou acima de %{max} km. Estes manifestos ficam fora do ranking e do R$/km até a distância ser
         corrigida.
       item: '%{plate} · %{date} · %{distance}'
-      ce: CE %{number}
     index:
       title: Viagens
       pdf:
@@ -4733,10 +4731,10 @@ pt-BR:
       net_per_km: Frete líquido por km
       per_km_base:
         one: >-
-          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Fica de fora 1 viagem sem km ou com km
+          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Fica de fora 1 MDF-e sem km ou com km
           inválido (%{excluded_gross} bruto e %{excluded_net} líquido).
         other: >-
-          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Ficam de fora %{count} viagens sem km ou
+          O R$/km considera %{gross} de frete bruto e %{net} de frete líquido em %{distance}. Ficam de fora %{count} MDF-es sem km ou
           com km inválido (%{excluded_gross} bruto e %{excluded_net} líquido).
       ranking_title: Faturamento por %{dimension}
       ranking_subtitle: Os 15 maiores pelo frete bruto das viagens do período, com o nº de viagens entre parênteses

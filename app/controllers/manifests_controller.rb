@@ -43,7 +43,7 @@ class ManifestsController < BaseController
     authorize!(:read, :manifests)
 
     @manifest = Atua::Manifest.with_trip_totals(current_tenant.atua_manifests.active.with_transport_documents)
-      .preload(route_documents: :transport_document, empty_leg: %i[origin destination previous_manifest previous_transport_document]).find(params.expect(:id))
+      .preload(route_documents: :transport_document, empty_leg: %i[origin destination previous_manifest]).find(params.expect(:id))
     @documents = @manifest.documents.active.without_internal_taker.preload(:transport_document).order(:transport_document_number)
     load_trip_expenses
     load_net_freight

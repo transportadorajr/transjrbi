@@ -14,8 +14,7 @@ module Dashboard
     THIRD_PARTY_KEY = 'third_party'.freeze
     FEATURE = :trips_dashboard
 
-    Fact = Data.define(:id, :code, :number, :trip_on, :plate, :driver_code, :driver_name, :gross_cents, :net_cents, :loaded_km, :duration_fact,
-                       :ce_trip) do
+    Fact = Data.define(:id, :code, :number, :trip_on, :plate, :driver_code, :driver_name, :gross_cents, :net_cents, :loaded_km, :duration_fact) do
       def measured?
         loaded_km.positive? && loaded_km <= MAX_LOADED_KM
       end
@@ -54,9 +53,8 @@ module Dashboard
       end
     end
 
-    def initialize(manifests, dimension:, period:, own_fleet: nil, ce_trips: Atua::TransportDocument.none)
+    def initialize(manifests, dimension:, period:, own_fleet: nil)
       @manifests = manifests
-      @ce_trips = ce_trips
       @dimension = self.class.sanitize_dimension(dimension)
       @period = period
       @own_fleet = own_fleet
@@ -111,7 +109,7 @@ module Dashboard
     end
 
     def unmeasured_trips
-      @unmeasured_trips ||= period_facts.reject(&:measured?).sort_by { |fact| [fact.trip_on, fact.code.to_i, fact.number.to_s] }
+      @unmeasured_trips ||= period_facts.reject(&:measured?).sort_by { |fact| [fact.trip_on, fact.code] }
     end
 
     def ranking_rows
@@ -158,7 +156,7 @@ module Dashboard
 
     private
 
-    attr_reader :manifests, :ce_trips
+    attr_reader :manifests
 
     def monthly_rows
       @monthly_rows ||= history_rows(months) { |fact| fact.trip_on.beginning_of_month }
@@ -193,29 +191,14 @@ module Dashboard
     end
 
     def facts
-      @facts ||= manifest_facts + ce_trip_facts
-    end
-
-    def manifest_facts
-      manifests.trips
+      @facts ||= manifests.trips
         .where(Arel.sql(Atua::Manifest.trip_on_sql).between(facts_range))
         .where(Atua::Manifest.first_trip_documents.arel.exists)
         .joins(main_driver_join)
         .pluck(*fact_columns)
         .map do |id, code, number, trip_on, plate, driver_code, driver_name, gross_cents, net_cents, loaded_km, seconds, in_progress|
           Fact.new(id, code, number, trip_on, plate, driver_code, driver_name, gross_cents.to_i, net_cents.to_i, loaded_km.to_d,
-                   TripDurations.build_fact(seconds, net_cents, in_progress), false)
-        end
-    end
-
-    def ce_trip_facts
-      documents = Atua::TransportDocument.arel_table
-
-      ce_trips.by_period(facts_range.first, facts_range.last)
-        .pluck(:id, :number, :issued_at, :plate, :driver_code, :driver_name, :freight_cents, Atua::TransportDocument.net_freight, documents[:distance_km])
-        .map do |id, number, issued_at, plate, driver_code, driver_name, gross_cents, net_cents, loaded_km|
-          Fact.new(id, nil, number, issued_at.to_date, plate, driver_code, driver_name, gross_cents.to_i, net_cents.to_i, loaded_km.to_d,
-                   TripDurations.build_fact(nil, net_cents, false), true)
+                   TripDurations.build_fact(seconds, net_cents, in_progress))
         end
     end
 

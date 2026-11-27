@@ -138,46 +138,4 @@ RSpec.describe EmptyLegs::CalculateCommand do
       expect { described_class.call(next_trip, client:) }.to change(EmptyLeg, :count).by(-1).and change(EmptyLegTransportDocument, :count).by(-1)
     end
   end
-
-  context 'when the truck carries a subcontracted CE without an MDF-e between the two trips' do
-    let!(:guaruja) { create(:atua_customer, tenant:, code: 503, street: 'RUA DO PORTO 1', city: 'GUARUJA', state: 'SP') }
-    let!(:campo_verde) { create(:atua_customer, tenant:, code: 504, street: 'RODOVIA BR 070', city: 'CAMPO VERDE', state: 'MT') }
-    let!(:ce) do
-      create(:atua_transport_document, tenant:, number: '4633', code: 94_633, document_kind: 'ce', service_kind: 'Subcontratação',
-                                       plate: 'RHJ4E07', issued_at: Time.zone.local(2026, 10, 2, 8), sender_code: 504, recipient_code: 503,
-                                       origin_city: 'CAMPO VERDE', origin_state: 'MT', destination_city: 'GUARUJA', destination_state: 'SP')
-    end
-
-    before do
-      places['RODOVIA BR 070, CAMPO VERDE, MT'] = place(-15.5450, -55.1626, 'Point Address', 'Campo Verde').with(state: 'MT')
-      places['RUA DO PORTO 1, GUARUJA, SP'] = place(-23.9930, -46.2564, 'Point Address', 'Guaruja').with(state: 'SP')
-    end
-
-    it 'measures the CE from the previous trip and the next trip from the CE' do
-      ce_leg = described_class.call(ce, client:)
-      next_leg = described_class.call(next_trip, client:)
-
-      expect(ce_leg).to have_attributes(previous_manifest_code: 41_100, previous_transport_document_code: nil, next_manifest_code: nil,
-                                        next_transport_document_code: 94_633, plate: 'RHJ4E07', status_type: 'calculated')
-      expect(ce_leg.origin).to have_attributes(city: 'BETIM')
-      expect(ce_leg.destination).to have_attributes(city: 'CAMPO VERDE')
-      expect(ce_leg.transport_documents.pluck(:number)).to eq(['4633'])
-      expect(next_leg).to have_attributes(previous_manifest_code: nil, previous_transport_document_code: 94_633, next_manifest_code: 41_200)
-      expect(next_leg.origin).to have_attributes(city: 'GUARUJA')
-      expect(EmptyLeg.count).to eq(2)
-    end
-
-    context 'when the CE is listed in an MDF-e after its leg was calculated' do
-      before do
-        described_class.call(ce, client:)
-        create(:atua_manifest_document, tenant:, manifest_code: 41_200, transport_document_number: '4633', transport_document_series: 1,
-                                        branch_name: 'JR TRANSPORTES')
-      end
-
-      it 'removes the leg of the CE and chains the next trip to the previous MDF-e' do
-        expect { described_class.call(ce, client:) }.to change(EmptyLeg, :count).by(-1)
-        expect(described_class.call(next_trip, client:)).to have_attributes(previous_manifest_code: 41_100, previous_transport_document_code: nil)
-      end
-    end
-  end
 end

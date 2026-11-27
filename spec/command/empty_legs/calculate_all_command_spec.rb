@@ -38,6 +38,30 @@ RSpec.describe EmptyLegs::CalculateAllCommand do
     end
   end
 
+  context 'when legs were calculated up to and from a CE' do
+    let!(:to_ce_leg) do
+      create(:empty_leg, tenant:, previous_manifest_code: 41_200, next_manifest_code: 41_999).tap do |leg|
+        leg.update_columns(next_manifest_code: nil, next_transport_document_code: 94_633)
+      end
+    end
+    let!(:from_ce_leg) do
+      create(:empty_leg, tenant:, previous_manifest_code: 41_998, next_manifest_code: 41_300).tap do |leg|
+        leg.update_columns(previous_manifest_code: nil, previous_transport_document_code: 94_633)
+      end
+    end
+
+    it 'removes the legs of the CE and links the trips around it' do
+      expect(EmptyLeg.where(tenant:).count).to eq(2)
+
+      described_class.call(tenant, start_date: '2026-10-01', client:)
+
+      expect(EmptyLeg.where(id: [to_ce_leg.id, from_ce_leg.id])).to be_empty
+      expect(EmptyLeg.where(tenant:).order(:next_manifest_code).pluck(:previous_manifest_code, :next_manifest_code))
+        .to eq([[41_100, 41_200], [41_200, 41_300]])
+      expect(EmptyLeg.exists?(other_tenant_leg.id)).to be(true)
+    end
+  end
+
   context 'when a trip with a leg is canceled' do
     let!(:stale_leg) { create(:empty_leg, tenant:, previous_manifest_code: 41_100, next_manifest_code: 41_200) }
 
@@ -49,24 +73,6 @@ RSpec.describe EmptyLegs::CalculateAllCommand do
       expect(EmptyLeg.exists?(stale_leg.id)).to be(false)
       expect(EmptyLeg.where(tenant:).pluck(:previous_manifest_code, :next_manifest_code)).to eq([[41_100, 41_300]])
       expect(EmptyLeg.exists?(other_tenant_leg.id)).to be(true)
-    end
-  end
-
-  context 'when the truck carries a redispatched CE without an MDF-e' do
-    let!(:stale_ce_leg) { create(:empty_leg, tenant:, previous_manifest_code: 41_100, next_manifest_code: nil, next_transport_document_code: 94_000) }
-
-    before do
-      create(:atua_transport_document, tenant:, code: 94_634, number: '4634', document_kind: 'ce', service_kind: 'Redespacho', plate: 'RHJ4E07',
-                                       issued_at: Time.zone.local(2026, 10, 4, 8))
-    end
-
-    it 'chains the CE between the trips and removes the leg of a CE that is no longer a trip' do
-      described_class.call(tenant, start_date: '2026-10-01', client:)
-
-      expect(EmptyLeg.exists?(stale_ce_leg.id)).to be(false)
-      expect(EmptyLeg.where(tenant:).order(:id).pluck(:previous_manifest_code, :previous_transport_document_code, :next_manifest_code,
-                                                      :next_transport_document_code))
-        .to contain_exactly([41_100, nil, 41_200, nil], [41_200, nil, nil, 94_634], [nil, 94_634, 41_300, nil])
     end
   end
 end

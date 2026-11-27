@@ -11,30 +11,13 @@ class EmptyLeg < ApplicationRecord
     belongs_to :previous_manifest, foreign_key: %i[tenant_id previous_manifest_code], inverse_of: false
     belongs_to :next_manifest, foreign_key: %i[tenant_id next_manifest_code], inverse_of: :empty_leg
   end
-  with_options class_name: 'Atua::TransportDocument', primary_key: %i[tenant_id code], optional: true do
-    belongs_to :previous_transport_document, foreign_key: %i[tenant_id previous_transport_document_code], inverse_of: false
-    belongs_to :next_transport_document, foreign_key: %i[tenant_id next_transport_document_code], inverse_of: :ce_empty_leg
-  end
 
   enum :status_type, STATUSES.index_with(&:to_s), validate: true
   enum :precision_type, Location::PRECISIONS.index_with(&:to_s), prefix: :precision, validate: { allow_nil: true }
 
-  validates :plate, :calculated_at, presence: true
-  validates :previous_manifest_code, presence: true, unless: :previous_transport_document_code?
-  validates :next_manifest_code, presence: true, unless: :next_transport_document_code?
-  validates :next_manifest_code, uniqueness: { scope: :tenant_id }, allow_nil: true
-  validates :next_transport_document_code, uniqueness: { scope: :tenant_id }, allow_nil: true
+  validates :plate, :previous_manifest_code, :next_manifest_code, :calculated_at, presence: true
+  validates :next_manifest_code, uniqueness: { scope: :tenant_id }
   validates :distance_km, presence: true, numericality: { greater_than_or_equal_to: 0 }, if: :calculated?
-
-  class << self
-    def trip_at
-      Arel::Nodes::NamedFunction.new('COALESCE', [Atua::Manifest.trip_at, Atua::TransportDocument.arel_table[:issued_at]])
-    end
-  end
-
-  def trip_on
-    next_manifest&.trip_on || next_transport_document&.issued_at&.to_date
-  end
 end
 
 # == Schema Information

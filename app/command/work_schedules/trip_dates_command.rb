@@ -15,7 +15,11 @@ module WorkSchedules
     def call
       return {} if driver_codes.empty?
 
-      (manifest_trips + ce_trips).each_with_object(Hash.new { |hash, code| hash[code] = Set.new }) do |(code, start, finish), result|
+      trips.each_with_object(Hash.new { |hash, code| hash[code] = Set.new }) do |(code, started_at, departure_on, issued_on, closed_at), result|
+        start = started_at&.to_date || departure_on || issued_on
+        next if start.nil?
+
+        finish = closed_at&.to_date || (started_at ? Date.current : start)
         result[code].merge(dates.grep(start..finish))
       end
     end
@@ -23,26 +27,6 @@ module WorkSchedules
     private
 
     attr_reader :tenant, :driver_codes, :dates
-
-    def manifest_trips
-      trips.filter_map do |code, started_at, departure_on, issued_on, closed_at|
-        start = started_at&.to_date || departure_on || issued_on
-        next if start.nil?
-
-        [code, start, closed_at&.to_date || (started_at ? Date.current : start)]
-      end
-    end
-
-    def ce_trips
-      tenant.atua_transport_documents.ce_trips.where(driver_code: driver_codes)
-        .where(Atua::TransportDocument.arel_table[:issued_at].lteq(dates.last.end_of_day))
-        .pluck(:driver_code, :issued_at, :arrival_on)
-        .filter_map do |code, issued_at, arrival_on|
-          start = issued_at.to_date
-          finish = [arrival_on, start].compact.max
-          [code, start, finish] if finish >= dates.first
-        end
-    end
 
     def trips
       manifests = Atua::Manifest.arel_table
