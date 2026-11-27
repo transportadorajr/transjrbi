@@ -15,6 +15,7 @@ class CustomerGroup < ApplicationRecord
 
   time_based_flag :activated
   time_based_flag :pays_advance_icms, scheduled: false
+  time_based_flag :in_export_summary, scheduled: false
 
   validates :name, presence: true, uniqueness: { scope: :tenant_id }
 
@@ -58,6 +59,7 @@ end
 #
 #  id                   :bigint           not null, primary key
 #  activated_at         :datetime
+#  in_export_summary_at :datetime
 #  name                 :string           not null
 #  pays_advance_icms_at :datetime
 #  terms                :string           default([]), not null, is an Array

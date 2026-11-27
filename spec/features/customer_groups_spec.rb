@@ -124,6 +124,7 @@ describe 'Customer groups' do
           'Status' => 'Ativo',
           'Pedágio recobrado' => 'Não, descontado do frete líquido',
           'Guia de ICMS antecipado' => 'Não paga pela JR',
+          'Resumo da exportação' => 'Não, as exportações do grupo ficam de fora do resumo',
           'Clientes' => '2',
         )
         expect(html_table_to_rows).to eq(
@@ -201,6 +202,7 @@ describe 'Customer groups' do
         expect(customer_group.name).to eq('TERRAFEC')
         expect(customer_group.terms).to eq(['2JM', 'TERRINHA ALIMENTOS'])
         expect(customer_group.activated_at).to be_present
+        expect(customer_group.in_export_summary_at).to be_nil
       end
 
       scenario 'creates an inactive group' do
@@ -253,6 +255,7 @@ describe 'Customer groups' do
         uncheck 'Ativo'
         check 'Pedágio recobrado do cliente'
         check 'JR paga a guia de ICMS antecipado'
+        check 'Entra no resumo da exportação'
 
         expect { click_on 'Salvar Alterações' }.not_to change(CustomerGroup, :count)
 
@@ -265,9 +268,11 @@ describe 'Customer groups' do
         expect(customer_group.activated_at).to be_nil
         expect(customer_group.toll_reimbursed).to be(true)
         expect(customer_group.pays_advance_icms_at).to be_present
+        expect(customer_group.in_export_summary_at).to be_present
         expect(dl_to_hash('#customer_group_data')).to include(
           'Pedágio recobrado' => 'Sim, não descontado do frete líquido',
           'Guia de ICMS antecipado' => 'Paga pela JR, CT-e sem guia fica pendente',
+          'Resumo da exportação' => 'Sim, as exportações do grupo entram no resumo',
         )
       end
 

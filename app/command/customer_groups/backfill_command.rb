@@ -30,6 +30,7 @@ module CustomerGroups
     }.freeze
     TOLL_REIMBURSED_GROUPS = %w[INDEMIL SOORO].freeze
     ADVANCE_ICMS_GROUPS = %w[GERDAU].freeze
+    EXPORT_SUMMARY_GROUPS = %w[ARCELOR USIMINAS].freeze
 
     class << self
       def call(tenant)
@@ -65,7 +66,8 @@ module CustomerGroups
 
     def find_or_create_group(name, terms)
       group = tenant.customer_groups.create_with(activated_at: Time.current, toll_reimbursed: TOLL_REIMBURSED_GROUPS.include?(name),
-                                                 pays_advance_icms: ADVANCE_ICMS_GROUPS.include?(name))
+                                                 pays_advance_icms: ADVANCE_ICMS_GROUPS.include?(name),
+                                                 in_export_summary: EXPORT_SUMMARY_GROUPS.include?(name))
         .find_or_create_by!(name:)
       group.update!(terms:) if group.terms.empty?
       group

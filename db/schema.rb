@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_26_183230) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_27_182333) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -650,6 +650,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_26_183230) do
     t.datetime "updated_at", null: false
     t.boolean "toll_reimbursed", default: false, null: false
     t.datetime "pays_advance_icms_at"
+    t.datetime "in_export_summary_at"
     t.index ["tenant_id", "name"], name: "index_customer_groups_on_tenant_id_and_name", unique: true
     t.index ["tenant_id"], name: "index_customer_groups_on_tenant_id"
   end

@@ -3,19 +3,24 @@ require 'rails_helper'
 RSpec.describe Dashboard::Export do
   subject(:dashboard) do
     described_class.new(documents: tenant.atua_transport_documents, manifests: tenant.atua_manifests, customers: tenant.atua_customers,
-                        plants: tenant.export_plants.activated, period: october, filters:, today: Date.new(2026, 10, 21))
+                        plants: tenant.export_plants.activated, customer_groups: tenant.customer_groups.in_export_summary, period: october, filters:,
+                        today: Date.new(2026, 10, 21))
   end
 
   let!(:tenant) { create(:tenant) }
   let(:october) { Date.new(2026, 10, 1)..Date.new(2026, 10, 31) }
   let(:filters) { {} }
-  let!(:arcelor) { create(:customer_group, tenant:, name: 'ARCELORMITTAL') }
-  let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
+  let!(:arcelor) { create(:customer_group, tenant:, name: 'ARCELORMITTAL', in_export_summary_at: Time.current) }
+  let!(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS', in_export_summary_at: Time.current) }
+  let!(:indemil) { create(:customer_group, tenant:, name: 'INDEMIL') }
+  let!(:guaira) { create(:export_plant, tenant:, customer_group: indemil, name: 'Guaíra', cities: ['GUAIRA']) }
   let!(:sul_fluminense) { create(:export_plant, tenant:, customer_group: arcelor, name: 'Sul Fluminense', cities: ['RESENDE', 'Barra Mansa']) }
 
   before do
     create(:atua_customer, tenant:, code: 100, name: 'ARCELORMITTAL BRASIL S.A.', customer_group: arcelor)
     create(:atua_customer, tenant:, code: 200, name: 'USINAS SIDERURGICAS DE MINAS GERAIS', customer_group: usiminas)
+    create(:atua_customer, tenant:, code: 400, name: 'INDEMIL INDUSTRIA E COMERCIO S.A.', customer_group: indemil)
+    create(:atua_customer, tenant:, code: 500, name: 'CLIENTE SEM GRUPO')
     create(:atua_customer, tenant:, code: 300, name: 'ACEROS ASUNCION SA', city: 'ASUNCION', state: 'EX', country_type: 'paraguay')
     create(:atua_customer, tenant:, code: 301, name: 'ACINDAR', city: 'BUENOS AIRES', state: 'EX', country_type: 'argentina')
     create(:atua_customer, tenant:, code: 302, name: 'FERROSIDER S/A', city: 'EXTERIOR', state: 'EX')
@@ -54,6 +59,8 @@ RSpec.describe Dashboard::Export do
       create_loading(code: 7, on: Date.new(2026, 11, 2), documents: [['74011', { weight_tons: 40 }]])
       create(:atua_transport_document, tenant:, number: '74012', cargo_destination_type: 'export', taker_code: 100, weight_tons: 40)
       create_loading(code: 8, on: Date.new(2026, 10, 2), target: create(:tenant), documents: [['74013', { weight_tons: 40 }]])
+      create_loading(code: 9, on: Date.new(2026, 10, 9), documents: [['74014', { weight_tons: 51, taker_code: 400, origin_city: 'GUAIRA', origin_state: 'PR' }]])
+      create_loading(code: 10, on: Date.new(2026, 10, 9), documents: [['74015', { weight_tons: 20, taker_code: 500 }]])
     end
 
     it 'adds up the tons of each customer group, plant and country of destination' do
@@ -70,6 +77,12 @@ RSpec.describe Dashboard::Export do
     it 'counts the cargo of a document once, on its first manifest, leaving CEs, cancellations and complements out' do
       expect(dashboard.documents_for('total').map(&:number)).to eq(%w[74001 74002 74007 74008 74009])
       expect(dashboard.documents_for('total').first).to have_attributes(manifest_code: 1, trip_on: Date.new(2026, 10, 2), tons: BigDecimal('30'))
+    end
+
+    it 'leaves out the loadings of customer groups that are not in the export summary and of customers without a group' do
+      expect(dashboard.rows.map(&:customer_group)).not_to include('INDEMIL', 'Sem grupo de clientes')
+      expect(dashboard.documents_for('total').map(&:number)).not_to include('74014', '74015')
+      expect(dashboard.month_comparison.current_tons).to eq(BigDecimal('144.5'))
     end
 
     it 'lists the documents of a row and nothing for an unknown key' do
@@ -114,8 +127,8 @@ RSpec.describe Dashboard::Export do
 
     subject(:dashboard) do
       described_class.new(documents: tenant.atua_transport_documents, manifests: tenant.atua_manifests, customers: tenant.atua_customers,
-                          plants: tenant.export_plants.activated, period: october, filters:, shortcuts: [paraguay, everything],
-                          today: Date.new(2026, 10, 21))
+                          plants: tenant.export_plants.activated, customer_groups: tenant.customer_groups.in_export_summary, period: october,
+                          filters:, shortcuts: [paraguay, everything], today: Date.new(2026, 10, 21))
     end
 
     before do

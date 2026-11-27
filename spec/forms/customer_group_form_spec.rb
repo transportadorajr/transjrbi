@@ -70,6 +70,7 @@ RSpec.describe CustomerGroupForm do
       expect(form.active).to be(true)
       expect(form.toll_reimbursed).to be(false)
       expect(form.pays_advance_icms).to be(false)
+      expect(form.in_export_summary).to be(false)
       expect(form).to be_persisted
     end
 
@@ -95,6 +96,21 @@ RSpec.describe CustomerGroupForm do
 
       expect(form.save).to be(true)
       expect(customer_group.reload.pays_advance_icms_at).to be_nil
+    end
+
+    it 'puts the group in the export summary and takes it out' do
+      form = described_class.for_customer_group(customer_group)
+      form.assign_attributes(in_export_summary: '1')
+
+      expect(form.save).to be(true)
+      expect(customer_group.reload.in_export_summary_at).to be_present
+      expect(described_class.for_customer_group(customer_group).in_export_summary).to be(true)
+
+      form = described_class.for_customer_group(customer_group)
+      form.assign_attributes(in_export_summary: '0')
+
+      expect(form.save).to be(true)
+      expect(customer_group.reload.in_export_summary_at).to be_nil
     end
 
     it 'updates the group keeping its own name available and the activation date' do
