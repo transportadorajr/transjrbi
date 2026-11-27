@@ -2,6 +2,8 @@ module Dashboard
   class Goals
     ON_TRACK_RATIO = 1
     ATTENTION_RATIO = BigDecimal('0.9')
+    GAUGE_MAX = BigDecimal('1.2')
+    GAUGE_ZONES = { behind: ATTENTION_RATIO, attention: ON_TRACK_RATIO - ATTENTION_RATIO, on_track: GAUGE_MAX - ON_TRACK_RATIO }.freeze
     COMPANY_KEY = 'company'.freeze
     THIRD_PARTY_KEY = 'third_party'.freeze
     DEFAULT_SORT = 'realized'.freeze
@@ -51,6 +53,10 @@ module Dashboard
 
       def projected_ratio
         projected_cents.to_d / goal_cents if goal? && projected_cents
+      end
+
+      def gauge_ratio
+        projected_ratio || ratio
       end
 
       def status
@@ -105,6 +111,10 @@ module Dashboard
     def breakdown_rows(section)
       @breakdown_rows ||= {}
       @breakdown_rows[section] ||= breakdown_keys(section).map { |key| breakdown_row(section, key) }.sort_by { |row| [-row.realized_cents, row.label] }
+    end
+
+    def gauge_rows(section)
+      breakdown_rows(section).select(&:goal?)
     end
 
     def breakdown_extra_row(section)

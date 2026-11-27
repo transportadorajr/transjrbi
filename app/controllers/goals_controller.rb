@@ -10,6 +10,7 @@ class GoalsController < BaseController
     @last_synced_at = current_tenant.last_synced_at
     @dashboard = Dashboard::Goals.new(current_tenant.billable_freights, targets:, pace:, week:, own_fleet: current_tenant.own_fleet)
     @rows = listing_page(dimension_rows)
+    @gauge_rows = listing_page(gauge_rows, param_name: :gauges_page)
     @truck_group_averages = Dashboard::TruckGroupAverages.new(current_tenant, month)
     @truck_group_rows = listing_page(@truck_group_averages.rows, param_name: :truck_groups_page)
 
@@ -22,6 +23,12 @@ class GoalsController < BaseController
     return @dashboard.sorted_vehicle_rows(params[:sort], params[:direction], section: @filter_form.section) if @filter_form.vehicle_section?
 
     @dashboard.breakdown_rows(@filter_form.section)
+  end
+
+  def gauge_rows
+    return [] if @filter_form.vehicle_section?
+
+    @dashboard.gauge_rows(@filter_form.section)
   end
 
   def month

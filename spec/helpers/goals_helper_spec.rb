@@ -49,6 +49,34 @@ RSpec.describe GoalsHelper do
     end
   end
 
+  describe '#goal_month_gauge' do
+    it 'points the needle to the projection and shows the share reached and the missing amount' do
+      gauge = helper.goal_month_gauge(row(goal_cents: 2_000), id: 'goal_month_gauge')
+
+      expect(gauge).to include('id="goal_month_gauge"', 'Meta do mês', 'Ponteiro na projeção de fechamento: 50,0%', '25,0%', 'Faltam R$ 15,00')
+      expect(gauge).to include('"goalGauge":{"value":0.5,"max":1.2,"color":"#1a2a3a"}')
+      expect(gauge).to include('"rotation":-90', '"circumference":180')
+      expect(gauge).to include('"#dc3545","#ffc107","#198754"')
+    end
+
+    it 'shows the goal reached when there is nothing missing' do
+      expect(helper.goal_month_gauge(row(goal_cents: 400), id: 'gauge', title: 'USIMINAS')).to include('USIMINAS', 'Meta batida', '125,0%')
+    end
+  end
+
+  describe '#goal_week_gauge' do
+    it 'points the needle to the share of the week goal reached' do
+      week_row = row_class.new(key: 'company', label: 'Transportadora', goal_cents: 1_000, realized_cents: 0, projected_cents: 0,
+                               week_goal_cents: 400, week_realized_cents: 100)
+
+      expect(helper.goal_week_gauge(week_row, id: 'goal_week_gauge')).to include('Meta da semana', '25,0%', 'Faltam R$ 3,00', '"value":0.25')
+    end
+
+    it 'has no gauge without a week goal' do
+      expect(helper.goal_week_gauge(row(goal_cents: 1_000), id: 'goal_week_gauge')).to be_nil
+    end
+  end
+
   describe '#goal_row_menu' do
     let(:tenant) { create(:tenant) }
     let(:cut_row) { row_class.new(key: 'AJR4391', label: 'AJR4391', goal_cents: nil, realized_cents: 0, projected_cents: 0, cut: { plate: 'AJR4391' }) }

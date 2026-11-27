@@ -2,6 +2,7 @@ module ChartsHelper
   BRAND_BLUE = '#2563eb'.freeze
   DANGER_RED = '#dc3545'.freeze
   SUCCESS_GREEN = '#198754'.freeze
+  WARNING_YELLOW = '#ffc107'.freeze
   CATEGORY_ORANGE = '#f97316'.freeze
   CHART_GRID_COLOR = '#eef0f4'.freeze
   CHART_TEXT_COLOR = '#52514e'.freeze

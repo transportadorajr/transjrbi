@@ -4273,6 +4273,18 @@ pt-BR:
         projected: Projeção
         status: Situação
         projections: Projeções
+      gauges:
+        month: Meta do mês
+        week: Meta da semana
+        projected: 'Ponteiro na projeção de fechamento: %{ratio}'
+        missing: Faltam %{value}
+        reached: Meta batida
+        subtitle: >-
+          O ponteiro mostra a projeção de fechamento sobre a meta do mês: vermelho abaixo de 90%, amarelo até 100% e verde
+          com a meta batida. Abaixo do ponteiro, o atingimento até agora.
+        titles:
+          customer_groups: Velocímetros por grupo de clientes
+          regions: Velocímetros por macro região
       pace_notes:
         learned: >-
           Projeção pelo ritmo atual, ajustada pelo peso de cada dia da semana e pelos feriados aprendidos na projeção de faturamento.

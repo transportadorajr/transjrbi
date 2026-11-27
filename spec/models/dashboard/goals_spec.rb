@@ -99,6 +99,19 @@ RSpec.describe Dashboard::Goals do
     expect(row.status).to eq(:attention)
   end
 
+  it 'points the gauge to the projection and falls back to the realized share without a projection' do
+    projected = described_class::Row.new(key: 'company', label: 'Transportadora', goal_cents: 1_000, realized_cents: 500, projected_cents: 950)
+    unprojected = described_class::Row.new(key: 'company', label: 'Transportadora', goal_cents: 1_000, realized_cents: 500, projected_cents: nil)
+
+    expect(projected.gauge_ratio).to eq(BigDecimal('0.95'))
+    expect(unprojected.gauge_ratio).to eq(BigDecimal('0.5'))
+  end
+
+  it 'splits the gauge in the status zones up to the end of the scale' do
+    expect(described_class::GAUGE_ZONES).to eq(behind: BigDecimal('0.9'), attention: BigDecimal('0.1'), on_track: BigDecimal('0.2'))
+    expect(described_class::GAUGE_ZONES.values.sum).to eq(described_class::GAUGE_MAX)
+  end
+
   context 'with the customer group and region goals and the week' do
     let(:usiminas) { create(:customer_group, tenant:, name: 'USIMINAS') }
     let(:arcelor) { create(:customer_group, tenant:, name: 'ARCELOR') }
@@ -133,6 +146,11 @@ RSpec.describe Dashboard::Goals do
       expect(rows.first.week_ratio).to eq(0)
       expect(dashboard_with_breakdowns.breakdown_extra_row(:customer_groups))
         .to have_attributes(label: 'Sem grupo de clientes', realized_cents: 1_550_000, week_realized_cents: 300_000, cut: nil)
+    end
+
+    it 'keeps only the rows with a goal for the gauges' do
+      expect(dashboard_with_breakdowns.gauge_rows(:customer_groups).map(&:label)).to eq(['USIMINAS'])
+      expect(dashboard_with_breakdowns.gauge_rows(:regions).map(&:label)).to eq(['VALE DO AÇO/MG'])
     end
 
     it 'compares the billing of each origin macro region with its goal' do
