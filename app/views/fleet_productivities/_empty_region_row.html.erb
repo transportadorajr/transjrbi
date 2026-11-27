@@ -1,0 +1,8 @@
+<%# locals: (region:) %>
+
+<tr>
+  <td class="text-break fw-semibold"><%= region.label %></td>
+  <td class="text-end text-nowrap"><%= region.legs_count %></td>
+  <td class="d-none d-md-table-cell text-end text-nowrap"><%= fleet_productivity_km(region.average_km) %></td>
+  <td class="text-end text-nowrap fw-semibold"><%= fleet_productivity_km(region.total_km) %></td>
+</tr>

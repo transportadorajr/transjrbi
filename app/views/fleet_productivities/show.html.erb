@@ -1,0 +1,68 @@
+<% content_for :title, t('.title') %>
+
+<div class="page-shell">
+  <%= page_header_tag t('.title'), subtitle: fleet_productivity_period_label(@filter_form) do %>
+    <%= link_to_filters('#filtersModal', applied: @filter_form.filtered?, class: 'btn btn-outline-secondary btn-round') %>
+    <%= xlsx_export_button %>
+  <% end %>
+
+  <%= render 'filters' %>
+
+  <div class="dashboard-filter-bar mb-4">
+    <span class="dashboard-filter-label"><%= t('.period_label') %></span>
+
+    <%= tag.div class: 'dashboard-segmented', role: 'group', aria: { label: t('.period_label') } do %>
+      <% fleet_productivity_period_presets.each do |preset| %>
+        <%= link_to fleet_productivity_period_preset_label(preset), fleet_productivity_period_preset_path(preset),
+                    class: fleet_productivity_period_preset_link_class(preset, @filter_form) %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="row g-2 g-md-3 mb-4 counter-grid-compact">
+    <%= counter_card(:dark, t('.legs_count'), @dashboard.legs_count, col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.total_km'), fleet_productivity_km(@dashboard.total_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:primary, t('.average_km'), fleet_productivity_km(@dashboard.average_km), col_class: 'col-6 col-xl-3') %>
+    <%= counter_card(:warning, t('.unmeasured_count'), @dashboard.unmeasured_count, col_class: 'col-6 col-xl-3') %>
+  </div>
+
+  <%= fleet_productivity_routes_chart_card(@dashboard) %>
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-7">
+      <div class="card table-card h-100" id="fleet_productivity_routes">
+        <div class="table-card-header">
+          <div class="table-card-heading">
+            <p class="table-card-title"><%= t('.routes_title') %></p>
+            <p class="table-card-subtitle"><%= t('.routes_subtitle') %></p>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <% if @empty_routes.any? %>
+            <%= render 'empty_routes_table', routes: @empty_routes %>
+          <% else %>
+            <%= render 'shared/no_content' %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+      <div class="card table-card h-100" id="fleet_productivity_regions">
+        <div class="table-card-header">
+          <div class="table-card-heading">
+            <p class="table-card-title"><%= t('.regions_title') %></p>
+            <p class="table-card-subtitle"><%= t('.regions_subtitle') %></p>
+          </div>
+        </div>
+        <div class="table-card-body">
+          <% if @empty_regions.any? %>
+            <%= render 'empty_regions_table', regions: @empty_regions %>
+          <% else %>
+            <%= render 'shared/no_content' %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -20,6 +20,11 @@ shared:
           feature: export_summary
           controllers:
             - export_summaries
+        - name: fleet_productivity
+          resource: fleet_productivity
+          url: /fleet_productivity
+          controllers:
+            - fleet_productivities
     - name: revenue_projections
       icon: bar-chart-line
       menus:

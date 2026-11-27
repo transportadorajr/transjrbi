@@ -5,6 +5,8 @@
   <td class="text-end text-nowrap"><%= tax_money(row.gross) %></td>
   <%= freight_billing_comparison_cells(row, dashboard) %>
   <td class="text-end text-nowrap"><%= tax_money(row.net) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= freight_billing_km(row.empty_km) %></td>
+  <td class="d-none d-lg-table-cell text-end text-nowrap"><%= freight_billing_empty_share(row) %></td>
   <td class="d-none d-lg-table-cell text-end text-nowrap"><%= freight_billing_toll(row) %></td>
   <td class="text-end text-nowrap"><%= freight_billing_share(row.share) %></td>
   <td class="text-end"><%= responsive_actions_menu(freight_billing_row_menu(row)) %></td>

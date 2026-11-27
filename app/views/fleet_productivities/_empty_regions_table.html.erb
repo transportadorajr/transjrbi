@@ -1,0 +1,21 @@
+<%# locals: (regions:) %>
+
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= t('fleet_productivities.columns.region') %></th>
+        <th class="text-end"><%= t('fleet_productivities.columns.legs_count') %></th>
+        <th class="d-none d-md-table-cell text-end"><%= t('fleet_productivities.columns.average_km') %></th>
+        <th class="text-end"><%= t('fleet_productivities.columns.total_km') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'empty_region_row', collection: regions, as: :region %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate regions, param_name: :empty_regions_page, params: { anchor: 'fleet_productivity_regions' } %>
+</div>

@@ -327,7 +327,8 @@ module FreightBillingsHelper
   def freight_billing_pdf_row(row, dashboard)
     [freight_billing_row_label(row, dashboard), freight_billing_trips(row.trips_count), freight_billing_km(row.loaded_km), tax_money(row.gross),
      *([tax_money(row.previous_gross), freight_billing_signed_percentage(row.variation)] if dashboard.comparison?),
-     tax_money(row.net), tax_money(row.toll_total), tax_money(row.gross_per_km), tax_money(row.net_per_km), freight_billing_share(row.share)]
+     tax_money(row.net), freight_billing_km(row.empty_km), freight_billing_empty_share(row), tax_money(row.toll_total), tax_money(row.gross_per_km),
+     tax_money(row.net_per_km), freight_billing_share(row.share)]
   end
 
   def freight_billing_pdf_highlights(dashboard)
@@ -363,7 +364,7 @@ module FreightBillingsHelper
   def freight_billing_pdf_column_names(dashboard)
     comparison = %i[previous_gross variation] if dashboard.comparison?
 
-    [:trips, :loaded_km, :gross, *comparison, :net, :toll_total, :gross_per_km, :net_per_km, :share]
+    [:trips, :loaded_km, :gross, *comparison, :net, :empty_km, :empty_share, :toll_total, :gross_per_km, :net_per_km, :share]
   end
 
   def freight_billing_comparison_xlsx_fields(dashboard)

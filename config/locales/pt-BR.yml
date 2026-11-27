@@ -925,6 +925,11 @@ pt-BR:
         macro_region_id: Macro região de origem
         truck_group_id: Tipo de conjunto
         dimension: Agrupar por
+      fleet_productivity_filter_form:
+        start_date: Viagens a partir de
+        end_date: Viagens até
+        plate: Placa
+        customer_group_id: Grupo de clientes da próxima carga
       freight_billing_filter_form:
         start_date: Emitidos a partir de
         end_date: Emitidos até
@@ -1276,6 +1281,10 @@ pt-BR:
             end_date:
               before_start_date: não pode ser anterior à data inicial
         trip_filter_form:
+          attributes:
+            end_date:
+              before_start_date: não pode ser anterior à data inicial
+        fleet_productivity_filter_form:
           attributes:
             end_date:
               before_start_date: não pode ser anterior à data inicial
@@ -2351,6 +2360,7 @@ pt-BR:
     freight_billing: Faturamento
     trips: Viagens
     export_summary: Resumo da exportação
+    fleet_productivity: Produtividade de frota
     revenue_projection: Projeção de faturamento
     revenue_projection_notes: Anotações da projeção
     revenue_goals: Metas de faturamento
@@ -4456,6 +4466,11 @@ pt-BR:
       billed:
         month: Faturado no mês
         week: Faturado na semana
+    fleet_productivity:
+      empty_km: KM vazio
+      route: '%{origin} → %{destination}'
+      city: '%{city}/%{state}'
+      no_macro_region: Sem macro região
     freight:
       total: Total
       gross: Frete bruto
@@ -4594,6 +4609,8 @@ pt-BR:
       net_per_km: Líquido/km
       share: Participação
       empty_share_status: Situação do KM vazio
+      empty_km: KM vazio
+      empty_share: Rodou vazio
       previous_gross:
         week: Bruto semana passada
         month: Bruto mês passado
@@ -4650,6 +4667,35 @@ pt-BR:
       weekly_title: Evolução Semanal
       weekly_subtitle: Frete bruto e líquido por semana de emissão do CT-e, de %{from} a %{to}
       table_title: Detalhamento por %{dimension}
+  fleet_productivities:
+    km: '%{distance} km'
+    km_unit: km
+    period_presets:
+      week: Sem. atual
+      last_week: Sem. passada
+      month: Mês
+      last_month: Mês passado
+      today: Hoje
+    columns:
+      route: Trecho
+      region: Região da descarga
+      legs_count: Trechos
+      average_km: KM médio
+      total_km: KM vazio
+    show:
+      title: Produtividade de frota
+      period: Viagens iniciadas de %{from} a %{to}
+      period_label: Data
+      legs_count: Trechos vazios
+      total_km: KM vazio
+      average_km: KM vazio médio
+      unmeasured_count: Trechos não medidos
+      chart_title: KM vazio por trecho
+      chart_subtitle: Os 15 trechos com mais KM vazio, da última descarga até o próximo carregamento da mesma placa
+      routes_title: Trechos rodados vazios
+      routes_subtitle: Da cidade da última descarga até a cidade do próximo carregamento
+      regions_title: Regiões da descarga
+      regions_subtitle: Onde o caminhão descarregou e precisou rodar vazio até a próxima carga
   export_summaries:
     tons: '%{value} t'
     shortcut_not_found: Este atalho não existe mais.
@@ -5138,6 +5184,7 @@ pt-BR:
     freight_billing: Faturamento
     trips: Viagens
     export_summary: Resumo da exportação
+    fleet_productivity: Produtividade de frota
     revenue_projections: Metas e projeções
     revenue_projection_history: Histórico da projeção
     goals: Metas

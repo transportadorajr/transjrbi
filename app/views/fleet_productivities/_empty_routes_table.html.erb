@@ -1,0 +1,21 @@
+<%# locals: (routes:) %>
+
+<div class="table-responsive">
+  <table class="table app-table align-middle mb-0">
+    <thead>
+      <tr>
+        <th><%= t('fleet_productivities.columns.route') %></th>
+        <th class="text-end"><%= t('fleet_productivities.columns.legs_count') %></th>
+        <th class="d-none d-md-table-cell text-end"><%= t('fleet_productivities.columns.average_km') %></th>
+        <th class="text-end"><%= t('fleet_productivities.columns.total_km') %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: 'empty_route_row', collection: routes, as: :route %>
+    </tbody>
+  </table>
+</div>
+
+<div class="table-pagination">
+  <%= paginate routes, param_name: :empty_routes_page, params: { anchor: 'fleet_productivity_routes' } %>
+</div>
